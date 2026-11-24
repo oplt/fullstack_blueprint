@@ -1,0 +1,2 @@
+backend: exec "$BACKEND_PYTHON" -m uvicorn backend.api.main:app --reload --reload-dir backend --host 127.0.0.1 --port "$BACKEND_PORT" --no-proxy-headers
+frontend: cd frontend && BACKEND_PROXY_TARGET="http://127.0.0.1:$BACKEND_PORT" exec npm run dev -- --port "$FRONTEND_PORT" --strictPort --open

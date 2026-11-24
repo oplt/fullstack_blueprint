@@ -1,0 +1,11 @@
+**
+!backend/
+!backend/**
+backend/.env*
+backend/.venv/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/.pytest_cache/
+backend/**/.ruff_cache/
+backend/logs/
+backend/var/

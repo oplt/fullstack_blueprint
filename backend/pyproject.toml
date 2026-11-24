@@ -1,0 +1,100 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fullstack-blueprint"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "celery",
+    "sqlalchemy",
+    "asyncpg",
+    "alembic",
+    "redis",
+    "pydantic-settings",
+    "pyjwt",
+    "passlib[argon2]",
+    "python-multipart",
+    "email-validator",
+    "httpx",
+    "aiosmtplib",
+    "pyotp",
+    "sentry-sdk[fastapi]",
+    "prometheus-client",
+    "prometheus-fastapi-instrumentator",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-sqlalchemy",
+    "opentelemetry-exporter-otlp-proto-http",
+    "opentelemetry-exporter-otlp-proto-grpc",
+    "pgvector",
+]
+
+[project.optional-dependencies]
+memory = ["mem0ai"]
+storage = ["boto3"]
+rag = ["boto3", "langchain-text-splitters", "pypdf", "python-docx"]
+rag-eval = ["simplemma"]
+# pip install -e ".[dev]" (CI / local). Keep in sync with [dependency-groups].dev.
+dev = [
+    "honcho>=2.0.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.11.2",
+    "langchain-text-splitters",
+    "pypdf",
+    "python-docx",
+]
+pdf = ["pymupdf>=1.24", "pypdf"]
+pdf-ocr = ["pymupdf>=1.24", "pypdf", "pillow>=10", "pytesseract>=0.3.13"]
+
+# Editable install lives in backend/, but import root is the repo package `backend.*`
+# (not sibling top-level api/core/db/...). Discover from parent so semantics stay clear.
+[tool.setuptools.package-dir]
+"" = ".."
+
+[tool.setuptools.packages.find]
+where = [".."]
+include = ["backend*"]
+exclude = [
+    "backend.alembic*",
+    "backend.tests*",
+    "backend.logs*",
+    "backend.scripts*",
+    "backend.*.tests*",
+    "backend.modules.*.tests*",
+    "backend.modules.*.*.tests*",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["B008"]  # FastAPI Depends() in defaults
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*.py" = ["E501"]
+"alembic/env.py" = ["E402"]
+
+[dependency-groups]
+dev = [
+    "honcho>=2.0.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.11.2",
+    "langchain-text-splitters",
+    "pypdf",
+    "python-docx",
+]
+
+# Deterministic installs use uv sync --locked.
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+faulthandler_timeout = 30

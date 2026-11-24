@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fullstack_blueprint}
+      POSTGRES_USER: ${POSTGRES_USER:-fullstack_blueprint}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fullstack_blueprint}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  mailpit:
+    image: axllent/mailpit:v1.27
+    profiles: ["mail"]
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_WEB_PORT:-8025}:8025"
+  minio:
+    build:
+      context: ./infra
+      dockerfile: minio.Dockerfile
+    profiles: ["storage"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-blueprint-local}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-blueprint-local-storage}
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - object_data:/data
+volumes:
+  postgres_data:
+  redis_data:
+  object_data:

@@ -1,0 +1,5 @@
+The 0001_blueprint revision initializes a fresh PostgreSQL schema. Install
+pgvector on the server first. Keep previous applications and their migration
+history in their original databases and migrate retained data separately.
+
+From backend/, run .venv/bin/alembic upgrade head, current, heads, and check.
