@@ -1,7 +1,7 @@
 /**
  * Responsive QA viewports and shared scroll/layout helpers (Phase 22).
  *
- * MUI defaults used by the app:
+ * Responsive defaults used by the app:
  * - sm 600 · md 900 · lg 1200 · xl 1536
  *
  * Content width at 1024 with the permanent nav (~195px) is ~800px — too tight
@@ -13,7 +13,7 @@ export const RESPONSIVE_QA_VIEWPORTS = [390, 768, 1024, 1280, 1440, 1920] as con
 export type ResponsiveQaViewport = (typeof RESPONSIVE_QA_VIEWPORTS)[number];
 
 /** Horizontal scroll wrapper for tables, charts, and dense toolbars. */
-export const scrollContainerSx = {
+export const scrollContainerStyle = {
     width: "100%",
     maxWidth: "100%",
     minWidth: 0,

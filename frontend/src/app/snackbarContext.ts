@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { AlertColor } from "@/components/ui/muiCompat";
+export type AlertColor = "error" | "warning" | "info" | "success";
 
 export type ToastOptions = {
     message: string;

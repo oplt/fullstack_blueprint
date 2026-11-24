@@ -1,6 +1,6 @@
 # Component inventory
 
-Scope includes tracked TypeScript frontend source, tests, build config and the lockfile. The import appendix below is a historical migration snapshot of the former component-suite dependency and is retained for audit traceability; it is not the current dependency state. For current ownership, use [DEPENDENCY_MATRIX](DEPENDENCY_MATRIX.md) and [ARCHITECTURE](ARCHITECTURE.md). Shared consumers are static relative imports with the lazy shell edge called out separately. Phase 3 adds the typed, domain-independent Base UI/shadcn primitives under `src/components/ui`; later phases completed the shared and feature migration.
+Scope includes tracked TypeScript frontend source, tests, build config and the lockfile. This document is a historical migration snapshot of the former component-suite dependency and is retained for audit traceability; its dependency, theme, rendering and build rows are not the current runtime state. For current ownership and dependencies, use [DEPENDENCY_MATRIX](DEPENDENCY_MATRIX.md) and [ARCHITECTURE](ARCHITECTURE.md). Shared consumers are static relative imports with the lazy shell edge called out separately. Phase 3 added the typed, domain-independent Base UI/shadcn primitives under `src/components/ui`; later phases completed the shared and feature migration.
 
 ## Dependency footprint
 

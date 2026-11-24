@@ -92,7 +92,7 @@ describe("AgentView persisted history", () => {
 
         const { container } = renderView();
 
-        expect(container.querySelector(".MuiSkeleton-root")).toBeInTheDocument();
+        expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
     });
 
     it("renders an empty persisted-history state", async () => {

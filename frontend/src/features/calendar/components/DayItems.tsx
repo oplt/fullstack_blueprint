@@ -1,10 +1,18 @@
-import { Box, Chip, Stack, Typography } from "@/components/ui/muiCompat";
-import { Event as EventIcon, EventAvailable as AppointmentIcon, TaskAlt as TaskIcon } from "@/components/ui/iconsCompat";
-import { alpha } from "@/components/ui/muiCompat";
+import { colorMix } from "@/lib/color";import { Event as EventIcon, EventAvailable as AppointmentIcon, TaskAlt as TaskIcon } from "@/components/ui/iconsCompat";
 import type { CalendarItem, CalendarItemType } from "../../../api/calendar";
 import { EmptyState } from "../../../components/ui/EmptyState";
-import { humanizeKey } from "../../../utils/formatters";
-import { formatItemTime } from "../calendarDisplay";
 function getItemIcon(type: CalendarItemType) { if (type === "task") return <TaskIcon fontSize="small" />; if (type === "appointment") return <AppointmentIcon fontSize="small" />; return <EventIcon fontSize="small" />; }
-export function DayItems({ items, emptyTitle, emptyDescription }: { items: CalendarItem[]; emptyTitle: string; emptyDescription: string }) { if (!items.length) return <EmptyState icon={<EventIcon />} title={emptyTitle} description={emptyDescription} />; return <Stack spacing={1}>{items.map((item) => <Box key={item.id} sx={(theme: any) => ({ borderRadius: 3, border: `1px solid ${theme.palette.divider}`, p: 1.5, backgroundColor: item.type === "task" ? alpha(theme.palette.success.main, theme.palette.mode === "dark" ? .16 : .08) : theme.palette.background.paper })}><Stack spacing={.75}><Stack direction="row" spacing={1} alignItems="center">{getItemIcon(item.type)}<Typography variant="subtitle2">{item.title}</Typography></Stack><Stack direction="row" spacing={.75} flexWrap="wrap" useFlexGap><Chip label={humanizeKey(item.type)} size="small" variant="outlined" /><Chip label={formatItemTime(item)} size="small" variant="outlined" />{item.project_name && <Chip label={item.project_name} size="small" variant="outlined" />}{item.status && <Chip label={humanizeKey(item.status)} size="small" variant="outlined" />}{item.priority && <Chip label={`${humanizeKey(item.priority)} priority`} size="small" variant="outlined" />}</Stack>{item.description && <Typography variant="body2" color="text.secondary">{item.description}</Typography>}</Stack></Box>)}</Stack>; }
+export function DayItems({ items, emptyTitle, emptyDescription }: { items: CalendarItem[]; emptyTitle: string; emptyDescription: string }) { if (!items.length) return <EmptyState icon={<EventIcon />} title={emptyTitle} description={emptyDescription} />; return (
+  <div className="flex gap-[8px]">{items.map((item) => <div key={item.id} style={({
+    borderRadius: 12,
+    border: `1px solid ${"var(--border)"}`,
+    padding: 12,
+    backgroundColor: item.type === "task" ? colorMix("var(--success)", 0.12) : "var(--card)"
+  })}><div className="flex gap-[6px]"><div className="flex flex-row gap-[8px] items-center">{getItemIcon(item.type)}<p>{item.title}</p></div><div className="flex flex-row gap-[6px] flex-wrap"><div
+    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" /><div
+    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />{item.project_name && <div
+    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}{item.status && <div
+    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}{item.priority && <div
+    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}</div>{item.description && <p className="text-muted-foreground">{item.description}</p>}</div></div>)}</div>
+); }
 

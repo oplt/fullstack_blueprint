@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiFetch, apiFetchItems } from "./client";
+import { ApiError, apiFetch, apiFetchItems, apiFetchStream } from "./client";
 
 describe("apiFetchItems", () => {
     afterEach(() => {
@@ -69,5 +69,17 @@ describe("apiFetchItems", () => {
         const request = apiFetch("/projects", { signal: controller.signal });
         controller.abort();
         await expect(request).rejects.toMatchObject({ name: "AbortError" });
+    });
+
+    it("bounds stream authentication recovery to one refresh", async () => {
+        const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+            if (url.endsWith("/auth/refresh")) return new Response(null, { status: 200 });
+            return new Response(null, { status: 401 });
+        });
+        vi.stubGlobal("fetch", fetchMock);
+
+        await expect(apiFetchStream("/ai/stream")).rejects.toMatchObject({ status: 401 });
+        expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/auth/refresh"))).toHaveLength(1);
+        expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/ai/stream"))).toHaveLength(2);
     });
 });

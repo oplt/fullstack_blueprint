@@ -14,10 +14,6 @@ export default defineConfig([
     'storybook-static',
     'public/mockServiceWorker.js',
     '.vitest',
-    // Compatibility adapters are intentionally permissive while the legacy
-    // feature pages finish moving to the native shared component primitives.
-    'src/components/ui/*Compat.tsx',
-    'src/components/ui/styleCompat.ts',
   ]),
   {
     files: ['**/*.{ts,tsx}'],

@@ -1,5 +1,22 @@
-import { Circle } from "lucide-react";
-import type { ComponentProps } from "react";
-type Props = ComponentProps<typeof Circle>;
-const Icon = (props: Props) => <Circle {...props} />;
-export const Visibility = Icon; export const VisibilityOff = Icon; export const Search = Icon; export const PeopleAlt = Icon; export const ArrowForward = Icon; export const ArrowBack = Icon; export const DoneAll = Icon; export const MailOutline = Icon; export const NotificationsActive = Icon; export const Campaign = Icon; export const FolderOpen = Icon; export const Notifications = Icon; export const Security = Icon; export const VerifiedUser = Icon; export const SmartToy = Icon; export const PlayArrow = Icon; export const Extension = Icon; export const Flag = Icon; export const Sell = Icon; export const DeleteOutline = Icon; export const Bolt = Icon; export const Key = Icon; export const Webhook = Icon; export const Link = Icon; export const Devices = Icon; export const LockOutlined = Icon; export const PlaceOutlined = Icon; export const Public = Icon; export const UploadFile = Icon; export const Storage = Icon; export const RestartAlt = Icon; export const SettingsSuggest = Icon; export const Event = Icon; export const EventAvailable = Icon; export const TaskAlt = Icon; export const PlaylistAddCheck = Icon; export const ViewKanban = Icon; export const ViewList = Icon; export const CalendarMonth = Icon; export const DragIndicator = Icon; export const Approval = Icon; export const Dataset = Icon; export const Description = Icon; export const PsychologyAlt = Icon; export const AutoAwesome = Icon; export const PlayCircleOutline = Icon; export const OpenInNew = Icon; export const Refresh = Icon; export const Timeline = Icon; export const Speed = Icon; export const QueryStats = Icon; export const Hub = Icon; export const Web = Icon; export const Grafana = Icon; export const Dns = Icon; export const QuestionAnswer = Icon; export const Assessment = Icon; export const AssignmentTurnedIn = Icon; export const Api = Icon; export const Cached = Icon; export const Route = Icon; export const WorkHistory = Icon; export const Menu = Icon; export const CalendarToday = Icon; export const ChevronLeft = Icon; export const ChevronRight = Icon; export const Add = Icon; export const AddCircleOutline = Icon; export const Close = Icon; export const Memory = Icon; export const CloudUpload = Icon; export const BugReport = Icon; export const Schedule = Icon;
+/** Named aliases for feature vocabulary; new code should import Lucide directly. */
+export {
+  Eye as Visibility, EyeOff as VisibilityOff, Search, Users as PeopleAlt,
+  ArrowRight as ArrowForward, ArrowLeft as ArrowBack, CheckCheck as DoneAll,
+  Mail, Mail as MailOutline, BellRing as NotificationsActive, Megaphone as Campaign,
+  FolderOpen, Bell as Notifications, Shield, BadgeCheck as VerifiedUser,
+  Bot as SmartToy, Play as PlayArrow, PlayCircle as PlayCircleOutline, Puzzle, Puzzle as Extension, Flag, Tag as Sell, Trash2 as DeleteOutline,
+  Zap as Bolt, KeyRound as Key, Webhook, Laptop as Devices, LockKeyhole as LockOutlined,
+  MapPin as PlaceOutlined, Globe, Globe as Public, Upload, Upload as UploadFile, HardDrive as Storage, RotateCcw as RestartAlt,
+  Settings2 as SettingsSuggest, CalendarDays as Event, CalendarCheck as EventAvailable,
+  ListChecks as TaskAlt, ListChecks as PlaylistAddCheck, Kanban as ViewKanban,
+  List as ViewList, Calendar as CalendarMonth, GripVertical as DragIndicator,
+  CircleCheck as Approval, Database as Dataset, FileText as Description,
+  Brain, Sparkles as PsychologyAlt, Sparkles as AutoAwesome, PlayCircle,
+  ExternalLink as OpenInNew, RefreshCw as Refresh, Activity as Timeline,
+  Gauge, Gauge as Speed, ChartNoAxesCombined as QueryStats, Network as Hub, Globe2 as Web,
+  Activity as Grafana, Server as Dns, MessageCircleQuestion as QuestionAnswer,
+  BarChart3 as Assessment, ClipboardCheck as AssignmentTurnedIn, Server as Api,
+  RotateCw as Cached, Route, History as WorkHistory, Menu, CalendarCheck as CalendarToday,
+  ChevronLeft, ChevronRight, Plus as Add, CirclePlus as AddCircleOutline,
+  X as Close, Brain as Memory, CloudUpload, Bug, Bug as BugReport, Shield as Security, Link as Link, Clock3 as Schedule,
+} from "lucide-react";

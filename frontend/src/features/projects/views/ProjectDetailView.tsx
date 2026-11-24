@@ -1,14 +1,5 @@
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import {
-    Alert,
-    Box,
-    Button,
-    Drawer,
-    IconButton,
-    Skeleton,
-    Stack,
-    Typography,
-} from "@/components/ui/muiCompat";
 import {
     ArrowBack as BackIcon,
     AssignmentTurnedIn as DoneIcon,
@@ -30,17 +21,29 @@ import { useProjectDetail } from "../hooks/useProjectDetail";
 
 export default function ProjectDetailPage() {
     const m = useProjectDetail();
-    const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
+    const [, setTaskDrawerOpen] = useState(false);
 
     if (m.projectQuery.isLoading) {
         return (
             <PageShell maxWidth="xl">
-                <Stack spacing={2}>
-                    <Skeleton variant="text" width={280} height={48} />
-                    <Skeleton variant="text" width="60%" height={28} />
+                <div className="flex gap-[16px]">
+                    <div
+                        className="animate-pulse rounded-md bg-muted"
+                        style={{
+                            height: 48,
+                            width: 280
+                        }} />
+                    <div
+                        className="animate-pulse rounded-md bg-muted"
+                        style={{
+                            height: 28,
+                            width: "60%"
+                        }} />
                     <StatCardSkeletonGrid />
-                    <Skeleton variant="rounded" height={420} sx={{ borderRadius: 3 }} />
-                </Stack>
+                    <div
+                        style={{ borderRadius: 12 }}
+                        className="animate-pulse rounded-md bg-muted" />
+                </div>
             </PageShell>
         );
     }
@@ -48,9 +51,9 @@ export default function ProjectDetailPage() {
     if (!m.projectQuery.data) {
         return (
             <PageShell maxWidth="xl">
-                <Alert severity="error">
+                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                     {getQueryErrorMessage(m.projectQuery.error, "Project not found.")}
-                </Alert>
+                </div>
             </PageShell>
         );
     }
@@ -86,23 +89,22 @@ export default function ProjectDetailPage() {
 
     return (
         <PageShell maxWidth="xl">
-            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+            <div className="flex flex-row gap-[8px]" style={{ marginBottom: 16 }}>
                 <Button
-                    variant="outlined"
-                    startIcon={<BackIcon />}
+                    variant="outline"
                     onClick={() => m.navigate(ROUTES.projects)}
-                >
-                    Back to projects
-                </Button>
-            </Stack>
+                    type="button"
+                ><BackIcon />Back to projects
+                                    </Button>
+            </div>
 
-            <Typography component="h1" variant="h4" sx={{ mb: 1 }}>
+            <h4 style={{ marginBottom: 8 }}>
                 {m.projectQuery.data.name}
-            </Typography>
+            </h4>
             {m.projectQuery.data.description && (
-                <Typography color="text.secondary" sx={{ mb: 2 }}>
+                <span style={{ marginBottom: 16 }} className="text-muted-foreground">
                     {m.projectQuery.data.description}
-                </Typography>
+                </span>
             )}
             <MetricGrid>
                 <StatCard
@@ -135,58 +137,50 @@ export default function ProjectDetailPage() {
             </MetricGrid>
 
             {(m.projectQuery.error || m.tasksQuery.error) && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <div
+                    style={{ marginBottom: 16 }}
+                    role="alert"
+                    className="rounded-lg border border-border p-3 text-sm">
                     {getQueryErrorMessage(
                         m.projectQuery.error ?? m.tasksQuery.error,
                         "Failed to load project workspace."
                     )}
-                </Alert>
+                </div>
             )}
 
             <ProjectFlowSection model={m} onNewTask={openNewTask} onSelectTask={openTask} />
 
-            <Drawer
-                anchor="right"
-                open={
-                    taskDrawerOpen && !m.createMutation.isSuccess && !m.deleteMutation.isSuccess
-                }
-                onClose={closeTaskDrawer}
-                PaperProps={{
-                    sx: {
-                        width: { xs: "100%", sm: 420 },
-                    },
-                }}
-            >
-                <Box
-                    sx={{
-                        p: 2.5,
+            <div>
+                <div
+                    style={{
+                        padding: 20,
                         display: "flex",
                         flexDirection: "column",
-                        gap: 2,
+                        gap: 16,
                         height: "100%",
                         overflow: "auto",
                     }}
                 >
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Typography variant="h6">
+                    <div className="flex flex-row items-center justify-between">
+                        <h6>
                             {m.selectedTask ? "Edit task" : "Create task"}
-                        </Typography>
-                        <IconButton
+                        </h6>
+                        <Button size="icon"
                             aria-label="Close task editor"
                             onClick={closeTaskDrawer}
-                            edge="end"
+
                         >
                             <CloseIcon />
-                        </IconButton>
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary">
+                        </Button>
+                    </div>
+                    <p className="text-muted-foreground">
                         {m.selectedTask
                             ? "Update task details, assignee, due date, or status."
                             : "Add the next task and place it directly into the workflow."}
-                    </Typography>
+                    </p>
                     <TaskEditorSection model={m} embedded />
-                </Box>
-            </Drawer>
+                </div>
+            </div>
         </PageShell>
     );
 }

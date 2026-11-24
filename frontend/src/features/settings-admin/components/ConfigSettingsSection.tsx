@@ -1,5 +1,4 @@
-import { Alert, Box, Button, Chip, Stack } from "@/components/ui/muiCompat";
-import type { ConfigSettingsResponse } from "../../../api/settings";
+import { Button } from "@/components/ui/button";import type { ConfigSettingsResponse } from "../../../api/settings";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { getQueryErrorMessage } from "../../../utils/queryErrors";
 import type { AdminSettingsModel } from "../hooks/useAdminSettingsContent";
@@ -12,26 +11,30 @@ export function ConfigSettingsSection({ configData, model }: Props) {
     if (!group) return null;
     return (
         <SectionCard title={group.label} description={group.description} action={
-            <Button variant="contained" disabled={model.configMutation.isPending || model.changedConfigCount === 0}
-                onClick={() => model.configMutation.mutate({ items: configData.items.map((item) => ({ key: item.key, value: model.configDrafts[item.key] ?? "" })) })}>
+            <Button
+                variant="default"
+                disabled={model.configMutation.isPending || model.changedConfigCount === 0}
+                onClick={() => model.configMutation.mutate({ items: configData.items.map((item) => ({ key: item.key, value: model.configDrafts[item.key] ?? "" })) })}
+                type="button">
                 {model.configMutation.isPending ? "Saving..." : "Save all config"}
             </Button>
         }>
-            <Stack spacing={2}>
-                <Alert severity="info">{configData.notice}</Alert>
-                {model.configMutation.isSuccess && <Alert severity="success">Config saved. Restart the backend if a startup-bound value changed.</Alert>}
-                {model.configMutation.isError && <Alert severity="error">{getQueryErrorMessage(model.configMutation.error, "Failed to save config.")}</Alert>}
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    <Chip label={`${group.items.length} variables in this group`} variant="outlined" />
-                    <Chip label={model.changedConfigCount > 0 ? `${model.changedConfigCount} unsaved changes across all tabs` : "No unsaved config changes"}
-                        color={model.changedConfigCount > 0 ? "warning" : "default"} variant="outlined" />
-                </Stack>
-                <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }, alignItems: "start" }}>
+            <div className="flex gap-[16px]">
+                <div role="alert" className="rounded-lg border border-border p-3 text-sm">{configData.notice}</div>
+                {model.configMutation.isSuccess && <div role="alert" className="rounded-lg border border-border p-3 text-sm">Config saved. Restart the backend if a startup-bound value changed.</div>}
+                {model.configMutation.isError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{getQueryErrorMessage(model.configMutation.error, "Failed to save config.")}</div>}
+                <div className="flex flex-row gap-[8px] flex-wrap">
+                    <div
+                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                    <div
+                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                </div>
+                <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr", alignItems: "start" }}>
                     {group.items.map((item) => <ConfigEntryEditor key={item.key} item={item}
                         value={model.configDrafts[item.key] ?? item.value}
                         onChange={(value) => model.setConfigDrafts((current) => ({ ...current, [item.key]: value }))} />)}
-                </Box>
-            </Stack>
+                </div>
+            </div>
         </SectionCard>
     );
 }

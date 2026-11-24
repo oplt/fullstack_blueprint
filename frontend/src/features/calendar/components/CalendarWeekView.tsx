@@ -1,11 +1,8 @@
 import dayjs from "dayjs";
-import { Box, Stack, Typography } from "@/components/ui/muiCompat";
-import { useTheme } from "@/components/ui/muiCompat";
 import { formatTimeValue, getMinutesFromTimeString, getWeekItemColor } from "../calendarDisplay";
 import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 
 export function CalendarWeekView({ m }: { m: DashboardCalendarModel }) {
-const theme = useTheme();
 const { anchorDate, itemsByDate, openDay } = m;
     const weekDays = Array.from({ length: 7 }, (_: any, index: any) =>
         anchorDate.startOf("week").add(index, "day")
@@ -40,218 +37,212 @@ const { anchorDate, itemsByDate, openDay } = m;
     });
 
     return (
-        <Box sx={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            <Box
-                sx={(theme: any) => ({
-                    borderRadius: 4,
-                    border: `1px solid ${theme.palette.divider}`,
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <div
+                style={({
+                    borderRadius: 16,
+                    border: `1px solid ${"var(--border)"}`,
                     overflow: "hidden",
-                    backgroundColor: theme.palette.background.paper,
-                    minWidth: 980,
+                    backgroundColor: "var(--card)",
+                    minWidth: 980
                 })}
             >
-            <Box
-                sx={{
+            <div
+                style={{
                     display: "grid",
                     gridTemplateColumns: `88px repeat(7, minmax(${dayColumnWidth}px, 1fr))`,
                 }}
             >
-                <Box
-                    sx={(theme: any) => ({
-                        borderRight: `1px solid ${theme.palette.divider}`,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        backgroundColor: theme.palette.background.default,
+                <div
+                    style={({
+                        borderRight: `1px solid ${"var(--border)"}`,
+                        borderBottom: `1px solid ${"var(--border)"}`,
+                        backgroundColor: "var(--background)"
                     })}
                 />
                 {weekDays.map((day) => {
                     const isToday = day.isSame(dayjs(), "day");
                     return (
-                        <Box
+                        <div
                             key={day.format("YYYY-MM-DD")}
-                            sx={(theme: any) => ({
+                            style={({
                                 minHeight: 88,
-                                px: 2,
-                                py: 1.5,
-                                borderRight: `1px solid ${theme.palette.divider}`,
-                                borderBottom: `1px solid ${theme.palette.divider}`,
-                                backgroundColor: theme.palette.background.default,
+                                paddingInline: 16,
+                                paddingBlock: 12,
+                                borderRight: `1px solid ${"var(--border)"}`,
+                                borderBottom: `1px solid ${"var(--border)"}`,
+                                backgroundColor: "var(--background)",
                                 display: "flex",
                                 alignItems: "flex-start",
-                                justifyContent: "center",
+                                justifyContent: "center"
                             })}
                         >
-                            <Stack direction="row" spacing={1} alignItems="center">
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            <div className="flex flex-row gap-[8px] items-center">
+                                <p style={{ fontWeight: 600 }}>
                                     {day.format("ddd D")}
-                                </Typography>
+                                </p>
                                 {isToday && (
-                                    <Box
-                                        sx={(theme: any) => ({
+                                    <div
+                                        style={({
                                             width: 32,
                                             height: 32,
                                             borderRadius: "999px",
                                             display: "grid",
                                             placeItems: "center",
-                                            backgroundColor: theme.palette.primary.main,
-                                            color: theme.palette.primary.contrastText,
+                                            backgroundColor: "var(--primary)",
+                                            color: "var(--primary-foreground)",
                                             fontSize: 14,
-                                            fontWeight: 700,
+                                            fontWeight: 700
                                         })}
                                     >
                                         {day.format("D")}
-                                    </Box>
+                                    </div>
                                 )}
-                            </Stack>
-                        </Box>
+                            </div>
+                        </div>
                     );
                 })}
 
-                <Box
-                    sx={(theme: any) => ({
+                <div
+                    style={({
                         minHeight: 64,
-                        px: 1.5,
-                        py: 1,
-                        borderRight: `1px solid ${theme.palette.divider}`,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        backgroundColor: theme.palette.background.default,
+                        paddingInline: 12,
+                        paddingBlock: 8,
+                        borderRight: `1px solid ${"var(--border)"}`,
+                        borderBottom: `1px solid ${"var(--border)"}`,
+                        backgroundColor: "var(--background)"
                     })}
                 >
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                    <span style={{ fontWeight: 700 }} className="text-muted-foreground">
                         All day
-                    </Typography>
-                </Box>
+                    </span>
+                </div>
                 {weekDays.map((day, dayIndex) => {
                     const allDayItems = allDayWeekItems[dayIndex];
                     return (
-                        <Box
+                        <div
                             key={`${day.format("YYYY-MM-DD")}-all-day`}
-                            sx={(theme: any) => ({
+                            style={({
                                 minHeight: 64,
-                                p: 1,
-                                borderRight: `1px solid ${theme.palette.divider}`,
-                                borderBottom: `1px solid ${theme.palette.divider}`,
-                                backgroundColor: theme.palette.background.paper,
+                                padding: 8,
+                                borderRight: `1px solid ${"var(--border)"}`,
+                                borderBottom: `1px solid ${"var(--border)"}`,
+                                backgroundColor: "var(--card)"
                             })}
                         >
-                            <Stack spacing={0.75}>
+                            <div className="flex gap-[6px]">
                                 {allDayItems.slice(0, 2).map((item) => {
-                                    const colors = getWeekItemColor(item, theme);
+                                    const colors = getWeekItemColor(item);
                                     return (
-                                        <Box
-                                            component="button"
-                                            type="button"
+                                        <div
                                             key={item.id}
                                             onClick={() => openDay(day)}
                                             aria-label={`Open ${item.title} on ${day.format("dddd, MMMM D")}`}
-                                            sx={{
+                                            style={{
                                                 width: "100%",
                                                 textAlign: "left",
-                                                px: 1.25,
-                                                py: 0.75,
-                                                borderRadius: 2,
+                                                paddingInline: 10,
+                                                paddingBlock: 6,
+                                                borderRadius: 8,
                                                 border: `1px solid ${colors.border}`,
                                                 backgroundColor: colors.bg,
                                                 color: colors.text,
                                                 cursor: "pointer",
-                                            }}
-                                        >
-                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                            }}>
+                                            <p style={{ fontWeight: 600 }}>
                                                 {item.title}
-                                            </Typography>
-                                        </Box>
+                                            </p>
+                                        </div>
                                     );
                                 })}
                                 {allDayItems.length > 2 && (
-                                    <Typography variant="caption" color="text.secondary">
+                                    <span className="text-muted-foreground">
                                         +{allDayItems.length - 2} more
-                                    </Typography>
+                                    </span>
                                 )}
-                            </Stack>
-                        </Box>
+                            </div>
+                        </div>
                     );
                 })}
 
-                <Box
-                    sx={(theme: any) => ({
+                <div
+                    style={({
                         position: "relative",
-                        borderRight: `1px solid ${theme.palette.divider}`,
-                        backgroundColor: theme.palette.background.default,
+                        borderRight: `1px solid ${"var(--border)"}`,
+                        backgroundColor: "var(--background)"
                     })}
                 >
                     {hourSlots.map((hour) => (
-                        <Box
+                        <div
                             key={hour}
-                            sx={(theme: any) => ({
+                            style={({
                                 height: rowHeight,
-                                px: 1.25,
-                                pt: 0.8,
-                                borderBottom: `1px solid ${theme.palette.divider}`,
+                                paddingInline: 10,
+                                paddingTop: 6.4,
+                                borderBottom: `1px solid ${"var(--border)"}`
                             })}
                         >
-                            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                            <p style={{ fontWeight: 600 }} className="text-muted-foreground">
                                 {dayjs().hour(hour).minute(0).format("h A")}
-                            </Typography>
-                        </Box>
+                            </p>
+                        </div>
                     ))}
-                </Box>
+                </div>
                 {weekDays.map((day, dayIndex) => (
-                    <Box
+                    <div
                         key={`${day.format("YYYY-MM-DD")}-grid`}
-                        sx={(theme: any) => ({
+                        style={({
                             position: "relative",
                             height: rowHeight * hourSlots.length,
-                            borderRight: `1px solid ${theme.palette.divider}`,
-                            backgroundColor: theme.palette.background.paper,
+                            borderRight: `1px solid ${"var(--border)"}`,
+                            backgroundColor: "var(--card)"
                         })}
                     >
                         {hourSlots.map((hour) => (
-                            <Box
+                            <div
                                 key={hour}
-                                sx={(theme: any) => ({
+                                style={({
                                     height: rowHeight,
-                                    borderBottom: `1px solid ${theme.palette.divider}`,
+                                    borderBottom: `1px solid ${"var(--border)"}`
                                 })}
                             />
                         ))}
                         {timedWeekItems[dayIndex].map((item) => {
-                            const colors = getWeekItemColor(item, theme);
+                            const colors = getWeekItemColor(item);
                             return (
-                                <Box
-                                    component="button"
-                                    type="button"
+                                <div
                                     key={item.id}
                                     onClick={() => openDay(day)}
                                     aria-label={`Open ${item.title} on ${day.format("dddd, MMMM D")} at ${formatTimeValue(item.start_time ?? "09:00")}`}
-                                    sx={{
+                                    style={{
                                         position: "absolute",
                                         top: item.top,
                                         left: 8,
                                         right: 8,
                                         height: item.height,
-                                        px: 1.25,
-                                        py: 1,
-                                        borderRadius: 2,
+                                        paddingInline: 10,
+                                        paddingBlock: 8,
+                                        borderRadius: 8,
                                         border: `1px solid ${colors.border}`,
                                         backgroundColor: colors.bg,
                                         color: colors.text,
                                         cursor: "pointer",
                                         overflow: "hidden",
                                         textAlign: "left",
-                                    }}
-                                >
-                                    <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                                    }}>
+                                    <p style={{ fontWeight: 700, lineHeight: 1.3 }}>
                                         {item.title}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ mt: 0.4 }}>
+                                    </p>
+                                    <p style={{ marginTop: 3.2 }}>
                                         {formatTimeValue(item.start_time ?? "09:00")}
-                                    </Typography>
-                                </Box>
+                                    </p>
+                                </div>
                             );
                         })}
-                    </Box>
+                    </div>
                 ))}
-            </Box>
-            </Box>
-        </Box>
+            </div>
+            </div>
+        </div>
     );
 }

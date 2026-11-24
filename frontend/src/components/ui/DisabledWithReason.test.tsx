@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Button, ThemeProvider, createTheme } from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";
 
 import { DisabledWithReason } from "./DisabledWithReason";
 
 function wrap(ui: React.ReactElement) {
-    return render(<ThemeProvider theme={createTheme()}>{ui}</ThemeProvider>);
+    return render(ui);
 }
 
 describe("DisabledWithReason", () => {

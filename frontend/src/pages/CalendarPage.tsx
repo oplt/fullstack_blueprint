@@ -1,5 +1,5 @@
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Stack } from "@/components/ui/muiCompat";
 import { ArrowForward as ArrowForwardIcon } from "@/components/ui/iconsCompat";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../app/routes";
@@ -28,15 +28,14 @@ export default function CalendarPage() {
 
     return (
         <PageShell maxWidth="xl">
-            <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+            <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
                 <Button
-                    variant="outlined"
-                    endIcon={<ArrowForwardIcon />}
+                    variant="outline"
                     onClick={() => navigate(ROUTES.projects)}
-                >
-                    Open {coreDomainPlural}
-                </Button>
-            </Stack>
+                    type="button"
+                >Open {coreDomainPlural}
+                    <ArrowForwardIcon /></Button>
+            </div>
 
             <QueryBoundary
                 isLoading={projectsLoading}

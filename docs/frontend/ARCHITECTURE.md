@@ -4,6 +4,10 @@ Baseline source revision `3271ffb`. The frontend is a single npm package and a c
 
 ## Ownership and execution
 
+### UI architecture after compatibility-layer elimination
+
+The frontend has no Material UI or Emotion runtime and no local MUI compatibility module. Shared controls use the shadcn/Base UI primitives under `src/components/ui`, semantic HTML, and Tailwind CSS v4 utilities. Feature code uses explicit component contracts and typed `style` values only for data-driven geometry or colors; there is no generic `sx` translator. Forms use the native `FormField` composition, overlays use the shared dialog/sheet primitives, and layout is expressed with semantic elements and responsive utility classes.
+
 | Boundary | Current implementation | Ongoing guidance |
 | --- | --- | --- |
 | Entry and providers | `src/main.tsx` mounts StrictMode, `AppProviders`, `RouteErrorBoundary` and `AppRouter`. Providers supply QueryClient, date/locale helpers, auth, toast, configuration and color mode. | Keep a single provider composition and make optional capabilities explicit in configuration. |
@@ -35,9 +39,9 @@ Baseline source revision `3271ffb`. The frontend is a single npm package and a c
 - Normal JSON requests send cookies, use `X-CSRF-Token` from the readable CSRF cookie, and retry one 401 after a module-level shared refresh promise. Auth endpoint wrappers can disable this retry. File uploads use FormData and browser-managed boundaries. The transport handles 204 and exposes paginated envelopes or item-only adapters. Read API methods accept `ApiRequestOptions`, and query hooks forward their signal for network cancellation.
 - The backend issues HttpOnly access/refresh cookies, rotates them on refresh and checks JWT/session state on protected routes. Unsafe cookie-authenticated requests require the CSRF cookie and matching header outside explicit exemptions. Server routes enforce admins and service-layer resource access, including project roles and RAG document access. Client guards control navigation and rendering.
 - Startup settings conditionally register optional routers in `backend/api/router.py`. The AI and agent routers also depend on the enabled AI module in platform configuration. `/platform/metadata` returns available features and enabled modules. Profile/admin settings tabs, route guards and shell use metadata or auth checks at separate sites. Commercial plans and runtime feature flags are separate resources.
-- `apiFetchStream` is an unused raw Response helper with cookies and CSRF and no 401 renewal. Existing AI, agent and RAG routes expose JSON and job/status contracts. Source search found no frontend stream reader or public SSE route in those modules. A streaming workspace needs a verified event contract before live integration.
+- `apiFetchStream` is an unused raw Response helper with cookies, CSRF and one bounded 401 renewal. Existing AI, agent and RAG routes expose JSON and job/status contracts. Source search found no frontend stream reader wired to a public SSE route in those modules. A streaming workspace needs a verified event contract before live integration.
 - Phase 10 keeps that boundary explicit: `features/ai/workspace/types.ts` validates stream events, `streaming.ts` handles SSE parsing/cancellation/reconnect, and `useAiWorkspaceStream` consumes an injected connector. `fixtures.ts` is isolated development data and is never used by production routes.
-- Phase 11 keeps structured model output explicit: `generative-ui/schemas` and `validation.ts` enforce a closed Zod contract and payload limits, `registry` maps only allowlisted types to fixed renderers, and `actions/actionDispatcher.ts` separates user-confirmed UI intents from backend-authorized execution.
+- Phase 11 keeps structured model output explicit: `generative-ui/schemas` and `validation.ts` enforce a closed Zod contract and payload limits, `registry` maps only allowlisted types to fixed renderers, and `actions/actionDispatcher.ts` separates confirmation from execution. The dispatcher is an injectable client boundary; it is not proof of backend authorization and must not be connected to privileged actions without a server-issued capability contract.
 - Backend routing remains within the modular monolith. Routes use request-scoped SQLAlchemy sessions and delegate through services to repositories and adapters. RAG owns ingestion and index revisions, including documents submitted through AI Studio.
 
 ## Route and contract inventory

@@ -16,7 +16,13 @@ export function buildGrafanaUrl(baseUrl: string | null | undefined, context: Gra
         return null;
     }
 
-    const url = new URL(baseUrl);
+    let url: URL;
+    try {
+        url = new URL(baseUrl);
+    } catch {
+        return null;
+    }
+    if (!(["http:", "https:"] as string[]).includes(url.protocol)) return null;
     const params = url.searchParams;
     addParam(params, "orgId", context.orgId ?? DEFAULT_ORG_ID);
     addParam(params, "from", context.from ?? DEFAULT_FROM);
@@ -42,5 +48,11 @@ export function buildTempoExploreUrl(baseUrl: string | null | undefined, context
 }
 
 export function openExternalUrl(url: string) {
-    window.open(url, "_blank", "noopener,noreferrer");
+    try {
+        const parsed = new URL(url, window.location.origin);
+        if (!(parsed.protocol === "http:" || parsed.protocol === "https:")) return;
+        window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+        // Invalid or unsafe operational links are ignored at the browser boundary.
+    }
 }

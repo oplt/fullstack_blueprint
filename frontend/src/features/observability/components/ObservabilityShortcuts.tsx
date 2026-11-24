@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Box, Skeleton } from "@/components/ui/muiCompat";
 import {
     Api as ApiIcon,
     Assessment as OverviewIcon,
@@ -52,18 +51,21 @@ export function ObservabilityShortcuts({ context, isAdmin, linksQuery }: Props) 
     return (
         <SectionCard title="Shortcuts" description="Open Grafana as the main investigation surface. Prometheus is kept as an admin debug tool.">
             {linksQuery.isLoading ? (
-                <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", xl: "repeat(3, 1fr)" } }}>
-                    {Array.from({ length: 6 }).map((_: any, index: any) => <Skeleton key={index} variant="rounded" height={218} sx={{ borderRadius: 4 }} />)}
-                </Box>
+                <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+                    {Array.from({ length: 6 }).map((_: any, index: any) => <div
+                        key={index}
+                        style={{ borderRadius: 16 }}
+                        className="animate-pulse rounded-md bg-muted" />)}
+                </div>
             ) : shortcuts.length === 0 ? (
                 <EmptyState icon={<RouteIcon />} title="No observability shortcuts" description="Configure Grafana, Tempo, or Prometheus public URLs to enable launch links." />
             ) : (
-                <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", xl: "repeat(3, 1fr)" } }}>
+                <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
                     {shortcuts.map((item) => <ObservabilityShortcutCard key={item.title} title={item.title}
                         description={item.description} buttonText={item.buttonText} url={item.url}
                         allowed={item.link?.allowed ?? false} configured={item.link?.configured ?? false}
                         icon={item.icon} onOpen={openExternalUrl} />)}
-                </Box>
+                </div>
             )}
         </SectionCard>
     );

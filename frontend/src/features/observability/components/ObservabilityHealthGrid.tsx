@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Box, Skeleton } from "@/components/ui/muiCompat";
 import {
     Api as ApiIcon,
     BugReport as ErrorIcon,
@@ -40,9 +39,12 @@ export function ObservabilityHealthGrid({ healthItems, statusQuery }: Props) {
     return (
         <SectionCard title="System health" description="Lightweight checks from the app plus local observability tool reachability.">
             {statusQuery.isLoading ? (
-                <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(4, 1fr)" } }}>
-                    {Array.from({ length: 8 }).map((_: any, index: any) => <Skeleton key={index} variant="rounded" height={180} sx={{ borderRadius: 4 }} />)}
-                </Box>
+                <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+                    {Array.from({ length: 8 }).map((_: any, index: any) => <div
+                        key={index}
+                        style={{ borderRadius: 16 }}
+                        className="animate-pulse rounded-md bg-muted" />)}
+                </div>
             ) : statusQuery.isError ? (
                 <EmptyState
                     icon={<ObservabilityIcon />}
@@ -50,13 +52,13 @@ export function ObservabilityHealthGrid({ healthItems, statusQuery }: Props) {
                     description="The page could not load observability status right now. Tool links remain available when configured."
                 />
             ) : (
-                <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(4, 1fr)" } }}>
+                <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
                     {HEALTH_CARDS.map((card) => {
                         const item = healthItems[card.key] ?? fallbackItem("Status check is not configured");
                         return <HealthStatusCard key={card.key} title={card.title} status={item.status} detail={item.detail}
                             metric={metricFor(item)} lastCheckedAt={item.last_checked_at} icon={card.icon} />;
                     })}
-                </Box>
+                </div>
             )}
         </SectionCard>
     );

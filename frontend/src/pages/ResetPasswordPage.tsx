@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Alert, Box, Button, Stack, TextField, Typography } from "@/components/ui/muiCompat";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { resetPassword } from "../api/auth";
 import { AuthMarketingPanel } from "../components/auth/AuthMarketingPanel";
@@ -71,58 +70,54 @@ export default function ResetPasswordPage() {
                 />
             }
         >
-            <Stack spacing={3}>
-                <Box>
-                    <Typography variant="overline" color="primary.main">
+            <div className="flex gap-[24px]">
+                <div>
+                    <span className="text-primary">
                         Reset password
-                    </Typography>
-                    <Typography variant="h4" sx={{ mt: 0.5 }}>
+                    </span>
+                    <h4 style={{ marginTop: 4 }}>
                         Choose a new password
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    </h4>
+                    <span style={{ marginTop: 8 }} className="text-muted-foreground">
                         Use a secure password that you have not used elsewhere.
-                    </Typography>
-                </Box>
+                    </span>
+                </div>
 
                 {done ? (
-                    <Stack spacing={2}>
-                        <Alert severity="success">Password reset successfully.</Alert>
-                        <Button component={RouterLink} to="/" variant="contained">
+                    <div className="flex gap-[16px]">
+                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">Password reset successfully.</div>
+                        <Button variant="default" render={<RouterLink to="/" />} type="button">
                             Return to sign in
                         </Button>
-                    </Stack>
+                    </div>
                 ) : (
-                    <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-                        <Stack spacing={2}>
-                            {serverError && <Alert severity="error">{serverError}</Alert>}
+                    <div onSubmit={handleSubmit(onSubmit)}>
+                        <div className="flex gap-[16px]">
+                            {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
                             {!token && (
-                                <Alert severity="warning">
+                                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                     No reset token found. Please use the link from your email.
-                                </Alert>
+                                </div>
                             )}
-                            <TextField
+                            <FormField
                                 label="New password"
                                 type="password"
                                 {...register("password")}
                                 error={!!errors.password}
-                                helperText={errors.password?.message}
-                                fullWidth
-                            />
-                            <TextField
+                                helperText={errors.password?.message} />
+                            <FormField
                                 label="Confirm new password"
                                 type="password"
                                 {...register("confirm_password")}
                                 error={!!errors.confirm_password}
-                                helperText={errors.confirm_password?.message}
-                                fullWidth
-                            />
-                            <Button type="submit" variant="contained" disabled={isSubmitting || !token}>
+                                helperText={errors.confirm_password?.message} />
+                            <Button type="submit" variant="default" disabled={isSubmitting || !token}>
                                 {isSubmitting ? "Resetting..." : "Reset password"}
                             </Button>
-                        </Stack>
-                    </Box>
+                        </div>
+                    </div>
                 )}
-            </Stack>
+            </div>
         </AuthShell>
     );
 }

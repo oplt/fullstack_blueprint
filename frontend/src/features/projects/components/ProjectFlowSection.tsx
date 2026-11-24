@@ -1,26 +1,12 @@
-import {
-    Box,
-    Button,
-    Chip,
-    Divider,
-    Skeleton,
-    Stack,
-    Tab,
-    Tabs,
-    Typography,
-} from "@/components/ui/muiCompat";
-import {
+import { Button } from "@/components/ui/button";import { colorMix } from "@/lib/color";import {
     Add as AddIcon,
     PlaylistAddCheck as TaskIcon,
-    ViewKanban as BoardIcon,
-    ViewList as ListIcon,
 } from "@/components/ui/iconsCompat";
-import { alpha } from "@/components/ui/muiCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { ProjectTask } from "../../../api/projects";
 import type { ProjectDetailModel } from "../hooks/useProjectDetail";
-import { TASK_STATUS_OPTIONS, type TaskView } from "../projectTaskModel";
+import { TASK_STATUS_OPTIONS } from "../projectTaskModel";
 import { TaskBoardCard, TaskListCard } from "./ProjectTaskCards";
 
 type ProjectFlowSectionProps = {
@@ -39,54 +25,42 @@ export function ProjectFlowSection({
             title="Project flow"
             description="Switch between a sortable Kanban board and a detailed list view."
             action={
-                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                <div className="flex flex-row gap-[8px] items-center flex-wrap">
                     <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<AddIcon />}
+                        variant="default"
+                        size="sm"
                         onClick={onNewTask}
-                    >
-                        New task
-                    </Button>
-                    <Tabs
-                        value={m.taskView}
-                        onChange={(_, value: TaskView) => m.setTaskView(value)}
-                        sx={{ minHeight: "auto" }}
-                    >
-                        <Tab
-                            value="board"
-                            icon={<BoardIcon fontSize="small" />}
-                            iconPosition="start"
-                            label="Board"
-                        />
-                        <Tab
-                            value="list"
-                            icon={<ListIcon fontSize="small" />}
-                            iconPosition="start"
-                            label="List"
-                        />
-                    </Tabs>
-                </Stack>
+                        type="button"
+                    ><AddIcon />New task
+                                            </Button>
+                    <div className="flex gap-1" style={{ minHeight: "auto" }} role="tablist" aria-label="Task view">
+                        <Button variant={m.taskView === "board" ? "default" : "outline"} size="sm" onClick={() => m.setTaskView("board")} type="button">Board</Button>
+                        <Button variant={m.taskView === "list" ? "default" : "outline"} size="sm" onClick={() => m.setTaskView("list")} type="button">List</Button>
+                    </div>
+                </div>
             }
         >
             {m.tasksQuery.isLoading ? (
-                <Stack spacing={1.5}>
-                    <Skeleton variant="rounded" height={280} sx={{ borderRadius: 3 }} />
-                    <Skeleton variant="rounded" height={280} sx={{ borderRadius: 3 }} />
-                </Stack>
+                <div className="flex gap-[12px]">
+                    <div
+                        style={{ borderRadius: 12 }}
+                        className="animate-pulse rounded-md bg-muted" />
+                    <div
+                        style={{ borderRadius: 12 }}
+                        className="animate-pulse rounded-md bg-muted" />
+                </div>
             ) : m.orderedTasks.length === 0 ? (
                 <EmptyState
                     icon={<TaskIcon />}
                     title="No tasks yet"
                     description="Use New task to add the first item to this project flow."
                     action={
-                        <Button variant="contained" startIcon={<AddIcon />} onClick={onNewTask}>
-                            New task
-                        </Button>
+                        <Button variant="default" onClick={onNewTask} type="button"><AddIcon />New task
+                                                    </Button>
                     }
                 />
             ) : m.taskView === "list" ? (
-                <Stack spacing={1.5}>
+                <div className="flex gap-[12px]">
                     {m.orderedTasks.map((task) => (
                         <TaskListCard
                             key={task.id}
@@ -95,19 +69,19 @@ export function ProjectFlowSection({
                             onSelect={() => onSelectTask(task)}
                         />
                     ))}
-                </Stack>
+                </div>
             ) : (
-                <Box
-                    sx={{
+                <div
+                    style={{
                         overflowX: "auto",
                         WebkitOverflowScrolling: "touch",
-                        pb: 1,
+                        paddingBottom: 8,
                     }}
                 >
-                    <Box
-                        sx={{
+                    <div
+                        style={{
                             display: "grid",
-                            gap: 1.5,
+                            gap: 12,
                             minWidth: 1280,
                             gridTemplateColumns: "repeat(5, minmax(240px, 1fr))",
                         }}
@@ -117,37 +91,35 @@ export function ProjectFlowSection({
                                 (task) => task.status === option.value
                             );
                             return (
-                                <Box
+                                <div
                                     key={option.value}
                                     onDragOver={(e: any) => e.preventDefault()}
                                     onDrop={(e: any) => {
                                         e.preventDefault();
                                         m.drop(option.value);
                                     }}
-                                    sx={(t: any) => ({
+                                    style={({
                                         minHeight: 240,
-                                        p: 1.25,
-                                        borderRadius: 4,
-                                        border: `1px solid ${t.palette.divider}`,
-                                        backgroundColor: alpha(
-                                            t.palette.background.paper,
-                                            t.palette.mode === "dark" ? 0.82 : 0.72
-                                        ),
+                                        padding: 10,
+                                        borderRadius: 16,
+                                        border: `1px solid ${"var(--border)"}`,
+
+                                        backgroundColor: colorMix(
+                                            "var(--card)",
+                                            (0.82 + 0.72
+                                        ) / 2)
                                     })}
                                 >
-                                    <Stack spacing={1.25}>
-                                        <Stack direction="row" justifyContent="space-between">
-                                            <Typography variant="subtitle2">
+                                    <div className="flex gap-[10px]">
+                                        <div className="flex flex-row justify-between">
+                                            <p>
                                                 {option.label}
-                                            </Typography>
-                                            <Chip
-                                                label={tasks.length}
-                                                size="small"
-                                                variant="outlined"
-                                            />
-                                        </Stack>
-                                        <Divider />
-                                        <Stack spacing={1}>
+                                            </p>
+                                            <div
+                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                        </div>
+                                        <hr className="border-border" />
+                                        <div className="flex gap-[8px]">
                                             {tasks.length ? (
                                                 tasks.map((task) => (
                                                     <TaskBoardCard
@@ -168,27 +140,27 @@ export function ProjectFlowSection({
                                                     />
                                                 ))
                                             ) : (
-                                                <Box
-                                                    sx={(t: any) => ({
-                                                        p: 2,
-                                                        borderRadius: 3,
-                                                        border: `1px dashed ${t.palette.divider}`,
+                                                <div
+                                                    style={({
+                                                        padding: 16,
+                                                        borderRadius: 12,
+                                                        border: `1px dashed ${"var(--border)"}`,
                                                         textAlign: "center",
-                                                        color: "text.secondary",
+                                                        color: "text.secondary"
                                                     })}
                                                 >
-                                                    <Typography variant="body2">
+                                                    <p>
                                                         Drop tasks here
-                                                    </Typography>
-                                                </Box>
+                                                    </p>
+                                                </div>
                                             )}
-                                        </Stack>
-                                    </Stack>
-                                </Box>
+                                        </div>
+                                    </div>
+                                </div>
                             );
                         })}
-                    </Box>
-                </Box>
+                    </div>
+                </div>
             )}
         </SectionCard>
     );

@@ -1,21 +1,8 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { colorMix } from "@/lib/color";import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-    Alert,
-    Box,
-    Button,
-    CircularProgress,
-    Drawer,
-    IconButton,
-    Paper,
-    Skeleton,
-    Stack,
-    TextField,
-    Typography,
-} from "@/components/ui/muiCompat";
 import {
     Add as AddIcon,
     AddCircleOutline as AddCircleOutlineIcon,
@@ -23,7 +10,6 @@ import {
     ArrowForward as ArrowForwardIcon,
     Close as CloseIcon,
 } from "@/components/ui/iconsCompat";
-import { alpha } from "@/components/ui/muiCompat";
 import { useNavigate } from "react-router-dom";
 import { projectPath } from "../app/routes";
 import { createProject, listProjects } from "../api/projects";
@@ -48,7 +34,7 @@ export default function ProjectsPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { showToast } = useSnackbar();
-    const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
+    const [, setCreateDrawerOpen] = useState(false);
     const { data: platformMetadata } = usePlatformMetadata();
     const { data: projects, isLoading, isError, error, refetch } = useQuery({
         queryKey: queryKeys.projects.all,
@@ -86,49 +72,44 @@ export default function ProjectsPage() {
     }
 
     const createForm = (
-        <Box component="form" onSubmit={handleSubmit((values) => mutation.mutate(values))}>
-            <Stack spacing={2}>
-                <TextField
+        <div onSubmit={handleSubmit((values) => mutation.mutate(values))}>
+            <div className="flex gap-[16px]">
+                <FormField
                     label={`${coreDomainSingular} name`}
                     placeholder={`Acme ${coreDomainSingular}`}
                     {...register("name")}
                     error={!!errors.name}
-                    helperText={errors.name?.message}
-                    fullWidth
-                />
-                <TextField
+                    helperText={errors.name?.message} />
+                <FormField
                     label="Description"
                     placeholder={`What is this ${coreDomainSingular.toLowerCase()} for?`}
                     {...register("description")}
                     error={!!errors.description}
                     helperText={errors.description?.message}
-                    fullWidth
                     multiline
-                    minRows={4}
-                />
+                    rows={4} />
                 {mutation.isError && (
-                    <Alert severity="error">
+                    <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                         {mutation.error instanceof Error
                             ? mutation.error.message
                             : `Failed to create ${coreDomainSingular.toLowerCase()}.`}
-                    </Alert>
+                    </div>
                 )}
-                <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={mutation.isPending}
-                    startIcon={
-                        mutation.isPending ? (
-                            <CircularProgress size={16} />
-                        ) : (
-                            <AddCircleOutlineIcon />
-                        )
-                    }
-                >
+                <Button type="submit" variant="default" disabled={mutation.isPending}>mutation.isPending ? (
+                        <span
+                            className="inline-block animate-spin rounded-full border-2 border-primary border-t-transparent"
+                            role="progressbar"
+                            style={{
+                                width: 16,
+                                height: 16
+                            }} />
+                    ) : (
+                        <AddCircleOutlineIcon />
+                    )
                     {mutation.isPending ? "Creating..." : `Create ${coreDomainSingular}`}
                 </Button>
-            </Stack>
-        </Box>
+            </div>
+        </div>
     );
 
     return (
@@ -137,13 +118,7 @@ export default function ProjectsPage() {
                 title={`Your ${coreDomainPlural}`}
                 description={`Browse the current ${coreDomainPlural.toLowerCase()} and scan for missing descriptions or naming gaps.`}
                 action={
-                    <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<AddIcon />}
-                        onClick={openCreateDrawer}
-                    >
-                        New {coreDomainSingular.toLowerCase()}
+                    <Button variant="default" onClick={openCreateDrawer} type="button"><AddIcon />New {coreDomainSingular.toLowerCase()}
                     </Button>
                 }
             >
@@ -154,25 +129,20 @@ export default function ProjectsPage() {
                     errorFallback={`Failed to load ${coreDomainPlural.toLowerCase()}.`}
                     onRetry={() => void refetch()}
                     loadingFallback={
-                        <Box
-                            sx={{
+                        <div
+                            style={{
                                 display: "grid",
-                                gap: 1.5,
-                                gridTemplateColumns: {
-                                    xs: "1fr",
-                                    md: "repeat(2, minmax(0, 1fr))",
-                                },
+                                gap: 12,
+                                gridTemplateColumns: "1fr",
                             }}
                         >
                             {Array.from({ length: 4 }).map((_: any, index: any) => (
-                                <Skeleton
+                                <div
                                     key={index}
-                                    variant="rounded"
-                                    height={162}
-                                    sx={{ borderRadius: 4 }}
-                                />
+                                    style={{ borderRadius: 16 }}
+                                    className="animate-pulse rounded-md bg-muted" />
                             ))}
-                        </Box>
+                        </div>
                     }
                     isEmpty={!projects || projects.length === 0}
                     emptyFallback={
@@ -182,121 +152,102 @@ export default function ProjectsPage() {
                             description={`Create the first ${coreDomainSingular.toLowerCase()} to give the workspace structure and momentum.`}
                             action={
                                 <Button
-                                    variant="contained"
-                                    startIcon={<AddIcon />}
+                                    variant="default"
                                     onClick={openCreateDrawer}
-                                >
-                                    New {coreDomainSingular.toLowerCase()}
+                                    type="button"
+                                ><AddIcon />New {coreDomainSingular.toLowerCase()}
                                 </Button>
                             }
                         />
                     }
                 >
-                    <Box
-                        sx={{
+                    <div
+                        style={{
                             display: "grid",
-                            gap: 1.5,
-                            gridTemplateColumns: {
-                                xs: "1fr",
-                                md: "repeat(2, minmax(0, 1fr))",
-                            },
+                            gap: 12,
+                            gridTemplateColumns: "1fr",
                         }}
                     >
                         {projects?.map((project) => (
-                            <Paper
+                            <div
                                 key={project.id}
-                                sx={(theme: any) => ({
-                                    p: 2.5,
-                                    borderRadius: 4,
-                                    border: `1px solid ${theme.palette.divider}`,
-                                    backgroundColor: theme.palette.background.paper,
+                                style={({
+                                    padding: 20,
+                                    borderRadius: 16,
+                                    border: `1px solid ${"var(--border)"}`,
+                                    backgroundColor: "var(--card)"
                                 })}
                             >
-                                <Stack spacing={1.25}>
-                                    <Stack direction="row" spacing={1.25} alignItems="center">
-                                        <Box
-                                            sx={(theme: any) => ({
+                                <div className="flex gap-[10px]">
+                                    <div className="flex flex-row gap-[10px] items-center">
+                                        <div
+                                            style={({
                                                 width: 42,
                                                 height: 42,
-                                                borderRadius: 3,
+                                                borderRadius: 12,
                                                 display: "grid",
                                                 placeItems: "center",
-                                                color: "primary.main",
-                                                backgroundColor: alpha(
-                                                    theme.palette.primary.main,
-                                                    theme.palette.mode === "dark" ? 0.16 : 0.1
-                                                ),
+                                                color: "var(--primary)",
+                                                backgroundColor: colorMix("var(--primary)", 0.13)
                                             })}
                                         >
                                             <FolderOpenIcon />
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="subtitle1">
+                                        </div>
+                                        <div>
+                                            <p>
                                                 {project.name}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
+                                            </p>
+                                            <span className="text-muted-foreground">
                                                 Created {formatDate(project.created_at)}
-                                            </Typography>
-                                        </Box>
-                                    </Stack>
-                                    <Typography variant="body2" color="text.secondary">
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p className="text-muted-foreground">
                                         {project.description ||
                                             `No description yet for this ${coreDomainSingular.toLowerCase()}.`}
-                                    </Typography>
-                                    <Box>
+                                    </p>
+                                    <div>
                                         <Button
-                                            variant="text"
-                                            endIcon={<ArrowForwardIcon />}
+                                            variant="ghost"
                                             onClick={() => navigate(projectPath(project.id))}
-                                            sx={{ px: 0 }}
-                                        >
-                                            Open workspace
-                                        </Button>
-                                    </Box>
-                                </Stack>
-                            </Paper>
+                                            type="button">Open workspace
+                                                                                    <ArrowForwardIcon /></Button>
+                                    </div>
+                                </div>
+                            </div>
                         ))}
-                    </Box>
+                    </div>
                 </QueryBoundary>
             </SectionCard>
 
-            <Drawer
-                anchor="right"
-                open={createDrawerOpen}
-                onClose={closeCreateDrawer}
-                PaperProps={{
-                    sx: {
-                        width: { xs: "100%", sm: 420 },
-                    },
-                }}
-            >
-                <Box
-                    sx={{
-                        p: 2.5,
+            <div>
+                <div
+                    style={{
+                        padding: 20,
                         display: "flex",
                         flexDirection: "column",
-                        gap: 2,
+                        gap: 16,
                         height: "100%",
                         overflow: "auto",
                     }}
                 >
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Typography variant="h6">Create {coreDomainSingular}</Typography>
-                        <IconButton
+                    <div className="flex flex-row items-center justify-between">
+                        <h6>Create {coreDomainSingular}</h6>
+                        <Button size="icon"
                             aria-label="Close create project"
                             onClick={closeCreateDrawer}
-                            edge="end"
+
                         >
                             <CloseIcon />
-                        </IconButton>
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary">
+                        </Button>
+                    </div>
+                    <p className="text-muted-foreground">
                         Start a new {coreDomainSingular.toLowerCase()} with a clear name and
                         optional context.
-                    </Typography>
+                    </p>
                     {createForm}
-                </Box>
-            </Drawer>
+                </div>
+            </div>
         </PageShell>
     );
 }

@@ -35,19 +35,16 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">
+} & React.ComponentProps<"a">
 
 function PaginationLink({
   className,
   isActive,
-  size = "icon",
   ...props
 }: PaginationLinkProps) {
   return (
     <Button
       variant={isActive ? "outline" : "ghost"}
-      size={size}
       className={cn(className)}
       nativeButton={false}
       render={
@@ -58,8 +55,9 @@ function PaginationLink({
           {...props}
         />
       }
+      type="button"
     />
-  )
+  );
 }
 
 function PaginationPrevious({
@@ -70,7 +68,6 @@ function PaginationPrevious({
   return (
     <PaginationLink
       aria-label="Go to previous page"
-      size="default"
       className={cn("pl-1.5!", className)}
       {...props}
     >
@@ -88,7 +85,6 @@ function PaginationNext({
   return (
     <PaginationLink
       aria-label="Go to next page"
-      size="default"
       className={cn("pr-1.5!", className)}
       {...props}
     >
@@ -119,6 +115,18 @@ function PaginationEllipsis({
   )
 }
 
+function PaginationControls({ count, page, rowsPerPage, onPageChange }: { count: number; page: number; rowsPerPage: number; onPageChange: (page: number) => void }) {
+  const pageCount = Math.max(1, Math.ceil(count / rowsPerPage));
+  return (
+    <div className="flex items-center justify-end gap-3 p-2 text-sm" aria-label="Pagination">
+      <span>{count} items</span>
+      <Button type="button" variant="outline" size="sm" disabled={page <= 0} onClick={() => onPageChange(page - 1)}>Previous</Button>
+      <span aria-current="page">{page + 1} / {pageCount}</span>
+      <Button type="button" variant="outline" size="sm" disabled={page + 1 >= pageCount} onClick={() => onPageChange(page + 1)}>Next</Button>
+    </div>
+  );
+}
+
 export {
   Pagination,
   PaginationContent,
@@ -127,4 +135,5 @@ export {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  PaginationControls,
 }

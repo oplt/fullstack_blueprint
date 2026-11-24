@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTheme } from "@/components/ui/muiCompat";
-import { lightTheme, darkTheme } from "../../app/theme";
+import { lightPalette as lightTheme, darkPalette as darkTheme } from "../../app/designPalette";
 import {
     chartHeatFill,
     chartSeriesColors,
@@ -42,11 +41,9 @@ describe("Phase 23 dark mode surfaces", () => {
         expect(stickyEdgeShadow(darkTheme, "left")).toContain("inset -1px");
     });
 
-    it("styles dialogs and tooltips without light-only assumptions", () => {
-        const dark = createTheme(darkTheme);
-        expect(dark.components?.MuiDialog?.styleOverrides).toBeTruthy();
-        expect(dark.components?.MuiTooltip?.styleOverrides).toBeTruthy();
-        expect(dark.components?.MuiChip?.styleOverrides).toBeTruthy();
-        expect(dark.palette.action.disabledBackground).toBeTruthy();
+    it("keeps semantic surface colors available to shared primitives", () => {
+        expect(darkTheme.palette.background.paper).toBeTruthy();
+        expect(darkTheme.palette.action.hover).toBeTruthy();
+        expect(darkTheme.palette.divider).toBeTruthy();
     });
 });

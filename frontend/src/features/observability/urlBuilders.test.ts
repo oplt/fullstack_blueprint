@@ -32,6 +32,10 @@ describe("observability URL builders", () => {
         expect(url).not.toContain("var-route");
     });
 
+    it("rejects non-web dashboard URLs", () => {
+        expect(buildGrafanaUrl("javascript:alert(1)")).toBeNull();
+    });
+
     it("keeps request and trace IDs for trace exploration", () => {
         const url = buildTempoExploreUrl("http://localhost:3001/explore", {
             traceId: "abc123",
@@ -48,6 +52,13 @@ describe("observability URL builders", () => {
         openExternalUrl("http://localhost:3001");
 
         expect(open).toHaveBeenCalledWith("http://localhost:3001", "_blank", "noopener,noreferrer");
+        open.mockRestore();
+    });
+
+    it("does not open unsafe URL schemes", () => {
+        const open = vi.spyOn(window, "open").mockImplementation(() => null);
+        openExternalUrl("javascript:alert(1)");
+        expect(open).not.toHaveBeenCalled();
         open.mockRestore();
     });
 });

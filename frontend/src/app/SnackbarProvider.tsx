@@ -1,5 +1,4 @@
 import { useCallback, useState, type PropsWithChildren } from "react";
-import { Alert, Snackbar } from "@/components/ui/muiCompat";
 import { SnackbarContext, type ToastOptions } from "./snackbarContext";
 
 export function SnackbarProvider({ children }: PropsWithChildren) {
@@ -14,21 +13,7 @@ export function SnackbarProvider({ children }: PropsWithChildren) {
     return (
         <SnackbarContext.Provider value={{ showToast }}>
             {children}
-            <Snackbar
-                open={open}
-                autoHideDuration={4000}
-                onClose={() => setOpen(false)}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            >
-                <Alert
-                    severity={opts.severity ?? "info"}
-                    onClose={() => setOpen(false)}
-                    variant="filled"
-                    sx={{ width: "100%" }}
-                >
-                    {opts.message}
-                </Alert>
-            </Snackbar>
+            {open ? <div role="alert" aria-live="polite" className="fixed right-4 bottom-4 z-50 max-w-sm rounded-lg border border-border bg-card p-3 text-sm shadow-lg" onClick={() => setOpen(false)}>{opts.message}</div> : null}
         </SnackbarContext.Provider>
     );
 }

@@ -24,7 +24,7 @@ function safeUrl(value?: string): string | undefined {
 
 function ActionButton({ action, onAction, context, children }: { action?: GenerativeAction; onAction?: ActionDispatcher; context: ActionContext; children: ReactNode }) {
     if (!action || !onAction) return null;
-    return <Button type="button" size="sm" onClick={() => { void onAction(action, context); }}>{children}</Button>;
+    return <Button type="button" onClick={() => { void onAction(action, context); }}>{children}</Button>;
 }
 
 function ChildComponents({ children, render }: { children?: unknown[]; render: (component: GenerativeComponent) => ReactNode }) {

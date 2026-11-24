@@ -1,13 +1,5 @@
+import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-    Box,
-    Button,
-    FormControlLabel,
-    Skeleton,
-    Stack,
-    Switch,
-    Typography,
-} from "@/components/ui/muiCompat";
 import {
     DoneAll as DoneAllIcon,
     MailOutline as MailOutlineIcon,
@@ -50,34 +42,26 @@ function PreferenceItem({
     const descriptionId = `${id}-description`;
 
     return (
-        <Box
-            sx={(theme: any) => ({
-                p: 2,
-                borderRadius: 4,
-                border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: theme.palette.background.paper,
+        <div
+            style={({
+                padding: 16,
+                borderRadius: 16,
+                border: `1px solid ${"var(--border)"}`,
+                backgroundColor: "var(--card)"
             })}
         >
-            <FormControlLabel
-                sx={{ alignItems: "flex-start", m: 0, width: "100%" }}
-                control={
-                    <Switch
+            <label style={{ alignItems: "flex-start", margin: 0, width: "100%" }}>
+                    <input
                         checked={checked}
                         onChange={(event: any) => onChange(event.target.checked)}
                         disabled={disabled}
-                        inputProps={{ "aria-describedby": descriptionId }}
-                    />
-                }
-                label={
-                    <Box sx={{ ml: 1 }}>
-                        <Typography variant="subtitle2">{label}</Typography>
-                        <Typography id={descriptionId} variant="body2" color="text.secondary">
-                            {description}
-                        </Typography>
-                    </Box>
-                }
-            />
-        </Box>
+                        type="checkbox"
+                        role="switch"
+                        aria-describedby={descriptionId} />
+                    <span className="ml-2 font-medium">{label}</span>
+                    <span id={descriptionId} className="ml-2 text-sm text-muted-foreground">{description}</span>
+            </label>
+        </div>
     );
 }
 
@@ -174,23 +158,23 @@ export default function NotificationsPage() {
     return (
         <PageShell width="wide">
             {unreadCount > 0 ? (
-                <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+                <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
                     <Button
-                        variant="contained"
-                        startIcon={<DoneAllIcon />}
+                        variant="default"
                         disabled={markAllMutation.isPending}
                         onClick={() => markAllMutation.mutate()}
-                    >
+                        type="button"
+                    ><DoneAllIcon />
                         {markAllMutation.isPending ? "Updating..." : "Mark all read"}
                     </Button>
-                </Stack>
+                </div>
             ) : null}
 
-            <Box
-                sx={{
+            <div
+                style={{
                     display: "grid",
-                    gap: 2,
-                    gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" },
+                    gap: 16,
+                    gridTemplateColumns: "1fr",
                 }}
             >
                 <StatCard
@@ -216,13 +200,13 @@ export default function NotificationsPage() {
                     loading={prefsLoading}
                     color="success"
                 />
-            </Box>
+            </div>
 
-            <Box
-                sx={{
+            <div
+                style={{
                     display: "grid",
-                    gap: 2,
-                    gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.25fr) minmax(320px, 0.85fr)" },
+                    gap: 16,
+                    gridTemplateColumns: "1fr",
                 }}
             >
                 <SectionCard title="Inbox" description="Messages are sorted for fast scanning and clear read state.">
@@ -241,7 +225,7 @@ export default function NotificationsPage() {
                             />
                         }
                     >
-                        <Stack spacing={1.5}>
+                        <div className="flex gap-[12px]">
                             {notifications?.map((notification) => {
                                 const isUpdatingThisItem =
                                     markOneMutation.isPending &&
@@ -255,7 +239,7 @@ export default function NotificationsPage() {
                                     />
                                 );
                             })}
-                        </Stack>
+                        </div>
                     </QueryBoundary>
                 </SectionCard>
 
@@ -267,14 +251,17 @@ export default function NotificationsPage() {
                         errorFallback="Failed to load notification preferences."
                         onRetry={() => void refetchPrefs()}
                         loadingFallback={
-                            <Stack spacing={1.5}>
+                            <div className="flex gap-[12px]">
                                 {Array.from({ length: 3 }).map((_: any, index: any) => (
-                                    <Skeleton key={index} variant="rounded" height={88} sx={{ borderRadius: 4 }} />
+                                    <div
+                                        key={index}
+                                        style={{ borderRadius: 16 }}
+                                        className="animate-pulse rounded-md bg-muted" />
                                 ))}
-                            </Stack>
+                            </div>
                         }
                     >
-                        <Stack spacing={1.5}>
+                        <div className="flex gap-[12px]">
                             <PreferenceItem
                                 id="email-notifications"
                                 label="Email notifications"
@@ -299,10 +286,10 @@ export default function NotificationsPage() {
                                 disabled={prefsMutation.isPending}
                                 onChange={(nextValue) => prefsMutation.mutate({ marketing_enabled: nextValue })}
                             />
-                        </Stack>
+                        </div>
                     </QueryBoundary>
                 </SectionCard>
-            </Box>
+            </div>
         </PageShell>
     );
 }

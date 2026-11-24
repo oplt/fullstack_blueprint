@@ -5,7 +5,7 @@ export type CalendarViewMode = "day" | "week" | "month" | "twelve_month";
 export function getMonthGridColumns(viewMode: CalendarViewMode) {
     return viewMode === "twelve_month"
         ? "repeat(3, minmax(0, 1fr))"
-        : ({ xs: "1fr" } as const);
+        : "1fr";
 }
 
 export function getCalendarQueryRange(viewMode: CalendarViewMode, anchorDate: Dayjs) {

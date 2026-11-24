@@ -1,6 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { colorMix } from "@/lib/color";
 import dayjs from "dayjs";
-import { Box, Button, Stack, Typography } from "@/components/ui/muiCompat";
-import { alpha, useTheme } from "@/components/ui/muiCompat";
 import { formatDateOnly, humanizeKey } from "../../../utils/formatters";
 import { formatItemTime, getMinutesFromTimeString, getWeekItemColor } from "../calendarDisplay";
 import { DayItems } from "./DayItems";
@@ -8,7 +8,6 @@ import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 import { MonthDateCalendar } from "./MonthDateCalendar";
 
 export function CalendarDayView({ m }: { m: DashboardCalendarModel }) {
-const theme = useTheme();
 const { anchorDate, itemsByDate, openDay } = m;
     const dayKey = anchorDate.format("YYYY-MM-DD");
     const dayItems = itemsByDate[dayKey] ?? [];
@@ -38,89 +37,83 @@ const { anchorDate, itemsByDate, openDay } = m;
     const selectedDetailItem = timedItems[0] ?? allDayItems[0] ?? dayItems[0] ?? null;
 
     return (
-        <Box
-            sx={{
+        <div
+            style={{
                 display: "grid",
-                gap: 2,
-                gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1.5fr) 360px" },
+                gap: 16,
+                gridTemplateColumns: "1fr",
             }}
         >
-            <Box
-                sx={(theme: any) => ({
-                    borderRadius: 4,
-                    border: `1px solid ${theme.palette.divider}`,
+            <div
+                style={({
+                    borderRadius: 16,
+                    border: `1px solid ${"var(--border)"}`,
                     overflow: "hidden",
-                    backgroundColor: theme.palette.background.paper,
+                    backgroundColor: "var(--card)"
                 })}
             >
-                <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    justifyContent="space-between"
-                    spacing={1.5}
-                    sx={(theme: any) => ({
-                        px: 2,
-                        py: 1.5,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        backgroundColor: theme.palette.background.default,
-                    })}
-                >
-                    <Box>
-                        <Typography variant="h6">{formatDateOnly(dayKey)}</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                <div
+                    className="flex flex-col sm:flex-row gap-[12px] justify-between"
+                    style={({
+                        paddingInline: 16,
+                        paddingBlock: 12,
+                        borderBottom: `1px solid ${"var(--border)"}`,
+                        backgroundColor: "var(--background)"
+                    })}>
+                    <div>
+                        <h6>{formatDateOnly(dayKey)}</h6>
+                        <p className="text-muted-foreground">
                             Focused view for one day of scheduled work.
-                        </Typography>
-                    </Box>
-                    <Button variant="contained" onClick={() => openDay(anchorDate)}>
+                        </p>
+                    </div>
+                    <Button variant="default" onClick={() => openDay(anchorDate)} type="button">
                         Add item
                     </Button>
-                </Stack>
+                </div>
 
                 {allDayItems.length > 0 && (
-                    <Box
-                        sx={(theme: any) => ({
-                            px: 2,
-                            py: 1.25,
-                            borderBottom: `1px solid ${theme.palette.divider}`,
-                            backgroundColor: theme.palette.background.paper,
+                    <div
+                        style={({
+                            paddingInline: 16,
+                            paddingBlock: 10,
+                            borderBottom: `1px solid ${"var(--border)"}`,
+                            backgroundColor: "var(--card)"
                         })}
                     >
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                        <span style={{ fontWeight: 700 }} className="text-muted-foreground">
                             All day
-                        </Typography>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+                        </span>
+                        <div className="flex flex-row gap-[8px] flex-wrap" style={{ marginTop: 8 }}>
                             {allDayItems.map((item) => {
-                                const colors = getWeekItemColor(item, theme);
+                                const colors = getWeekItemColor(item);
                                 return (
-                                    <Box
-                                        component="button"
-                                        type="button"
+                                    <div
                                         key={item.id}
                                         onClick={() => openDay(anchorDate)}
                                         aria-label={`Open ${item.title} on ${anchorDate.format("dddd, MMMM D")}`}
-                                        sx={{
+                                        style={{
                                             width: "100%",
                                             textAlign: "left",
-                                            px: 1.25,
-                                            py: 0.8,
-                                            borderRadius: 2,
+                                            paddingInline: 10,
+                                            paddingBlock: 6.4,
+                                            borderRadius: 8,
                                             border: `1px solid ${colors.border}`,
                                             backgroundColor: colors.bg,
                                             color: colors.text,
                                             cursor: "pointer",
-                                        }}
-                                    >
-                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        }}>
+                                        <p style={{ fontWeight: 600 }}>
                                             {item.title}
-                                        </Typography>
-                                    </Box>
+                                        </p>
+                                    </div>
                                 );
                             })}
-                        </Stack>
-                    </Box>
+                        </div>
+                    </div>
                 )}
 
-                <Box
-                    sx={{
+                <div
+                    style={{
                         display: "grid",
                         gridTemplateColumns: "88px minmax(0, 1fr)",
                         minHeight: rowHeight * hourSlots.length,
@@ -128,47 +121,47 @@ const { anchorDate, itemsByDate, openDay } = m;
                         overflow: "auto",
                     }}
                 >
-                    <Box
-                        sx={(theme: any) => ({
-                            borderRight: `1px solid ${theme.palette.divider}`,
-                            backgroundColor: theme.palette.background.default,
+                    <div
+                        style={({
+                            borderRight: `1px solid ${"var(--border)"}`,
+                            backgroundColor: "var(--background)"
                         })}
                     >
                         {hourSlots.map((hour) => (
-                            <Box
+                            <div
                                 key={hour}
-                                sx={(theme: any) => ({
+                                style={({
                                     height: rowHeight,
-                                    px: 1.25,
-                                    pt: 0.55,
-                                    borderBottom: `1px solid ${theme.palette.divider}`,
+                                    paddingInline: 10,
+                                    paddingTop: 4.4,
+                                    borderBottom: `1px solid ${"var(--border)"}`
                                 })}
                             >
-                                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                <p style={{ fontWeight: 600 }} className="text-muted-foreground">
                                     {dayjs().hour(hour).minute(0).format("h A")}
-                                </Typography>
-                            </Box>
+                                </p>
+                            </div>
                         ))}
-                    </Box>
-                    <Box
-                        sx={(theme: any) => ({
+                    </div>
+                    <div
+                        style={({
                             position: "relative",
-                            backgroundColor: theme.palette.background.paper,
+                            backgroundColor: "var(--card)"
                         })}
                     >
                         {hourSlots.map((hour) => (
-                            <Box
+                            <div
                                 key={hour}
-                                sx={(theme: any) => ({
+                                style={({
                                     height: rowHeight,
-                                    borderBottom: `1px solid ${theme.palette.divider}`,
+                                    borderBottom: `1px solid ${"var(--border)"}`
                                 })}
                             />
                         ))}
 
                         {isToday && (
-                            <Box
-                                sx={{
+                            <div
+                                style={{
                                     position: "absolute",
                                     left: 0,
                                     right: 0,
@@ -176,23 +169,12 @@ const { anchorDate, itemsByDate, openDay } = m;
                                     height: 2,
                                     backgroundColor: "primary.main",
                                     zIndex: 2,
-                                    "&::before": {
-                                        content: '""',
-                                        position: "absolute",
-                                        left: -6,
-                                        top: "50%",
-                                        width: 10,
-                                        height: 10,
-                                        borderRadius: "999px",
-                                        backgroundColor: "primary.main",
-                                        transform: "translateY(-50%)",
-                                    },
                                 }}
                             />
                         )}
 
                         {timedItems.map((item) => {
-                            const colors = getWeekItemColor(item, theme);
+                            const colors = getWeekItemColor(item);
                             const top = ((item.startMinutes - gridStartMinutes) / 60) * rowHeight;
                             const height = Math.max(
                                 ((item.endMinutes - item.startMinutes) / 60) * rowHeight,
@@ -200,21 +182,19 @@ const { anchorDate, itemsByDate, openDay } = m;
                             );
 
                             return (
-                                <Box
-                                    component="button"
-                                    type="button"
+                                <div
                                     key={item.id}
                                     onClick={() => openDay(anchorDate)}
                                     aria-label={`Open ${item.title} on ${anchorDate.format("dddd, MMMM D")} at ${formatItemTime(item)}`}
-                                    sx={{
+                                    style={{
                                         position: "absolute",
                                         top,
                                         left: 12,
                                         right: 12,
                                         height,
-                                        px: 1.25,
-                                        py: 1,
-                                        borderRadius: 2,
+                                        paddingInline: 10,
+                                        paddingBlock: 8,
+                                        borderRadius: 8,
                                         border: `1px solid ${colors.border}`,
                                         backgroundColor: colors.bg,
                                         color: colors.text,
@@ -222,72 +202,69 @@ const { anchorDate, itemsByDate, openDay } = m;
                                         overflow: "hidden",
                                         textAlign: "left",
                                         zIndex: 1,
-                                    }}
-                                >
-                                    <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                                    }}>
+                                    <p style={{ fontWeight: 700, lineHeight: 1.3 }}>
                                         {item.title}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ mt: 0.4 }}>
+                                    </p>
+                                    <p style={{ marginTop: 3.2 }}>
                                         {formatItemTime(item)}
-                                    </Typography>
-                                </Box>
+                                    </p>
+                                </div>
                             );
                         })}
-                    </Box>
-                </Box>
-            </Box>
+                    </div>
+                </div>
+            </div>
 
-            <Box
-                sx={(theme: any) => ({
-                    borderRadius: 4,
-                    border: `1px solid ${theme.palette.divider}`,
+            <div
+                style={({
+                    borderRadius: 16,
+                    border: `1px solid ${"var(--border)"}`,
                     overflow: "hidden",
-                    backgroundColor: theme.palette.background.paper,
+                    backgroundColor: "var(--card)"
                 })}
             >
-                <Box
-                    sx={(theme: any) => ({
-                        p: 1.25,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        backgroundColor: alpha(
-                            theme.palette.background.paper,
-                            theme.palette.mode === "dark" ? 0.9 : 0.78
-                        ),
+                <div
+                    style={({
+                        padding: 10,
+                        borderBottom: `1px solid ${"var(--border)"}`,
+
+                        backgroundColor: colorMix("var(--card)", 0.84)
                     })}
                 >
                     <MonthDateCalendar m={m} date={anchorDate} />
-                </Box>
-                <Box sx={{ p: 2 }}>
+                </div>
+                <div style={{ padding: 16 }}>
                     {selectedDetailItem ? (
-                        <Stack spacing={2}>
-                            <Box>
-                                <Typography variant="h6">{selectedDetailItem.title}</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        <div className="flex gap-[16px]">
+                            <div>
+                                <h6>{selectedDetailItem.title}</h6>
+                                <p style={{ marginTop: 4 }} className="text-muted-foreground">
                                     {selectedDetailItem.description || "No extra notes for this item."}
-                                </Typography>
-                            </Box>
-                            <Stack spacing={1}>
-                                <Typography variant="body2" color="text.secondary">
+                                </p>
+                            </div>
+                            <div className="flex gap-[8px]">
+                                <p className="text-muted-foreground">
                                     {formatDateOnly(dayKey)}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                </p>
+                                <p className="text-muted-foreground">
                                     {formatItemTime(selectedDetailItem)}
-                                </Typography>
+                                </p>
                                 {selectedDetailItem.project_name && (
-                                    <Typography variant="body2" color="text.secondary">
+                                    <p className="text-muted-foreground">
                                         Project: {selectedDetailItem.project_name}
-                                    </Typography>
+                                    </p>
                                 )}
                                 {selectedDetailItem.priority && (
-                                    <Typography variant="body2" color="text.secondary">
+                                    <p className="text-muted-foreground">
                                         Priority: {humanizeKey(selectedDetailItem.priority)}
-                                    </Typography>
+                                    </p>
                                 )}
-                            </Stack>
-                            <Button variant="outlined" onClick={() => openDay(anchorDate)}>
+                            </div>
+                            <Button variant="outline" onClick={() => openDay(anchorDate)} type="button">
                                 Edit or add item
                             </Button>
-                        </Stack>
+                        </div>
                     ) : (
                         <DayItems
                             items={dayItems}
@@ -295,8 +272,8 @@ const { anchorDate, itemsByDate, openDay } = m;
                             emptyDescription="Use Add item to create an event, appointment, or task."
                         />
                     )}
-                </Box>
-            </Box>
-        </Box>
+                </div>
+            </div>
+        </div>
     );
 }

@@ -1,4 +1,4 @@
-import { Alert, Button, MenuItem, Stack, TextField } from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
 import { DeleteOutline as DeleteIcon } from "@/components/ui/iconsCompat";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
 import { SectionCard } from "../../../components/ui/SectionCard";
@@ -16,47 +16,47 @@ type TaskEditorSectionProps = {
 export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSectionProps) {
     const d = m.taskDraft;
     const form = (
-        <Stack spacing={2}>
-            <TextField
+        <div className="flex gap-[16px]">
+            <FormField
                 label="Title"
                 {...m.taskForm.register("title")}
                 error={Boolean(m.taskForm.formState.errors.title)}
                 helperText={m.taskForm.formState.errors.title?.message}
             />
-            <TextField
+            <FormField
                 label="Description"
                 {...m.taskForm.register("description")}
                 error={Boolean(m.taskForm.formState.errors.description)}
                 helperText={m.taskForm.formState.errors.description?.message}
                 multiline
-                minRows={4}
+                rows={4}
             />
-            <TextField label="Status" select value={d.status} {...m.taskForm.register("status")}>
+            <FormField label="Status" select value={d.status} {...m.taskForm.register("status")}>
                 {TASK_STATUS_OPTIONS.map((o) => (
-                    <MenuItem key={o.value} value={o.value}>
+                    <option key={o.value}>
                         {o.label}
-                    </MenuItem>
+                    </option>
                 ))}
-            </TextField>
-            <TextField
+            </FormField>
+            <FormField
                 label="Priority"
                 select
                 value={d.priority}
                 {...m.taskForm.register("priority")}
             >
                 {TASK_PRIORITY_OPTIONS.map((o) => (
-                    <MenuItem key={o.value} value={o.value}>
+                    <option key={o.value}>
                         {o.label}
-                    </MenuItem>
+                    </option>
                 ))}
-            </TextField>
-            <TextField
+            </FormField>
+            <FormField
                 label="Due date"
                 type="date"
                 {...m.taskForm.register("due_date")}
                 InputLabelProps={{ shrink: true }}
             />
-            <TextField
+            <FormField
                 label="Assignee"
                 select
                 value={d.assignee_id}
@@ -68,13 +68,13 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                         : undefined
                 }
             >
-                <MenuItem value="">Unassigned</MenuItem>
+                <option>Unassigned</option>
                 {(m.usersQuery.data ?? []).map((u) => (
-                    <MenuItem key={u.id} value={u.id}>
+                    <option key={u.id}>
                         {u.full_name || u.email}
-                    </MenuItem>
+                    </option>
                 ))}
-            </TextField>
+            </FormField>
             {m.usersQuery.isError && (
                 <QueryErrorAlert
                     error={m.usersQuery.error}
@@ -83,19 +83,18 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                 />
             )}
             {m.selectedTask && (
-                <Alert severity="info">
+                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                     Created {formatDateTime(m.selectedTask.created_at)}. Last updated{" "}
                     {formatDateTime(m.selectedTask.updated_at)}.
-                </Alert>
+                </div>
             )}
-            {m.taskError && <Alert severity="error">{m.taskError}</Alert>}
-            <Stack direction="row" spacing={1.25}>
+            {m.taskError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{m.taskError}</div>}
+            <div className="flex flex-row gap-[10px]">
                 <Button
-                    variant="contained"
+                    variant="default"
                     onClick={m.submit}
                     disabled={m.createMutation.isPending || m.updateMutation.isPending}
-                    fullWidth
-                >
+                    type="button">
                     {m.selectedTask
                         ? m.updateMutation.isPending
                             ? "Saving..."
@@ -106,17 +105,15 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                 </Button>
                 {m.selectedTask && (
                     <Button
-                        color="error"
-                        variant="outlined"
+                        variant="destructive"
                         onClick={() => m.deleteMutation.mutate()}
                         disabled={m.deleteMutation.isPending}
-                        startIcon={<DeleteIcon />}
-                    >
+                        type="button"><DeleteIcon />
                         {m.deleteMutation.isPending ? "Deleting..." : "Delete"}
                     </Button>
                 )}
-            </Stack>
-        </Stack>
+            </div>
+        </div>
     );
 
     if (embedded) return form;

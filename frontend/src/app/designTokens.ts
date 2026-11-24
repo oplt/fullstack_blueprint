@@ -3,8 +3,8 @@
  *
  * Components should consume semantic tokens (or the CSS custom properties they
  * produce) instead of choosing product-specific colors and spacing values.
- * The shape is serialisable so the same values can be used by MUI during the
- * migration and by Tailwind/shadcn in later phases.
+ * The shape is serialisable so the same values can be consumed by Tailwind,
+ * shadcn primitives and framework-independent utilities.
  */
 
 export const THEME_PREFERENCES_STORAGE_KEY = "fullstack-blueprint.theme";
@@ -60,6 +60,22 @@ type SemanticColors = {
     ring: string;
     sidebar: string;
     sidebarForeground: string;
+    surfaceSoft: string;
+    surfaceCard: string;
+    surfaceCreamStrong: string;
+    surfaceDark: string;
+    surfaceDarkElevated: string;
+    surfaceDarkSoft: string;
+    hairline: string;
+    hairlineSoft: string;
+    ink: string;
+    bodyStrong: string;
+    body: string;
+    mutedSoft: string;
+    onDark: string;
+    onDarkSoft: string;
+    accentTeal: string;
+    accentAmber: string;
     chart: readonly [string, string, string, string, string];
 };
 
@@ -142,11 +158,11 @@ type PresetDefinition = {
 
 const presetDefinitions: Record<ThemePreset, PresetDefinition> = {
     "minimal-saas": {
-        primary: "#2563EB",
-        primaryHover: "#1D4ED8",
-        lightAccent: "#DBEAFE",
-        darkAccent: "#1E3A8A",
-        chart: ["#2563EB", "#0F766E", "#D97706", "#DB2777", "#7C3AED"],
+        primary: "#CC785C",
+        primaryHover: "#A9583E",
+        lightAccent: "#F3DDD2",
+        darkAccent: "#5A2F25",
+        chart: ["#CC785C", "#5DB8A6", "#E8A55A", "#5DB872", "#6C6A64"],
     },
     "linear-inspired": {
         primary: "#5E6AD2",
@@ -186,9 +202,9 @@ const defaultPreferences: ThemePreferences = {
 };
 
 export const fonts = {
-    display: "Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
-    text: "Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
-    mono: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, Menlo, monospace",
+    display: "\"Cormorant Garamond\", \"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    text: "Inter, Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+    mono: "\"JetBrains Mono\", \"IBM Plex Mono\", ui-monospace, SFMono-Regular, Menlo, monospace",
 } as const;
 
 export const motion = {
@@ -202,22 +218,24 @@ export const radii = {
     none: 0,
 } as const;
 
-/** Backward-compatible aliases for components still using the MUI migration layer. */
+/** Stable aliases retained for product configuration and legacy token consumers. */
 export const colors = {
+    coral: presetDefinitions["minimal-saas"].primary,
+    coralActive: presetDefinitions["minimal-saas"].primaryHover,
     electricBlue: presetDefinitions["minimal-saas"].primary,
     white: "#FFFFFF",
-    lightAsh: "#F8FAFC",
-    carbonDark: "#0F172A",
-    graphite: "#334155",
-    pewter: "#64748B",
-    silverFog: "#94A3B8",
-    cloudGray: "#E2E8F0",
-    paleSilver: "#CBD5E1",
-    frostedGlass: "rgba(255, 255, 255, 0.78)",
-    overlay: "rgba(15, 23, 42, 0.65)",
-    border: "#CBD5E1",
-    bg: "#F8FAFC",
-    text: "#0F172A",
+    lightAsh: "#FAF9F5",
+    carbonDark: "#181715",
+    graphite: "#252523",
+    pewter: "#6C6A64",
+    silverFog: "#8E8B82",
+    cloudGray: "#F5F0E8",
+    paleSilver: "#E6DFD8",
+    frostedGlass: "rgba(250, 249, 245, 0.84)",
+    overlay: "rgba(20, 20, 19, 0.65)",
+    border: "#E6DFD8",
+    bg: "#FAF9F5",
+    text: "#141413",
 } as const;
 
 function isThemePreset(value: unknown): value is ThemePreset {
@@ -299,15 +317,16 @@ export function createDesignTokens(options: {
     const definition = presetDefinitions[preset];
     const primary = isHexColor(options.primaryColor) ? options.primaryColor : definition.primary;
     const isDark = mode === "dark";
-    const foreground = isDark ? "#F8FAFC" : "#0F172A";
-    const background = isDark ? "#0B1120" : "#F8FAFC";
-    const card = isDark ? "#111827" : "#FFFFFF";
-    const muted = isDark ? "#1E293B" : "#F1F5F9";
-    const border = isDark ? "#334155" : "#CBD5E1";
-    const mutedForeground = isDark ? "#CBD5E1" : "#64748B";
+    const foreground = isDark ? "#FAF9F5" : "#141413";
+    const background = isDark ? "#181715" : "#FAF9F5";
+    const card = isDark ? "#252320" : "#EFE9DE";
+    const muted = isDark ? "#1F1E1B" : "#F5F0E8";
+    const border = isDark ? "#3D3B37" : "#E6DFD8";
+    const mutedForeground = isDark ? "#A09D96" : "#6C6A64";
+    const surfaceCreamStrong = isDark ? "#302E29" : "#E8E0D2";
     const radius = options.radius ?? defaultPreferences.radius;
     const density = options.density ?? defaultPreferences.density;
-    const fontFamily = options.fontFamily?.trim() || fonts.text;
+    const customFontFamily = options.fontFamily?.trim();
 
     return {
         preset,
@@ -326,34 +345,50 @@ export function createDesignTokens(options: {
                 : isHexColor(options.primaryColor)
                   ? primary
                   : definition.primaryHover,
-            secondary: isDark ? "#1E293B" : "#E2E8F0",
+            secondary: surfaceCreamStrong,
             secondaryForeground: foreground,
             muted,
             mutedForeground,
             accent: isDark ? definition.darkAccent : definition.lightAccent,
-            accentForeground: isDark ? "#F8FAFC" : "#1E1B4B",
-            destructive: isDark ? "#F87171" : "#DC2626",
+            accentForeground: foreground,
+            destructive: isDark ? "#F47F72" : "#C64545",
             destructiveForeground: "#FFFFFF",
-            success: isDark ? "#4ADE80" : "#15803D",
-            successForeground: isDark ? "#052E16" : "#FFFFFF",
-            warning: isDark ? "#FBBF24" : "#B45309",
-            warningForeground: isDark ? "#422006" : "#FFFFFF",
-            information: isDark ? "#38BDF8" : "#0369A1",
-            informationForeground: isDark ? "#082F49" : "#FFFFFF",
+            success: isDark ? "#7DD68A" : "#5DB872",
+            successForeground: isDark ? "#142B18" : "#FFFFFF",
+            warning: isDark ? "#F0BF69" : "#D4A017",
+            warningForeground: isDark ? "#38270E" : "#FFFFFF",
+            information: isDark ? "#8CCFC1" : "#397F73",
+            informationForeground: isDark ? "#142B27" : "#FFFFFF",
             border,
             input: border,
             ring: primary,
-            sidebar: isDark ? "#0F172A" : "#F1F5F9",
+            sidebar: isDark ? "#1F1E1B" : "#F5F0E8",
             sidebarForeground: foreground,
+            surfaceSoft: muted,
+            surfaceCard: card,
+            surfaceCreamStrong,
+            surfaceDark: "#181715",
+            surfaceDarkElevated: "#252320",
+            surfaceDarkSoft: "#1F1E1B",
+            hairline: border,
+            hairlineSoft: isDark ? "#302E29" : "#EBE6DF",
+            ink: isDark ? "#FAF9F5" : "#141413",
+            bodyStrong: isDark ? "#F0EDE5" : "#252523",
+            body: isDark ? "#D8D4CC" : "#3D3D3A",
+            mutedSoft: isDark ? "#77736C" : "#8E8B82",
+            onDark: "#FAF9F5",
+            onDarkSoft: "#A09D96",
+            accentTeal: "#5DB8A6",
+            accentAmber: "#E8A55A",
             chart: definition.chart,
         },
         typography: {
-            display: fontFamily,
-            text: fontFamily,
+            display: customFontFamily || fonts.display,
+            text: customFontFamily || fonts.text,
             mono: fonts.mono,
-            bodySize: "0.875rem",
-            bodyLineHeight: "1.5",
-            headingWeight: 600,
+            bodySize: "1rem",
+            bodyLineHeight: "1.55",
+            headingWeight: 400,
             bodyWeight: 400,
             labelWeight: 500,
         },
@@ -371,7 +406,7 @@ export function createDesignTokens(options: {
             lg: "24px",
             xl: "32px",
             xxl: "48px",
-            section: "64px",
+            section: "96px",
         },
         radius: {
             none: "0px",
@@ -413,29 +448,6 @@ export function createDesignTokens(options: {
 
 export function cssVariablesFor(tokens: DesignTokens): Record<string, string> {
     const variables: Record<string, string> = {
-        "--color-background": tokens.colors.background,
-        "--color-foreground": tokens.colors.foreground,
-        "--color-card": tokens.colors.card,
-        "--color-card-foreground": tokens.colors.cardForeground,
-        "--color-popover": tokens.colors.popover,
-        "--color-popover-foreground": tokens.colors.popoverForeground,
-        "--color-primary": tokens.colors.primary,
-        "--color-primary-foreground": tokens.colors.primaryForeground,
-        "--color-secondary": tokens.colors.secondary,
-        "--color-secondary-foreground": tokens.colors.secondaryForeground,
-        "--color-muted": tokens.colors.muted,
-        "--color-muted-foreground": tokens.colors.mutedForeground,
-        "--color-accent": tokens.colors.accent,
-        "--color-accent-foreground": tokens.colors.accentForeground,
-        "--color-destructive": tokens.colors.destructive,
-        "--color-success": tokens.colors.success,
-        "--color-warning": tokens.colors.warning,
-        "--color-information": tokens.colors.information,
-        "--color-border": tokens.colors.border,
-        "--color-input": tokens.colors.input,
-        "--color-ring": tokens.colors.ring,
-        "--color-sidebar": tokens.colors.sidebar,
-        "--color-sidebar-foreground": tokens.colors.sidebarForeground,
         "--background": tokens.colors.background,
         "--foreground": tokens.colors.foreground,
         "--card": tokens.colors.card,
@@ -463,6 +475,22 @@ export function cssVariablesFor(tokens: DesignTokens): Record<string, string> {
         "--ring": tokens.colors.ring,
         "--sidebar": tokens.colors.sidebar,
         "--sidebar-foreground": tokens.colors.sidebarForeground,
+        "--surface-soft": tokens.colors.surfaceSoft,
+        "--surface-card": tokens.colors.surfaceCard,
+        "--surface-cream-strong": tokens.colors.surfaceCreamStrong,
+        "--surface-dark": tokens.colors.surfaceDark,
+        "--surface-dark-elevated": tokens.colors.surfaceDarkElevated,
+        "--surface-dark-soft": tokens.colors.surfaceDarkSoft,
+        "--hairline": tokens.colors.hairline,
+        "--hairline-soft": tokens.colors.hairlineSoft,
+        "--ink": tokens.colors.ink,
+        "--body-strong": tokens.colors.bodyStrong,
+        "--body": tokens.colors.body,
+        "--muted-soft": tokens.colors.mutedSoft,
+        "--on-dark": tokens.colors.onDark,
+        "--on-dark-soft": tokens.colors.onDarkSoft,
+        "--accent-teal": tokens.colors.accentTeal,
+        "--accent-amber": tokens.colors.accentAmber,
         "--sidebar-primary": tokens.colors.primary,
         "--sidebar-primary-foreground": tokens.colors.primaryForeground,
         "--sidebar-accent": tokens.colors.accent,
@@ -484,7 +512,15 @@ export function cssVariablesFor(tokens: DesignTokens): Record<string, string> {
         "--radius-xl": tokens.radius.xl,
         "--radius-pill": tokens.radius.pill,
         "--spacing-page": tokens.density.pagePadding,
-        "--spacing-section": tokens.density.sectionGap,
+        "--space-xxs": tokens.spacing.xxs,
+        "--space-xs": tokens.spacing.xs,
+        "--space-sm": tokens.spacing.sm,
+        "--space-md": tokens.spacing.md,
+        "--space-lg": tokens.spacing.lg,
+        "--space-xl": tokens.spacing.xl,
+        "--space-xxl": tokens.spacing.xxl,
+        "--section-rhythm": tokens.spacing.section,
+        "--spacing-section-gap": tokens.density.sectionGap,
         "--control-height": tokens.density.controlHeight,
         "--control-padding-x": tokens.density.controlPaddingX,
         "--shadow-raised": tokens.elevation.raised,

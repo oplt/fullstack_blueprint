@@ -14,6 +14,7 @@ function manualChunk(id: string) {
   if (normalizedId.includes('/react/') || normalizedId.includes('/react-dom/')) return 'react'
   if (normalizedId.includes('/react-router-dom/')) return 'router'
   if (normalizedId.includes('/@tanstack/react-query/')) return 'query'
+  if (normalizedId.includes('/lucide-react/')) return 'icons'
   if (
     normalizedId.includes('/react-hook-form/') ||
     normalizedId.includes('/@hookform/resolvers/') ||

@@ -1,18 +1,6 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useState, type ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-    Alert,
-    Box,
-    Button,
-    Collapse,
-    IconButton,
-    InputAdornment,
-    Stack,
-    TextField,
-    type TextFieldProps,
-    Typography,
-} from "@/components/ui/muiCompat";
 import { Visibility, VisibilityOff } from "@/components/ui/iconsCompat";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../app/routes";
@@ -33,25 +21,25 @@ import { getQueryErrorMessage } from "../utils/queryErrors";
 
 type Mode = "signIn" | "signUp";
 
-function PasswordField(props: TextFieldProps) {
+function PasswordField(props: ComponentProps<typeof FormField>) {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <TextField
+        <FormField
             {...props}
             type={showPassword ? "text" : "password"}
             InputProps={{
                 endAdornment: (
-                    <InputAdornment position="end">
-                        <IconButton
-                            edge="end"
+                    <span>
+                        <Button size="icon"
+
                             aria-label={showPassword ? "Hide password" : "Show password"}
                             onClick={() => setShowPassword((value) => !value)}
                             onMouseDown={(event: any) => event.preventDefault()}
                         >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                    </InputAdornment>
+                        </Button>
+                    </span>
                 ),
             }}
         />
@@ -118,19 +106,17 @@ function SignInForm() {
     }
 
     return (
-        <Stack spacing={2}>
-            {serverError && <Alert severity="error">{serverError}</Alert>}
-            <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-                <Stack spacing={2}>
-                    <TextField
+        <div className="flex gap-[16px]">
+            {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
+            <div onSubmit={handleSubmit(onSubmit)}>
+                <div className="flex gap-[16px]">
+                    <FormField
                         label="Email"
                         type="email"
                         autoComplete="email"
                         {...register("email")}
                         error={!!errors.email}
-                        helperText={errors.email?.message}
-                        fullWidth
-                    />
+                        helperText={errors.email?.message} />
                     <PasswordField
                         label="Password"
                         autoComplete="current-password"
@@ -139,51 +125,47 @@ function SignInForm() {
                         helperText={errors.password?.message}
                         fullWidth
                     />
-                    <TextField
+                    <FormField
                         label="Authenticator code"
                         autoComplete="one-time-code"
                         {...register("mfa_code")}
                         error={!!errors.mfa_code}
-                        helperText={errors.mfa_code?.message || "Required for accounts with MFA enabled."}
-                        fullWidth
-                    />
-                    <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
+                        helperText={errors.mfa_code?.message || "Required for accounts with MFA enabled."} />
+                    <Button type="submit" variant="default" disabled={isSubmitting}>
                         {isSubmitting ? "Signing in..." : "Sign in"}
                     </Button>
-                </Stack>
-            </Box>
-            <Button variant="text" onClick={toggleForgotPassword} sx={{ alignSelf: "flex-start", px: 0 }}>
+                </div>
+            </div>
+            <Button variant="ghost" onClick={toggleForgotPassword} type="button">
                 {forgotOpen ? "Hide password reset" : "Forgot password?"}
             </Button>
-            <Collapse in={forgotOpen} unmountOnExit>
-                <Stack spacing={2}>
-                    <Typography variant="body2" color="text.secondary">
+            <div>
+                <div className="flex gap-[16px]">
+                    <p className="text-muted-foreground">
                         Enter your email and we will send a reset link if an account exists.
-                    </Typography>
+                    </p>
                     {forgotDone && (
-                        <Alert severity="success">
+                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                             If that email exists, a reset link has been sent. Check your inbox.
-                        </Alert>
+                        </div>
                     )}
-                    {forgotError && <Alert severity="error">{forgotError}</Alert>}
-                    <Box component="form" onSubmit={handleForgotSubmit(onForgotPasswordSubmit)}>
-                        <Stack spacing={2}>
-                            <TextField
+                    {forgotError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{forgotError}</div>}
+                    <div onSubmit={handleForgotSubmit(onForgotPasswordSubmit)}>
+                        <div className="flex gap-[16px]">
+                            <FormField
                                 label="Email"
                                 type="email"
                                 {...registerForgot("email")}
                                 error={!!forgotErrors.email}
-                                helperText={forgotErrors.email?.message}
-                                fullWidth
-                            />
-                            <Button type="submit" variant="outlined" disabled={isSubmittingForgot}>
+                                helperText={forgotErrors.email?.message} />
+                            <Button type="submit" variant="outline" disabled={isSubmittingForgot}>
                                 {isSubmittingForgot ? "Sending..." : "Send reset link"}
                             </Button>
-                        </Stack>
-                    </Box>
-                </Stack>
-            </Collapse>
-        </Stack>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -210,27 +192,23 @@ function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
     }
 
     return (
-        <Stack spacing={2}>
-            {serverError && <Alert severity="error">{serverError}</Alert>}
-            <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-                <Stack spacing={2}>
-                    <TextField
+        <div className="flex gap-[16px]">
+            {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
+            <div onSubmit={handleSubmit(onSubmit)}>
+                <div className="flex gap-[16px]">
+                    <FormField
                         label="Full name"
                         autoComplete="name"
                         {...register("full_name")}
                         error={!!errors.full_name}
-                        helperText={errors.full_name?.message}
-                        fullWidth
-                    />
-                    <TextField
+                        helperText={errors.full_name?.message} />
+                    <FormField
                         label="Email"
                         type="email"
                         autoComplete="email"
                         {...register("email")}
                         error={!!errors.email}
-                        helperText={errors.email?.message}
-                        fullWidth
-                    />
+                        helperText={errors.email?.message} />
                     <PasswordField
                         label="Password"
                         autoComplete="new-password"
@@ -247,12 +225,12 @@ function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
                         helperText={errors.admin_invite_code?.message || "Optional. Required only for admin registrations."}
                         fullWidth
                     />
-                    <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
+                    <Button type="submit" variant="default" disabled={isSubmitting}>
                         {isSubmitting ? "Creating account..." : "Create account"}
                     </Button>
-                </Stack>
-            </Box>
-        </Stack>
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -275,54 +253,53 @@ export default function AuthHomePage() {
                 />
             }
         >
-            <Stack spacing={3}>
-                <Box>
-                    <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
+            <div className="flex gap-[24px]">
+                <div>
+                    <span style={{ display: "block" }} className="text-muted-foreground">
                         {appName}
-                    </Typography>
-                    <Typography variant="h4" sx={{ mt: 0.5 }}>
+                    </span>
+                    <h4 style={{ marginTop: 4 }}>
                         {mode === "signIn" ? "Welcome back" : "Create your account"}
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    </h4>
+                    <span style={{ marginTop: 8 }} className="text-muted-foreground">
                         {mode === "signIn"
                             ? `Sign in to manage your ${coreDomainPlural.toLowerCase()} and account activity.`
                             : `Create an account to manage your ${coreDomainPlural.toLowerCase()}.`}
-                    </Typography>
-                </Box>
+                    </span>
+                </div>
 
-                <Box
-                    sx={(theme: any) => ({
-                        p: 0.5,
-                        borderRadius: 1,
+                <div
+                    style={({
+                        padding: 4,
+                        borderRadius: 4,
                         display: "grid",
                         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                        gap: 0.5,
-                        backgroundColor: theme.palette.mode === "dark"
-                            ? theme.palette.background.paper
-                            : theme.palette.action.hover,
+                        gap: 4,
+
+                        backgroundColor: "var(--card)"
                     })}
                 >
                     <Button
-                        variant={mode === "signIn" ? "contained" : "text"}
+                        variant={mode === "signIn" ? "default" : "ghost"}
                         onClick={() => {
                             setMode("signIn");
                             setSuccessMsg("");
                         }}
-                    >
+                        type="button">
                         Sign in
                     </Button>
                     <Button
-                        variant={mode === "signUp" ? "contained" : "text"}
+                        variant={mode === "signUp" ? "default" : "ghost"}
                         onClick={() => {
                             setMode("signUp");
                             setSuccessMsg("");
                         }}
-                    >
+                        type="button">
                         Create account
                     </Button>
-                </Box>
+                </div>
 
-                {successMsg && <Alert severity="success">{successMsg}</Alert>}
+                {successMsg && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{successMsg}</div>}
 
                 {mode === "signIn" ? (
                     <SignInForm />
@@ -335,10 +312,10 @@ export default function AuthHomePage() {
                     />
                 )}
 
-                <Typography variant="body2" color="text.secondary">
+                <p className="text-muted-foreground">
                     By continuing, you are entering a cleaner product experience with improved navigation, readability, and trust cues.
-                </Typography>
-            </Stack>
+                </p>
+            </div>
         </AuthShell>
     );
 }

@@ -12,7 +12,13 @@ import type { AiArtifact, AiCitation, AiMessage, AiToolCall, AiUsage } from "./t
 export type AiConversation = { id: string; title: string; updatedAt?: string };
 
 export function ConversationSidebar({ conversations, activeId, onSelect, onNew }: { conversations: AiConversation[]; activeId?: string; onSelect: (id: string) => void; onNew?: () => void }) {
-    return <aside aria-label="Conversations" className="flex min-h-0 flex-col gap-2 border-r border-border p-3"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Conversations</h2>{onNew ? <Button type="button" size="icon-sm" variant="outline" aria-label="New conversation" onClick={onNew}>+</Button> : null}</div><nav className="min-h-0 space-y-1 overflow-auto">{conversations.map((conversation) => <button type="button" key={conversation.id} aria-current={conversation.id === activeId ? "page" : undefined} onClick={() => onSelect(conversation.id)} className={cn("w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-muted", conversation.id === activeId && "bg-primary/10 font-medium text-primary")}><span className="block truncate">{conversation.title}</span>{conversation.updatedAt ? <time className="text-xs text-muted-foreground">{conversation.updatedAt}</time> : null}</button>)}</nav></aside>;
+    return (
+        <aside aria-label="Conversations" className="flex min-h-0 flex-col gap-2 border-r border-border p-3"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Conversations</h2>{onNew ? <Button
+                type="button"
+                variant="outline"
+                aria-label="New conversation"
+                onClick={onNew}>+</Button> : null}</div><nav className="min-h-0 space-y-1 overflow-auto">{conversations.map((conversation) => <button type="button" key={conversation.id} aria-current={conversation.id === activeId ? "page" : undefined} onClick={() => onSelect(conversation.id)} className={cn("w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-muted", conversation.id === activeId && "bg-primary/10 font-medium text-primary")}><span className="block truncate">{conversation.title}</span>{conversation.updatedAt ? <time className="text-xs text-muted-foreground">{conversation.updatedAt}</time> : null}</button>)}</nav></aside>
+    );
 }
 
 export function SourceCitations({ citations }: { citations: AiCitation[] }) {
@@ -22,7 +28,21 @@ export function SourceCitations({ citations }: { citations: AiCitation[] }) {
 
 export function MessageActions({ content, onRetry, onRegenerate }: { content: string; onRetry?: () => void; onRegenerate?: () => void }) {
     const [copied, setCopied] = useState(false);
-    return <div className="mt-2 flex gap-1"><Button type="button" size="icon-xs" variant="ghost" aria-label="Copy message" onClick={() => { void navigator.clipboard?.writeText(content).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1200); }); }}>{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</Button>{onRetry ? <Button type="button" size="icon-xs" variant="ghost" aria-label="Retry message" onClick={onRetry}><RefreshCw className="size-3.5" /></Button> : null}{onRegenerate ? <Button type="button" size="icon-xs" variant="ghost" aria-label="Regenerate response" onClick={onRegenerate}><RefreshCw className="size-3.5" /></Button> : null}</div>;
+    return (
+        <div className="mt-2 flex gap-1"><Button
+                type="button"
+                variant="ghost"
+                aria-label="Copy message"
+                onClick={() => { void navigator.clipboard?.writeText(content).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1200); }); }}>{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}</Button>{onRetry ? <Button
+                type="button"
+                variant="ghost"
+                aria-label="Retry message"
+                onClick={onRetry}><RefreshCw className="size-3.5" /></Button> : null}{onRegenerate ? <Button
+                type="button"
+                variant="ghost"
+                aria-label="Regenerate response"
+                onClick={onRegenerate}><RefreshCw className="size-3.5" /></Button> : null}</div>
+    );
 }
 
 function MessageBubble({ message, onRetry, onRegenerate }: { message: AiMessage; onRetry?: (message: AiMessage) => void; onRegenerate?: (message: AiMessage) => void }) {
@@ -49,7 +69,7 @@ export function ToolResult({ output }: { output?: unknown }) { if (output == nul
 
 export function AgentRunStatus({ status, runId }: { status: string; runId?: string }) { return <p aria-live="polite" className="text-xs text-muted-foreground">Agent run {runId ? `${runId} · ` : ""}{status}</p>; }
 
-export function HumanApprovalRequest({ title, description, actionLabel = "Approve", resolved, onResolve }: { title: string; description?: string; actionLabel?: string; resolved?: boolean; onResolve: (approved: boolean) => void }) { return <section role="alertdialog" aria-label={title} className="rounded-lg border border-amber-400/40 bg-amber-50/50 p-3 dark:bg-amber-950/20"><div className="flex gap-2"><TriangleAlert className="mt-0.5 size-4 text-amber-600" /><div className="min-w-0 flex-1"><h3 className="font-semibold">{title}</h3>{description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}{resolved == null ? <div className="mt-3 flex gap-2"><Button type="button" size="sm" onClick={() => onResolve(true)}>{actionLabel}</Button><Button type="button" size="sm" variant="outline" onClick={() => onResolve(false)}>Decline</Button></div> : <p className="mt-2 text-sm font-medium">{resolved ? "Approved" : "Declined"}</p>}</div></div></section>; }
+export function HumanApprovalRequest({ title, description, actionLabel = "Approve", resolved, onResolve }: { title: string; description?: string; actionLabel?: string; resolved?: boolean; onResolve: (approved: boolean) => void }) { return <section role="alertdialog" aria-label={title} className="rounded-lg border border-amber-400/40 bg-amber-50/50 p-3 dark:bg-amber-950/20"><div className="flex gap-2"><TriangleAlert className="mt-0.5 size-4 text-amber-600" /><div className="min-w-0 flex-1"><h3 className="font-semibold">{title}</h3>{description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}{resolved == null ? <div className="mt-3 flex gap-2"><Button type="button" onClick={() => onResolve(true)}>{actionLabel}</Button><Button type="button" variant="outline" onClick={() => onResolve(false)}>Decline</Button></div> : <p className="mt-2 text-sm font-medium">{resolved ? "Approved" : "Declined"}</p>}</div></div></section>; }
 
 export function UsageIndicator({ usage }: { usage?: AiUsage }) { if (!usage) return null; const tokens = usage.totalTokens ?? ((usage.inputTokens ?? 0) + (usage.outputTokens ?? 0)); return <p className="text-xs text-muted-foreground">{tokens ? `${tokens.toLocaleString()} tokens` : "Usage pending"}{usage.estimatedCostMicros != null ? ` · $${(usage.estimatedCostMicros / 1_000_000).toFixed(4)}` : ""}</p>; }
 
@@ -71,5 +91,5 @@ export function ArtifactPreview({ artifact }: { artifact: AiArtifact }) {
     return <p className="whitespace-pre-wrap text-sm">{artifact.content ?? ""}</p>;
 }
 
-export function AiErrorRecovery({ message, onRetry }: { message: string; onRetry?: () => void }) { return <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"><p>{message}</p>{onRetry ? <Button type="button" size="sm" variant="outline" className="mt-2" onClick={onRetry}>Retry connection</Button> : null}</div>; }
+export function AiErrorRecovery({ message, onRetry }: { message: string; onRetry?: () => void }) { return <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"><p>{message}</p>{onRetry ? <Button type="button" variant="outline" className="mt-2" onClick={onRetry}>Retry connection</Button> : null}</div>; }
 

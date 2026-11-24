@@ -1,5 +1,5 @@
+import { Button } from "@/components/ui/button";
 import { Component, type PropsWithChildren } from "react";
-import { Button, Stack, Typography } from "@/components/ui/muiCompat";
 
 export class RouteErrorBoundary extends Component<PropsWithChildren, { failed: boolean }> {
     state = { failed: false };
@@ -12,10 +12,10 @@ export class RouteErrorBoundary extends Component<PropsWithChildren, { failed: b
         if (!this.state.failed) return this.props.children;
 
         return (
-            <Stack spacing={2} alignItems="center" sx={{ p: 4 }}>
-                <Typography variant="h4" component="h1">The application could not load this page</Typography>
-                <Button onClick={() => window.location.reload()}>Reload page</Button>
-            </Stack>
+            <div className="flex gap-[16px] items-center" style={{ padding: 32 }}>
+                <h4>The application could not load this page</h4>
+                <Button onClick={() => window.location.reload()} type="button">Reload page</Button>
+            </div>
         );
     }
 }

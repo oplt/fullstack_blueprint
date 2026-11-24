@@ -1,19 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-    Alert,
-    Box,
-    Button,
-    Chip,
-    MenuItem,
-    Stack,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    TextField,
-    Typography,
-} from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useEffect, useMemo, useState } from "react";
 import { SmartToy as AgentIcon, PlayArrow as RunIcon } from "@/components/ui/iconsCompat";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "../../app/snackbarContext";
@@ -45,27 +30,9 @@ import {
     agentRunElapsedMs,
     buildAgentTraceSteps,
     formatElapsed,
-    type AgentTraceCategory,
 } from "./agentTraceModel";
 
 const AGENT_TABS = ["configure", "run", "trace", "sources", "output"] as const;
-
-function categoryLabel(category: AgentTraceCategory): string {
-    switch (category) {
-        case "plan":
-            return "Plan";
-        case "tool":
-            return "Tool call";
-        case "result":
-            return "Result";
-        case "error":
-            return "Error";
-        case "meta":
-            return "Meta";
-        default:
-            return category;
-    }
-}
 
 function agentRunDisabledReason(options: {
     message?: string;
@@ -205,7 +172,7 @@ export default function AgentView() {
             />
             <SettingsTabs />
 
-            <Stack spacing={2} sx={{ mt: 2 }}>
+            <div className="flex gap-[16px]" style={{ marginTop: 16 }}>
                 <PageTabs
                     value={tab}
                     onChange={setTab}
@@ -224,17 +191,17 @@ export default function AgentView() {
                         title="Configure"
                         description="Model, tools, prompt, limits, and retrieval — then continue to Run."
                     >
-                        <Stack spacing={2}>
-                            <Alert severity="info">
+                        <div className="flex gap-[16px]">
+                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                 Execution is synchronous today (HTTP 201). The Run tab shows live
                                 status until the backend responds or times out.
-                            </Alert>
+                            </div>
 
-                            <Typography variant="subtitle2">
+                            <p>
                                 <HelpTooltip termId="model_family" variant="label">
                                     Model
                                 </HelpTooltip>
-                            </Typography>
+                            </p>
                             <KeyValueList
                                 showHelp
                                 items={[
@@ -263,103 +230,71 @@ export default function AgentView() {
                                 ]}
                             />
 
-                            <Stack
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={2}
-                                flexWrap="wrap"
-                                useFlexGap
-                            >
-                                <TextField
-                                    size="small"
+                            <div className="flex flex-col sm:flex-row gap-[16px] flex-wrap">
+                                <FormField
                                     label="Agent ID"
                                     value={agentId}
-                                    onChange={(e: any) => setAgentId(e.target.value)}
-                                    sx={{ minWidth: 160 }}
-                                />
-                                <TextField
+                                    onChange={(e: any) => setAgentId(e.target.value)} />
+                                <FormField
                                     select
-                                    size="small"
                                     label="Project"
                                     value={projectId}
                                     onChange={(e: any) => {
                                         setProjectId(e.target.value);
                                         setSelectedDocumentIds([]);
-                                    }}
-                                    sx={{ minWidth: 220 }}
-                                >
-                                    <MenuItem value="">None</MenuItem>
+                                    }}>
+                                    <option>None</option>
                                     {(projectsQuery.data ?? []).map((project) => (
-                                        <MenuItem key={project.id} value={project.id}>
+                                        <option key={project.id}>
                                             {project.name}
-                                        </MenuItem>
+                                        </option>
                                     ))}
-                                </TextField>
-                                <TextField
+                                </FormField>
+                                <FormField
                                     select
-                                    size="small"
                                     label="Prompt template"
                                     value={promptTemplateKey}
-                                    onChange={(e: any) => setPromptTemplateKey(e.target.value)}
-                                    sx={{ minWidth: 220 }}
-                                >
-                                    <MenuItem value="">None (message only)</MenuItem>
+                                    onChange={(e: any) => setPromptTemplateKey(e.target.value)}>
+                                    <option>None (message only)</option>
                                     {templates.map((template) => (
-                                        <MenuItem key={template.id} value={template.key}>
+                                        <option key={template.id}>
                                             {template.name} ({template.key})
-                                        </MenuItem>
+                                        </option>
                                     ))}
-                                </TextField>
-                            </Stack>
+                                </FormField>
+                            </div>
 
-                            <Box>
-                                <Typography variant="subtitle2" gutterBottom>
+                            <div>
+                                <p>
                                     <HelpTooltip termId="agent_tools" variant="label">
                                         Tools
                                     </HelpTooltip>
-                                </Typography>
-                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                </p>
+                                <div className="flex flex-row gap-[8px] flex-wrap">
                                     {enabledTools.map((tool) => (
-                                        <Chip
+                                        <div
                                             key={tool.id}
-                                            size="small"
-                                            color={tool.enabled ? "primary" : "default"}
-                                            variant={tool.enabled ? "filled" : "outlined"}
-                                            label={tool.label}
-                                        />
+                                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                     ))}
-                                </Stack>
-                                <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    display="block"
-                                    sx={{ mt: 0.5 }}
-                                >
+                                </div>
+                                <span style={{ marginTop: 4 }} className="text-muted-foreground">
                                     Enabled tools appear as structured steps on the Trace tab after a
                                     run.
-                                </Typography>
-                            </Box>
+                                </span>
+                            </div>
 
-                            <Typography variant="subtitle2">Prompt</Typography>
-                            <TextField
-                                size="small"
+                            <p>Prompt</p>
+                            <FormField
                                 label="User message"
                                 value={userMessage}
                                 onChange={(e: any) => setUserMessage(e.target.value)}
                                 multiline
-                                minRows={3}
-                                fullWidth
-                            />
+                                rows={3} />
 
                             {ragEnabled && <>
-                            <Typography variant="subtitle2">Limits & retrieval</Typography>
-                            <Stack
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={2}
-                                flexWrap="wrap"
-                                useFlexGap
-                            >
-                                <TextField
-                                    size="small"
+                            <p>Limits & retrieval</p>
+                            <div className="flex flex-col sm:flex-row gap-[16px] flex-wrap">
+                                <FormField
                                     type="number"
                                     label={
                                         <HelpFieldLabel termId="top_k_retrieval">
@@ -368,23 +303,18 @@ export default function AgentView() {
                                     }
                                     value={topK}
                                     onChange={(e: any) => setTopK(Number(e.target.value) || 4)}
-                                    inputProps={{ min: 1, max: 20 }}
-                                    sx={{ width: 120 }}
-                                />
-                                <TextField
-                                    size="small"
+                                    inputProps={{ min: 1, max: 20 }} />
+                                <FormField
                                     label="Retrieval query (optional)"
                                     value={retrievalQuery}
                                     onChange={(e: any) => setRetrievalQuery(e.target.value)}
-                                    sx={{ minWidth: 280, flex: 1 }}
-                                    helperText="Defaults to the user message when empty."
-                                />
-                            </Stack>
+                                    helperText="Defaults to the user message when empty." />
+                            </div>
 
-                            <Box>
-                                <Typography variant="subtitle2" gutterBottom>
+                            <div>
+                                <p>
                                     RAG documents (optional scope)
-                                </Typography>
+                                </p>
                                 <QueryBoundary
                                     isLoading={documentsQuery.isLoading}
                                     isError={documentsQuery.isError}
@@ -392,46 +322,32 @@ export default function AgentView() {
                                     onRetry={() => void documentsQuery.refetch()}
                                 >
                                     {(documentsQuery.data?.items ?? []).length === 0 ? (
-                                        <Typography variant="body2" color="text.secondary">
+                                        <p className="text-muted-foreground">
                                             No RAG documents for this filter.
-                                        </Typography>
+                                        </p>
                                     ) : (
-                                        <Stack
-                                            direction="row"
-                                            spacing={1}
-                                            flexWrap="wrap"
-                                            useFlexGap
-                                        >
-                                            {(documentsQuery.data?.items ?? []).map((doc) => {
-                                                const selected = selectedDocumentIds.includes(
-                                                    doc.id
-                                                );
-                                                return (
-                                                    <Chip
+                                        <div className="flex flex-row gap-[8px] flex-wrap">
+                                            {(documentsQuery.data?.items ?? []).map((doc) => {                                                return (
+                                                    <div
                                                         key={doc.id}
-                                                        label={
-                                                            doc.original_filename || doc.filename
-                                                        }
-                                                        color={selected ? "primary" : "default"}
-                                                        variant={selected ? "filled" : "outlined"}
                                                         onClick={() => toggleDocument(doc.id)}
-                                                    />
+                                                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                                 );
                                             })}
-                                        </Stack>
+                                        </div>
                                     )}
                                 </QueryBoundary>
-                            </Box>
+                            </div>
 
                             </>}
                             <Button
-                                variant="contained"
+                                variant="default"
                                 onClick={() => setTab("run")}
                                 disabled={!userMessage.trim()}
-                            >
+                                type="button">
                                 Continue to Run
                             </Button>
-                        </Stack>
+                        </div>
                     </SectionCard>
                 ) : null}
 
@@ -441,7 +357,7 @@ export default function AgentView() {
                             title="Run"
                             description="Current task, step, progress, elapsed time, and status."
                         >
-                            <Stack spacing={2}>
+                            <div className="flex gap-[16px]">
                                 <RunStatusPanel
                                     title="Agent run"
                                     status={
@@ -501,7 +417,7 @@ export default function AgentView() {
                                     ]}
                                 />
 
-                                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                                <div className="flex flex-col sm:flex-row gap-[8px]">
                                     <DisabledWithReason
                                         reason={agentRunDisabledReason({
                                             message: userMessage,
@@ -509,39 +425,33 @@ export default function AgentView() {
                                         })}
                                     >
                                         <Button
-                                            variant="contained"
-                                            startIcon={<RunIcon />}
+                                            variant="default"
                                             disabled={
                                                 runMutation.isPending || !userMessage.trim()
                                             }
                                             onClick={() => runMutation.mutate()}
-                                        >
+                                            type="button"
+                                        ><RunIcon />
                                             {runMutation.isPending ? "Running…" : "Run agent"}
                                         </Button>
                                     </DisabledWithReason>
-                                    <Button
-                                        size="small"
-                                        variant="text"
-                                        onClick={() => setTab("configure")}
-                                    >
+                                    <Button variant="ghost" onClick={() => setTab("configure")} type="button">
                                         Edit configuration
                                     </Button>
-                                </Stack>
-                            </Stack>
+                                </div>
+                            </div>
                         </SectionCard>
 
                         <SectionCard
                             title="Run history"
                             description="Persisted runs for your account. Select one to inspect Trace, Sources, and Output."
                         >
-                            <Stack spacing={1.5}>
+                            <div className="flex gap-[12px]">
                                 <Button
-                                    variant="text"
-                                    size="small"
+                                    variant="ghost"
                                     onClick={() => void runsQuery.refetch()}
                                     disabled={runsQuery.isFetching}
-                                    sx={{ alignSelf: "flex-start" }}
-                                >
+                                    type="button">
                                     {runsQuery.isFetching ? "Refreshing…" : "Refresh history"}
                                 </Button>
                                 <QueryBoundary
@@ -557,72 +467,67 @@ export default function AgentView() {
                                             description="Submit a run to inspect response, citations, cost, and degradation."
                                         />
                                     ) : (
-                                        <Box sx={{ overflowX: "auto" }}>
-                                            <Table size="small">
-                                                <TableHead>
-                                                    <TableRow>
-                                                        <TableCell>Run</TableCell>
-                                                        <TableCell>Status</TableCell>
-                                                        <TableCell>Model</TableCell>
-                                                        <TableCell>Duration</TableCell>
-                                                        <TableCell>When</TableCell>
-                                                        <TableCell align="right">Open</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody>
+                                        <div style={{ overflowX: "auto" }}>
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="border-b border-border">
+                                                        <td className="p-2 align-top">Run</td>
+                                                        <td className="p-2 align-top">Status</td>
+                                                        <td className="p-2 align-top">Model</td>
+                                                        <td className="p-2 align-top">Duration</td>
+                                                        <td className="p-2 align-top">When</td>
+                                                        <td align="right" className="p-2 align-top">Open</td>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                                     {history.map((run) => (
-                                                        <TableRow
-                                                            key={run.id}
-                                                            selected={selectedRunId === run.id}
-                                                            hover
-                                                        >
-                                                            <TableCell>
+                                                        <tr key={run.id} className="border-b border-border">
+                                                            <td className="p-2 align-top">
                                                                 {run.id.slice(0, 8)}…
                                                                 {run.agent_id
                                                                     ? ` · ${run.agent_id}`
                                                                     : ""}
-                                                            </TableCell>
-                                                            <TableCell>
+                                                            </td>
+                                                            <td className="p-2 align-top">
                                                                 <RunStatusChip status={run.status} />
-                                                            </TableCell>
-                                                            <TableCell>
+                                                            </td>
+                                                            <td className="p-2 align-top">
                                                                 {run.provider_key}/
                                                                 {run.model_name}
-                                                            </TableCell>
-                                                            <TableCell>
+                                                            </td>
+                                                            <td className="p-2 align-top">
                                                                 {run.latency_ms != null
                                                                     ? formatElapsed(run.latency_ms)
                                                                     : "—"}
-                                                            </TableCell>
-                                                            <TableCell>
+                                                            </td>
+                                                            <td className="p-2 align-top">
                                                                 {new Date(
                                                                     run.created_at
                                                                 ).toLocaleString()}
-                                                            </TableCell>
-                                                            <TableCell align="right">
+                                                            </td>
+                                                            <td align="right" className="p-2 align-top">
                                                                 <Button
-                                                                    size="small"
                                                                     variant={
                                                                         selectedRunId === run.id
-                                                                            ? "contained"
-                                                                            : "outlined"
+                                                                            ? "default"
+                                                                            : "outline"
                                                                     }
                                                                     onClick={() => {
                                                                         setSelectedRunId(run.id);
                                                                         setTab("output");
                                                                     }}
-                                                                >
+                                                                    type="button">
                                                                     {`${run.id.slice(0, 8)}… · ${run.status}`}
                                                                 </Button>
-                                                            </TableCell>
-                                                        </TableRow>
+                                                            </td>
+                                                        </tr>
                                                     ))}
-                                                </TableBody>
-                                            </Table>
-                                        </Box>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     )}
                                 </QueryBoundary>
-                            </Stack>
+                            </div>
                         </SectionCard>
                     </>
                 ) : null}
@@ -640,7 +545,7 @@ export default function AgentView() {
                                 title="No run selected"
                                 description="Run an agent or pick a history item on the Run tab."
                                 action={
-                                    <Button variant="contained" onClick={() => setTab("run")}>
+                                    <Button variant="default" onClick={() => setTab("run")} type="button">
                                         Open Run
                                     </Button>
                                 }
@@ -658,42 +563,34 @@ export default function AgentView() {
                                     title="Trace"
                                     description="Structured steps (plan, tool calls, results, errors) — not a raw log dump."
                                 >
-                                    <Stack spacing={1.5}>
-                                        <Stack
-                                            direction="row"
-                                            spacing={1}
-                                            flexWrap="wrap"
-                                            useFlexGap
-                                        >
-                                            <Chip size="small" label={`run ${selectedRun.id}`} />
+                                    <div className="flex gap-[12px]">
+                                        <div className="flex flex-row gap-[8px] flex-wrap">
+                                            <div
+                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                             <RunStatusChip status={selectedRun.status} />
                                             <HelpTooltip termId="agent_trace" />
-                                        </Stack>
+                                        </div>
 
                                         {(selectedRun.retrieval_degraded ||
                                             selectedRun.memory_degraded ||
                                             selectedRun.error_message) && (
-                                            <Alert
-                                                severity={
-                                                    selectedRun.error_message ? "error" : "warning"
-                                                }
-                                            >
+                                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                                 {selectedRun.error_message ??
                                                     selectedRun.degradation_reason ??
                                                     (selectedRun.retrieval_degraded
                                                         ? "Retrieval degraded"
                                                         : "Memory degraded")}
-                                            </Alert>
+                                            </div>
                                         )}
 
-                                        <Stack spacing={1}>
+                                        <div className="flex gap-[8px]">
                                             {traceSteps.map((step) => (
-                                                <Box
+                                                <div
                                                     key={step.id}
-                                                    sx={{
-                                                        p: 1.5,
-                                                        borderRadius: 1,
-                                                        bgcolor: "action.hover",
+                                                    style={{
+                                                        padding: 12,
+                                                        borderRadius: 4,
+                                                        backgroundColor: "action.hover",
                                                         borderLeft: 3,
                                                         borderColor:
                                                             step.status === "error"
@@ -703,55 +600,39 @@ export default function AgentView() {
                                                                   : "primary.main",
                                                     }}
                                                 >
-                                                    <Stack
-                                                        direction={{ xs: "column", sm: "row" }}
-                                                        spacing={1}
-                                                        justifyContent="space-between"
-                                                    >
-                                                        <Typography variant="subtitle2">
+                                                    <div className="flex flex-col sm:flex-row gap-[8px] justify-between">
+                                                        <p>
                                                             {step.title}
-                                                        </Typography>
-                                                        <Stack
-                                                            direction="row"
-                                                            spacing={0.75}
-                                                            alignItems="center"
-                                                        >
-                                                            <Chip
-                                                                size="small"
-                                                                variant="outlined"
-                                                                label={categoryLabel(step.category)}
-                                                            />
+                                                        </p>
+                                                        <div className="flex flex-row gap-[6px] items-center">
+                                                            <div
+                                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                                             {step.durationMs != null ? (
-                                                                <Typography
-                                                                    variant="caption"
-                                                                    color="text.secondary"
-                                                                >
+                                                                <span className="text-muted-foreground">
                                                                     {formatElapsed(step.durationMs)}
-                                                                </Typography>
+                                                                </span>
                                                             ) : null}
-                                                        </Stack>
-                                                    </Stack>
+                                                        </div>
+                                                    </div>
                                                     {step.detail ? (
-                                                        <Typography
-                                                            variant="body2"
-                                                            color="text.secondary"
-                                                            sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}
-                                                        >
+                                                        <p
+                                                            style={{ marginTop: 4, whiteSpace: "pre-wrap" }}
+                                                            className="text-muted-foreground">
                                                             {step.detail}
-                                                        </Typography>
+                                                        </p>
                                                     ) : null}
-                                                </Box>
+                                                </div>
                                             ))}
-                                        </Stack>
+                                        </div>
 
-                                        <Typography variant="body2" color="text.secondary">
+                                        <p className="text-muted-foreground">
                                             Tokens: {selectedRun.total_tokens} (in{" "}
                                             {selectedRun.input_tokens} / out{" "}
                                             {selectedRun.output_tokens}) · Est. cost:{" "}
                                             {formatAgentCostMicros(
                                                 selectedRun.estimated_cost_micros
                                             )}
-                                        </Typography>
+                                        </p>
 
                                         <AdvancedSettings title="Raw run identifiers">
                                             <KeyValueList
@@ -769,7 +650,7 @@ export default function AgentView() {
                                                 ]}
                                             />
                                         </AdvancedSettings>
-                                    </Stack>
+                                    </div>
                                 </SectionCard>
                             ) : null}
 
@@ -778,66 +659,66 @@ export default function AgentView() {
                                     title="Sources"
                                     description="Citations and retrieved evidence attached to this run."
                                 >
-                                    <Stack spacing={1.5}>
+                                    <div className="flex gap-[12px]">
                                         {selectedRun.retrieval_query ? (
-                                            <Typography variant="body2" color="text.secondary">
+                                            <p className="text-muted-foreground">
                                                 Retrieval query: {selectedRun.retrieval_query}
-                                            </Typography>
+                                            </p>
                                         ) : null}
 
                                         {selectedRun.retrieved_chunk_ids.length === 0 ? (
-                                            <Typography variant="body2" color="text.secondary">
+                                            <p className="text-muted-foreground">
                                                 No retrieved evidence for this run.
-                                            </Typography>
+                                            </p>
                                         ) : (
-                                            <Table size="small">
-                                                <TableHead>
-                                                    <TableRow>
-                                                        <TableCell>#</TableCell>
-                                                        <TableCell>Chunk ID</TableCell>
-                                                        <TableCell>Role</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody>
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="border-b border-border">
+                                                        <td className="p-2 align-top">#</td>
+                                                        <td className="p-2 align-top">Chunk ID</td>
+                                                        <td className="p-2 align-top">Role</td>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                                     {selectedRun.retrieved_chunk_ids.map(
                                                         (chunkId, index) => (
-                                                            <TableRow key={chunkId}>
-                                                                <TableCell>{index + 1}</TableCell>
-                                                                <TableCell
-                                                                    sx={{
+                                                            <tr key={chunkId} className="border-b border-border">
+                                                                <td className="p-2 align-top">{index + 1}</td>
+                                                                <td
+                                                                    style={{
                                                                         fontFamily: "monospace",
                                                                         fontSize: 12,
                                                                     }}
-                                                                >
+                                                                    className="p-2 align-top">
                                                                     {chunkId}
-                                                                </TableCell>
-                                                                <TableCell>
+                                                                </td>
+                                                                <td className="p-2 align-top">
                                                                     Retrieved evidence
-                                                                </TableCell>
-                                                            </TableRow>
+                                                                </td>
+                                                            </tr>
                                                         )
                                                     )}
-                                                </TableBody>
-                                            </Table>
+                                                </tbody>
+                                            </table>
                                         )}
 
                                         {selectedRun.injection_chunks_filtered > 0 ? (
-                                            <Alert severity="info" icon={false}>
+                                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                                 Filtered {selectedRun.injection_chunks_filtered}{" "}
                                                 injection chunk(s) before generation.
-                                            </Alert>
+                                            </div>
                                         ) : null}
 
                                         {(selectedRun.retrieval_degraded ||
                                             selectedRun.memory_degraded) && (
-                                            <Alert severity="warning">
+                                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                                 {selectedRun.degradation_reason ??
                                                     (selectedRun.retrieval_degraded
                                                         ? "Retrieval degraded — treat sources cautiously."
                                                         : "Memory degraded.")}
-                                            </Alert>
+                                            </div>
                                         )}
-                                    </Stack>
+                                    </div>
                                 </SectionCard>
                             ) : null}
 
@@ -846,48 +727,29 @@ export default function AgentView() {
                                     title="Output"
                                     description="Final generated artifact — separate from Trace."
                                 >
-                                    <Stack spacing={1.5}>
-                                        <Stack
-                                            direction="row"
-                                            spacing={1}
-                                            flexWrap="wrap"
-                                            useFlexGap
-                                        >
+                                    <div className="flex gap-[12px]">
+                                        <div className="flex flex-row gap-[8px] flex-wrap">
                                             <RunStatusChip status={selectedRun.status} />
-                                            <Chip
-                                                size="small"
-                                                variant="outlined"
-                                                label={`${selectedRun.provider_key}/${selectedRun.model_name}`}
-                                            />
-                                            <Button
-                                                size="small"
-                                                variant="text"
-                                                onClick={() => setTab("trace")}
-                                            >
+                                            <div
+                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                            <Button variant="ghost" onClick={() => setTab("trace")} type="button">
                                                 View trace
                                             </Button>
-                                            <Button
-                                                size="small"
-                                                variant="text"
-                                                onClick={() => setTab("sources")}
-                                            >
+                                            <Button variant="ghost" onClick={() => setTab("sources")} type="button">
                                                 View sources
                                             </Button>
-                                        </Stack>
+                                        </div>
 
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ whiteSpace: "pre-wrap" }}
-                                        >
+                                        <p style={{ whiteSpace: "pre-wrap" }}>
                                             {selectedRun.output_text?.trim()
                                                 ? selectedRun.output_text
                                                 : selectedRun.output_json
                                                   ? "Structured JSON output (see Raw below)."
                                                   : "—"}
-                                        </Typography>
+                                        </p>
 
                                         {selectedRun.output_json ? (
-                                            <Stack spacing={1}>
+                                            <div className="flex gap-[8px]">
                                                 {recordToKeyValueItems(selectedRun.output_json)
                                                     .length ? (
                                                     <KeyValueList
@@ -900,15 +762,15 @@ export default function AgentView() {
                                                 <AdvancedSettings title="Raw JSON artifact">
                                                     <JsonBlock data={selectedRun.output_json} />
                                                 </AdvancedSettings>
-                                            </Stack>
+                                            </div>
                                         ) : null}
-                                    </Stack>
+                                    </div>
                                 </SectionCard>
                             ) : null}
                         </QueryBoundary>
                     )
                 ) : null}
-            </Stack>
+            </div>
         </PageShell>
     );
 }

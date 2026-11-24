@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { Alert, Box, Button, CircularProgress, Stack, TextField, Typography } from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useEffect, useState } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { resendVerification, verifyEmail } from "../api/auth";
 import { AuthMarketingPanel } from "../components/auth/AuthMarketingPanel";
@@ -70,47 +69,49 @@ export default function VerifyEmailPage() {
                 />
             }
         >
-            <Stack spacing={3}>
-                <Box>
-                    <Typography variant="overline" color="primary.main">
+            <div className="flex gap-[24px]">
+                <div>
+                    <span className="text-primary">
                         Email verification
-                    </Typography>
-                    <Typography variant="h4" sx={{ mt: 0.5 }}>
+                    </span>
+                    <h4 style={{ marginTop: 4 }}>
                         Confirm your email address
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    </h4>
+                    <span style={{ marginTop: 8 }} className="text-muted-foreground">
                         Verification improves account trust and unlocks the full sign-in experience.
-                    </Typography>
-                </Box>
+                    </span>
+                </div>
 
                 {status === "loading" && (
-                    <Box sx={{ display: "grid", placeItems: "center", py: 4 }}>
-                        <CircularProgress />
-                    </Box>
+                    <div style={{ display: "grid", placeItems: "center", paddingBlock: 32 }}>
+                        <span
+                            className="inline-block animate-spin rounded-full border-2 border-primary border-t-transparent"
+                            role="progressbar" />
+                    </div>
                 )}
 
                 {status === "success" && (
-                    <Stack spacing={2}>
-                        <Alert severity="success">Your email has been verified. You can now sign in.</Alert>
-                        <Button component={RouterLink} to="/" variant="contained">
+                    <div className="flex gap-[16px]">
+                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">Your email has been verified. You can now sign in.</div>
+                        <Button variant="default" render={<RouterLink to="/" />} type="button">
                             Go to sign in
                         </Button>
-                    </Stack>
+                    </div>
                 )}
 
                 {(status === "error" || status === "no-token") && (
-                    <Stack spacing={2}>
+                    <div className="flex gap-[16px]">
                         {status === "error" && (
-                            <Alert severity="error">
+                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                 The verification link is invalid or has expired.
-                            </Alert>
+                            </div>
                         )}
                         {status === "no-token" && (
-                            <Alert severity="info">
+                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                 Check your email for a verification link, or request a new one below.
-                            </Alert>
+                            </div>
                         )}
-                        <TextField
+                        <FormField
                             label="Email"
                             type="email"
                             value={email}
@@ -121,21 +122,23 @@ export default function VerifyEmailPage() {
                             error={Boolean(resendError) && !resendDone}
                             helperText={
                                 resendError && !resendDone ? resendError : "Use the same address you registered with."
-                            }
-                            fullWidth
-                        />
-                        {resendDone && <Alert severity="success">A new verification email has been sent.</Alert>}
+                            } />
+                        {resendDone && <div role="alert" className="rounded-lg border border-border p-3 text-sm">A new verification email has been sent.</div>}
                         {!resendDone && (
-                            <Button variant="contained" disabled={resending} onClick={handleResend}>
+                            <Button
+                                variant="default"
+                                disabled={resending}
+                                onClick={handleResend}
+                                type="button">
                                 {resending ? "Sending..." : "Resend verification email"}
                             </Button>
                         )}
-                        <Button component={RouterLink} to="/" variant="text">
+                        <Button variant="ghost" render={<RouterLink to="/" />} type="button">
                             Back to sign in
                         </Button>
-                    </Stack>
+                    </div>
                 )}
-            </Stack>
+            </div>
         </AuthShell>
     );
 }

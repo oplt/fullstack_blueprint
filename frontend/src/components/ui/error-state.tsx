@@ -30,11 +30,11 @@ export function ErrorState({
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       <p className="max-w-md text-sm text-muted-foreground">{description}</p>
       {onRetry && (
-        <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+        <Button type="button" variant="outline" onClick={onRetry}>
           <RefreshCwIcon className="mr-2 size-4" aria-hidden="true" />
           {actionLabel}
         </Button>
       )}
     </section>
-  )
+  );
 }

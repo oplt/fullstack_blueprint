@@ -195,7 +195,6 @@ function CalendarDayButton({
   return (
     <Button
       variant="ghost"
-      size="icon"
       data-day={day.date.toLocaleDateString(locale?.code)}
       data-selected-single={
         modifiers.selected &&
@@ -212,8 +211,8 @@ function CalendarDayButton({
         className
       )}
       {...props}
-    />
-  )
+      type="button" />
+  );
 }
 
 export { Calendar, CalendarDayButton }

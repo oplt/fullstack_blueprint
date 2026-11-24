@@ -1,6 +1,7 @@
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes, Link, useLocation } from "react-router-dom";
-import { Box, Button, Skeleton, Stack, Typography } from "@/components/ui/muiCompat";
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ProtectedRoute } from "../components/guards/ProtectedRoute";
 import { useAuth } from "../hooks/useAuth";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
@@ -40,17 +41,15 @@ const AgentView = lazy(() =>
 
 function PageLoader() {
     return (
-        <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 3, md: 4 } }}>
-            <Stack spacing={3}>
-                <Skeleton variant="rounded" height={170} sx={{ borderRadius: 2 }} />
-                <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-                    <Skeleton variant="rounded" height={168} sx={{ borderRadius: 2, flex: 1 }} />
-                    <Skeleton variant="rounded" height={168} sx={{ borderRadius: 2, flex: 1 }} />
-                    <Skeleton variant="rounded" height={168} sx={{ borderRadius: 2, flex: 1 }} />
-                </Stack>
-                <Skeleton variant="rounded" height={260} sx={{ borderRadius: 5 }} />
-            </Stack>
-        </Box>
+        <div className="space-y-6 p-4 md:p-6">
+            <Skeleton className="h-[170px] w-full rounded-lg" />
+            <div className="flex flex-col gap-4 md:flex-row">
+                <Skeleton className="h-[168px] min-w-0 flex-1 rounded-lg" />
+                <Skeleton className="h-[168px] min-w-0 flex-1 rounded-lg" />
+                <Skeleton className="h-[168px] min-w-0 flex-1 rounded-lg" />
+            </div>
+            <Skeleton className="h-[260px] w-full rounded-2xl" />
+        </div>
     );
 }
 
@@ -65,10 +64,10 @@ function RoutedErrorBoundary({ children }: { children: React.ReactNode }) {
 
 function NotFoundPage() {
     return (
-        <Stack spacing={2} alignItems="center" sx={{ p: 4 }}>
-            <Typography variant="h4" component="h1">Page not found</Typography>
-            <Button component={Link} to="/">Back to home</Button>
-        </Stack>
+        <div className="flex gap-[16px] items-center" style={{ padding: 32 }}>
+            <h1>Page not found</h1>
+            <Button render={<Link to={ROUTES.home} />} type="button">Back to home</Button>
+        </div>
     );
 }
 
@@ -78,10 +77,10 @@ function CapabilityPage({ feature, capability, children }: { feature?: string; c
     if (isPending) return <PageLoader />;
     if (isError) {
         return (
-            <Stack spacing={2} alignItems="center" sx={{ p: 4 }}>
-                <Typography role="alert">Could not load application settings.</Typography>
-                <Button onClick={() => void refetch()}>Retry</Button>
-            </Stack>
+            <div className="flex gap-[16px] items-center" style={{ padding: 32 }}>
+                <span role="alert">Could not load application settings.</span>
+                <Button onClick={() => void refetch()} type="button">Retry</Button>
+            </div>
         );
     }
     const availability = capabilityAvailability(capability, configuration, serverStateFromPlatformMetadata(data));

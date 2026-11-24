@@ -1,4 +1,3 @@
-import { Alert, Box, Chip, Stack, Typography } from "@/components/ui/muiCompat";
 import { formatAgentCostMicros, type AgentRun } from "../../api/agent";
 import { AdvancedSettings } from "../../components/ui/AdvancedSettings";
 import { JsonBlock } from "../../components/ui/JsonBlock";
@@ -20,70 +19,65 @@ export function AgentRunDetail({ run }: AgentRunDetailProps) {
             title="Run detail"
             description="Structured summary — prefer the Agent Trace / Sources / Output tabs for full inspection."
         >
-            <Stack spacing={1.5}>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    <Chip size="small" label={`run ${run.id}`} />
-                    <Chip
-                        size="small"
-                        color={run.status === "completed" ? "success" : "default"}
-                        label={run.status}
-                    />
-                    <Chip
-                        size="small"
-                        variant="outlined"
-                        label={`${run.provider_key}/${run.model_name}`}
-                    />
-                </Stack>
+            <div className="flex gap-[12px]">
+                <div className="flex flex-row gap-[8px] flex-wrap">
+                    <div
+                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                    <div
+                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                    <div
+                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                </div>
 
                 {(run.retrieval_degraded || run.memory_degraded || run.error_message) && (
-                    <Alert severity={run.error_message ? "error" : "warning"}>
+                    <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                         {run.error_message ??
                             run.degradation_reason ??
                             (run.retrieval_degraded
                                 ? "Retrieval degraded"
                                 : "Memory degraded")}
-                    </Alert>
+                    </div>
                 )}
 
-                <Box>
-                    <Typography variant="subtitle2" gutterBottom>
+                <div>
+                    <p>
                         Trace preview
-                    </Typography>
+                    </p>
                     {steps.map((step) => (
-                        <Typography key={step.id} variant="body2" color="text.secondary">
+                        <p key={step.id} className="text-muted-foreground">
                             {step.title}
                             {step.durationMs != null ? ` · ${formatElapsed(step.durationMs)}` : ""}
-                        </Typography>
+                        </p>
                     ))}
-                </Box>
+                </div>
 
-                <Box>
-                    <Typography variant="subtitle2" gutterBottom>
+                <div>
+                    <p>
                         Output
-                    </Typography>
+                    </p>
                     {run.output_text?.trim() ? (
-                        <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
+                        <p style={{ whiteSpace: "pre-wrap" }}>
                             {run.output_text}
-                        </Typography>
+                        </p>
                     ) : outputItems.length ? (
                         <KeyValueList dense items={outputItems} />
                     ) : (
-                        <Typography variant="body2" color="text.secondary">
+                        <p className="text-muted-foreground">
                             —
-                        </Typography>
+                        </p>
                     )}
                     {run.output_json ? (
-                        <AdvancedSettings title="Raw JSON" sx={{ mt: 1 }}>
+                        <AdvancedSettings title="Raw JSON" sx={{ marginTop: 1 }}>
                             <JsonBlock data={run.output_json} />
                         </AdvancedSettings>
                     ) : null}
-                </Box>
+                </div>
 
-                <Typography variant="body2" color="text.secondary">
+                <p className="text-muted-foreground">
                     Latency: {run.latency_ms ?? "—"} ms · Tokens: {run.total_tokens} · Est. cost:{" "}
                     {formatAgentCostMicros(run.estimated_cost_micros)}
-                </Typography>
-            </Stack>
+                </p>
+            </div>
         </SectionCard>
     );
 }

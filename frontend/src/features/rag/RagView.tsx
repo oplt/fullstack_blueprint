@@ -1,20 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-    Alert,
-    Box,
-    Button,
-    Chip,
-    MenuItem,
-    Stack,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    TablePagination,
-    TextField,
-    Typography,
-} from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useEffect, useMemo, useRef, useState } from "react";
 import {
     CloudUpload as UploadIcon,
     Refresh as RetryIcon,
@@ -49,6 +33,7 @@ import { DataTable } from "../../components/ui/DataTable";
 import { RunStatusChip } from "../../components/ui/RunStatusChip";
 import { RunStatusPanel } from "../../components/ui/RunStatusPanel";
 import { SectionCard } from "../../components/ui/SectionCard";
+import { PaginationControls } from "../../components/ui/pagination";
 import { SettingsTabs } from "../../components/layout/SettingsTabs";
 import { queryKeys } from "../../config/queryKeys";
 import { useTabQueryParam } from "../../hooks/useTabQueryParam";
@@ -76,8 +61,8 @@ function MetricTile({
     description?: string;
 }) {
     return (
-        <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: "action.hover", height: "100%" }}>
-            <Typography variant="caption" color="text.secondary" component="div">
+        <div style={{ padding: 12, borderRadius: 4, backgroundColor: "action.hover", height: "100%" }}>
+            <span className="text-muted-foreground">
                 {helpTermId ? (
                     <HelpTooltip termId={helpTermId} variant="label">
                         {label}
@@ -85,14 +70,14 @@ function MetricTile({
                 ) : (
                     label
                 )}
-            </Typography>
-            <Typography variant="h6">{value}</Typography>
+            </span>
+            <h6>{value}</h6>
             {description ? (
-                <Typography variant="caption" color="text.secondary">
+                <span className="text-muted-foreground">
                     {description}
-                </Typography>
+                </span>
             ) : null}
-        </Box>
+        </div>
     );
 }
 
@@ -282,36 +267,29 @@ export default function RagView() {
             />
             <SettingsTabs />
 
-            <Stack spacing={2} sx={{ mt: 2 }}>
-                <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={1.5}
-                    alignItems={{ sm: "center" }}
-                    justifyContent="space-between"
-                >
-                    <Typography variant="body2" color="text.secondary">
+            <div className="flex gap-[16px]" style={{ marginTop: 16 }}>
+                <div
+                    className="flex flex-col sm:flex-row gap-[12px] sm:items-center justify-between">
+                    <p className="text-muted-foreground">
                         Optionally limit documents and retrieval to one project.
-                    </Typography>
-                    <TextField
+                    </p>
+                    <FormField
                         select
-                        size="small"
                         label="Project / index scope"
                         value={projectId}
                         onChange={(e: any) => {
                             setProjectId(e.target.value);
                             setDocOffset(0);
                             setSelectedDocumentId(null);
-                        }}
-                        sx={{ minWidth: { xs: "100%", sm: 280 } }}
-                    >
-                        <MenuItem value="">All projects</MenuItem>
+                        }}>
+                        <option>All projects</option>
                         {(projectsQuery.data ?? []).map((project) => (
-                            <MenuItem key={project.id} value={project.id}>
+                            <option key={project.id}>
                                 {project.name}
-                            </MenuItem>
+                            </option>
                         ))}
-                    </TextField>
-                </Stack>
+                    </FormField>
+                </div>
 
                 <PageTabs
                     value={tab}
@@ -343,14 +321,11 @@ export default function RagView() {
                                     }}
                                 />
                                 <Button
-                                    size="small"
-                                    variant="contained"
-                                    startIcon={<UploadIcon />}
+                                    variant="default"
                                     disabled={uploadMutation.isPending}
                                     onClick={() => fileInputRef.current?.click()}
-                                >
-                                    Upload
-                                </Button>
+                                    type="button"><UploadIcon />Upload
+                                                                    </Button>
                             </>
                         }
                     >
@@ -427,25 +402,18 @@ export default function RagView() {
                                             sticky: "right",
                                             hideable: false,
                                             render: (doc) => (
-                                                <Stack
-                                                    direction="row"
-                                                    spacing={0.5}
-                                                    justifyContent="flex-end"
+                                                <div
                                                     onClick={(e: any) => e.stopPropagation()}
-                                                >
+                                                    className="flex flex-row gap-[4px] justify-end">
                                                     <Button
-                                                        size="small"
-                                                        startIcon={<RetryIcon />}
                                                         disabled={indexMutation.isPending}
                                                         onClick={() =>
                                                             indexMutation.mutate(doc.id)
                                                         }
-                                                    >
-                                                        Re-index
-                                                    </Button>
+                                                        type="button"><RetryIcon />Re-index
+                                                                                                            </Button>
                                                     <Button
-                                                        size="small"
-                                                        color="error"
+                                                        variant="destructive"
                                                         disabled={deleteMutation.isPending}
                                                         onClick={() => {
                                                             if (
@@ -456,10 +424,10 @@ export default function RagView() {
                                                                 deleteMutation.mutate(doc.id);
                                                             }
                                                         }}
-                                                    >
+                                                        type="button">
                                                         Delete
                                                     </Button>
-                                                </Stack>
+                                                </div>
                                             ),
                                         },
                                     ]}
@@ -488,7 +456,7 @@ export default function RagView() {
                             </QueryBoundary>
                         )}
                         {pollJobId && jobQuery.data ? (
-                            <Box sx={{ mt: 1 }}>
+                            <div style={{ marginTop: 8 }}>
                                 <RunStatusPanel
                                     dense
                                     title="Ingestion job"
@@ -507,7 +475,7 @@ export default function RagView() {
                                     retryLabel="Re-index"
                                     retryDisabled={indexMutation.isPending}
                                 />
-                            </Box>
+                            </div>
                         ) : null}
                     </SectionCard>
                 ) : null}
@@ -524,10 +492,7 @@ export default function RagView() {
                                     title="No document selected"
                                     description="Choose a document from Documents, then return here to browse chunks and indexing progress."
                                     action={
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => setTab("documents")}
-                                        >
+                                        <Button variant="default" onClick={() => setTab("documents")} type="button">
                                             Open Documents
                                         </Button>
                                     }
@@ -543,18 +508,15 @@ export default function RagView() {
                                     }`}
                                     action={
                                         <Button
-                                            size="small"
-                                            startIcon={<RetryIcon />}
                                             disabled={indexMutation.isPending}
                                             onClick={() =>
                                                 indexMutation.mutate(selectedDocument.id)
                                             }
-                                        >
-                                            Re-index
-                                        </Button>
+                                            type="button"><RetryIcon />Re-index
+                                                                                    </Button>
                                     }
                                 >
-                                    <Stack spacing={2}>
+                                    <div className="flex gap-[16px]">
                                         <MetricGrid columns={4}>
                                             <MetricTile
                                                 label="Document status"
@@ -613,7 +575,7 @@ export default function RagView() {
                                                 }))}
                                             />
                                         ) : (
-                                            <Alert severity="info" icon={false}>
+                                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                                 Embedding model,{" "}
                                                 <HelpTooltip termId="chunk_size" variant="label">
                                                     chunk size
@@ -624,9 +586,9 @@ export default function RagView() {
                                                 </HelpTooltip>{" "}
                                                 appear here once chunks are available (from chunk
                                                 provenance metadata).
-                                            </Alert>
+                                            </div>
                                         )}
-                                    </Stack>
+                                    </div>
                                 </SectionCard>
 
                                 <SectionCard
@@ -640,42 +602,30 @@ export default function RagView() {
                                         onRetry={() => void chunksQuery.refetch()}
                                     >
                                         {(chunksQuery.data?.items ?? []).length === 0 ? (
-                                            <Typography variant="body2" color="text.secondary">
+                                            <p className="text-muted-foreground">
                                                 No chunks yet — wait for indexing or re-index.
-                                            </Typography>
+                                            </p>
                                         ) : (
                                             (chunksQuery.data?.items ?? []).map((chunk) => (
-                                                <Box
+                                                <div
                                                     key={chunk.id}
-                                                    sx={{
-                                                        py: 1,
+                                                    style={{
+                                                        paddingBlock: 8,
                                                         borderBottom: 1,
                                                         borderColor: "divider",
                                                     }}
                                                 >
-                                                    <Typography
-                                                        variant="caption"
-                                                        color="text.secondary"
-                                                    >
+                                                    <span className="text-muted-foreground">
                                                         #{chunk.chunk_index} · {chunk.token_count}{" "}
                                                         tokens
-                                                    </Typography>
-                                                    <Typography variant="body2">
+                                                    </span>
+                                                    <p>
                                                         {chunk.content}
-                                                    </Typography>
-                                                </Box>
+                                                    </p>
+                                                </div>
                                             ))
                                         )}
-                                        <TablePagination
-                                            component="div"
-                                            count={chunksQuery.data?.total ?? 0}
-                                            page={Math.floor(chunkOffset / PAGE_SIZE)}
-                                            onPageChange={(_: any, page: any) =>
-                                                setChunkOffset(page * PAGE_SIZE)
-                                            }
-                                            rowsPerPage={PAGE_SIZE}
-                                            rowsPerPageOptions={[PAGE_SIZE]}
-                                        />
+                                        <PaginationControls count={chunksQuery.data?.total ?? 0} page={Math.floor(chunkOffset / PAGE_SIZE)} rowsPerPage={PAGE_SIZE} onPageChange={(page) => setChunkOffset(page * PAGE_SIZE)} />
                                     </QueryBoundary>
                                 </SectionCard>
                             </>
@@ -688,21 +638,13 @@ export default function RagView() {
                         title="Retrieval"
                         description="Run a retrieve-only query and inspect ranked chunks with similarity scores and sources."
                     >
-                        <Stack spacing={1.5}>
-                            <Stack
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={2}
-                                alignItems={{ sm: "flex-start" }}
-                            >
-                                <TextField
-                                    size="small"
+                        <div className="flex gap-[12px]">
+                            <div className="flex flex-col sm:flex-row gap-[16px] sm:items-start">
+                                <FormField
                                     label="Query"
                                     value={retrieveQuery}
-                                    onChange={(e: any) => setRetrieveQuery(e.target.value)}
-                                    fullWidth
-                                />
-                                <TextField
-                                    size="small"
+                                    onChange={(e: any) => setRetrieveQuery(e.target.value)} />
+                                <FormField
                                     type="number"
                                     label={
                                         <HelpFieldLabel termId="top_k_retrieval">
@@ -713,29 +655,24 @@ export default function RagView() {
                                     onChange={(e: any) =>
                                         setTopK(Math.max(1, Math.min(50, Number(e.target.value) || 1)))
                                     }
-                                    inputProps={{ min: 1, max: 50, step: 1 }}
-                                    sx={{ width: 120 }}
-                                />
-                            </Stack>
+                                    inputProps={{ min: 1, max: 50, step: 1 }} />
+                            </div>
                             {selectedDocumentId ? (
-                                <Typography variant="caption" color="text.secondary">
+                                <span className="text-muted-foreground">
                                     Scoped to selected document. Clear selection on Documents to
                                     search the full project scope.
-                                </Typography>
+                                </span>
                             ) : null}
                             <Button
-                                variant="contained"
-                                startIcon={<RetrieveIcon />}
+                                variant="default"
                                 disabled={!retrieveQuery.trim() || retrieveMutation.isPending}
                                 onClick={() => retrieveMutation.mutate()}
-                                sx={{ alignSelf: "flex-start" }}
-                            >
-                                Retrieve
-                            </Button>
+                                type="button"><RetrieveIcon />Retrieve
+                                                            </Button>
                             {retrieveResult ? (
-                                <Stack spacing={1}>
+                                <div className="flex gap-[8px]">
                                     {retrieveResult.degraded || retrieveResult.no_matches ? (
-                                        <Alert severity="warning">
+                                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                             {retrieveResult.degraded
                                                 ? `Degraded: ${
                                                       retrieveResult.degradation_reason ?? "unknown"
@@ -744,56 +681,56 @@ export default function RagView() {
                                             {retrieveResult.injection_chunks_filtered
                                                 ? ` · filtered ${retrieveResult.injection_chunks_filtered} injection chunk(s)`
                                                 : ""}
-                                        </Alert>
+                                        </div>
                                     ) : null}
-                                    <Typography variant="subtitle2">
+                                    <p>
                                         Retrieved chunks ({retrieveResult.chunks.length})
-                                    </Typography>
-                                    <Box sx={{ overflowX: "auto" }}>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Rank</TableCell>
-                                                    <TableCell>Document source</TableCell>
-                                                    <TableCell>Page</TableCell>
-                                                    <TableCell>
+                                    </p>
+                                    <div style={{ overflowX: "auto" }}>
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="border-b border-border">
+                                                    <td className="p-2 align-top">Rank</td>
+                                                    <td className="p-2 align-top">Document source</td>
+                                                    <td className="p-2 align-top">Page</td>
+                                                    <td className="p-2 align-top">
                                                         <HelpTooltip
                                                             termId="similarity_threshold"
                                                             variant="label"
                                                         >
                                                             Similarity
                                                         </HelpTooltip>
-                                                    </TableCell>
-                                                    <TableCell>Chunk</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
+                                                    </td>
+                                                    <td className="p-2 align-top">Chunk</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
                                                 {retrieveResult.chunks.map((chunk, index) => (
-                                                    <TableRow key={chunk.chunk_id}>
-                                                        <TableCell>{index + 1}</TableCell>
-                                                        <TableCell>{chunk.filename}</TableCell>
-                                                        <TableCell>
+                                                    <tr key={chunk.chunk_id} className="border-b border-border">
+                                                        <td className="p-2 align-top">{index + 1}</td>
+                                                        <td className="p-2 align-top">{chunk.filename}</td>
+                                                        <td className="p-2 align-top">
                                                             {chunk.page_number ?? "—"}
-                                                        </TableCell>
-                                                        <TableCell>
+                                                        </td>
+                                                        <td className="p-2 align-top">
                                                             {chunk.score.toFixed(3)}
-                                                        </TableCell>
-                                                        <TableCell sx={{ maxWidth: 420 }}>
-                                                            <Typography variant="body2">
+                                                        </td>
+                                                        <td style={{ maxWidth: 420 }} className="p-2 align-top">
+                                                            <p>
                                                                 {chunk.content.slice(0, 280)}
                                                                 {chunk.content.length > 280
                                                                     ? "…"
                                                                     : ""}
-                                                            </Typography>
-                                                        </TableCell>
-                                                    </TableRow>
+                                                            </p>
+                                                        </td>
+                                                    </tr>
                                                 ))}
-                                            </TableBody>
-                                        </Table>
-                                    </Box>
-                                </Stack>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             ) : null}
-                        </Stack>
+                        </div>
                     </SectionCard>
                 ) : null}
 
@@ -802,27 +739,21 @@ export default function RagView() {
                         title="Evaluation"
                         description="Grounded ask with citation coverage and retrieval-relevance signals for this response."
                     >
-                        <Stack spacing={1.5}>
-                            <TextField
-                                size="small"
+                        <div className="flex gap-[12px]">
+                            <FormField
                                 label="Question"
                                 value={askQuery}
                                 onChange={(e: any) => setAskQuery(e.target.value)}
-                                fullWidth
                                 multiline
-                                minRows={2}
-                            />
+                                rows={2} />
                             <Button
-                                variant="contained"
-                                startIcon={<AskIcon />}
+                                variant="default"
                                 disabled={!askQuery.trim() || askMutation.isPending}
                                 onClick={() => askMutation.mutate()}
-                                sx={{ alignSelf: "flex-start" }}
-                            >
-                                Ask (grounded)
-                            </Button>
+                                type="button"><AskIcon />Ask (grounded)
+                                                            </Button>
                             {askResult && askEval ? (
-                                <Stack spacing={1.5}>
+                                <div className="flex gap-[12px]">
                                     <MetricGrid columns={4}>
                                         <MetricTile
                                             label="Retrieved chunks"
@@ -852,15 +783,18 @@ export default function RagView() {
                                     </MetricGrid>
 
                                     {askEval.groundingNotes.map((note) => (
-                                        <Alert key={note} severity="warning">
+                                        <div
+                                            key={note}
+                                            role="alert"
+                                            className="rounded-lg border border-border p-3 text-sm">
                                             {note}
-                                        </Alert>
+                                        </div>
                                     ))}
 
                                     {(askResult.retrieval_degraded ||
                                         askResult.memory_degraded ||
                                         askResult.no_context_found) && (
-                                        <Alert severity="warning">
+                                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                             {askResult.no_context_found
                                                 ? "No context found. "
                                                 : ""}
@@ -870,45 +804,45 @@ export default function RagView() {
                                                     : askResult.memory_degraded
                                                       ? "Memory degraded."
                                                       : "")}
-                                        </Alert>
+                                        </div>
                                     )}
 
-                                    <Typography variant="subtitle2">Answer</Typography>
-                                    <Typography variant="body1">{askResult.answer}</Typography>
-                                    <Typography variant="caption" color="text.secondary">
+                                    <p>Answer</p>
+                                    <p>{askResult.answer}</p>
+                                    <span className="text-muted-foreground">
                                         {askResult.model_name} · {askResult.latency_ms} ms
-                                    </Typography>
+                                    </span>
 
-                                    <Typography variant="subtitle2">
+                                    <p>
                                         <HelpTooltip termId="grounding" variant="label">
                                             Citations (evidence)
                                         </HelpTooltip>
-                                    </Typography>
+                                    </p>
                                     {askResult.citations.map((citation) => (
-                                        <Box
+                                        <div
                                             key={`${citation.document_id}:${citation.chunk_id}`}
-                                            sx={{
-                                                p: 1,
+                                            style={{
+                                                padding: 8,
                                                 border: 1,
                                                 borderColor: "divider",
-                                                borderRadius: 1,
+                                                borderRadius: 4,
                                             }}
                                         >
-                                            <Typography variant="caption" color="text.secondary">
+                                            <span className="text-muted-foreground">
                                                 {citation.filename} · score{" "}
                                                 {citation.score.toFixed(3)}
                                                 {citation.page_number != null
                                                     ? ` · p.${citation.page_number}`
                                                     : ""}
-                                            </Typography>
-                                            <Typography variant="body2">
+                                            </span>
+                                            <p>
                                                 {citation.snippet}
-                                            </Typography>
-                                        </Box>
+                                            </p>
+                                        </div>
                                     ))}
-                                </Stack>
+                                </div>
                             ) : null}
-                        </Stack>
+                        </div>
                     </SectionCard>
                 ) : null}
 
@@ -923,67 +857,49 @@ export default function RagView() {
                             error={historyQuery.error}
                             onRetry={() => void historyQuery.refetch()}
                         >
-                            <Box sx={{ overflowX: "auto" }}>
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Timestamp</TableCell>
-                                            <TableCell>Query</TableCell>
-                                            <TableCell>Model</TableCell>
-                                            <TableCell>Project / index</TableCell>
-                                            <TableCell>Status</TableCell>
-                                            <TableCell>Duration</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
+                            <div style={{ overflowX: "auto" }}>
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b border-border">
+                                            <td className="p-2 align-top">Timestamp</td>
+                                            <td className="p-2 align-top">Query</td>
+                                            <td className="p-2 align-top">Model</td>
+                                            <td className="p-2 align-top">Project / index</td>
+                                            <td className="p-2 align-top">Status</td>
+                                            <td className="p-2 align-top">Duration</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                                         {(historyQuery.data?.items ?? []).map((item) => (
-                                            <TableRow key={item.id}>
-                                                <TableCell>
+                                            <tr key={item.id} className="border-b border-border">
+                                                <td className="p-2 align-top">
                                                     {new Date(item.created_at).toLocaleString()}
-                                                </TableCell>
-                                                <TableCell sx={{ maxWidth: 320 }}>
+                                                </td>
+                                                <td style={{ maxWidth: 320 }} className="p-2 align-top">
                                                     {item.query}
-                                                </TableCell>
-                                                <TableCell>{item.model_name}</TableCell>
-                                                <TableCell>
+                                                </td>
+                                                <td className="p-2 align-top">{item.model_name}</td>
+                                                <td className="p-2 align-top">
                                                     {item.project_id
                                                         ? projectNameById.get(item.project_id) ??
                                                           item.project_id.slice(0, 8)
                                                         : "All / default"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Chip
-                                                        size="small"
-                                                        color={
-                                                            item.answer?.trim()
-                                                                ? "success"
-                                                                : "warning"
-                                                        }
-                                                        label={
-                                                            item.answer?.trim()
-                                                                ? "completed"
-                                                                : "empty answer"
-                                                        }
-                                                    />
-                                                </TableCell>
-                                                <TableCell>{item.latency_ms} ms</TableCell>
-                                            </TableRow>
+                                                </td>
+                                                <td className="p-2 align-top">
+                                                    <div
+                                                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                                </td>
+                                                <td className="p-2 align-top">{item.latency_ms} ms</td>
+                                            </tr>
                                         ))}
-                                    </TableBody>
-                                </Table>
-                            </Box>
-                            <TablePagination
-                                component="div"
-                                count={historyQuery.data?.total ?? 0}
-                                page={Math.floor(historyOffset / PAGE_SIZE)}
-                                onPageChange={(_: any, page: any) => setHistoryOffset(page * PAGE_SIZE)}
-                                rowsPerPage={PAGE_SIZE}
-                                rowsPerPageOptions={[PAGE_SIZE]}
-                            />
+                                    </tbody>
+                                </table>
+                            </div>
+                            <PaginationControls count={historyQuery.data?.total ?? 0} page={Math.floor(historyOffset / PAGE_SIZE)} rowsPerPage={PAGE_SIZE} onPageChange={(page) => setHistoryOffset(page * PAGE_SIZE)} />
                         </QueryBoundary>
                     </SectionCard>
                 ) : null}
-            </Stack>
+            </div>
         </PageShell>
     );
 }

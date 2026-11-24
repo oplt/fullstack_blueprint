@@ -1,15 +1,5 @@
-import { Box, Chip, Paper, Stack, Typography } from "@/components/ui/muiCompat";
-import { alpha, useTheme } from "@/components/ui/muiCompat";
-import type { ReactNode } from "react";
+import { colorMix } from "@/lib/color";import type { ReactNode } from "react";
 import type { HealthStatus } from "../types";
-
-const STATUS_LABELS: Record<HealthStatus, string> = {
-    healthy: "Healthy",
-    degraded: "Degraded",
-    down: "Down",
-    unknown: "Unknown",
-    not_configured: "Not configured",
-};
 
 const STATUS_COLORS: Record<HealthStatus, "success" | "warning" | "error" | "default" | "info"> = {
     healthy: "success",
@@ -47,66 +37,58 @@ export function HealthStatusCard({
     lastCheckedAt,
     icon,
 }: HealthStatusCardProps) {
-    const theme = useTheme();
-    const paletteColor = STATUS_COLORS[status] === "default"
-        ? theme.palette.text.secondary
-        : theme.palette[STATUS_COLORS[status]].main;
+    const paletteColor = STATUS_COLORS[status] === "default" ? "var(--muted-foreground)" : `var(--${STATUS_COLORS[status]})`;
     const checkedAt = formatCheckedAt(lastCheckedAt);
 
     return (
-        <Paper
-            sx={(theme: any) => ({
-                p: 2,
-                borderRadius: 1,
+        <div
+            style={({
+                padding: 16,
+                borderRadius: 4,
                 border: "none",
                 boxShadow: "none",
                 minHeight: 180,
-                backgroundColor: theme.palette.mode === "dark"
-                    ? theme.palette.background.paper
-                    : theme.palette.action.hover,
+
+                backgroundColor: "var(--card)"
             })}
         >
-            <Stack spacing={1.5} sx={{ height: "100%" }}>
-                <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1.5}>
-                    <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="subtitle2">{title}</Typography>
-                        <Chip
-                            label={STATUS_LABELS[status]}
-                            color={STATUS_COLORS[status]}
-                            size="small"
-                            variant={status === "healthy" ? "filled" : "outlined"}
-                            sx={{ mt: 1 }}
-                        />
-                    </Box>
-                    <Box
-                        sx={{
+            <div className="flex gap-[12px]" style={{ height: "100%" }}>
+                <div className="flex flex-row gap-[12px] items-start justify-between">
+                    <div style={{ minWidth: 0 }}>
+                        <p>{title}</p>
+                        <div
+                            style={{ marginTop: 8 }}
+                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                    </div>
+                    <div
+                        style={{
                             width: 38,
                             height: 38,
-                            borderRadius: 3,
+                            borderRadius: 12,
                             display: "grid",
                             placeItems: "center",
                             color: paletteColor,
-                            bgcolor: alpha(paletteColor, theme.palette.mode === "dark" ? 0.18 : 0.1),
+                            backgroundColor: colorMix(paletteColor, 0.1),
                             flex: "0 0 auto",
                         }}
                     >
                         {icon}
-                    </Box>
-                </Stack>
+                    </div>
+                </div>
                 {metric && (
-                    <Typography variant="h6" sx={{ lineHeight: 1.2 }}>
+                    <h6 style={{ lineHeight: 1.2 }}>
                         {metric}
-                    </Typography>
+                    </h6>
                 )}
-                <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+                <p style={{ flexGrow: 1 }} className="text-muted-foreground">
                     {detail}
-                </Typography>
+                </p>
                 {checkedAt && (
-                    <Typography variant="caption" color="text.secondary">
+                    <span className="text-muted-foreground">
                         Checked {checkedAt}
-                    </Typography>
+                    </span>
                 )}
-            </Stack>
-        </Paper>
+            </div>
+        </div>
     );
 }

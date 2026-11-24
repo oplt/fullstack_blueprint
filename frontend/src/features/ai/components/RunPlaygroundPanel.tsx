@@ -1,4 +1,4 @@
-import { Box, Button, Chip, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography } from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
 import { AutoAwesome as AiIcon, PlayCircleOutline as RunIcon } from "@/components/ui/iconsCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { AdvancedSettings } from "../../../components/ui/AdvancedSettings";
@@ -11,177 +11,156 @@ import type { AiStudioModel } from "../hooks/useAiStudioView";
 export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
     const { runForm, setRunForm, templateKeyOptions, documents, selectedDocumentIds, toggleDocument, createRunMutation, showToast, recentRuns, createReviewMutation, createFeedbackMutation, feedbackCommentByRunId, setFeedbackCommentByRunId, correctionsById, setCorrectionsById } = m;
     return (
-    <SectionCard title="Run playground" description="Execute prompt versions with structured variables, retrieval context, and human-review routing.">
-        <Stack spacing={2}>
-            <TextField
-                select
-                label="Prompt template"
-                value={runForm.prompt_template_key}
-                onChange={(event: any) => setRunForm((current) => ({ ...current, prompt_template_key: event.target.value }))}
-                fullWidth
-            >
-                {templateKeyOptions.map((template) => (
-                    <MenuItem key={template.id} value={template.key}>
-                        {template.name} ({template.key})
-                    </MenuItem>
-                ))}
-            </TextField>
-            <TextField
-                label="Variables JSON"
-                value={runForm.variables_json}
-                onChange={(event: any) => setRunForm((current) => ({ ...current, variables_json: event.target.value }))}
-                fullWidth
-                multiline
-                minRows={8}
-            />
-            <TextField
-                label="Retrieval query"
-                value={runForm.retrieval_query}
-                onChange={(event: any) => setRunForm((current) => ({ ...current, retrieval_query: event.target.value }))}
-                fullWidth
-            />
-            <TextField
-                label="Top K chunks"
-                value={runForm.top_k}
-                onChange={(event: any) => setRunForm((current) => ({ ...current, top_k: event.target.value }))}
-                fullWidth
-            />
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {documents.map((document) => (
-                    <Chip
-                        key={document.id}
-                        label={document.title}
-                        color={selectedDocumentIds.includes(document.id) ? "primary" : "default"}
-                        variant={selectedDocumentIds.includes(document.id) ? "filled" : "outlined"}
-                        onClick={() => toggleDocument(document.id)}
-                    />
-                ))}
-            </Stack>
-            <FormControlLabel
-                control={
-                    <Switch
-                        checked={runForm.review_required}
-                        onChange={(event: any) => setRunForm((current) => ({ ...current, review_required: event.target.checked }))}
-                    />
-                }
-                label="Request human review after this run"
-            />
-            <Button
-                variant="contained"
-                startIcon={<RunIcon />}
-                disabled={createRunMutation.isPending || !runForm.prompt_template_key}
-                onClick={() => {
-                    const result = aiRunDraftSchema.safeParse(runForm);
-                    if (!result.success) {
-                        showToast({ message: firstSchemaError(result), severity: "error" });
-                        return;
-                    }
-                    createRunMutation.mutate({
-                        prompt_template_key: result.data.prompt_template_key,
-                        variables: parseJsonObject(result.data.variables_json),
-                        retrieval_query: result.data.retrieval_query || undefined,
-                        document_ids: selectedDocumentIds,
-                        top_k: Number(result.data.top_k),
-                        review_required: result.data.review_required,
-                    });
-                }}
-            >
-                {createRunMutation.isPending ? "Running..." : "Run prompt"}
-            </Button>
-            {recentRuns.length > 0 ? (
-                <Stack spacing={1.25}>
-                    {recentRuns.map((run) => (
-                        <Box key={run.id} sx={(theme: any) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
-                            <Stack spacing={1}>
-                                <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
-                                    <Typography variant="subtitle2">
-                                        {run.provider_key}/{run.model_name}
-                                    </Typography>
-                                    <Chip label={run.status} size="small" color={run.status === "completed" ? "success" : "warning"} variant="outlined" />
-                                </Stack>
-                                <Typography variant="body2" color="text.secondary">
-                                    {run.output_text?.trim()
-                                        ? run.output_text.slice(0, 280) +
-                                          (run.output_text.length > 280 ? "…" : "")
-                                        : run.output_json
-                                          ? "Structured JSON output available under Raw."
-                                          : "No output"}
-                                </Typography>
-                                {run.output_json && !run.output_text?.trim() ? (
-                                    <AdvancedSettings title="Raw JSON">
-                                        <JsonBlock data={run.output_json} maxHeight={240} />
-                                    </AdvancedSettings>
-                                ) : null}
-                                <Typography variant="caption" color="text.secondary">
-                                    {formatDateTime(run.created_at)} • {run.total_tokens} tokens • {formatCostMicros(run.estimated_cost_micros)}
-                                </Typography>
-                                {(run.retrieval_degraded || run.memory_degraded) && (
-                                    <Chip
-                                        size="small"
-                                        color="warning"
-                                        variant="outlined"
-                                        label={`Context degraded${run.degradation_reason ? `: ${run.degradation_reason}` : ""}`}
-                                        sx={{ alignSelf: "flex-start" }}
-                                    />
-                                )}
-                                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                                    <Button size="small" variant="outlined" onClick={() => createReviewMutation.mutate(run.id)}>
-                                        Request review
-                                    </Button>
-                                    <Button
-                                        size="small"
-                                        variant="outlined"
-                                        color="success"
-                                        onClick={() => createFeedbackMutation.mutate({
-                                            runId: run.id,
-                                            rating: 1,
-                                            comment: feedbackCommentByRunId[run.id],
-                                        })}
-                                    >
-                                        Thumbs up
-                                    </Button>
-                                    <Button
-                                        size="small"
-                                        variant="outlined"
-                                        color="warning"
-                                        onClick={() => createFeedbackMutation.mutate({
-                                            runId: run.id,
-                                            rating: -1,
-                                            comment: feedbackCommentByRunId[run.id],
-                                            corrected_output: correctionsById[run.id],
-                                        })}
-                                    >
-                                        Thumbs down
-                                    </Button>
-                                </Stack>
-                                <TextField
-                                    label="Feedback note"
-                                    value={feedbackCommentByRunId[run.id] ?? ""}
-                                    onChange={(event: any) =>
-                                        setFeedbackCommentByRunId((current) => ({ ...current, [run.id]: event.target.value }))
-                                    }
-                                    fullWidth
-                                    size="small"
-                                />
-                                <TextField
-                                    label="Correction"
-                                    value={correctionsById[run.id] ?? ""}
-                                    onChange={(event: any) =>
-                                        setCorrectionsById((current) => ({ ...current, [run.id]: event.target.value }))
-                                    }
-                                    fullWidth
-                                    size="small"
-                                    multiline
-                                    minRows={2}
-                                />
-                            </Stack>
-                        </Box>
+        <SectionCard title="Run playground" description="Execute prompt versions with structured variables, retrieval context, and human-review routing.">
+            <div className="flex gap-[16px]">
+                <FormField
+                    select
+                    label="Prompt template"
+                    value={runForm.prompt_template_key}
+                    onChange={(event: any) => setRunForm((current) => ({ ...current, prompt_template_key: event.target.value }))}>
+                    {templateKeyOptions.map((template) => (
+                        <option key={template.id}>
+                            {template.name} ({template.key})
+                        </option>
                     ))}
-                </Stack>
-            ) : (
-                <EmptyState icon={<AiIcon />} title="No AI runs yet" description="Run a prompt version to capture outputs, token usage, and review state." />
-            )}
-        </Stack>
-    </SectionCard>
+                </FormField>
+                <FormField
+                    label="Variables JSON"
+                    value={runForm.variables_json}
+                    onChange={(event: any) => setRunForm((current) => ({ ...current, variables_json: event.target.value }))}
+                    multiline
+                    rows={8} />
+                <FormField
+                    label="Retrieval query"
+                    value={runForm.retrieval_query}
+                    onChange={(event: any) => setRunForm((current) => ({ ...current, retrieval_query: event.target.value }))} />
+                <FormField
+                    label="Top K chunks"
+                    value={runForm.top_k}
+                    onChange={(event: any) => setRunForm((current) => ({ ...current, top_k: event.target.value }))} />
+                <div className="flex flex-row gap-[8px] flex-wrap">
+                    {documents.map((document) => (
+                        <div
+                            key={document.id}
+                            onClick={() => toggleDocument(document.id)}
+                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                    ))}
+                </div>
+                <label><input
+                            checked={runForm.review_required}
+                            onChange={(event: any) => setRunForm((current) => ({ ...current, review_required: event.target.checked }))}
+                            type="checkbox"
+                            role="switch" /></label>
+                <Button
+                    variant="default"
+                    disabled={createRunMutation.isPending || !runForm.prompt_template_key}
+                    onClick={() => {
+                        const result = aiRunDraftSchema.safeParse(runForm);
+                        if (!result.success) {
+                            showToast({ message: firstSchemaError(result), severity: "error" });
+                            return;
+                        }
+                        createRunMutation.mutate({
+                            prompt_template_key: result.data.prompt_template_key,
+                            variables: parseJsonObject(result.data.variables_json),
+                            retrieval_query: result.data.retrieval_query || undefined,
+                            document_ids: selectedDocumentIds,
+                            top_k: Number(result.data.top_k),
+                            review_required: result.data.review_required,
+                        });
+                    }}
+                    type="button"
+                ><RunIcon />
+                    {createRunMutation.isPending ? "Running..." : "Run prompt"}
+                </Button>
+                {recentRuns.length > 0 ? (
+                    <div className="flex gap-[10px]">
+                        {recentRuns.map((run) => (
+                            <div key={run.id} style={({
+                                padding: 16,
+                                borderRadius: 16,
+                                border: `1px solid ${"var(--border)"}`
+                            })}>
+                                <div className="flex gap-[8px]">
+                                    <div className="flex flex-col sm:flex-row gap-[8px] justify-between">
+                                        <p>
+                                            {run.provider_key}/{run.model_name}
+                                        </p>
+                                        <div
+                                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                        {run.output_text?.trim()
+                                            ? run.output_text.slice(0, 280) +
+                                              (run.output_text.length > 280 ? "…" : "")
+                                            : run.output_json
+                                              ? "Structured JSON output available under Raw."
+                                              : "No output"}
+                                    </p>
+                                    {run.output_json && !run.output_text?.trim() ? (
+                                        <AdvancedSettings title="Raw JSON">
+                                            <JsonBlock data={run.output_json} maxHeight={240} />
+                                        </AdvancedSettings>
+                                    ) : null}
+                                    <span className="text-muted-foreground">
+                                        {formatDateTime(run.created_at)} • {run.total_tokens} tokens • {formatCostMicros(run.estimated_cost_micros)}
+                                    </span>
+                                    {(run.retrieval_degraded || run.memory_degraded) && (
+                                        <div
+                                            style={{ alignSelf: "flex-start" }}
+                                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                    )}
+                                    <div className="flex flex-col sm:flex-row gap-[8px]">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => createReviewMutation.mutate(run.id)}
+                                            type="button">
+                                            Request review
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => createFeedbackMutation.mutate({
+                                                runId: run.id,
+                                                rating: 1,
+                                                comment: feedbackCommentByRunId[run.id],
+                                            })}
+                                            type="button">
+                                            Thumbs up
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => createFeedbackMutation.mutate({
+                                                runId: run.id,
+                                                rating: -1,
+                                                comment: feedbackCommentByRunId[run.id],
+                                                corrected_output: correctionsById[run.id],
+                                            })}
+                                            type="button">
+                                            Thumbs down
+                                        </Button>
+                                    </div>
+                                    <FormField
+                                        label="Feedback note"
+                                        value={feedbackCommentByRunId[run.id] ?? ""}
+                                        onChange={(event: any) =>
+                                            setFeedbackCommentByRunId((current) => ({ ...current, [run.id]: event.target.value }))
+                                        } />
+                                    <FormField
+                                        label="Correction"
+                                        value={correctionsById[run.id] ?? ""}
+                                        onChange={(event: any) =>
+                                            setCorrectionsById((current) => ({ ...current, [run.id]: event.target.value }))
+                                        }
+                                        multiline
+                                        rows={2} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <EmptyState icon={<AiIcon />} title="No AI runs yet" description="Run a prompt version to capture outputs, token usage, and review state." />
+                )}
+            </div>
+        </SectionCard>
     );
 }

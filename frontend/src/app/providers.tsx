@@ -1,8 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type PropsWithChildren } from "react";
-import { useMediaQuery } from "@/components/ui/muiCompat";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { LocalizationProvider } from "@/components/ui/dateCompat";
-import { AdapterDayjs } from "@/components/ui/dateCompat";
 import {
     applyDesignTokens,
     createDesignTokens,
@@ -35,6 +32,18 @@ function getBrowserStorage(): Storage | undefined {
     }
 }
 
+function usePrefersDark(): boolean {
+    const [matches, setMatches] = useState(false);
+    useEffect(() => {
+        const media = window.matchMedia("(prefers-color-scheme: dark)");
+        const update = () => setMatches(media.matches);
+        update();
+        media.addEventListener("change", update);
+        return () => media.removeEventListener("change", update);
+    }, []);
+    return matches;
+}
+
 export function AppProviders({ children, configuration }: PropsWithChildren<{ configuration?: ApplicationConfiguration | ApplicationConfigurationInput }>) {
     return <ApplicationConfigurationProvider configuration={configuration}><ConfiguredProviders>{children}</ConfiguredProviders></ApplicationConfigurationProvider>;
 }
@@ -50,7 +59,7 @@ function ConfiguredProviders({ children }: PropsWithChildren) {
             ? loaded
             : { ...loaded, preset: applicationConfiguration.themePreset, primaryColor: applicationConfiguration.branding.primaryColor };
     });
-    const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
+    const prefersDark = usePrefersDark();
     const resolvedMode = preferences.colorMode === "system"
         ? prefersDark
             ? "dark"
@@ -98,14 +107,12 @@ function ConfiguredProviders({ children }: PropsWithChildren) {
             <LanguageDocumentSync>
                 <ColorModeContext.Provider value={contextValue}>
                     <QueryClientProvider client={queryClient}>
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <AuthProvider>
-                                <SnackbarProvider>
-                                    <Toaster position="bottom-center" />
-                                    {children}
-                                </SnackbarProvider>
-                            </AuthProvider>
-                        </LocalizationProvider>
+                        <AuthProvider>
+                            <SnackbarProvider>
+                                <Toaster position="bottom-center" />
+                                {children}
+                            </SnackbarProvider>
+                        </AuthProvider>
                     </QueryClientProvider>
                 </ColorModeContext.Provider>
             </LanguageDocumentSync>

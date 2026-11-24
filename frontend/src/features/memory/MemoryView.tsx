@@ -1,24 +1,4 @@
-import { useMemo, useState } from "react";
-import {
-    Alert,
-    Box,
-    Button,
-    Chip,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    MenuItem,
-    Stack,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    TablePagination,
-    TextField,
-    Typography,
-} from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useMemo, useState } from "react";
 import {
     DeleteOutline as DeleteIcon,
     Memory as MemoryIcon,
@@ -42,6 +22,7 @@ import { QueryBoundary, QueryErrorAlert } from "../../components/ui/QueryBoundar
 import { SectionCard } from "../../components/ui/SectionCard";
 import { SettingsTabs } from "../../components/layout/SettingsTabs";
 import { queryKeys } from "../../config/queryKeys";
+import { PaginationControls } from "../../components/ui/pagination";
 import { getQueryErrorMessage } from "../../utils/queryErrors";
 import { MemoryDetail } from "./MemoryDetail";
 
@@ -144,86 +125,70 @@ export default function MemoryView() {
         <PageShell maxWidth="xl">
             <SettingsTabs />
 
-            <Stack spacing={2}>
+            <div className="flex gap-[16px]">
                 <SectionCard title="Filters & search" description="Scope by level, project, and agent.">
-                    <Stack spacing={2}>
-                        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap="wrap" useFlexGap>
-                            <TextField
+                    <div className="flex gap-[16px]">
+                        <div className="flex flex-col sm:flex-row gap-[16px] flex-wrap">
+                            <FormField
                                 select
-                                size="small"
                                 label="Memory level"
                                 value={memoryLevel}
                                 onChange={(e: any) => {
                                     setMemoryLevel(e.target.value);
                                     setOffset(0);
                                     setSearchResults(null);
-                                }}
-                                sx={{ minWidth: 180 }}
-                            >
-                                <MenuItem value="">All levels</MenuItem>
+                                }}>
+                                <option>All levels</option>
                                 {MEMORY_LEVELS.map((level) => (
-                                    <MenuItem key={level} value={level}>
+                                    <option key={level}>
                                         {level}
-                                    </MenuItem>
+                                    </option>
                                 ))}
-                            </TextField>
-                            <TextField
+                            </FormField>
+                            <FormField
                                 select
-                                size="small"
                                 label="Project"
                                 value={projectId}
                                 onChange={(e: any) => {
                                     setProjectId(e.target.value);
                                     setOffset(0);
                                     setSearchResults(null);
-                                }}
-                                sx={{ minWidth: 220 }}
-                            >
-                                <MenuItem value="">All projects</MenuItem>
+                                }}>
+                                <option>All projects</option>
                                 {projects.map((project) => (
-                                    <MenuItem key={project.id} value={project.id}>
+                                    <option key={project.id}>
                                         {project.name}
-                                    </MenuItem>
+                                    </option>
                                 ))}
-                            </TextField>
-                            <TextField
-                                size="small"
+                            </FormField>
+                            <FormField
                                 label="Agent ID"
                                 value={agentId}
                                 onChange={(e: any) => {
                                     setAgentId(e.target.value);
                                     setOffset(0);
                                     setSearchResults(null);
-                                }}
-                                sx={{ minWidth: 160 }}
-                            />
-                        </Stack>
-                        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                            <TextField
-                                size="small"
+                                }} />
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-[8px]">
+                            <FormField
                                 label="Search query"
                                 value={searchQuery}
-                                onChange={(e: any) => setSearchQuery(e.target.value)}
-                                fullWidth
-                            />
+                                onChange={(e: any) => setSearchQuery(e.target.value)} />
                             <Button
-                                variant="contained"
-                                startIcon={<SearchIcon />}
+                                variant="default"
                                 disabled={!searchQuery.trim() || searchMutation.isPending}
                                 onClick={() => searchMutation.mutate()}
-                            >
-                                Search
-                            </Button>
+                                type="button"
+                            ><SearchIcon />Search
+                                                            </Button>
                             {searchResults ? (
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => setSearchResults(null)}
-                                >
+                                <Button variant="outline" onClick={() => setSearchResults(null)} type="button">
                                     Clear search
                                 </Button>
                             ) : null}
-                        </Stack>
-                    </Stack>
+                        </div>
+                    </div>
                 </SectionCard>
 
                 <SectionCard title="Memory list" description="Browse or search results. Destructive actions require confirmation.">
@@ -245,75 +210,61 @@ export default function MemoryView() {
                                     description="Adjust filters or run an agent that writes memory."
                                 />
                             ) : (
-                                <Box sx={{ overflowX: "auto" }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Content</TableCell>
-                                                <TableCell>Level</TableCell>
-                                                <TableCell>Privacy</TableCell>
-                                                <TableCell>Confidence</TableCell>
-                                                <TableCell>Updated</TableCell>
-                                                <TableCell align="right">Actions</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
+                                <div style={{ overflowX: "auto" }}>
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b border-border">
+                                                <td className="p-2 align-top">Content</td>
+                                                <td className="p-2 align-top">Level</td>
+                                                <td className="p-2 align-top">Privacy</td>
+                                                <td className="p-2 align-top">Confidence</td>
+                                                <td className="p-2 align-top">Updated</td>
+                                                <td align="right" className="p-2 align-top">Actions</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
                                             {displayItems.map((item) => (
-                                                <TableRow
+                                                <tr
                                                     key={item.id}
-                                                    selected={selectedId === item.id}
-                                                    hover
                                                     onClick={() => setSelectedId(item.id)}
-                                                    sx={{ cursor: "pointer" }}
-                                                >
-                                                    <TableCell sx={{ maxWidth: 360 }}>
-                                                        <Typography variant="body2" noWrap>
+                                                    style={{ cursor: "pointer" }}
+                                                    className="border-b border-border">
+                                                    <td style={{ maxWidth: 360 }} className="p-2 align-top">
+                                                        <p>
                                                             {item.content}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Chip
-                                                            size="small"
-                                                            label={item.metadata.memory_level}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>{item.metadata.privacy}</TableCell>
-                                                    <TableCell>
+                                                        </p>
+                                                    </td>
+                                                    <td className="p-2 align-top">
+                                                        <div
+                                                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                                    </td>
+                                                    <td className="p-2 align-top">{item.metadata.privacy}</td>
+                                                    <td className="p-2 align-top">
                                                         {item.metadata.confidence.toFixed(2)}
-                                                    </TableCell>
-                                                    <TableCell>
+                                                    </td>
+                                                    <td className="p-2 align-top">
                                                         {item.updated_at
                                                             ? new Date(item.updated_at).toLocaleString()
                                                             : "—"}
-                                                    </TableCell>
-                                                    <TableCell align="right">
+                                                    </td>
+                                                    <td align="right" className="p-2 align-top">
                                                         <Button
-                                                            size="small"
-                                                            color="error"
-                                                            startIcon={<DeleteIcon />}
+                                                            variant="destructive"
                                                             onClick={(e: any) => {
                                                                 e.stopPropagation();
                                                                 setConfirmDelete(item);
                                                             }}
-                                                        >
-                                                            Forget
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
+                                                            type="button"><DeleteIcon />Forget
+                                                                                                                    </Button>
+                                                    </td>
+                                                </tr>
                                             ))}
-                                        </TableBody>
-                                    </Table>
-                                </Box>
+                                        </tbody>
+                                    </table>
+                                </div>
                             )}
                             {!searchResults ? (
-                                <TablePagination
-                                    component="div"
-                                    count={listQuery.data?.total ?? 0}
-                                    page={Math.floor(offset / PAGE_SIZE)}
-                                    onPageChange={(_: any, page: any) => setOffset(page * PAGE_SIZE)}
-                                    rowsPerPage={PAGE_SIZE}
-                                    rowsPerPageOptions={[PAGE_SIZE]}
-                                />
+                                <PaginationControls count={listQuery.data?.total ?? 0} page={Math.floor(offset / PAGE_SIZE)} rowsPerPage={PAGE_SIZE} onPageChange={(page) => setOffset(page * PAGE_SIZE)} />
                             ) : null}
                         </QueryBoundary>
                     )}
@@ -339,75 +290,65 @@ export default function MemoryView() {
                         error={auditQuery.error}
                         onRetry={() => void auditQuery.refetch()}
                     >
-                        <Box sx={{ overflowX: "auto" }}>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Operation</TableCell>
-                                        <TableCell>Level</TableCell>
-                                        <TableCell>Agent</TableCell>
-                                        <TableCell>Source ref</TableCell>
-                                        <TableCell>When</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
+                        <div style={{ overflowX: "auto" }}>
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-border">
+                                        <td className="p-2 align-top">Operation</td>
+                                        <td className="p-2 align-top">Level</td>
+                                        <td className="p-2 align-top">Agent</td>
+                                        <td className="p-2 align-top">Source ref</td>
+                                        <td className="p-2 align-top">When</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {(auditQuery.data?.items ?? []).map((log) => (
-                                        <TableRow key={log.id}>
-                                            <TableCell>{log.operation}</TableCell>
-                                            <TableCell>{log.memory_level ?? "—"}</TableCell>
-                                            <TableCell>{log.agent_id ?? "—"}</TableCell>
-                                            <TableCell>{log.source_ref ?? "—"}</TableCell>
-                                            <TableCell>
+                                        <tr key={log.id} className="border-b border-border">
+                                            <td className="p-2 align-top">{log.operation}</td>
+                                            <td className="p-2 align-top">{log.memory_level ?? "—"}</td>
+                                            <td className="p-2 align-top">{log.agent_id ?? "—"}</td>
+                                            <td className="p-2 align-top">{log.source_ref ?? "—"}</td>
+                                            <td className="p-2 align-top">
                                                 {new Date(log.created_at).toLocaleString()}
-                                            </TableCell>
-                                        </TableRow>
+                                            </td>
+                                        </tr>
                                     ))}
-                                </TableBody>
-                            </Table>
-                        </Box>
-                        <TablePagination
-                            component="div"
-                            count={auditQuery.data?.total ?? 0}
-                            page={Math.floor(auditOffset / PAGE_SIZE)}
-                            onPageChange={(_: any, page: any) => setAuditOffset(page * PAGE_SIZE)}
-                            rowsPerPage={PAGE_SIZE}
-                            rowsPerPageOptions={[PAGE_SIZE]}
-                        />
+                                </tbody>
+                            </table>
+                        </div>
+                        <PaginationControls count={auditQuery.data?.total ?? 0} page={Math.floor(auditOffset / PAGE_SIZE)} rowsPerPage={PAGE_SIZE} onPageChange={(page) => setAuditOffset(page * PAGE_SIZE)} />
                     </QueryBoundary>
                 </SectionCard>
-            </Stack>
+            </div>
 
-            <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)}>
-                <DialogTitle>Forget memory?</DialogTitle>
-                <DialogContent>
-                    <Stack spacing={2} sx={{ mt: 1 }}>
-                        <Alert severity="warning">
+            <div>
+                <div>Forget memory?</div>
+                <div>
+                    <div className="flex gap-[16px]" style={{ marginTop: 8 }}>
+                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                             This permanently removes the memory item and records an audit entry.
                             It is separate from search/list browsing.
-                        </Alert>
-                        <Typography variant="body2">{confirmDelete?.content}</Typography>
-                        <TextField
-                            size="small"
+                        </div>
+                        <p>{confirmDelete?.content}</p>
+                        <FormField
                             label="Reason"
                             value={forgetReason}
                             onChange={(e: any) => setForgetReason(e.target.value)}
                             required
-                            helperText="Required for forget audit trail"
-                        />
-                    </Stack>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setConfirmDelete(null)}>Cancel</Button>
+                            helperText="Required for forget audit trail" />
+                    </div>
+                </div>
+                <div>
+                    <Button onClick={() => setConfirmDelete(null)} type="button">Cancel</Button>
                     <Button
-                        color="error"
-                        variant="contained"
+                        variant="destructive"
                         disabled={deleteMutation.isPending || forgetReason.trim().length < 3}
                         onClick={() => deleteMutation.mutate()}
-                    >
+                        type="button">
                         Forget
                     </Button>
-                </DialogActions>
-            </Dialog>
+                </div>
+            </div>
         </PageShell>
     );
 }

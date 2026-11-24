@@ -1,6 +1,9 @@
 /*
- * Tailwind theme and utilities only. Preflight stays off while MUI remains
- * installed so element resets do not restyle existing controls, lists, or type.
+ * Global design boundary.
+ *
+ * Component styles belong in the component or Tailwind utility layer. This
+ * file owns only the token bridge, document defaults, accessibility affordances
+ * and browser-level primitives described by DESIGN.md.
  */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
@@ -42,17 +45,65 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-card: var(--surface-card);
+  --color-surface-cream-strong: var(--surface-cream-strong);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-dark-elevated: var(--surface-dark-elevated);
+  --color-surface-dark-soft: var(--surface-dark-soft);
+  --color-hairline: var(--hairline);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-ink: var(--ink);
+  --color-body-strong: var(--body-strong);
+  --color-body: var(--body);
+  --color-muted-soft: var(--muted-soft);
+  --color-on-dark: var(--on-dark);
+  --color-on-dark-soft: var(--on-dark-soft);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-amber: var(--accent-amber);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --font-display: var(--font-family-display);
   --font-sans: var(--font-family-text);
   --font-mono: var(--font-family-mono);
+  --text-display-xl: 4rem;
+  --text-display-xl--line-height: 1.05;
+  --text-display-xl--letter-spacing: -1.5px;
+  --text-display-lg: 3rem;
+  --text-display-lg--line-height: 1.1;
+  --text-display-lg--letter-spacing: -1px;
+  --text-display-md: 2.25rem;
+  --text-display-md--line-height: 1.15;
+  --text-display-md--letter-spacing: -0.5px;
+  --text-display-sm: 1.75rem;
+  --text-display-sm--line-height: 1.2;
+  --text-display-sm--letter-spacing: -0.3px;
+  --text-title-lg: 1.375rem;
+  --text-title-md: 1.125rem;
+  --text-title-sm: 1rem;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.55;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.55;
+  --text-caption: 0.8125rem;
+  --text-code: 0.875rem;
+  --text-code--line-height: 1.6;
+  --spacing-xxs: var(--space-xxs);
+  --spacing-xs: var(--space-xs);
+  --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md);
+  --spacing-lg: var(--space-lg);
+  --spacing-xl: var(--space-xl);
+  --spacing-xxl: var(--space-xxl);
+  --spacing-section: var(--section-rhythm);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius);
   --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
   --shadow-raised: var(--shadow-raised);
   --shadow-overlay: var(--shadow-overlay);
 }
@@ -65,72 +116,69 @@
   --z-popover: 1600;
   --z-tooltip: 1700;
   --z-toast: 1800;
-  --color-background: #f8fafc;
-  --color-foreground: #0f172a;
-  --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #0f172a;
-  --color-primary: #2563eb;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #e2e8f0;
-  --color-secondary-foreground: #0f172a;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-accent: #dbeafe;
-  --color-accent-foreground: #1e1b4b;
-  --color-destructive: #dc2626;
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-information: #0369a1;
-  --color-border: #cbd5e1;
-  --color-input: #cbd5e1;
-  --color-ring: #2563eb;
-  --color-sidebar: #f1f5f9;
-  --color-sidebar-foreground: #0f172a;
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #2563eb;
+  /* Warm cream / coral / dark product-chrome fallback from DESIGN.md. */
+  --background: #faf9f5;
+  --foreground: #141413;
+  --card: #efe9de;
+  --card-foreground: #141413;
+  --popover: #efe9de;
+  --popover-foreground: #141413;
+  --primary: #cc785c;
   --primary-foreground: #ffffff;
-  --secondary: #e2e8f0;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #dbeafe;
-  --accent-foreground: #1e1b4b;
-  --destructive: #dc2626;
+  --secondary: #e8e0d2;
+  --secondary-foreground: #141413;
+  --muted: #f5f0e8;
+  --muted-foreground: #6c6a64;
+  --accent: #f3ddd2;
+  --accent-foreground: #141413;
+  --destructive: #c64545;
   --destructive-foreground: #ffffff;
-  --success: #15803d;
+  --success: #5db872;
   --success-foreground: #ffffff;
-  --warning: #b45309;
+  --warning: #d4a017;
   --warning-foreground: #ffffff;
-  --information: #0369a1;
+  --information: #397f73;
   --information-foreground: #ffffff;
-  --border: #cbd5e1;
-  --input: #cbd5e1;
-  --ring: #2563eb;
-  --sidebar: #f1f5f9;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #2563eb;
+  --border: #e6dfd8;
+  --input: #e6dfd8;
+  --ring: #cc785c;
+  --sidebar: #f5f0e8;
+  --sidebar-foreground: #141413;
+  --sidebar-primary: #cc785c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #dbeafe;
-  --sidebar-accent-foreground: #1e1b4b;
-  --sidebar-border: #cbd5e1;
-  --sidebar-ring: #2563eb;
-  --chart-1: #2563eb;
-  --chart-2: #0f766e;
-  --chart-3: #d97706;
-  --chart-4: #db2777;
-  --chart-5: #7c3aed;
-  --shadow-raised: 0 4px 16px rgba(15, 23, 42, 0.08);
-  --shadow-overlay: 0 16px 48px rgba(15, 23, 42, 0.16);
-  --font-family-display: Manrope, ui-sans-serif, system-ui, sans-serif;
-  --font-family-text: Manrope, ui-sans-serif, system-ui, sans-serif;
-  --font-family-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --sidebar-accent: #e8e0d2;
+  --sidebar-accent-foreground: #141413;
+  --sidebar-border: #e6dfd8;
+  --sidebar-ring: #cc785c;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-cream-strong: #e8e0d2;
+  --surface-dark: #181715;
+  --surface-dark-elevated: #252320;
+  --surface-dark-soft: #1f1e1b;
+  --hairline: #e6dfd8;
+  --hairline-soft: #ebe6df;
+  --ink: #141413;
+  --body-strong: #252523;
+  --body: #3d3d3a;
+  --muted-soft: #8e8b82;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
+  --chart-1: #cc785c;
+  --chart-2: #5db8a6;
+  --chart-3: #e8a55a;
+  --chart-4: #5db872;
+  --chart-5: #6c6a64;
+  --font-family-display: "Cormorant Garamond", "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-family-text: Inter, Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-size-body: 1rem;
+  --line-height-body: 1.55;
+  --font-weight-heading: 400;
+  --font-weight-body: 400;
+  --font-weight-label: 500;
   --radius: 8px;
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -138,61 +186,93 @@
   --radius-xl: 16px;
   --radius-pill: 9999px;
   --spacing-page: 24px;
-  --spacing-section: 24px;
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --section-rhythm: 96px;
+  --spacing-section-gap: 24px;
   --control-height: 40px;
   --control-padding-x: 16px;
+  --shadow-raised: 0 1px 3px rgb(20 20 19 / 8%);
+  --shadow-overlay: 0 16px 48px rgb(20 20 19 / 16%);
   --motion-normal: 220ms;
   --motion-easing: cubic-bezier(0.2, 0, 0, 1);
 }
 
-html,
-body,
-#root {
-  min-height: 100%;
-}
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
 
-body {
-  background: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-family-text);
-  margin: 0;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-family-text);
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-code,
-pre,
-kbd {
-  font-family: var(--font-family-mono);
-}
+  h1,
+  h2,
+  h3 {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-family-display);
+    font-weight: var(--font-weight-heading);
+    letter-spacing: -0.02em;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+  a:hover {
+    color: var(--primary);
+  }
 
-:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  code,
+  pre,
+  kbd {
+    font-family: var(--font-family-mono);
+  }
 }
 
 @media (pointer: coarse) {
   :where(button, [role="button"], input, select, textarea) {
-    min-height: 40px;
+    min-height: var(--control-height);
   }
-}
-
-img {
-  max-width: 100%;
-  display: block;
 }
 
 ::-webkit-scrollbar {
@@ -201,7 +281,7 @@ img {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-foreground) 35%, transparent);
+  background: color-mix(in srgb, var(--foreground) 35%, transparent);
   border-radius: var(--radius-sm);
 }
 

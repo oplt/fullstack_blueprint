@@ -1,19 +1,48 @@
-import { Box, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@/components/ui/muiCompat";
-import { CalendarMonth as CalendarIcon, DragIndicator as DragIcon } from "@/components/ui/iconsCompat";
-import { alpha } from "@/components/ui/muiCompat";
+import { FormField } from "@/components/ui/form-field";
+import { colorMix } from "@/lib/color";
+import { DragIndicator as DragIcon } from "@/components/ui/iconsCompat";
 import type { ProjectTask, ProjectTaskStatus } from "../../../api/projects";
-import { formatDateOnly, formatDateTime, humanizeKey } from "../../../utils/formatters";
+import { formatDateTime } from "../../../utils/formatters";
 import { TASK_STATUS_OPTIONS } from "../projectTaskModel";
 
-function Meta({ task }: { task: ProjectTask }) { return <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap><Chip label={humanizeKey(task.status)} size="small" variant="outlined" /><Chip label={humanizeKey(task.priority)} size="small" variant="outlined" />{task.assignee && <Chip label={task.assignee.full_name || task.assignee.email} size="small" variant="outlined" />}{task.due_date && <Chip icon={<CalendarIcon fontSize="small" />} label={formatDateOnly(task.due_date)} size="small" variant="outlined" color={task.status !== "done" && new Date(`${task.due_date}T23:59:59`) < new Date() ? "warning" : "default"} />}</Stack>; }
+function Meta({ task }: { task: ProjectTask }) { return (
+    <div className="flex flex-row gap-[6px] flex-wrap"><div
+        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" /><div
+        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />{task.assignee && <div
+        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}{task.due_date && <div
+        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}</div>
+); }
 
 type BoardProps = { task: ProjectTask; selected: boolean; isDragging: boolean; onSelect: () => void; onDragStart: () => void; onDropBefore: () => void; onMove: (status: ProjectTaskStatus) => void };
 export function TaskBoardCard({ task, selected, isDragging, onSelect, onDragStart, onDropBefore, onMove }: BoardProps) {
-    return <Paper draggable aria-grabbed={isDragging} onClick={onSelect} onDragStart={(e: any) => { e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; onDragStart(); }} onDragOver={(e: any) => e.preventDefault()} onDrop={(e: any) => { e.preventDefault(); e.stopPropagation(); onDropBefore(); }} sx={(t: any) => ({ p: 1.75, borderRadius: 3, cursor: "grab", border: `1px solid ${selected ? t.palette.primary.main : t.palette.divider}`, backgroundColor: selected ? alpha(t.palette.primary.main, t.palette.mode === "dark" ? 0.18 : 0.08) : t.palette.background.paper })}>
-        <Stack spacing={1.25}><Stack direction="row" justifyContent="space-between" spacing={1}><Typography variant="subtitle2">{task.title}</Typography><DragIcon fontSize="small" color="action" /></Stack><Typography variant="body2" color="text.secondary">{task.description || "No task notes yet."}</Typography><Meta task={task} />
-            <TextField select size="small" label="Move to" value="" onClick={(e: any) => e.stopPropagation()} onChange={(e: any) => { e.stopPropagation(); onMove(e.target.value as ProjectTaskStatus); }} fullWidth SelectProps={{ displayEmpty: true, renderValue: () => "Choose column" }} inputProps={{ "aria-label": `Move ${task.title} to another column` }}>{TASK_STATUS_OPTIONS.filter((o) => o.value !== task.status).map((o) => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}</TextField>
-        </Stack></Paper>;
+    return (
+        <div draggable aria-grabbed={isDragging} onClick={onSelect} onDragStart={(e: any) => { e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; onDragStart(); }} onDragOver={(e: any) => e.preventDefault()} onDrop={(e: any) => { e.preventDefault(); e.stopPropagation(); onDropBefore(); }} style={({
+            padding: 14,
+            borderRadius: 12,
+            cursor: "grab",
+            border: `1px solid ${selected ? "var(--primary)" : "var(--border)"}`,
+            backgroundColor: selected ? colorMix("var(--primary)", 0.12) : "var(--card)"
+        })}>
+            <div className="flex gap-[10px]"><div className="flex flex-row gap-[8px] justify-between"><p>{task.title}</p><DragIcon fontSize="small" color="action" /></div><p className="text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
+                <FormField
+                    select
+                    label="Move to"
+                    value=""
+                    onClick={(e: any) => e.stopPropagation()}
+                    onChange={(e: any) => { e.stopPropagation(); onMove(e.target.value as ProjectTaskStatus); }}
+                    SelectProps={{}}
+                    inputProps={{ "aria-label": `Move ${task.title} to another column` }}>{TASK_STATUS_OPTIONS.filter((o) => o.value !== task.status).map((o) => <option key={o.value}>{o.label}</option>)}</FormField>
+            </div></div>
+    );
 }
 export function TaskListCard({ task, selected, onSelect }: { task: ProjectTask; selected: boolean; onSelect: () => void }) {
-    return <Paper onClick={onSelect} sx={(t: any) => ({ p: 2, borderRadius: 4, cursor: "pointer", border: `1px solid ${selected ? t.palette.primary.main : t.palette.divider}`, backgroundColor: selected ? alpha(t.palette.primary.main, t.palette.mode === "dark" ? 0.18 : 0.06) : t.palette.background.paper })}><Stack spacing={1.25}><Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}><Box><Typography variant="subtitle1">{task.title}</Typography><Typography variant="body2" color="text.secondary">{task.description || "No task notes yet."}</Typography></Box><Typography variant="caption" color="text.secondary">Updated {formatDateTime(task.updated_at)}</Typography></Stack><Meta task={task} /></Stack></Paper>;
+    return (
+        <div onClick={onSelect} style={({
+            padding: 16,
+            borderRadius: 16,
+            cursor: "pointer",
+            border: `1px solid ${selected ? "var(--primary)" : "var(--border)"}`,
+            backgroundColor: selected ? colorMix("var(--primary)", (0.18 + 0.06) / 2) : "var(--card)"
+        })}><div className="flex gap-[10px]"><div className="flex flex-col md:flex-row gap-[8px] justify-between"><div><p>{task.title}</p><p className="text-muted-foreground">{task.description || "No task notes yet."}</p></div><span className="text-muted-foreground">Updated {formatDateTime(task.updated_at)}</span></div><Meta task={task} /></div></div>
+    );
 }

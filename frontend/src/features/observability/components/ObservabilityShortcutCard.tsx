@@ -1,4 +1,4 @@
-import { Button, Chip, Paper, Stack, Typography } from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";
 import { OpenInNew as OpenInNewIcon } from "@/components/ui/iconsCompat";
 import type { ReactNode } from "react";
 
@@ -26,47 +26,47 @@ export function ObservabilityShortcutCard({
     const disabledReason = !allowed ? "Admin only" : !configured || !url ? "Not configured" : null;
 
     return (
-        <Paper
-            sx={(theme: any) => ({
-                p: 2.5,
-                borderRadius: 1,
+        <div
+            style={({
+                padding: 20,
+                borderRadius: 4,
                 border: "none",
                 boxShadow: "none",
                 minHeight: 218,
                 display: "flex",
-                backgroundColor: theme.palette.mode === "dark"
-                    ? theme.palette.background.paper
-                    : theme.palette.action.hover,
+
+                backgroundColor: "var(--card)"
             })}
         >
-            <Stack spacing={2} sx={{ width: "100%" }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
-                    <Typography variant="h6">{title}</Typography>
+            <div className="flex gap-[16px]" style={{ width: "100%" }}>
+                <div className="flex flex-row gap-[12px] items-center justify-between">
+                    <h6>{title}</h6>
                     {icon}
-                </Stack>
-                <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+                </div>
+                <p style={{ flexGrow: 1 }} className="text-muted-foreground">
                     {description}
-                </Typography>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
+                </p>
+                <div className="flex flex-row gap-[12px] items-center justify-between">
                     {disabledReason ? (
-                        <Chip label={disabledReason} size="small" variant="outlined" />
+                        <div
+                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs">{disabledReason}</div>
                     ) : (
                         <span />
                     )}
                     <Button
-                        variant="contained"
-                        endIcon={<OpenInNewIcon />}
+                        variant="default"
                         disabled={Boolean(disabledReason) || !url}
                         onClick={() => {
                             if (url) {
                                 onOpen(url);
                             }
                         }}
+                        type="button"
                     >
                         {buttonText}
-                    </Button>
-                </Stack>
-            </Stack>
-        </Paper>
+                        <OpenInNewIcon /></Button>
+                </div>
+            </div>
+        </div>
     );
 }

@@ -1,4 +1,4 @@
-import { Box, Button, Skeleton, Stack } from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";
 import { Approval as ReviewIcon, Dataset as DatasetIcon, Description as DocumentIcon, PsychologyAlt as PromptIcon } from "@/components/ui/iconsCompat";
 import { usePlatformMetadata } from "../../../hooks/usePlatformMetadata";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
@@ -17,7 +17,13 @@ export default function AiStudioPage() {
     const m = useAiStudioView();
     const { data: platform } = usePlatformMetadata();
     const ragEnabled = platform?.available_features?.includes("rag") ?? false;
-    if (m.isLoading) return <PageShell maxWidth="xl"><SettingsTabs /><StatCardSkeletonGrid /><Stack spacing={2} sx={{ mt: 2 }}><Skeleton variant="rounded" height={320} /><Skeleton variant="rounded" height={280} /></Stack></PageShell>;
+    if (m.isLoading) return (
+        <PageShell maxWidth="xl"><SettingsTabs /><StatCardSkeletonGrid /><div className="flex gap-[16px]" style={{ marginTop: 16 }}><div className="animate-pulse rounded-md bg-muted" style={{
+            height: 320
+        }} /><div className="animate-pulse rounded-md bg-muted" style={{
+            height: 280
+        }} /></div></PageShell>
+    );
     if (m.isError || !m.overview) return <PageShell maxWidth="xl"><SettingsTabs /><QueryErrorAlert error={m.error ?? new Error("Failed to load AI studio overview.")} fallback="Failed to load AI studio overview." onRetry={() => void m.refetch()} /></PageShell>;
     const sections = [
         ["ai-prompts", "Prompts"],
@@ -26,25 +32,25 @@ export default function AiStudioPage() {
         ...(ragEnabled ? [["ai-documents", "Documents"]] : []),
         ["ai-evaluations", "Evaluations"],
     ] as const;
-    return <PageShell maxWidth="xl"><SettingsTabs />
-        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)", xl: "repeat(4,1fr)" } }}>
-            <StatCard label="Prompt templates" value={m.promptTemplates.length} description="Reusable prompts with version history" icon={<PromptIcon />} />
-            {ragEnabled && <StatCard label="Documents" value={m.documents.length} description="Indexed retrieval sources" icon={<DocumentIcon />} color="secondary" />}
-            <StatCard label="Pending reviews" value={m.reviews.filter((item) => item.status === "pending").length} description="Runs waiting for human review" icon={<ReviewIcon />} color="warning" />
-            <StatCard label="Datasets" value={m.datasets.length} description="Saved evaluation datasets" icon={<DatasetIcon />} color="success" />
-        </Box>
-        <Stack
-            component="nav"
-            aria-label="AI Studio sections"
-            direction="row"
-            spacing={1}
-            sx={{ mt: 2, overflowX: "auto", pb: 0.5, display: { xl: "none" } }}
-        >
-            {sections.map(([id, label]) => <Button key={id} component="a" href={`#${id}`} size="small" variant="outlined" sx={{ flexShrink: 0 }}>{label}</Button>)}
-        </Stack>
-        <Box sx={{ mt: 2, display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", xl: "1.1fr 0.9fr" }, alignItems: "start" }}>
-            <Stack spacing={2}><Box id="ai-prompts" sx={{ scrollMarginTop: 88 }}><PromptLibraryPanel m={m} /></Box><Box id="ai-runs" sx={{ scrollMarginTop: 88 }}><RunPlaygroundPanel m={m} /></Box></Stack>
-            <Stack spacing={2}><Box id="ai-versions" sx={{ scrollMarginTop: 88 }}><VersionBuilderPanel m={m} /></Box>{ragEnabled && <Box id="ai-documents" sx={{ scrollMarginTop: 88 }}><RetrievalDocumentsPanel m={m} /></Box>}<Box id="ai-evaluations" sx={{ scrollMarginTop: 88 }}><ReviewsEvaluationsPanel m={m} /></Box></Stack>
-        </Box>
-    </PageShell>;
+    return (
+        <PageShell maxWidth="xl"><SettingsTabs />
+            <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+                <StatCard label="Prompt templates" value={m.promptTemplates.length} description="Reusable prompts with version history" icon={<PromptIcon />} />
+                {ragEnabled && <StatCard label="Documents" value={m.documents.length} description="Indexed retrieval sources" icon={<DocumentIcon />} color="secondary" />}
+                <StatCard label="Pending reviews" value={m.reviews.filter((item) => item.status === "pending").length} description="Runs waiting for human review" icon={<ReviewIcon />} color="warning" />
+                <StatCard label="Datasets" value={m.datasets.length} description="Saved evaluation datasets" icon={<DatasetIcon />} color="success" />
+            </div>
+            <div
+
+                aria-label="AI Studio sections"
+                className="flex flex-row gap-[8px]"
+                style={{ marginTop: 16, overflowX: "auto", paddingBottom: 4, display: "" }}>
+                {sections.map(([id, label]) => <Button key={id} variant="outline" render={<a href={`#${id}`} />}>{label}</Button>)}
+            </div>
+            <div style={{ marginTop: 16, display: "grid", gap: 16, gridTemplateColumns: "1fr", alignItems: "start" }}>
+                <div className="flex gap-[16px]"><div id="ai-prompts" style={{ scrollMarginTop: 88 }}><PromptLibraryPanel m={m} /></div><div id="ai-runs" style={{ scrollMarginTop: 88 }}><RunPlaygroundPanel m={m} /></div></div>
+                <div className="flex gap-[16px]"><div id="ai-versions" style={{ scrollMarginTop: 88 }}><VersionBuilderPanel m={m} /></div>{ragEnabled && <div id="ai-documents" style={{ scrollMarginTop: 88 }}><RetrievalDocumentsPanel m={m} /></div>}<div id="ai-evaluations" style={{ scrollMarginTop: 88 }}><ReviewsEvaluationsPanel m={m} /></div></div>
+            </div>
+        </PageShell>
+    );
 }

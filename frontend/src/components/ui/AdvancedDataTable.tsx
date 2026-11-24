@@ -20,7 +20,6 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "./button";
 import { EmptyState } from "./EmptyState";
 import { Input } from "./input";
-import { Skeleton } from "./skeleton";
 
 export type AdvancedDataTableProps<T> = {
     columns: ColumnDef<T, unknown>[];
@@ -188,11 +187,11 @@ export function AdvancedDataTable<T>({
                             {table.getAllLeafColumns().map((column) => <label key={column.id} className="flex items-center gap-2 p-1 text-sm"><input type="checkbox" checked={column.getIsVisible()} disabled={!column.getCanHide()} onChange={column.getToggleVisibilityHandler()} />{column.id}</label>)}
                         </div>
                     </details> : null}
-                    {csvFileName || onExport ? <Button size="sm" variant="outline" onClick={exportRows}><Download className="mr-2 size-4" />Export CSV</Button> : null}
+                    {csvFileName || onExport ? <Button variant="outline" onClick={exportRows} type="button"><Download className="mr-2 size-4" />Export CSV</Button> : null}
                 </div>
             </div>
             {error ? <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
-            {loading ? <div className="space-y-2" aria-busy="true"><Skeleton className="h-10 w-full rounded-lg" /><Skeleton className="h-52 w-full rounded-lg" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={<span aria-hidden="true">∅</span>} /> : <div className="overflow-x-auto rounded-lg border border-border">
+            {loading ? <div className="space-y-2" aria-busy="true"><div className="animate-pulse rounded-md bg-muted h-10 w-full rounded-lg" /><div className="animate-pulse rounded-md bg-muted h-52 w-full rounded-lg" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={<span aria-hidden="true">∅</span>} /> : <div className="overflow-x-auto rounded-lg border border-border">
                 <table className="w-full border-collapse text-sm" aria-label={ariaLabel} aria-busy={loading}>
                     <thead className="bg-muted/60"><tr>
                         {enableExpanding ? <th scope="col" className="w-10 p-2" /> : null}
@@ -211,7 +210,7 @@ export function AdvancedDataTable<T>({
             </div>}
             <div className="flex flex-col justify-between gap-2 text-sm sm:flex-row sm:items-center">
                 <span className="text-muted-foreground">{table.getFilteredRowModel().rows.length} result{table.getFilteredRowModel().rows.length === 1 ? "" : "s"}</span>
-                <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows <select value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="rounded border border-input bg-background px-1 py-1">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</select></label><Button size="sm" variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()}>Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button size="sm" variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()}>Next</Button></div>
+                <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows <select value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="rounded border border-input bg-background px-1 py-1">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</select></label><Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()} type="button">Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} type="button">Next</Button></div>
             </div>
         </section>
     );

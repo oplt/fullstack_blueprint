@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import { ThemeProvider, createTheme } from "@/components/ui/muiCompat";
 import { FormGrid } from "./FormGrid";
 import { ResponsiveCardGrid } from "./ResponsiveCardGrid";
 import { MetricGrid } from "./MetricGrid";
@@ -10,11 +9,11 @@ import {
     RESPONSIVE_QA_VIEWPORTS,
     denseCardColumns,
     responsiveQaBand,
-    scrollContainerSx,
+    scrollContainerStyle,
 } from "./responsiveQa";
 
 function wrap(ui: React.ReactElement) {
-    return render(<ThemeProvider theme={createTheme()}>{ui}</ThemeProvider>);
+    return render(ui);
 }
 
 describe("Phase 22 responsive QA matrix", () => {
@@ -41,9 +40,9 @@ describe("Phase 22 responsive QA matrix", () => {
     });
 
     it("exposes a shared horizontal scroll container for tables/charts", () => {
-        expect(scrollContainerSx.overflowX).toBe("auto");
-        expect(scrollContainerSx.minWidth).toBe(0);
-        expect(scrollContainerSx.WebkitOverflowScrolling).toBe("touch");
+        expect(scrollContainerStyle.overflowX).toBe("auto");
+        expect(scrollContainerStyle.minWidth).toBe(0);
+        expect(scrollContainerStyle.WebkitOverflowScrolling).toBe("touch");
     });
 });
 

@@ -1,4 +1,4 @@
-import { Alert, Button, Stack } from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";
 import { OpenInNew as OpenInNewIcon } from "@/components/ui/iconsCompat";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
@@ -15,23 +15,22 @@ export default function ObservabilityPage() {
     return (
         <PageShell maxWidth="xl">
             <SettingsTabs />
-            <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+            <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
                 <Button
-                    variant="contained"
-                    startIcon={<OpenInNewIcon />}
+                    variant="default"
                     disabled={!model.technicalAccess || !links?.dashboards.application_overview.url}
                     onClick={() => {
                         const url = buildGrafanaUrl(links?.dashboards.application_overview.url, model.context);
                         if (url) openExternalUrl(url);
                     }}
-                >
-                    Open Grafana
-                </Button>
-            </Stack>
+                    type="button"
+                ><OpenInNewIcon />Open Grafana
+                                    </Button>
+            </div>
             {model.linksQuery.isError && (
-                <Alert severity="warning">
+                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                     Observability links are unavailable. Health checks can still render when the status endpoint responds.
-                </Alert>
+                </div>
             )}
             <InvestigationContextFields filters={model.filters} setters={model.setters} />
             <ObservabilityHealthGrid healthItems={model.healthItems} statusQuery={model.statusQuery} />

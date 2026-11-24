@@ -9,7 +9,7 @@ import {
     saveThemePreferences,
     themePresets,
 } from "./designTokens";
-import { createAppTheme } from "./theme";
+import { createDesignPalette } from "./designPalette";
 
 describe("canonical design tokens", () => {
     it("provides every supported preset with semantic light and dark tokens", () => {
@@ -22,6 +22,12 @@ describe("canonical design tokens", () => {
             expect(light.colors.chart).toHaveLength(5);
             expect(light.typography.text).toContain("Manrope");
         }
+
+        const defaultTokens = createDesignTokens();
+        expect(defaultTokens.colors.background).toBe("#FAF9F5");
+        expect(defaultTokens.colors.primary).toBe("#CC785C");
+        expect(defaultTokens.typography.display).toContain("Cormorant Garamond");
+        expect(defaultTokens.spacing.section).toBe("96px");
     });
 
     it("supports configurable primary color, typography, radius, and density", () => {
@@ -38,16 +44,11 @@ describe("canonical design tokens", () => {
         expect(tokens.density.controlHeight).toBe("36px");
     });
 
-    it("projects preset tokens into the current MUI compatibility theme", () => {
-        const theme = createAppTheme("dark", {
-            preset: "creative-ai",
-            radius: "lg",
-            density: "compact",
-        });
-
-        expect(theme.palette.mode).toBe("dark");
-        expect(theme.palette.primary.main).toBe("#7C3AED");
-        expect(theme.shape.borderRadius).toBe(12);
+    it("projects semantic tokens into the CSS palette used by shared components", () => {
+        const palette = createDesignPalette("dark");
+        expect(palette.mode).toBe("dark");
+        expect(palette.primary.main).toBe("#CC785C");
+        expect(palette.background.paper).toBeTruthy();
     });
 
     it("serializes semantic tokens as CSS custom properties and applies them", () => {
@@ -57,8 +58,8 @@ describe("canonical design tokens", () => {
 
         applyDesignTokens(tokens, root);
 
-        expect(variables["--color-primary"]).toBe(tokens.colors.primary);
-        expect(root.style.getPropertyValue("--color-background")).toBe(tokens.colors.background);
+        expect(variables["--primary"]).toBe(tokens.colors.primary);
+        expect(root.style.getPropertyValue("--background")).toBe(tokens.colors.background);
         expect(root.style.colorScheme).toBe("dark");
         expect(root.dataset.theme).toBe("dark");
         expect(root.dataset.themePreset).toBe("linear-inspired");

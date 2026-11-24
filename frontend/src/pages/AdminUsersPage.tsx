@@ -1,24 +1,6 @@
+import { FormField } from "@/components/ui/form-field";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-    Box,
-    Chip,
-    CircularProgress,
-    InputAdornment,
-    Skeleton,
-    Stack,
-    Switch,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TablePagination,
-    TableRow,
-    TextField,
-    Tooltip,
-    Typography,
-} from "@/components/ui/muiCompat";
 import { Search as SearchIcon, PeopleAlt as PeopleAltIcon } from "@/components/ui/iconsCompat";
 import { listAdminUsers, updateUserStatus, type AdminUserListResponse } from "../api/admin";
 import { SettingsTabs } from "../components/layout/SettingsTabs";
@@ -32,6 +14,7 @@ import { useDebounce } from "../hooks/useDebounce";
 import { useMutationErrorToast } from "../hooks/useMutationErrorToast";
 import { formatDate } from "../utils/formatters";
 import { useIsMobile } from "../hooks/use-mobile";
+import { PaginationControls } from "../components/ui/pagination";
 
 export default function AdminUsersPage() {
     const queryClient = useQueryClient();
@@ -88,9 +71,8 @@ export default function AdminUsersPage() {
         <PageShell width="wide">
             <SettingsTabs />
 
-            <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
-                <TextField
-                    size="small"
+            <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
+                <FormField
                     placeholder="Search users..."
                     value={search}
                     onChange={(event: any) => {
@@ -99,20 +81,18 @@ export default function AdminUsersPage() {
                     }}
                     InputProps={{
                         startAdornment: (
-                            <InputAdornment position="start">
+                            <span>
                                 <SearchIcon fontSize="small" />
-                            </InputAdornment>
+                            </span>
                         ),
-                    }}
-                    sx={{ width: { xs: "100%", sm: 280 } }}
-                />
-            </Stack>
+                    }} />
+            </div>
 
-            <Box
-                sx={{
+            <div
+                style={{
                     display: "grid",
-                    gap: 2,
-                    gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" },
+                    gap: 16,
+                    gridTemplateColumns: "1fr",
                 }}
             >
                 <StatCard
@@ -138,7 +118,7 @@ export default function AdminUsersPage() {
                     loading={isLoading}
                     color="secondary"
                 />
-            </Box>
+            </div>
 
             <SectionCard title="User directory" description="Review roles, verification, and status changes from one place.">
                 <QueryBoundary
@@ -148,11 +128,14 @@ export default function AdminUsersPage() {
                     errorFallback="Failed to load users."
                     onRetry={() => void refetch()}
                     loadingFallback={
-                        <Stack spacing={1.5}>
+                        <div className="flex gap-[12px]">
                             {Array.from({ length: 5 }).map((_: any, index: any) => (
-                                <Skeleton key={index} variant="rounded" height={88} sx={{ borderRadius: 4 }} />
+                                <div
+                                    key={index}
+                                    style={{ borderRadius: 16 }}
+                                    className="animate-pulse rounded-md bg-muted" />
                             ))}
-                        </Stack>
+                        </div>
                     }
                     isEmpty={users.length === 0}
                     emptyFallback={
@@ -164,140 +147,129 @@ export default function AdminUsersPage() {
                     }
                 >
                     {isMobile ? (
-                        <Stack spacing={1.5}>
+                        <div className="flex gap-[12px]">
                             {users.map((user) => {
                                 const isUpdatingThisUser =
                                     statusMutation.isPending &&
                                     statusMutation.variables?.id === user.id;
                                 return (
-                                    <Box
+                                    <div
                                         key={user.id}
-                                        sx={(currentTheme: any) => ({
-                                            p: 2.25,
-                                            borderRadius: 4,
-                                            border: `1px solid ${currentTheme.palette.divider}`,
+                                        style={({
+                                            padding: 18,
+                                            borderRadius: 16,
+                                            border: `1px solid ${"var(--border)"}`
                                         })}
                                     >
-                                        <Stack spacing={1.25}>
-                                            <Stack direction="row" justifyContent="space-between" spacing={1}>
-                                                <Box sx={{ minWidth: 0 }}>
-                                                    <Typography variant="subtitle2" noWrap>{user.full_name ?? "Unnamed user"}</Typography>
-                                                    <Typography variant="body2" color="text.secondary" noWrap>
+                                        <div className="flex gap-[10px]">
+                                            <div className="flex flex-row gap-[8px] justify-between">
+                                                <div style={{ minWidth: 0 }}>
+                                                    <p>{user.full_name ?? "Unnamed user"}</p>
+                                                    <p className="text-muted-foreground">
                                                         {user.email}
-                                                    </Typography>
-                                                </Box>
-                                                <Switch
+                                                    </p>
+                                                </div>
+                                                <input
                                                     checked={user.is_active}
-                                                    size="small"
                                                     disabled={isUpdatingThisUser}
-                                                    inputProps={{
-                                                        "aria-label": `${user.is_active ? "Deactivate" : "Activate"} ${user.full_name ?? user.email}`,
-                                                    }}
                                                     onChange={(event: any) =>
                                                         statusMutation.mutate({
                                                             id: user.id,
                                                             is_active: event.target.checked,
                                                         })
                                                     }
-                                                />
-                                            </Stack>
-                                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                                    type="checkbox"
+                                                    role="switch"
+                                                    aria-label={`${user.is_active ? "Deactivate" : "Activate"} ${user.full_name ?? user.email}`} />
+                                            </div>
+                                            <div className="flex flex-row gap-[8px] flex-wrap">
                                                 {user.roles.map((role) => (
-                                                    <Chip key={role} label={role} size="small" />
+                                                    <div
+                                                        key={role}
+                                                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                                 ))}
-                                                <Chip
-                                                    label={user.is_verified ? "Verified" : "Unverified"}
-                                                    size="small"
-                                                    color={user.is_verified ? "success" : "warning"}
-                                                    variant="outlined"
-                                                />
-                                            </Stack>
-                                            <Typography variant="caption" color="text.secondary">
+                                                <div
+                                                    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                            </div>
+                                            <span className="text-muted-foreground">
                                                 Joined {formatDate(user.created_at)}
-                                            </Typography>
-                                        </Stack>
-                                    </Box>
+                                            </span>
+                                        </div>
+                                    </div>
                                 );
                             })}
-                        </Stack>
+                        </div>
                     ) : (
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Email</TableCell>
-                                        <TableCell>Name</TableCell>
-                                        <TableCell>Roles</TableCell>
-                                        <TableCell>Verified</TableCell>
-                                        <TableCell>Joined</TableCell>
-                                        <TableCell align="center">Active</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
+                        <div className="overflow-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-border">
+                                        <td className="p-2 align-top">Email</td>
+                                        <td className="p-2 align-top">Name</td>
+                                        <td className="p-2 align-top">Roles</td>
+                                        <td className="p-2 align-top">Verified</td>
+                                        <td className="p-2 align-top">Joined</td>
+                                        <td align="center" className="p-2 align-top">Active</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {users.map((user) => {
                                         const isUpdatingThisUser =
                                             statusMutation.isPending &&
                                             statusMutation.variables?.id === user.id;
                                         return (
-                                            <TableRow key={user.id} hover>
-                                                <TableCell>{user.email}</TableCell>
-                                                <TableCell>{user.full_name ?? "—"}</TableCell>
-                                                <TableCell>
-                                                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                                            <tr key={user.id} className="border-b border-border">
+                                                <td className="p-2 align-top">{user.email}</td>
+                                                <td className="p-2 align-top">{user.full_name ?? "—"}</td>
+                                                <td className="p-2 align-top">
+                                                    <div className="flex flex-row gap-[6px] flex-wrap">
                                                         {user.roles.map((role) => (
-                                                            <Chip key={role} label={role} size="small" />
+                                                            <div
+                                                                key={role}
+                                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                                         ))}
-                                                    </Stack>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Chip
-                                                        label={user.is_verified ? "Verified" : "Unverified"}
-                                                        size="small"
-                                                        color={user.is_verified ? "success" : "warning"}
-                                                        variant="outlined"
-                                                    />
-                                                </TableCell>
-                                                <TableCell>{formatDate(user.created_at)}</TableCell>
-                                                <TableCell align="center">
-                                                    <Tooltip title={user.is_active ? "Deactivate" : "Activate"}>
-                                                        <Box component="span">
+                                                    </div>
+                                                </td>
+                                                <td className="p-2 align-top">
+                                                    <div
+                                                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                                </td>
+                                                <td className="p-2 align-top">{formatDate(user.created_at)}</td>
+                                                <td align="center" className="p-2 align-top">
+                                                    <div title={user.is_active ? "Deactivate" : "Activate"}>
                                                             {isUpdatingThisUser ? (
-                                                                <CircularProgress size={18} />
+                                                                <span
+                                                                    className="inline-block animate-spin rounded-full border-2 border-primary border-t-transparent"
+                                                                    role="progressbar"
+                                                                    style={{
+                                                                        width: 18,
+                                                                        height: 18
+                                                                    }} />
                                                             ) : (
-                                                                <Switch
+                                                                <input
                                                                     checked={user.is_active}
-                                                                    size="small"
-                                                                    inputProps={{
-                                                                        "aria-label": `${user.is_active ? "Deactivate" : "Activate"} ${user.full_name ?? user.email}`,
-                                                                    }}
                                                                     onChange={(event: any) =>
                                                                         statusMutation.mutate({
                                                                             id: user.id,
                                                                             is_active: event.target.checked,
                                                                         })
                                                                     }
-                                                                />
+                                                                    type="checkbox"
+                                                                    role="switch"
+                                                                    aria-label={`${user.is_active ? "Deactivate" : "Activate"} ${user.full_name ?? user.email}`} />
                                                             )}
-                                                        </Box>
-                                                    </Tooltip>
-                                                </TableCell>
-                                            </TableRow>
+                                                        </div>
+                                                </td>
+                                            </tr>
                                         );
                                     })}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </QueryBoundary>
 
-                <TablePagination
-                    component="div"
-                    count={data?.total ?? 0}
-                    page={page}
-                    rowsPerPage={pageSize}
-                    rowsPerPageOptions={[pageSize]}
-                    onPageChange={(_: any, nextPage: any) => setPage(nextPage)}
-                />
+                <PaginationControls count={data?.total ?? 0} page={page} rowsPerPage={pageSize} onPageChange={setPage} />
             </SectionCard>
         </PageShell>
     );

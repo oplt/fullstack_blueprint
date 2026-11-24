@@ -133,7 +133,7 @@ export async function apiFetch<T>(
     return response.json();
 }
 
-export async function apiFetchStream(path: string, options: RequestInit = {}): Promise<Response> {
+export async function apiFetchStream(path: string, options: RequestInit = {}, retry = true): Promise<Response> {
     const headers = new Headers(options.headers ?? {});
     const isFormData = options.body instanceof FormData;
     if (!isFormData && options.body !== undefined && !headers.has("Content-Type")) {
@@ -148,9 +148,9 @@ export async function apiFetchStream(path: string, options: RequestInit = {}): P
         headers,
         credentials: "include",
     });
-    if (response.status === 401) {
+    if (response.status === 401 && retry) {
         if (!refreshPromise) refreshPromise = refreshAccessToken().finally(() => { refreshPromise = null; });
-        if (await refreshPromise) return apiFetchStream(path, options);
+        if (await refreshPromise) return apiFetchStream(path, options, false);
     }
     if (!response.ok) throw await parseApiError(response);
     return response;

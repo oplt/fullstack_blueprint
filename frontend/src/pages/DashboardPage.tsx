@@ -1,10 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import {
-    Box,
-    Button,
-    Stack,
-    Typography,
-} from "@/components/ui/muiCompat";
+import { Button } from "@/components/ui/button";import { useQuery } from "@tanstack/react-query";
 import {
     FolderOpen as ProjectsIcon,
     Notifications as NotificationsIcon,
@@ -23,7 +17,6 @@ import { QueryBoundary } from "../components/ui/QueryBoundary";
 import { SectionCard } from "../components/ui/SectionCard";
 import { StatCard } from "../components/ui/StatCard";
 import { EmptyState } from "../components/ui/EmptyState";
-import { surfaceRaised } from "../components/ui/themeSurfaces";
 import { useAuth } from "../hooks/useAuth";
 import { useNotifications } from "../hooks/useNotifications";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
@@ -108,15 +101,12 @@ export default function DashboardPage() {
                 />
             </MetricGrid>
 
-            <Box sx={{ display: "grid", gap: 2 }}>
-                <Box
-                    sx={{
+            <div style={{ display: "grid", gap: 16 }}>
+                <div
+                    style={{
                         display: "grid",
-                        gap: 2,
-                        gridTemplateColumns: {
-                            xs: "1fr",
-                            lg: "minmax(0, 1.6fr) minmax(280px, 0.9fr)",
-                        },
+                        gap: 16,
+                        gridTemplateColumns: "1fr",
                         alignItems: "stretch",
                     }}
                 >
@@ -137,52 +127,41 @@ export default function DashboardPage() {
                                     title={`No ${coreDomainPlural.toLowerCase()} yet`}
                                     description={`Create your first ${platformMetadata?.core_domain_singular?.toLowerCase() ?? "project"} to start building out the workspace.`}
                                     action={
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => navigate("/projects")}
-                                        >
+                                        <Button variant="default" onClick={() => navigate("/projects")} type="button">
                                             Create a project
                                         </Button>
                                     }
                                 />
                             }
                         >
-                            <Box
-                                sx={{
+                            <div
+                                style={{
                                     display: "grid",
-                                    gap: 1.25,
-                                    gridTemplateColumns: {
-                                        xs: "1fr",
-                                        sm: "repeat(2, minmax(0, 1fr))",
-                                        md: "repeat(3, minmax(0, 1fr))",
-                                    },
+                                    gap: 10,
+                                    gridTemplateColumns: "1fr",
                                 }}
                             >
                                 {projects?.slice(0, 6).map((project) => (
-                                    <Box
+                                    <div
                                         key={project.id}
-                                        sx={(theme: any) => ({
-                                            p: 2,
-                                            borderRadius: 1,
-                                            backgroundColor: surfaceRaised(theme),
+                                        onClick={() => navigate(projectPath(project.id))}
+                                        style={({
+                                            padding: 16,
+                                            borderRadius: 4,
+                                            backgroundColor: "var(--card)",
                                             border: 1,
                                             borderColor: "divider",
-                                            cursor: "pointer",
+                                            cursor: "pointer"
                                         })}
-                                        onClick={() => navigate(projectPath(project.id))}
                                     >
-                                        <Typography variant="subtitle2">{project.name}</Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{ mt: 0.5 }}
-                                        >
+                                        <p>{project.name}</p>
+                                        <p style={{ marginTop: 4 }} className="text-muted-foreground">
                                             {project.description ||
                                                 `No description added for this ${platformMetadata?.core_domain_singular?.toLowerCase() ?? "project"} yet.`}
-                                        </Typography>
-                                    </Box>
+                                        </p>
+                                    </div>
                                 ))}
-                            </Box>
+                            </div>
                         </QueryBoundary>
                     </SectionCard>
 
@@ -192,50 +171,41 @@ export default function DashboardPage() {
                         compact
                         contentSx={{ display: "flex", flexDirection: "column" }}
                     >
-                        <Stack spacing={1.5} sx={{ flex: 1 }}>
+                        <div className="flex gap-[12px]" style={{ flex: 1 }}>
                             {accountChecks.map((item) => (
-                                <Box
+                                <div
                                     key={item.label}
-                                    sx={(theme: any) => ({
-                                        p: 1.5,
-                                        borderRadius: 1,
+                                    style={({
+                                        padding: 12,
+                                        borderRadius: 4,
                                         flex: 1,
-                                        backgroundColor: surfaceRaised(theme),
+                                        backgroundColor: "var(--card)",
                                         border: 1,
-                                        borderColor: "divider",
+                                        borderColor: "divider"
                                     })}
                                 >
-                                    <Stack
-                                        direction="row"
-                                        justifyContent="space-between"
-                                        spacing={1}
-                                        sx={{ mb: 0.5 }}
-                                    >
-                                        <Typography variant="subtitle2">{item.label}</Typography>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{ color: item.color, fontWeight: 500 }}
-                                        >
+                                    <div
+                                        className="flex flex-row gap-[8px] justify-between"
+                                        style={{ marginBottom: 4 }}>
+                                        <p>{item.label}</p>
+                                        <p style={{ color: item.color, fontWeight: 500 }}>
                                             {item.value}
-                                        </Typography>
-                                    </Stack>
-                                    <Typography variant="body2" color="text.secondary">
+                                        </p>
+                                    </div>
+                                    <p className="text-muted-foreground">
                                         {item.description}
-                                    </Typography>
-                                </Box>
+                                    </p>
+                                </div>
                             ))}
-                        </Stack>
+                        </div>
                     </SectionCard>
-                </Box>
+                </div>
 
-                <Box
-                    sx={{
+                <div
+                    style={{
                         display: "grid",
-                        gap: 2,
-                        gridTemplateColumns: {
-                            xs: "1fr",
-                            md: "minmax(0, 1fr) minmax(0, 1fr)",
-                        },
+                        gap: 16,
+                        gridTemplateColumns: "1fr",
                         alignItems: "stretch",
                     }}
                 >
@@ -252,7 +222,10 @@ export default function DashboardPage() {
                         description="The latest notifications and alerts across your account."
                         contentSx={{ display: "flex", flexDirection: "column", minHeight: 0 }}
                         action={
-                                            <Button variant="text" onClick={() => navigate(ROUTES.notifications)}>
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => navigate(ROUTES.notifications)}
+                                                type="button">
                                 Open all
                             </Button>
                         }
@@ -270,19 +243,16 @@ export default function DashboardPage() {
                                     title="No notifications yet"
                                     description="Updates, reminders, and account events will appear here as soon as the workspace becomes active."
                                     action={
-                                        <Button
-                                            variant="outlined"
-                                            onClick={() => navigate("/projects")}
-                                        >
+                                        <Button variant="outline" onClick={() => navigate("/projects")} type="button">
                                             Explore workspace
                                         </Button>
                                     }
                                 />
                             }
                         >
-                            <Stack
-                                spacing={1.5}
-                                sx={{ flex: 1, minHeight: 0, maxHeight: "100%", overflow: "auto" }}
+                            <div
+                                className="flex gap-[12px]"
+                                style={{ flex: 1, minHeight: 0, maxHeight: "100%", overflow: "auto" }}
                             >
                                 {recentNotifications.map((notification) => (
                                     <NotificationListItem
@@ -291,11 +261,11 @@ export default function DashboardPage() {
                                         variant="compact"
                                     />
                                 ))}
-                            </Stack>
+                            </div>
                         </QueryBoundary>
                     </SectionCard>
-                </Box>
-            </Box>
+                </div>
+            </div>
         </PageShell>
     );
 }

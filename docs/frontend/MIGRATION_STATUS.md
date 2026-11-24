@@ -1,10 +1,17 @@
 # Frontend Modernization Status
 
-Current phase: Phase 17 — COMPLETED
+Current phase: MUI compatibility-layer elimination — COMPLETED
 
-Current task: Documentation and Agent Skills completed
+Current task: Native shadcn/Base UI migration and compatibility-layer removal completed
 
 Last updated: 2026-11-24
+
+## Compatibility-layer elimination
+
+- [x] Audited the former `muiCompat.tsx` wrappers and `styleCompat.ts` translator (see [MUI compatibility audit](MUI_COMPAT_AUDIT.md)).
+- [x] Migrated production and test consumers to semantic HTML, Tailwind utilities, native form controls, and existing shadcn/Base UI primitives.
+- [x] Deleted `muiCompat.tsx`, `styleCompat.ts`, theme emulation helpers, and compatibility-only test scaffolding.
+- [x] Verified zero `muiCompat`, `styleCompat`, `@mui`, and `@emotion` imports in frontend source and package metadata.
 
 ## Phases
 
@@ -102,7 +109,7 @@ Last updated: 2026-11-24
 
 ## Remaining tasks
 
-No implementation phase remains in this modernization plan. Keep the documentation and skills current as new capabilities land; use [per-phase work and acceptance criteria](MODERNIZATION_PLAN.md) for maintenance decisions.
+The compatibility migration itself is complete. The independent final review still tracks release gates for live AI streaming, privileged generative actions and real-browser accessibility/PWA evidence; see [FINAL_ARCHITECTURE_REVIEW](FINAL_ARCHITECTURE_REVIEW.md). Keep the documentation and skills current as new capabilities land; use [per-phase work and acceptance criteria](MODERNIZATION_PLAN.md) for maintenance decisions.
 
 ## Architectural decisions
 
@@ -119,12 +126,12 @@ Removed redundant `cn` and `next-themes` packages, then removed MUI, MUI X and E
 ## Tests executed
 
 - Clean frontend `npm ci` passed. `npm run lint` passed with zero errors and warnings. `tsc -b` and `npm run build` passed.
-- Vitest 5.1.1 passed 143 tests across 45 files, including canonical token, preference persistence, shared primitive coverage, axe-core accessibility smoke checks, locale selection/formatting, virtualization, web-vitals safety, API transport behavior, Phase 9 business UI workflows, Phase 10 stream/security boundaries, Phase 11 generative UI safety and Phase 15 configuration/preset gating. Storybook 10.6 static build passed with deterministic MSW fixtures and Chromium story probes passed for Button and Generative UI fallback stories.
+- Vitest 5.1.1 passed 147 tests across 46 files, including canonical token, preference persistence, shared primitive coverage, axe-core accessibility smoke checks, locale selection/formatting, virtualization, web-vitals safety, API transport behavior, bounded stream authentication recovery, failed-logout cache isolation, external URL safety, Phase 9 business UI workflows, Phase 10 stream/security boundaries, Phase 11 generative UI safety and Phase 15 configuration/preset gating. Storybook 10.6 static build passed with deterministic MSW fixtures. Browser probes require the Playwright browser binaries and provisioned services; they are not counted as a local pass when those prerequisites are absent.
 - Strict TypeScript, ESLint and the production Vite/PWA build passed after the complete feature migration. `rg` found no `@mui` or `@emotion` imports in frontend source, package metadata or Vite configuration.
 - `npm run api:export`, `npm run api:generate`, and `npm run api:check` passed against the all-optional backend contract profile; the generated document contains 96 paths and 151 schemas.
 - `npm run audit` passed at the high-severity threshold. The full report has zero critical/high and six moderate findings (four Workbox plus two Storybook docgen dependency entries). Production-only audit has zero vulnerabilities.
 - Backend `make test` passed 219 tests with 4 documented skips; the frontend suite passed 143 tests. `make check` remains environment-blocked when uv cannot write its cache temporary file.
-- Phase 16 local validation passed the production build, `pwa:check`, `perf:check` (1,042,273 summed gzip bytes, 338,515 JavaScript gzip bytes, 21,880 CSS gzip bytes, 47 JS/CSS assets), API contract check, Storybook build and Chromium PWA probe (registered/active/controlled/update-capable, offline reset-password 200, zero API cache entries). The disposable-service E2E workflow is configured for CI and was not counted as a local pass without those services.
+- Phase 16 local validation passed the production build, `pwa:check`, `perf:check` (1,065,359 summed gzip bytes, 361,669 JavaScript gzip bytes, 21,800 CSS gzip bytes, 48 JS/CSS assets), API contract check and Storybook build. The local Chromium PWA probe is infrastructure-blocked when the Playwright browser binary is not installed; the disposable-service E2E workflow remains configured for CI and is not counted as a local pass without those services.
 - Vite 8 generated PWA manifest, registration script and service worker. Existing proxy and environment variables were retained.
 - Backend checks were not changed by Phase 6. [Test baseline](TEST_BASELINE.md), [performance baseline](PERFORMANCE_BASELINE.md)
 

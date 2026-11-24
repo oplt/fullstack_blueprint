@@ -36,7 +36,7 @@ export const layoutSpacing = {
     },
 } as const;
 
-/** Heading roles for consistent hierarchy (map to MUI variants). */
+/** Heading roles for consistent semantic hierarchy. */
 export const headingHierarchy = {
     page: "h4",
     pageDense: "h5",

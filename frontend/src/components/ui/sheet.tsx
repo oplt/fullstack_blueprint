@@ -66,7 +66,7 @@ function SheetContent({
               <Button
                 variant="ghost"
                 className="absolute top-3 right-3"
-                size="icon-sm"
+                type="button"
               />
             }
           >
@@ -77,7 +77,7 @@ function SheetContent({
         )}
       </SheetPrimitive.Popup>
     </SheetPortal>
-  )
+  );
 }
 
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {

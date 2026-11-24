@@ -23,6 +23,6 @@ describe("calendar range behavior", () => {
 
     it("lays out twelve-month view as three months per row", () => {
         expect(getMonthGridColumns("twelve_month")).toBe("repeat(3, minmax(0, 1fr))");
-        expect(getMonthGridColumns("month")).toEqual({ xs: "1fr" });
+        expect(getMonthGridColumns("month")).toBe("1fr");
     });
 });
