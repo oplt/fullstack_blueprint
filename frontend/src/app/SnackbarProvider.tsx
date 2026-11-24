@@ -1,5 +1,5 @@
 import { useCallback, useState, type PropsWithChildren } from "react";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Snackbar } from "@/components/ui/muiCompat";
 import { SnackbarContext, type ToastOptions } from "./snackbarContext";
 
 export function SnackbarProvider({ children }: PropsWithChildren) {

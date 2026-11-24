@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider, createTheme } from "@/components/ui/muiCompat";
 import { FormGrid } from "./FormGrid";
 import { WorkspaceSplit } from "./WorkspaceSplit";
 import { MetricGrid } from "./MetricGrid";

@@ -9,7 +9,7 @@ type UseUserProfileOptions = Pick<UseQueryOptions<Profile>, "enabled">;
 export function useUserProfile(options?: UseUserProfileOptions) {
     return useQuery({
         queryKey: queryKeys.users.profile,
-        queryFn: getProfile,
+        queryFn: ({ signal }) => getProfile({ signal }),
         staleTime: QUERY_STALE_TIMES.userProfile,
         ...options,
     });

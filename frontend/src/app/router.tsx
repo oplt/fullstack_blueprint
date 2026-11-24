@@ -1,10 +1,15 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes, Link } from "react-router-dom";
-import { Box, Button, Skeleton, Stack, Typography } from "@mui/material";
+import { BrowserRouter, Navigate, Route, Routes, Link, useLocation } from "react-router-dom";
+import { Box, Button, Skeleton, Stack, Typography } from "@/components/ui/muiCompat";
 import { ProtectedRoute } from "../components/guards/ProtectedRoute";
 import { useAuth } from "../hooks/useAuth";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
 import AuthHomePage from "../pages/AuthHomePage";
+import { RouteErrorBoundary } from "./RouteErrorBoundary";
+import { ROUTES } from "./routes";
+import { capabilityAvailability, serverStateFromPlatformMetadata } from "./configuration/capabilities";
+import { useApplicationConfiguration } from "./configuration/useConfiguration";
+import type { CapabilityId } from "./configuration/types";
 
 const AppLayout = lazy(() =>
     import("../components/layout/AppLayout").then((module) => ({ default: module.AppLayout }))
@@ -53,6 +58,11 @@ function SuspensePage({ children }: { children: React.ReactNode }) {
     return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
 }
 
+function RoutedErrorBoundary({ children }: { children: React.ReactNode }) {
+    const location = useLocation();
+    return <RouteErrorBoundary key={location.key}>{children}</RouteErrorBoundary>;
+}
+
 function NotFoundPage() {
     return (
         <Stack spacing={2} alignItems="center" sx={{ p: 4 }}>
@@ -62,8 +72,9 @@ function NotFoundPage() {
     );
 }
 
-function FeaturePage({ feature, children }: { feature: string; children: React.ReactNode }) {
+function CapabilityPage({ feature, capability, children }: { feature?: string; capability: CapabilityId; children: React.ReactNode }) {
     const { data, isPending, isError, refetch } = usePlatformMetadata();
+    const configuration = useApplicationConfiguration();
     if (isPending) return <PageLoader />;
     if (isError) {
         return (
@@ -73,9 +84,40 @@ function FeaturePage({ feature, children }: { feature: string; children: React.R
             </Stack>
         );
     }
-    return data?.available_features?.includes(feature)
+    const availability = capabilityAvailability(capability, configuration, serverStateFromPlatformMetadata(data));
+    const serverFeatureEnabled = !feature || data?.available_features?.includes(feature) === true;
+    return serverFeatureEnabled && availability.available
         ? <SuspensePage>{children}</SuspensePage>
         : <NotFoundPage />;
+}
+
+function FeaturePage({ feature, capability, children }: { feature: string; capability: CapabilityId; children: React.ReactNode }) {
+    return <CapabilityPage feature={feature} capability={capability}>{children}</CapabilityPage>;
+}
+
+function AdminPage({
+    isReady,
+    isAuthenticated,
+    isAdmin,
+    children,
+}: {
+    isReady: boolean;
+    isAuthenticated: boolean;
+    isAdmin: boolean;
+    children: React.ReactNode;
+}) {
+    return (
+        <CapabilityPage capability="admin">
+            <ProtectedRoute
+                isReady={isReady}
+                isAuthenticated={isAuthenticated}
+                isAdmin={isAdmin}
+                requireAdmin
+            >
+                {children}
+            </ProtectedRoute>
+        </CapabilityPage>
+    );
 }
 
 export function AppRouter() {
@@ -83,10 +125,11 @@ export function AppRouter() {
 
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<AuthHomePage />} />
-                <Route path="/reset-password" element={<SuspensePage><ResetPasswordPage /></SuspensePage>} />
-                <Route path="/verify-email" element={<SuspensePage><VerifyEmailPage /></SuspensePage>} />
+            <RoutedErrorBoundary>
+                <Routes>
+                <Route path={ROUTES.home} element={<AuthHomePage />} />
+                <Route path={ROUTES.resetPassword} element={<SuspensePage><ResetPasswordPage /></SuspensePage>} />
+                <Route path={ROUTES.verifyEmail} element={<SuspensePage><VerifyEmailPage /></SuspensePage>} />
 
                 <Route
                     element={
@@ -97,62 +140,60 @@ export function AppRouter() {
                         </ProtectedRoute>
                     }
                 >
-                    <Route path="/dashboard" element={<SuspensePage><DashboardPage /></SuspensePage>} />
-                    <Route path="/calendar" element={<FeaturePage feature="calendar"><CalendarPage /></FeaturePage>} />
-                    <Route path="/projects" element={<SuspensePage><ProjectsPage /></SuspensePage>} />
-                    <Route path="/projects/:projectId" element={<SuspensePage><ProjectDetailPage /></SuspensePage>} />
-                    <Route path="/platform" element={<SuspensePage><PlatformPage /></SuspensePage>} />
-                    <Route path="/ai" element={<FeaturePage feature="ai"><AiStudioPage /></FeaturePage>} />
-                    <Route path="/rag" element={<FeaturePage feature="rag"><RagView /></FeaturePage>} />
-                    <Route path="/memory" element={<FeaturePage feature="memory"><MemoryView /></FeaturePage>} />
-                    <Route path="/agent" element={<FeaturePage feature="ai"><AgentView /></FeaturePage>} />
-                    <Route path="/observability" element={<FeaturePage feature="observability"><ObservabilityPage /></FeaturePage>} />
-                    <Route path="/profile" element={<SuspensePage><ProfilePage /></SuspensePage>} />
-                    <Route path="/notifications" element={<SuspensePage><NotificationsPage /></SuspensePage>} />
+                    <Route path={ROUTES.dashboard} element={<CapabilityPage capability="dashboard"><DashboardPage /></CapabilityPage>} />
+                    <Route path={ROUTES.calendar} element={<FeaturePage feature="calendar" capability="calendar"><CalendarPage /></FeaturePage>} />
+                    <Route path={ROUTES.projects} element={<CapabilityPage capability="projects"><ProjectsPage /></CapabilityPage>} />
+                    <Route path={ROUTES.project} element={<CapabilityPage capability="projects"><ProjectDetailPage /></CapabilityPage>} />
+                    <Route path={ROUTES.platform} element={<CapabilityPage capability="platform"><PlatformPage /></CapabilityPage>} />
+                    <Route path={ROUTES.ai} element={<FeaturePage feature="ai" capability="ai"><AiStudioPage /></FeaturePage>} />
+                    <Route path={ROUTES.rag} element={<FeaturePage feature="rag" capability="rag"><RagView /></FeaturePage>} />
+                    <Route path={ROUTES.memory} element={<FeaturePage feature="memory" capability="memory"><MemoryView /></FeaturePage>} />
+                    <Route path={ROUTES.agent} element={<FeaturePage feature="ai" capability="agent"><AgentView /></FeaturePage>} />
+                    <Route path={ROUTES.observability} element={<FeaturePage feature="observability" capability="observability"><ObservabilityPage /></FeaturePage>} />
+                    <Route path={ROUTES.profile} element={<CapabilityPage capability="profile"><ProfilePage /></CapabilityPage>} />
+                    <Route path={ROUTES.notifications} element={<CapabilityPage capability="notifications"><NotificationsPage /></CapabilityPage>} />
                     <Route
-                        path="/admin/users"
+                        path={ROUTES.adminUsers}
                         element={
-                            <ProtectedRoute
+                            <AdminPage
                                 isReady={isReady}
                                 isAuthenticated={isAuthenticated}
                                 isAdmin={isAdmin}
-                                requireAdmin
                             >
                                 <SuspensePage><AdminUsersPage /></SuspensePage>
-                            </ProtectedRoute>
+                            </AdminPage>
                         }
                     />
                     <Route
-                        path="/admin/platform"
+                        path={ROUTES.adminPlatform}
                         element={
-                            <ProtectedRoute
+                            <AdminPage
                                 isReady={isReady}
                                 isAuthenticated={isAuthenticated}
                                 isAdmin={isAdmin}
-                                requireAdmin
                             >
                                 <SuspensePage><AdminPlatformPage /></SuspensePage>
-                            </ProtectedRoute>
+                            </AdminPage>
                         }
                     />
                     <Route
-                        path="/admin/settings"
+                        path={ROUTES.adminSettings}
                         element={
-                            <ProtectedRoute
+                            <AdminPage
                                 isReady={isReady}
                                 isAuthenticated={isAuthenticated}
                                 isAdmin={isAdmin}
-                                requireAdmin
                             >
                                 <SuspensePage><AdminSettingsPage /></SuspensePage>
-                            </ProtectedRoute>
+                            </AdminPage>
                         }
                     />
-                    <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+                    <Route path={ROUTES.appRedirect} element={<Navigate to={ROUTES.dashboard} replace />} />
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+                </Routes>
+            </RoutedErrorBoundary>
         </BrowserRouter>
     );
 }

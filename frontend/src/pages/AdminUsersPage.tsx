@@ -18,10 +18,8 @@ import {
     TextField,
     Tooltip,
     Typography,
-    useMediaQuery,
-} from "@mui/material";
-import { Search as SearchIcon, PeopleAlt as PeopleAltIcon } from "@mui/icons-material";
-import { useTheme } from "@mui/material/styles";
+} from "@/components/ui/muiCompat";
+import { Search as SearchIcon, PeopleAlt as PeopleAltIcon } from "@/components/ui/iconsCompat";
 import { listAdminUsers, updateUserStatus, type AdminUserListResponse } from "../api/admin";
 import { SettingsTabs } from "../components/layout/SettingsTabs";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -33,12 +31,12 @@ import { queryKeys } from "../config/queryKeys";
 import { useDebounce } from "../hooks/useDebounce";
 import { useMutationErrorToast } from "../hooks/useMutationErrorToast";
 import { formatDate } from "../utils/formatters";
+import { useIsMobile } from "../hooks/use-mobile";
 
 export default function AdminUsersPage() {
     const queryClient = useQueryClient();
     const toastMutationError = useMutationErrorToast();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const isMobile = useIsMobile();
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(0);
     const pageSize = 20;
@@ -47,11 +45,12 @@ export default function AdminUsersPage() {
 
     const { data, isLoading, isError, error, refetch } = useQuery({
         queryKey: usersQueryKey,
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             listAdminUsers({
                 page: page + 1,
                 page_size: pageSize,
                 search: debouncedSearch || undefined,
+                signal,
             }),
     });
     const statusMutation = useMutation({
@@ -94,7 +93,7 @@ export default function AdminUsersPage() {
                     size="small"
                     placeholder="Search users..."
                     value={search}
-                    onChange={(event) => {
+                    onChange={(event: any) => {
                         setSearch(event.target.value);
                         setPage(0);
                     }}
@@ -150,7 +149,7 @@ export default function AdminUsersPage() {
                     onRetry={() => void refetch()}
                     loadingFallback={
                         <Stack spacing={1.5}>
-                            {Array.from({ length: 5 }).map((_, index) => (
+                            {Array.from({ length: 5 }).map((_: any, index: any) => (
                                 <Skeleton key={index} variant="rounded" height={88} sx={{ borderRadius: 4 }} />
                             ))}
                         </Stack>
@@ -173,7 +172,7 @@ export default function AdminUsersPage() {
                                 return (
                                     <Box
                                         key={user.id}
-                                        sx={(currentTheme) => ({
+                                        sx={(currentTheme: any) => ({
                                             p: 2.25,
                                             borderRadius: 4,
                                             border: `1px solid ${currentTheme.palette.divider}`,
@@ -194,7 +193,7 @@ export default function AdminUsersPage() {
                                                     inputProps={{
                                                         "aria-label": `${user.is_active ? "Deactivate" : "Activate"} ${user.full_name ?? user.email}`,
                                                     }}
-                                                    onChange={(event) =>
+                                                    onChange={(event: any) =>
                                                         statusMutation.mutate({
                                                             id: user.id,
                                                             is_active: event.target.checked,
@@ -271,7 +270,7 @@ export default function AdminUsersPage() {
                                                                     inputProps={{
                                                                         "aria-label": `${user.is_active ? "Deactivate" : "Activate"} ${user.full_name ?? user.email}`,
                                                                     }}
-                                                                    onChange={(event) =>
+                                                                    onChange={(event: any) =>
                                                                         statusMutation.mutate({
                                                                             id: user.id,
                                                                             is_active: event.target.checked,
@@ -297,7 +296,7 @@ export default function AdminUsersPage() {
                     page={page}
                     rowsPerPage={pageSize}
                     rowsPerPageOptions={[pageSize]}
-                    onPageChange={(_, nextPage) => setPage(nextPage)}
+                    onPageChange={(_: any, nextPage: any) => setPage(nextPage)}
                 />
             </SectionCard>
         </PageShell>

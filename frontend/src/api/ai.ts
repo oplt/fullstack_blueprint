@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchItems, type Paginated } from "./client";
+import { apiFetch, apiFetchItems, type ApiRequestOptions, type Paginated } from "./client";
 
 export type AiProvider = {
     key: string;
@@ -168,12 +168,12 @@ export type AiChunkMatch = {
     content: string;
 };
 
-export async function getAiOverview(): Promise<AiOverview> {
-    return apiFetch("/ai/overview");
+export async function getAiOverview(options?: ApiRequestOptions): Promise<AiOverview> {
+    return apiFetch("/ai/overview", options);
 }
 
-export async function listPromptVersions(templateId: string): Promise<AiPromptVersion[]> {
-    return apiFetchItems<AiPromptVersion>(`/ai/prompts/${templateId}/versions`);
+export async function listPromptVersions(templateId: string, options?: ApiRequestOptions): Promise<AiPromptVersion[]> {
+    return apiFetchItems<AiPromptVersion>(`/ai/prompts/${templateId}/versions`, options);
 }
 
 export async function createPromptTemplate(payload: {
@@ -304,8 +304,8 @@ export async function createAiRun(payload: {
     });
 }
 
-export async function listAiReviews(): Promise<AiReviewItem[]> {
-    return apiFetchItems<AiReviewItem>("/ai/reviews");
+export async function listAiReviews(options?: ApiRequestOptions): Promise<AiReviewItem[]> {
+    return apiFetchItems<AiReviewItem>("/ai/reviews", options);
 }
 
 export async function createAiReview(
@@ -332,8 +332,8 @@ export async function decideAiReview(
     });
 }
 
-export async function listAiFeedback(runId: string): Promise<AiFeedback[]> {
-    return apiFetchItems<AiFeedback>(`/ai/runs/${runId}/feedback`);
+export async function listAiFeedback(runId: string, options?: ApiRequestOptions): Promise<AiFeedback[]> {
+    return apiFetchItems<AiFeedback>(`/ai/runs/${runId}/feedback`, options);
 }
 
 export async function createAiFeedback(
@@ -346,8 +346,8 @@ export async function createAiFeedback(
     });
 }
 
-export async function listAiDatasets(): Promise<AiEvaluationDataset[]> {
-    return apiFetchItems<AiEvaluationDataset>("/ai/evaluation-datasets");
+export async function listAiDatasets(options?: ApiRequestOptions): Promise<AiEvaluationDataset[]> {
+    return apiFetchItems<AiEvaluationDataset>("/ai/evaluation-datasets", options);
 }
 
 export async function createAiDataset(payload: {
@@ -360,8 +360,8 @@ export async function createAiDataset(payload: {
     });
 }
 
-export async function listAiDatasetCases(datasetId: string): Promise<AiEvaluationCase[]> {
-    return apiFetchItems<AiEvaluationCase>(`/ai/evaluation-datasets/${datasetId}/cases`);
+export async function listAiDatasetCases(datasetId: string, options?: ApiRequestOptions): Promise<AiEvaluationCase[]> {
+    return apiFetchItems<AiEvaluationCase>(`/ai/evaluation-datasets/${datasetId}/cases`, options);
 }
 
 export async function createAiDatasetCase(
@@ -382,8 +382,8 @@ export async function createAiDatasetCase(
     });
 }
 
-export async function listAiEvaluationRuns(): Promise<AiEvaluationRun[]> {
-    return apiFetchItems<AiEvaluationRun>("/ai/evaluation-runs");
+export async function listAiEvaluationRuns(options?: ApiRequestOptions): Promise<AiEvaluationRun[]> {
+    return apiFetchItems<AiEvaluationRun>("/ai/evaluation-runs", options);
 }
 
 export async function runAiEvaluation(

@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchItems } from "./client";
+import { apiFetch, apiFetchItems, type ApiRequestOptions } from "./client";
 
 export type ModuleCatalogItem = {
     key: string;
@@ -25,6 +25,11 @@ export type PlatformMetadata = {
     module_catalog: ModuleCatalogItem[];
     available_module_packs: ModulePack[];
     mfa_enabled: boolean;
+    /** Optional server-authoritative context for generated deployments. */
+    feature_flags?: Record<string, boolean>;
+    permissions?: string[];
+    entitlements?: string[];
+    backend_endpoints?: string[];
 };
 
 export type PlatformConfig = PlatformMetadata & {
@@ -118,12 +123,12 @@ export type EmailTemplate = {
     updated_at: string;
 };
 
-export async function getPlatformMetadata(): Promise<PlatformMetadata> {
-    return apiFetch("/platform/metadata");
+export async function getPlatformMetadata(options?: ApiRequestOptions): Promise<PlatformMetadata> {
+    return apiFetch("/platform/metadata", options);
 }
 
-export async function getPlatformConfig(): Promise<PlatformConfig> {
-    return apiFetch("/platform/admin/config");
+export async function getPlatformConfig(options?: ApiRequestOptions): Promise<PlatformConfig> {
+    return apiFetch("/platform/admin/config", options);
 }
 
 export async function updatePlatformConfig(payload: {
@@ -140,12 +145,12 @@ export async function updatePlatformConfig(payload: {
     });
 }
 
-export async function listSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-    return apiFetch("/platform/billing/plans");
+export async function listSubscriptionPlans(options?: ApiRequestOptions): Promise<SubscriptionPlan[]> {
+    return apiFetch("/platform/billing/plans", options);
 }
 
-export async function getMySubscription(): Promise<UserSubscription | null> {
-    return apiFetch("/platform/billing/subscription");
+export async function getMySubscription(options?: ApiRequestOptions): Promise<UserSubscription | null> {
+    return apiFetch("/platform/billing/subscription", options);
 }
 
 export async function selectMyPlan(plan_code: string): Promise<UserSubscription> {
@@ -155,8 +160,8 @@ export async function selectMyPlan(plan_code: string): Promise<UserSubscription>
     });
 }
 
-export async function listAdminPlans(): Promise<SubscriptionPlan[]> {
-    return apiFetch("/platform/admin/plans");
+export async function listAdminPlans(options?: ApiRequestOptions): Promise<SubscriptionPlan[]> {
+    return apiFetch("/platform/admin/plans", options);
 }
 
 export async function createAdminPlan(payload: {
@@ -192,8 +197,8 @@ export async function updateAdminPlan(
     });
 }
 
-export async function listApiKeys(): Promise<ApiKey[]> {
-    return apiFetchItems<ApiKey>("/platform/api-keys");
+export async function listApiKeys(options?: ApiRequestOptions): Promise<ApiKey[]> {
+    return apiFetchItems<ApiKey>("/platform/api-keys", options);
 }
 
 export async function createApiKey(name: string): Promise<CreatedApiKey> {
@@ -209,8 +214,8 @@ export async function revokeApiKey(apiKeyId: string): Promise<ApiKey> {
     });
 }
 
-export async function listWebhooks(): Promise<WebhookEndpoint[]> {
-    return apiFetchItems<WebhookEndpoint>("/platform/webhooks");
+export async function listWebhooks(options?: ApiRequestOptions): Promise<WebhookEndpoint[]> {
+    return apiFetchItems<WebhookEndpoint>("/platform/webhooks", options);
 }
 
 export async function createWebhook(payload: {
@@ -251,12 +256,12 @@ export async function testWebhook(webhookId: string): Promise<WebhookTestResult>
     });
 }
 
-export async function listMyFeatureFlags(): Promise<EffectiveFeatureFlag[]> {
-    return apiFetch("/platform/feature-flags");
+export async function listMyFeatureFlags(options?: ApiRequestOptions): Promise<EffectiveFeatureFlag[]> {
+    return apiFetch("/platform/feature-flags", options);
 }
 
-export async function listAdminFeatureFlags(): Promise<FeatureFlag[]> {
-    return apiFetch("/platform/admin/feature-flags");
+export async function listAdminFeatureFlags(options?: ApiRequestOptions): Promise<FeatureFlag[]> {
+    return apiFetch("/platform/admin/feature-flags", options);
 }
 
 export async function createAdminFeatureFlag(payload: {
@@ -289,8 +294,8 @@ export async function updateAdminFeatureFlag(
     });
 }
 
-export async function listAdminEmailTemplates(): Promise<EmailTemplate[]> {
-    return apiFetch("/platform/admin/email-templates");
+export async function listAdminEmailTemplates(options?: ApiRequestOptions): Promise<EmailTemplate[]> {
+    return apiFetch("/platform/admin/email-templates", options);
 }
 
 export async function createAdminEmailTemplate(payload: {

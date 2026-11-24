@@ -1,5 +1,5 @@
-import { Alert, Box, Button, Stack, TextField } from "@mui/material";
-import { Storage as StorageIcon } from "@mui/icons-material";
+import { Alert, Box, Button, Stack, TextField } from "@/components/ui/muiCompat";
+import { Storage as StorageIcon } from "@/components/ui/iconsCompat";
 import type { DatabaseSetting } from "../../../api/settings";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
@@ -15,9 +15,9 @@ export function DatabaseSettingsSections({ settings, model }: { settings: Databa
                 <Stack spacing={2}>
                     {create.isSuccess && <Alert severity="success">Database setting created.</Alert>}
                     {create.isError && <Alert severity="error">{getQueryErrorMessage(create.error, "Failed to create database setting.")}</Alert>}
-                    <TextField label="Key" value={model.newSetting.key} onChange={(event) => model.setNewSetting((current) => ({ ...current, key: event.target.value }))} fullWidth />
-                    <TextField label="Value" value={model.newSetting.value} onChange={(event) => model.setNewSetting((current) => ({ ...current, value: event.target.value }))} fullWidth multiline minRows={3} />
-                    <TextField label="Description" value={model.newSetting.description} onChange={(event) => model.setNewSetting((current) => ({ ...current, description: event.target.value }))} fullWidth multiline minRows={3} />
+                    <TextField label="Key" value={model.newSetting.key} onChange={(event: any) => model.setNewSetting((current) => ({ ...current, key: event.target.value }))} fullWidth />
+                    <TextField label="Value" value={model.newSetting.value} onChange={(event: any) => model.setNewSetting((current) => ({ ...current, value: event.target.value }))} fullWidth multiline minRows={3} />
+                    <TextField label="Description" value={model.newSetting.description} onChange={(event: any) => model.setNewSetting((current) => ({ ...current, description: event.target.value }))} fullWidth multiline minRows={3} />
                     <Button variant="contained" disabled={create.isPending || !model.newSetting.key.trim()}
                         onClick={() => create.mutate({ key: model.newSetting.key.trim(), value: model.newSetting.value, description: model.newSetting.description || undefined })}>
                         {create.isPending ? "Adding..." : "Add setting"}

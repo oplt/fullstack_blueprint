@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, type ApiRequestOptions } from "./client";
 
 export type Profile = {
     user_id: string;
@@ -8,8 +8,8 @@ export type Profile = {
     website: string | null;
 };
 
-export async function getProfile(): Promise<Profile> {
-    return apiFetch("/profile");
+export async function getProfile(options?: ApiRequestOptions): Promise<Profile> {
+    return apiFetch("/profile", options);
 }
 
 export async function updateProfile(payload: {

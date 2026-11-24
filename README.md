@@ -2,7 +2,7 @@
 
 A modular FastAPI and React application with accounts, projects, task management, and administration. Optional features include AI Studio, agents, document retrieval and memory.
 
-The backend uses Pydantic Settings, async SQLAlchemy, PostgreSQL with pgvector, Alembic, Redis, and Celery. The frontend uses React, TypeScript, Vite, Material UI, React Router, TanStack Query, React Hook Form, and Zod. Vitest, Playwright, Ruff, and pytest cover development and validation.
+The backend uses Pydantic Settings, async SQLAlchemy, PostgreSQL with pgvector, Alembic, Redis, and Celery. The frontend uses React 19, TypeScript 5.9, Vite 8, Tailwind CSS v4 with Base UI/shadcn-compatible primitives, a canonical CSS-variable design system, React Router, TanStack Query, React Hook Form, and Zod. Vitest 5, Playwright, Ruff, and pytest cover development and validation.
 
 ## Get started
 
@@ -63,7 +63,12 @@ For a deployment with a read-only home directory, export a writable `MEM0_DIR` i
 make check
 make test
 cd frontend
+npm run audit
 npm run build
+npm run storybook:build
+npm run perf:check
+npm run pwa:check
+npm run api:check
 npx playwright install chromium
 npm run test:e2e -- --project=chromium
 ```
@@ -74,7 +79,7 @@ Run browser tests against disposable services. Enable `E2E_RELAX_RATE_LIMITS=tru
 
 - `backend/api` composes routes, middleware, and dependencies. `backend/core`, `backend/db`, and `backend/lib` provide shared infrastructure. Business and platform modules live in `backend/modules`, worker entry points in `backend/workers`, and database migrations in `backend/alembic`.
 - Use `backend/modules/projects` and the project task CRUD flow as the reference. Define SQLAlchemy models, schemas, repository, service, authorization, and router. Register models in `backend/alembic/env.py`, register the router under `backend/api/router.py`, and create an Alembic revision.
-- Add frontend API methods under `frontend/src/api`, query keys under `frontend/src/config`, and frontend feature components and hooks under `frontend/src/features`. Use a lazy page route, existing MUI tokens, and shared loading/error/empty states.
+- Add frontend API methods under `frontend/src/api`, query keys under `frontend/src/config`, and frontend feature components and hooks under `frontend/src/features`. Use a lazy page route, semantic design tokens, shared primitives, and shared loading/error/empty states. The reusable workflows in [frontend Agent Skills](docs/frontend/AGENT_SKILLS.md) are the preferred starting point for feature work.
 - Projects are also a tenancy boundary for optional integrations. To remove only the reference task feature, remove task routes and task UI, remove the calendar task integration, and add a follow-up migration if you intend to remove task storage. Preserve projects and memberships if AI, RAG, or memory still uses project scope.
 - Rename the app with `APP_NAME`, the platform branding setting for existing instances, and the browser and PWA titles in `frontend/index.html` and `frontend/vite.config.ts`. Update Compose defaults, package metadata, cookie names, and the telemetry service name when appropriate.
 - To make a GitHub template, publish this blueprint in your own repository, enable **Template repository** in its GitHub settings, and use **Use this template** to create an independent repository.

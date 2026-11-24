@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Button, ThemeProvider, createTheme } from "@mui/material";
+import { Button, ThemeProvider, createTheme } from "@/components/ui/muiCompat";
 
 import { DisabledWithReason } from "./DisabledWithReason";
 

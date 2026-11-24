@@ -8,7 +8,7 @@ import {
     Skeleton,
     Stack,
     Typography,
-} from "@mui/material";
+} from "@/components/ui/muiCompat";
 import {
     ArrowBack as BackIcon,
     AssignmentTurnedIn as DoneIcon,
@@ -16,8 +16,9 @@ import {
     Close as CloseIcon,
     PlaylistAddCheck as TaskIcon,
     ViewKanban as BoardIcon,
-} from "@mui/icons-material";
+} from "@/components/ui/iconsCompat";
 import type { ProjectTask } from "../../../api/projects";
+import { ROUTES } from "../../../app/routes";
 import { PageShell } from "../../../components/ui/PageShell";
 import { MetricGrid } from "../../../components/ui/MetricGrid";
 import { StatCard } from "../../../components/ui/StatCard";
@@ -89,7 +90,7 @@ export default function ProjectDetailPage() {
                 <Button
                     variant="outlined"
                     startIcon={<BackIcon />}
-                    onClick={() => m.navigate("/projects")}
+                    onClick={() => m.navigate(ROUTES.projects)}
                 >
                     Back to projects
                 </Button>

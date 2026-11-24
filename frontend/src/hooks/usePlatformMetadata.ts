@@ -7,7 +7,7 @@ import { QUERY_STALE_TIMES } from "../config/queryTiming";
 export function usePlatformMetadata() {
     return useQuery({
         queryKey: queryKeys.platform.metadata,
-        queryFn: getPlatformMetadata,
+        queryFn: ({ signal }) => getPlatformMetadata({ signal }),
         staleTime: QUERY_STALE_TIMES.platformMetadata,
     });
 }

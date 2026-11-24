@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, type ApiRequestOptions } from "./client";
 
 export type ConfigEntry = {
     key: string;
@@ -30,8 +30,8 @@ export type DatabaseSetting = {
     updated_at: string;
 };
 
-export async function getConfigSettings(): Promise<ConfigSettingsResponse> {
-    return apiFetch("/settings/config");
+export async function getConfigSettings(options?: ApiRequestOptions): Promise<ConfigSettingsResponse> {
+    return apiFetch("/settings/config", options);
 }
 
 export async function updateConfigSettings(
@@ -43,8 +43,8 @@ export async function updateConfigSettings(
     });
 }
 
-export async function listDatabaseSettings(): Promise<DatabaseSetting[]> {
-    return apiFetch("/settings/database");
+export async function listDatabaseSettings(options?: ApiRequestOptions): Promise<DatabaseSetting[]> {
+    return apiFetch("/settings/database", options);
 }
 
 export async function createDatabaseSetting(payload: {

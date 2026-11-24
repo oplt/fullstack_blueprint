@@ -1,52 +1,85 @@
-import { alpha, createTheme, type PaletteMode } from "@mui/material/styles";
-import { colors, fonts, motion, radii } from "./designTokens";
+import { alpha, createTheme, type PaletteMode } from "@/components/ui/muiCompat";
+import {
+    createDesignTokens,
+    cssVariablesFor,
+    motion,
+    type Density,
+    type RadiusScale,
+    type ThemePreset,
+} from "./designTokens";
 
 const transition = `border-color ${motion.durationMs}ms, background-color ${motion.durationMs}ms, color ${motion.durationMs}ms, box-shadow 250ms`;
 
-function buildTheme(mode: PaletteMode) {
+export function createAppTheme(
+    mode: PaletteMode,
+    options: {
+        preset?: ThemePreset;
+        primaryColor?: string;
+        fontFamily?: string;
+        radius?: RadiusScale;
+        density?: Density;
+    } = {},
+) {
+    const tokens = createDesignTokens({ ...options, mode });
+    const semantic = tokens.colors;
+    const colors = {
+        electricBlue: semantic.primary,
+        white: "#FFFFFF",
+        lightAsh: semantic.muted,
+        carbonDark: semantic.foreground,
+        graphite: semantic.secondaryForeground,
+        pewter: semantic.mutedForeground,
+        silverFog: semantic.mutedForeground,
+        cloudGray: semantic.border,
+        paleSilver: semantic.border,
+        frostedGlass: mode === "dark" ? "rgba(15, 23, 42, 0.82)" : "rgba(255, 255, 255, 0.78)",
+        overlay: mode === "dark" ? "rgba(2, 6, 23, 0.65)" : "rgba(15, 23, 42, 0.65)",
+    };
     const isDark = mode === "dark";
+    const activeRadius = Number.parseInt(tokens.radius.active, 10);
+    const radii = { button: activeRadius, card: activeRadius };
 
     const theme = createTheme({
         palette: {
             mode,
             primary: {
-                main: colors.electricBlue,
-                light: "#5A7FE8",
-                dark: "#3259C4",
-                contrastText: colors.white,
+                main: semantic.primary,
+                light: semantic.primaryHover,
+                dark: semantic.primary,
+                contrastText: semantic.primaryForeground,
             },
             secondary: {
-                main: isDark ? colors.graphite : colors.graphite,
+                main: semantic.secondary,
                 light: colors.pewter,
                 dark: colors.carbonDark,
-                contrastText: colors.white,
+                contrastText: semantic.secondaryForeground,
             },
             success: {
-                main: isDark ? "#86d8a7" : "#2f8f57",
+                main: semantic.success,
             },
             warning: {
-                main: isDark ? "#e8b87a" : "#c4842d",
+                main: semantic.warning,
             },
             error: {
-                main: isDark ? "#f87171" : "#dc2626",
+                main: semantic.destructive,
             },
             info: {
-                main: colors.electricBlue,
+                main: semantic.information,
             },
             background: {
-                default: isDark ? colors.carbonDark : colors.white,
-                paper: isDark ? "#1E2128" : colors.white,
+                default: semantic.background,
+                paper: semantic.card,
             },
             text: {
-                primary: isDark ? colors.white : colors.carbonDark,
-                secondary: isDark ? alpha(colors.white, 0.72) : colors.graphite,
-                disabled: isDark ? alpha(colors.white, 0.38) : colors.silverFog,
+                primary: semantic.foreground,
+                secondary: semantic.mutedForeground,
+                disabled: isDark ? alpha(colors.white, 0.48) : colors.silverFog,
             },
-            divider: isDark ? alpha(colors.white, 0.12) : colors.cloudGray,
+            divider: semantic.border,
             action: {
-                active: isDark ? alpha(colors.white, 0.56) : colors.pewter,
+                active: isDark ? alpha(colors.white, 0.68) : colors.pewter,
                 hover: isDark ? alpha(colors.white, 0.08) : alpha(colors.carbonDark, 0.04),
-                selected: isDark ? alpha(colors.electricBlue, 0.24) : alpha(colors.electricBlue, 0.12),
+                selected: isDark ? alpha(semantic.primary, 0.24) : alpha(semantic.primary, 0.12),
                 disabled: isDark ? alpha(colors.white, 0.3) : alpha(colors.carbonDark, 0.26),
                 disabledBackground: isDark
                     ? alpha(colors.white, 0.12)
@@ -57,34 +90,34 @@ function buildTheme(mode: PaletteMode) {
             borderRadius: radii.button,
         },
         typography: {
-            fontFamily: fonts.text,
+            fontFamily: tokens.typography.text,
             fontWeightLight: 400,
             fontWeightRegular: 400,
             fontWeightMedium: 500,
             fontWeightBold: 500,
             h1: {
-                fontFamily: fonts.display,
+                fontFamily: tokens.typography.display,
                 fontSize: "2.5rem",
                 fontWeight: 500,
                 letterSpacing: "normal",
                 lineHeight: 1.2,
             },
             h2: {
-                fontFamily: fonts.display,
+                fontFamily: tokens.typography.display,
                 fontSize: "2rem",
                 fontWeight: 500,
                 letterSpacing: "normal",
                 lineHeight: 1.2,
             },
             h3: {
-                fontFamily: fonts.display,
+                fontFamily: tokens.typography.display,
                 fontSize: "1.75rem",
                 fontWeight: 500,
                 letterSpacing: "normal",
                 lineHeight: 1.2,
             },
             h4: {
-                fontFamily: fonts.display,
+                fontFamily: tokens.typography.display,
                 fontSize: "1.375rem",
                 fontWeight: 500,
                 letterSpacing: "normal",
@@ -173,13 +206,7 @@ function buildTheme(mode: PaletteMode) {
                 styleOverrides: {
                     ":root": {
                         colorScheme: mode,
-                        "--tesla-electric-blue": colors.electricBlue,
-                        "--tesla-carbon-dark": colors.carbonDark,
-                        "--tesla-graphite": colors.graphite,
-                        "--tesla-pewter": colors.pewter,
-                        "--tesla-light-ash": colors.lightAsh,
-                        "--tesla-cloud-gray": colors.cloudGray,
-                        "--tesla-focus-ring-outer": focusRingOuter,
+                        ...cssVariablesFor(tokens),
                     },
                     "*, *::before, *::after": {
                         boxSizing: "border-box",
@@ -191,8 +218,9 @@ function buildTheme(mode: PaletteMode) {
                     body: {
                         minHeight: "100vh",
                         margin: 0,
-                        backgroundColor: theme.palette.background.default,
-                        color: theme.palette.text.primary,
+                        backgroundColor: semantic.background,
+                        color: semantic.foreground,
+                        fontFamily: tokens.typography.text,
                         textRendering: "optimizeLegibility",
                         WebkitFontSmoothing: "antialiased",
                         MozOsxFontSmoothing: "grayscale",
@@ -201,7 +229,7 @@ function buildTheme(mode: PaletteMode) {
                         minHeight: "100vh",
                     },
                     "::selection": {
-                        backgroundColor: alpha(colors.electricBlue, 0.22),
+                        backgroundColor: alpha(semantic.primary, 0.22),
                     },
                     a: {
                         color: isDark ? alpha(colors.white, 0.78) : colors.pewter,
@@ -211,7 +239,7 @@ function buildTheme(mode: PaletteMode) {
                             textDecoration: "underline",
                         },
                         "&:focus-visible": {
-                            outline: `2px solid ${colors.electricBlue}`,
+                            outline: `2px solid ${semantic.ring}`,
                             outlineOffset: 2,
                         },
                     },
@@ -582,7 +610,7 @@ function buildTheme(mode: PaletteMode) {
     });
 }
 
-export const lightTheme = buildTheme("light");
-export const darkTheme = buildTheme("dark");
+export const lightTheme = createAppTheme("light");
+export const darkTheme = createAppTheme("dark");
 
 export type ColorMode = "light" | "dark" | "system";

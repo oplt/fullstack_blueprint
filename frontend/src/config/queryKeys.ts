@@ -95,3 +95,19 @@ export async function invalidateUserIdentity(queryClient: QueryClient) {
 export async function invalidateAiOverview(queryClient: QueryClient) {
     await queryClient.invalidateQueries({ queryKey: queryKeys.ai.overview });
 }
+
+/**
+ * User-scoped records must never survive an identity transition.  Query keys
+ * intentionally stay domain-oriented, so clearing the cache at the session
+ * boundary is the reliable isolation mechanism.
+ */
+export async function clearUserSessionCache(queryClient: QueryClient): Promise<void> {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+}
+
+/** Synchronous identity-transition variant used by sign-in handlers. */
+export function resetUserSessionCache(queryClient: QueryClient): void {
+    void queryClient.cancelQueries();
+    queryClient.clear();
+}

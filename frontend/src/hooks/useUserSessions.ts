@@ -9,7 +9,7 @@ type UseUserSessionsOptions = Pick<UseQueryOptions<Session[]>, "enabled">;
 export function useUserSessions(options?: UseUserSessionsOptions) {
     return useQuery({
         queryKey: queryKeys.users.sessions,
-        queryFn: getSessions,
+        queryFn: ({ signal }) => getSessions({ signal }),
         staleTime: QUERY_STALE_TIMES.userSessions,
         ...options,
     });

@@ -9,7 +9,7 @@ type UseNotificationPreferencesOptions = Pick<UseQueryOptions<NotificationPrefer
 export function useNotificationPreferences(options?: UseNotificationPreferencesOptions) {
     return useQuery({
         queryKey: queryKeys.notifications.preferences,
-        queryFn: getPreferences,
+        queryFn: ({ signal }) => getPreferences({ signal }),
         staleTime: QUERY_STALE_TIMES.notificationPreferences,
         ...options,
     });

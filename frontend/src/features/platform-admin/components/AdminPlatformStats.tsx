@@ -1,5 +1,5 @@
-import { Box } from "@mui/material";
-import { Extension as ExtensionIcon, Flag as FlagIcon, MailOutline as MailIcon, Sell as SellIcon } from "@mui/icons-material";
+import { Box } from "@/components/ui/muiCompat";
+import { Extension as ExtensionIcon, Flag as FlagIcon, MailOutline as MailIcon, Sell as SellIcon } from "@/components/ui/iconsCompat";
 import type { EmailTemplate, FeatureFlag, SubscriptionPlan } from "../../../api/platform";
 import { StatCard } from "../../../components/ui/StatCard";
 import type { ConfigDraft } from "../platformAdminModel";

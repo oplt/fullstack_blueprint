@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, TextField, Typography } from "@/components/ui/muiCompat";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { resetPassword } from "../api/auth";
 import { AuthMarketingPanel } from "../components/auth/AuthMarketingPanel";
 import { AuthShell } from "../components/auth/AuthShell";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
 import { getQueryErrorMessage } from "../utils/queryErrors";
+import { parseRequiredParam } from "../app/searchParams";
 
 const schema = z
     .object({
@@ -24,7 +25,7 @@ type Values = z.infer<typeof schema>;
 
 export default function ResetPasswordPage() {
     const [searchParams] = useSearchParams();
-    const token = searchParams.get("token") ?? "";
+    const token = parseRequiredParam(searchParams.get("token")) ?? "";
     const [done, setDone] = useState(false);
     const [serverError, setServerError] = useState("");
     const { data: platformMetadata } = usePlatformMetadata();

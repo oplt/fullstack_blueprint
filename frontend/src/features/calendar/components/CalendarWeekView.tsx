@@ -1,16 +1,16 @@
 import dayjs from "dayjs";
-import { Box, Stack, Typography } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { Box, Stack, Typography } from "@/components/ui/muiCompat";
+import { useTheme } from "@/components/ui/muiCompat";
 import { formatTimeValue, getMinutesFromTimeString, getWeekItemColor } from "../calendarDisplay";
 import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 
 export function CalendarWeekView({ m }: { m: DashboardCalendarModel }) {
 const theme = useTheme();
 const { anchorDate, itemsByDate, openDay } = m;
-    const weekDays = Array.from({ length: 7 }, (_, index) =>
+    const weekDays = Array.from({ length: 7 }, (_: any, index: any) =>
         anchorDate.startOf("week").add(index, "day")
     );
-    const hourSlots = Array.from({ length: 10 }, (_, index) => 9 + index);
+    const hourSlots = Array.from({ length: 10 }, (_: any, index: any) => 9 + index);
     const rowHeight = 88;
     const dayColumnWidth = 194;
 
@@ -42,7 +42,7 @@ const { anchorDate, itemsByDate, openDay } = m;
     return (
         <Box sx={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <Box
-                sx={(theme) => ({
+                sx={(theme: any) => ({
                     borderRadius: 4,
                     border: `1px solid ${theme.palette.divider}`,
                     overflow: "hidden",
@@ -57,7 +57,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                 }}
             >
                 <Box
-                    sx={(theme) => ({
+                    sx={(theme: any) => ({
                         borderRight: `1px solid ${theme.palette.divider}`,
                         borderBottom: `1px solid ${theme.palette.divider}`,
                         backgroundColor: theme.palette.background.default,
@@ -68,7 +68,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                     return (
                         <Box
                             key={day.format("YYYY-MM-DD")}
-                            sx={(theme) => ({
+                            sx={(theme: any) => ({
                                 minHeight: 88,
                                 px: 2,
                                 py: 1.5,
@@ -86,7 +86,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                                 </Typography>
                                 {isToday && (
                                     <Box
-                                        sx={(theme) => ({
+                                        sx={(theme: any) => ({
                                             width: 32,
                                             height: 32,
                                             borderRadius: "999px",
@@ -107,7 +107,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                 })}
 
                 <Box
-                    sx={(theme) => ({
+                    sx={(theme: any) => ({
                         minHeight: 64,
                         px: 1.5,
                         py: 1,
@@ -125,7 +125,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                     return (
                         <Box
                             key={`${day.format("YYYY-MM-DD")}-all-day`}
-                            sx={(theme) => ({
+                            sx={(theme: any) => ({
                                 minHeight: 64,
                                 p: 1,
                                 borderRight: `1px solid ${theme.palette.divider}`,
@@ -172,7 +172,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                 })}
 
                 <Box
-                    sx={(theme) => ({
+                    sx={(theme: any) => ({
                         position: "relative",
                         borderRight: `1px solid ${theme.palette.divider}`,
                         backgroundColor: theme.palette.background.default,
@@ -181,7 +181,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                     {hourSlots.map((hour) => (
                         <Box
                             key={hour}
-                            sx={(theme) => ({
+                            sx={(theme: any) => ({
                                 height: rowHeight,
                                 px: 1.25,
                                 pt: 0.8,
@@ -197,7 +197,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                 {weekDays.map((day, dayIndex) => (
                     <Box
                         key={`${day.format("YYYY-MM-DD")}-grid`}
-                        sx={(theme) => ({
+                        sx={(theme: any) => ({
                             position: "relative",
                             height: rowHeight * hourSlots.length,
                             borderRight: `1px solid ${theme.palette.divider}`,
@@ -207,7 +207,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                         {hourSlots.map((hour) => (
                             <Box
                                 key={hour}
-                                sx={(theme) => ({
+                                sx={(theme: any) => ({
                                     height: rowHeight,
                                     borderBottom: `1px solid ${theme.palette.divider}`,
                                 })}

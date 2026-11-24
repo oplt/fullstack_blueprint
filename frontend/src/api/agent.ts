@@ -1,4 +1,4 @@
-import { apiFetch, type Paginated } from "./client";
+import { apiFetch, type ApiRequestOptions, type Paginated } from "./client";
 
 const BASE = "/agent";
 
@@ -62,17 +62,17 @@ export async function createAgentRun(payload: AgentRunRequest): Promise<AgentRun
 }
 
 export async function listAgentRuns(
-    options: { limit?: number; offset?: number } = {}
+    options: { limit?: number; offset?: number; signal?: AbortSignal } = {}
 ): Promise<Paginated<AgentRun>> {
     const search = new URLSearchParams();
     if (options.limit !== undefined) search.set("limit", String(options.limit));
     if (options.offset !== undefined) search.set("offset", String(options.offset));
     const query = search.size ? `?${search}` : "";
-    return apiFetch(`${BASE}/runs${query}`);
+    return apiFetch(`${BASE}/runs${query}`, { signal: options.signal });
 }
 
-export async function getAgentRun(runId: string): Promise<AgentRun> {
-    return apiFetch(`${BASE}/runs/${runId}`);
+export async function getAgentRun(runId: string, options?: ApiRequestOptions): Promise<AgentRun> {
+    return apiFetch(`${BASE}/runs/${runId}`, options);
 }
 
 export function formatAgentCostMicros(micros: number): string {

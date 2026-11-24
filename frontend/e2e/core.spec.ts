@@ -27,6 +27,9 @@ test("registers, signs in, refreshes, manages a project and signs out", async ({
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("link", { name: "Skip to main content" })).toBeAttached();
 
+    await page.getByLabel(/^language$/i).selectOption("fr");
+    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe("fr");
+    await page.locator("select[aria-label]").selectOption("en");
     await page.getByRole("button", { name: "Cycle color theme" }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "Open navigation menu" }).click();

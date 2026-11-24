@@ -1,6 +1,6 @@
-import { Alert, Box, Tab, Tabs } from "@mui/material";
-import { RestartAlt as RestartIcon, SettingsSuggest as SettingsIcon, Storage as StorageIcon } from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
+import { Alert, Box, Tab, Tabs } from "@/components/ui/muiCompat";
+import { RestartAlt as RestartIcon, SettingsSuggest as SettingsIcon, Storage as StorageIcon } from "@/components/ui/iconsCompat";
+import { alpha } from "@/components/ui/muiCompat";
 import type { ConfigSettingsResponse, DatabaseSetting } from "../../../api/settings";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
@@ -29,7 +29,7 @@ export function AdminSettingsContent(props: Props) {
             </Box>
             {props.hasConfigError && <Alert severity="error">{props.configErrorMessage}</Alert>}
             {props.hasDatabaseError && <Alert severity="error">{props.databaseErrorMessage}</Alert>}
-            <Box sx={(theme) => ({ p: 1, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, backgroundColor: alpha(theme.palette.background.paper, 0.82) })}>
+            <Box sx={(theme: any) => ({ p: 1, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, backgroundColor: alpha(theme.palette.background.paper, 0.82) })}>
                 <Tabs value={props.activeTab} onChange={(_, value: SettingsTabValue) => props.onTabChange(value)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
                     {model.configGroups.map((group) => <Tab key={group.id} value={group.id} label={`${group.label} (${group.items.length})`} />)}
                     <Tab value="database" label={`Database settings (${props.databaseSettings.length})`} />

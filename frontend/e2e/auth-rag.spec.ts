@@ -24,6 +24,14 @@ test.describe("workspace smoke", () => {
         await page.goto("/");
         await expect(page.locator("form").first().getByRole("button", { name: /sign in/i })).toBeVisible();
     });
+
+  test("verification and password reset pages expose safe no-token states", async ({ page }) => {
+    await page.goto("/verify-email");
+    await expect(page.getByText(/check your email for a verification link/i)).toBeVisible();
+    await page.goto("/reset-password");
+    await expect(page.getByText(/no reset token found/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /reset password/i })).toBeDisabled();
+  });
 });
 
 test.describe("authenticated AI flow", () => {

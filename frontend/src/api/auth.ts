@@ -1,22 +1,13 @@
-import { apiFetch } from "./client";
+import { apiFetch, type ApiRequestOptions } from "./client";
+import type {
+    AuthSessionResponse,
+    AuthUserResponse,
+    MfaEnableResponse,
+} from "./generated/types";
 
-export type AuthUser = {
-    id: string;
-    email: string;
-    full_name: string | null;
-    is_verified: boolean;
-    is_admin: boolean;
-    mfa_enabled: boolean;
-};
-
-export type AuthResponse = {
-    user: AuthUser;
-};
-
-export type MfaSetup = {
-    secret: string;
-    provisioning_uri: string;
-};
+export type AuthUser = AuthUserResponse;
+export type AuthResponse = AuthSessionResponse;
+export type MfaSetup = MfaEnableResponse;
 
 export async function signUp(payload: {
     email: string;
@@ -47,8 +38,8 @@ export async function refresh(): Promise<AuthResponse> {
     });
 }
 
-export async function me() {
-    return apiFetch<AuthUser>("/auth/me");
+export async function me(options?: ApiRequestOptions) {
+    return apiFetch<AuthUser>("/auth/me", options);
 }
 
 export async function logout() {

@@ -1,20 +1,4 @@
-import { Box, type BoxProps } from "@mui/material";
-import { scrollContainerSx } from "./responsiveQa";
-
-type ScrollRegionProps = BoxProps;
-
-/**
- * Horizontal scroll wrapper for dense tables/charts (Phase 22/24).
- * Prefer this over repeating `overflowX: "auto"` inline.
- */
-export function ScrollRegion({ sx, ...props }: ScrollRegionProps) {
-    return (
-        <Box
-            {...props}
-            sx={[
-                scrollContainerSx,
-                ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
-            ]}
-        />
-    );
-}
+import type { HTMLAttributes } from "react";
+import { inlineStyle, type StyleCompat } from "./styleCompat";
+type ScrollRegionProps = HTMLAttributes<HTMLDivElement> & { sx?: StyleCompat };
+export function ScrollRegion({ sx, style, ...props }: ScrollRegionProps) { return <div {...props} style={{ overflowX: "auto", minWidth: 0, WebkitOverflowScrolling: "touch", ...style, ...inlineStyle(sx) }} />; }

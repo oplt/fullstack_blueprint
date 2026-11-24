@@ -5,8 +5,8 @@ import {
     Chip,
     Stack,
     Typography,
-} from "@mui/material";
-import { DeleteOutline as DeleteIcon } from "@mui/icons-material";
+} from "@/components/ui/muiCompat";
+import { DeleteOutline as DeleteIcon } from "@/components/ui/iconsCompat";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
 import { SectionCard } from "../../components/ui/SectionCard";
 import type { MemoryItem } from "../../api/memory";

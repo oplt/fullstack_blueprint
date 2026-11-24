@@ -3,7 +3,7 @@ import {
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { logout as logoutRequest, me, type AuthUser } from "../../../api/auth";
-import { queryKeys } from "../../../config/queryKeys";
+import { clearUserSessionCache, queryKeys, resetUserSessionCache } from "../../../config/queryKeys";
 import { QUERY_STALE_TIMES } from "../../../config/queryTiming";
 import { AuthContext } from "./authContext";
 
@@ -15,7 +15,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         isError,
     } = useQuery<AuthUser | null>({
         queryKey: queryKeys.auth.me,
-        queryFn: me,
+        queryFn: ({ signal }) => me({ signal }),
         retry: false,
         staleTime: QUERY_STALE_TIMES.userProfile,
     });
@@ -25,12 +25,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     async function logout() {
         await logoutRequest();
-        await queryClient.cancelQueries();
-        queryClient.clear();
+        await clearUserSessionCache(queryClient);
         queryClient.setQueryData(queryKeys.auth.me, null);
     }
 
     function setAuthenticated(user: AuthUser) {
+        // A sign-in can happen without a full page reload. Drop records that
+        // were fetched for the previous identity before publishing the new one.
+        resetUserSessionCache(queryClient);
         queryClient.setQueryData(queryKeys.auth.me, user);
     }
 

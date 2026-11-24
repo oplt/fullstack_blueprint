@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { parseEnumParam } from "../app/searchParams";
 
 export type UseTabQueryParamOptions<T extends string> = {
     /** Map legacy query values onto current tabs (e.g. `models` → `predictions`). */
@@ -20,16 +21,7 @@ export function useTabQueryParam<T extends string>(
     const aliases = options?.aliases;
 
     const value = useMemo(() => {
-        const raw = searchParams.get(paramKey);
-        if (!raw) return defaultTab;
-        if ((tabs as readonly string[]).includes(raw)) {
-            return raw as T;
-        }
-        const aliased = aliases?.[raw];
-        if (aliased && (tabs as readonly string[]).includes(aliased)) {
-            return aliased;
-        }
-        return defaultTab;
+        return parseEnumParam(searchParams.get(paramKey), tabs, defaultTab, aliases);
     }, [aliases, defaultTab, paramKey, searchParams, tabs]);
 
     const setValue = useCallback(

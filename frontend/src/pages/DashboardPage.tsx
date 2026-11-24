@@ -4,14 +4,15 @@ import {
     Button,
     Stack,
     Typography,
-} from "@mui/material";
+} from "@/components/ui/muiCompat";
 import {
     FolderOpen as ProjectsIcon,
     Notifications as NotificationsIcon,
     Security as SecurityIcon,
     VerifiedUser as VerifiedUserIcon,
-} from "@mui/icons-material";
+} from "@/components/ui/iconsCompat";
 import { useNavigate } from "react-router-dom";
+import { projectPath, ROUTES } from "../app/routes";
 import { listProjects } from "../api/projects";
 import { queryKeys } from "../config/queryKeys";
 import { DashboardCalendar } from "../components/dashboard/DashboardCalendar";
@@ -33,7 +34,7 @@ export default function DashboardPage() {
     const { data: platformMetadata } = usePlatformMetadata();
     const projectsQuery = useQuery({
         queryKey: queryKeys.projects.all,
-        queryFn: listProjects,
+        queryFn: ({ signal }) => listProjects({ signal }),
     });
     const notificationsQuery = useNotifications();
     const {
@@ -160,7 +161,7 @@ export default function DashboardPage() {
                                 {projects?.slice(0, 6).map((project) => (
                                     <Box
                                         key={project.id}
-                                        sx={(theme) => ({
+                                        sx={(theme: any) => ({
                                             p: 2,
                                             borderRadius: 1,
                                             backgroundColor: surfaceRaised(theme),
@@ -168,7 +169,7 @@ export default function DashboardPage() {
                                             borderColor: "divider",
                                             cursor: "pointer",
                                         })}
-                                        onClick={() => navigate(`/projects/${project.id}`)}
+                                        onClick={() => navigate(projectPath(project.id))}
                                     >
                                         <Typography variant="subtitle2">{project.name}</Typography>
                                         <Typography
@@ -195,7 +196,7 @@ export default function DashboardPage() {
                             {accountChecks.map((item) => (
                                 <Box
                                     key={item.label}
-                                    sx={(theme) => ({
+                                    sx={(theme: any) => ({
                                         p: 1.5,
                                         borderRadius: 1,
                                         flex: 1,
@@ -251,7 +252,7 @@ export default function DashboardPage() {
                         description="The latest notifications and alerts across your account."
                         contentSx={{ display: "flex", flexDirection: "column", minHeight: 0 }}
                         action={
-                            <Button variant="text" onClick={() => navigate("/notifications")}>
+                                            <Button variant="text" onClick={() => navigate(ROUTES.notifications)}>
                                 Open all
                             </Button>
                         }

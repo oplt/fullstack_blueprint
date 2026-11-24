@@ -7,13 +7,13 @@ import {
     Stack,
     Switch,
     Typography,
-} from "@mui/material";
+} from "@/components/ui/muiCompat";
 import {
     DoneAll as DoneAllIcon,
     MailOutline as MailOutlineIcon,
     NotificationsActive as NotificationsActiveIcon,
     Campaign as CampaignIcon,
-} from "@mui/icons-material";
+} from "@/components/ui/iconsCompat";
 import {
     markAllRead,
     markRead,
@@ -51,7 +51,7 @@ function PreferenceItem({
 
     return (
         <Box
-            sx={(theme) => ({
+            sx={(theme: any) => ({
                 p: 2,
                 borderRadius: 4,
                 border: `1px solid ${theme.palette.divider}`,
@@ -63,7 +63,7 @@ function PreferenceItem({
                 control={
                     <Switch
                         checked={checked}
-                        onChange={(event) => onChange(event.target.checked)}
+                        onChange={(event: any) => onChange(event.target.checked)}
                         disabled={disabled}
                         inputProps={{ "aria-describedby": descriptionId }}
                     />
@@ -268,7 +268,7 @@ export default function NotificationsPage() {
                         onRetry={() => void refetchPrefs()}
                         loadingFallback={
                             <Stack spacing={1.5}>
-                                {Array.from({ length: 3 }).map((_, index) => (
+                                {Array.from({ length: 3 }).map((_: any, index: any) => (
                                     <Skeleton key={index} variant="rounded" height={88} sx={{ borderRadius: 4 }} />
                                 ))}
                             </Stack>

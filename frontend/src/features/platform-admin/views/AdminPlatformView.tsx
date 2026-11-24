@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton, Stack } from "@mui/material";
+import { Skeleton, Stack } from "@/components/ui/muiCompat";
 import { getPlatformConfig, listAdminEmailTemplates, listAdminFeatureFlags, listAdminPlans } from "../../../api/platform";
 import { queryKeys } from "../../../config/queryKeys";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
@@ -9,10 +9,10 @@ import { AdminPlatformContent } from "../components/AdminPlatformContent";
 import { platformAdminKey } from "../platformAdminModel";
 
 export default function AdminPlatformPage() {
-    const config = useQuery({ queryKey: queryKeys.platform.admin.config, queryFn: getPlatformConfig });
-    const plans = useQuery({ queryKey: queryKeys.platform.admin.plans, queryFn: listAdminPlans });
-    const flags = useQuery({ queryKey: queryKeys.platform.admin.featureFlags, queryFn: listAdminFeatureFlags });
-    const templates = useQuery({ queryKey: queryKeys.platform.admin.emailTemplates, queryFn: listAdminEmailTemplates });
+    const config = useQuery({ queryKey: queryKeys.platform.admin.config, queryFn: ({ signal }) => getPlatformConfig({ signal }) });
+    const plans = useQuery({ queryKey: queryKeys.platform.admin.plans, queryFn: ({ signal }) => listAdminPlans({ signal }) });
+    const flags = useQuery({ queryKey: queryKeys.platform.admin.featureFlags, queryFn: ({ signal }) => listAdminFeatureFlags({ signal }) });
+    const templates = useQuery({ queryKey: queryKeys.platform.admin.emailTemplates, queryFn: ({ signal }) => listAdminEmailTemplates({ signal }) });
     if ([config, plans, flags, templates].some((query) => query.isLoading)) return <PageShell maxWidth="xl"><Stack spacing={2}><Skeleton variant="rounded" height={180} sx={{ borderRadius: 6 }} /><Skeleton variant="rounded" height={240} sx={{ borderRadius: 6 }} /><Skeleton variant="rounded" height={240} sx={{ borderRadius: 6 }} /></Stack></PageShell>;
     if (!config.data || !plans.data || !flags.data || !templates.data) return <PageShell maxWidth="xl"><SettingsTabs /><Stack spacing={2} sx={{ mt: 2 }}>
         {!config.data && <QueryErrorAlert error={config.error ?? new Error("Failed to load platform configuration.")} fallback="Failed to load platform configuration." title="Configuration" onRetry={() => void config.refetch()} />}

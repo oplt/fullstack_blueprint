@@ -1,12 +1,12 @@
-import { Box, Button, Chip, IconButton, Stack, TextField, Typography } from "@mui/material";
-import { DeleteOutline as DeleteIcon } from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
+import { Box, Button, Chip, IconButton, Stack, TextField, Typography } from "@/components/ui/muiCompat";
+import { DeleteOutline as DeleteIcon } from "@/components/ui/iconsCompat";
+import { alpha } from "@/components/ui/muiCompat";
 import type { ConfigEntry, DatabaseSetting } from "../../../api/settings";
 import { formatDateTime } from "../../../utils/formatters";
 
 export function ConfigEntryEditor({ item, value, onChange }: { item: ConfigEntry; value: string; onChange: (value: string) => void }) {
     return (
-        <Box sx={(theme) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, backgroundColor: alpha(theme.palette.background.paper, 0.78) })}>
+        <Box sx={(theme: any) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}`, backgroundColor: alpha(theme.palette.background.paper, 0.78) })}>
             <Stack spacing={1.25}>
                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
                     <Box>
@@ -20,7 +20,7 @@ export function ConfigEntryEditor({ item, value, onChange }: { item: ConfigEntry
                     </Stack>
                 </Stack>
                 <TextField type={item.is_secret ? "password" : "text"} value={value}
-                    onChange={(event) => onChange(event.target.value)}
+                    onChange={(event: any) => onChange(event.target.value)}
                     helperText={item.is_secret ? "Stored value is masked. Enter a new value to replace it." : undefined} fullWidth />
             </Stack>
         </Box>
@@ -39,14 +39,14 @@ type DatabaseEditorProps = {
 
 export function DatabaseSettingEditor({ item, draft, onDraftChange, onSave, onDelete, isSaving, isDeleting }: DatabaseEditorProps) {
     return (
-        <Box sx={(theme) => ({ p: 2.25, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
+        <Box sx={(theme: any) => ({ p: 2.25, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
             <Stack spacing={1.5}>
                 <Stack direction="row" justifyContent="space-between" spacing={1.5}>
                     <Box><Typography variant="subtitle2">{item.key}</Typography><Typography variant="caption" color="text.secondary">Updated {formatDateTime(item.updated_at)}</Typography></Box>
                     <IconButton aria-label={`Delete ${item.key}`} color="error" onClick={onDelete} disabled={isDeleting}><DeleteIcon /></IconButton>
                 </Stack>
-                <TextField label="Value" value={draft.value} onChange={(event) => onDraftChange({ ...draft, value: event.target.value })} fullWidth multiline minRows={3} />
-                <TextField label="Description" value={draft.description} onChange={(event) => onDraftChange({ ...draft, description: event.target.value })} fullWidth multiline minRows={3} />
+                <TextField label="Value" value={draft.value} onChange={(event: any) => onDraftChange({ ...draft, value: event.target.value })} fullWidth multiline minRows={3} />
+                <TextField label="Description" value={draft.description} onChange={(event: any) => onDraftChange({ ...draft, description: event.target.value })} fullWidth multiline minRows={3} />
                 <Button variant="contained" disabled={isSaving} onClick={onSave}>{isSaving ? "Saving..." : "Save setting"}</Button>
             </Stack>
         </Box>

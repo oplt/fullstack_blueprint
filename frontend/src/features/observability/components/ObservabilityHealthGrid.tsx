@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Box, Skeleton } from "@mui/material";
+import { Box, Skeleton } from "@/components/ui/muiCompat";
 import {
     Api as ApiIcon,
     BugReport as ErrorIcon,
@@ -13,7 +13,7 @@ import {
     Timeline as TracesIcon,
     Web as FrontendIcon,
     WorkHistory as WorkerIcon,
-} from "@mui/icons-material";
+} from "@/components/ui/iconsCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { fallbackItem, metricFor, type HealthKey } from "../observabilityModel";
@@ -41,7 +41,7 @@ export function ObservabilityHealthGrid({ healthItems, statusQuery }: Props) {
         <SectionCard title="System health" description="Lightweight checks from the app plus local observability tool reachability.">
             {statusQuery.isLoading ? (
                 <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(4, 1fr)" } }}>
-                    {Array.from({ length: 8 }).map((_, index) => <Skeleton key={index} variant="rounded" height={180} sx={{ borderRadius: 4 }} />)}
+                    {Array.from({ length: 8 }).map((_: any, index: any) => <Skeleton key={index} variant="rounded" height={180} sx={{ borderRadius: 4 }} />)}
                 </Box>
             ) : statusQuery.isError ? (
                 <EmptyState

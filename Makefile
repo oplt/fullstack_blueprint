@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := check
 include Makefile.local
 
-.PHONY: setup backend-sync backend-lock backend-lock-check lint format check test test-backend test-frontend check-types
+.PHONY: setup backend-sync backend-lock backend-lock-check lint format check test test-backend test-frontend check-types api-contract-check
 
 setup: backend-sync
 	cd frontend && npm ci
@@ -26,7 +26,10 @@ format:
 check-types:
 	cd frontend && ./node_modules/.bin/tsc -b
 
-check: backend-lock-check lint check-types
+api-contract-check:
+	cd frontend && npm run api:check
+
+check: backend-lock-check lint check-types api-contract-check
 	$(VENV)/ruff format --check backend
 
 test: test-backend test-frontend

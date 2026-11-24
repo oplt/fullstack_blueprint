@@ -4,6 +4,7 @@
 - Use request-scoped SQLAlchemy sessions and sequential statements within each session. Parallel tasks that need persistence should own separate sessions.
 - Enforce access in the backend for every resource operation. Project access uses the owner/editor/viewer model. Keep document ownership and project membership checks at retrieval and indexing boundaries. RAG owns ingestion and stores each index revision.
 - Keep secrets in local settings or deployment secret storage. Never print tokens, passwords, provider keys, or connection credentials. Protect cookie-authenticated writes with CSRF and keep auth/session checks active.
-- Gate optional APIs and UI on server configuration. Reuse shared Material UI components, query keys, and loading/error/empty states. Keep tests for retained behavior.
+- Gate optional APIs and UI on server configuration. Reuse shared Base UI/shadcn-compatible primitives, semantic tokens, query keys, and loading/error/empty states. Keep tests for retained behavior.
+- Frontend feature work should follow the repository-local Agent Skills in [`.agents/skills`](.agents/skills/) and the workflow in [docs/frontend/AGENT_SKILLS.md](docs/frontend/AGENT_SKILLS.md). Skills complement these instructions; backend authorization, CSRF, and server configuration remain authoritative.
 - Use `make setup`, `make check`, `make test`, and `cd frontend && npm run build`. Verify schema changes against a disposable PostgreSQL database with pgvector using Alembic. Use isolated services for Playwright and live API tests.
 - Preserve user changes and data. Never run destructive migration or volume commands against an existing environment. Keep the uv and npm lockfiles synchronized.

@@ -1,5 +1,11 @@
+import { i18nInstance } from "../i18n/config";
+
+function currentLocale() {
+    return i18nInstance.resolvedLanguage ?? i18nInstance.language ?? "en";
+}
+
 export function formatCurrency(priceCents: number, currency = "USD") {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(currentLocale(), {
         style: "currency",
         currency,
         maximumFractionDigits: 0,
@@ -7,7 +13,7 @@ export function formatCurrency(priceCents: number, currency = "USD") {
 }
 
 export function formatDate(value: string) {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(currentLocale(), {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -15,7 +21,7 @@ export function formatDate(value: string) {
 }
 
 export function formatDateOnly(value: string) {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(currentLocale(), {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -23,7 +29,7 @@ export function formatDateOnly(value: string) {
 }
 
 export function formatDateTime(value: string) {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(currentLocale(), {
         month: "short",
         day: "numeric",
         year: "numeric",

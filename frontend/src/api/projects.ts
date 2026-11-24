@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchItems } from "./client";
+import { apiFetch, apiFetchItems, type ApiRequestOptions } from "./client";
 
 export type Project = {
     id: string;
@@ -30,12 +30,12 @@ export type ProjectTask = {
     updated_at: string;
 };
 
-export async function listProjects(): Promise<Project[]> {
-    return apiFetchItems<Project>("/projects");
+export async function listProjects(options?: ApiRequestOptions): Promise<Project[]> {
+    return apiFetchItems<Project>("/projects", options);
 }
 
-export async function getProject(projectId: string): Promise<Project> {
-    return apiFetch(`/projects/${projectId}`);
+export async function getProject(projectId: string, options?: ApiRequestOptions): Promise<Project> {
+    return apiFetch(`/projects/${projectId}`, options);
 }
 
 export async function createProject(payload: {
@@ -48,8 +48,8 @@ export async function createProject(payload: {
     });
 }
 
-export async function listProjectTasks(projectId: string): Promise<ProjectTask[]> {
-    return apiFetchItems<ProjectTask>(`/projects/${projectId}/tasks`);
+export async function listProjectTasks(projectId: string, options?: ApiRequestOptions): Promise<ProjectTask[]> {
+    return apiFetchItems<ProjectTask>(`/projects/${projectId}/tasks`, options);
 }
 
 export async function createProjectTask(

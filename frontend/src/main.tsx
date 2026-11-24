@@ -1,11 +1,26 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/manrope/latin-400.css";
+import "@fontsource/manrope/latin-500.css";
+import "@fontsource/manrope/latin-600.css";
+import "@fontsource/manrope/latin-700.css";
+import "@fontsource/manrope/latin-ext-400.css";
+import "@fontsource/manrope/latin-ext-500.css";
+import "@fontsource/manrope/latin-ext-600.css";
+import "@fontsource/manrope/latin-ext-700.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
+import "@fontsource/ibm-plex-mono/latin-ext-400.css";
+import "@fontsource/ibm-plex-mono/latin-ext-500.css";
 import "./index.css";
 import { AppProviders } from "./app/providers";
 import { AppRouter } from "./app/router";
 import { RouteErrorBoundary } from "./app/RouteErrorBoundary";
+import { startWebVitals } from "./performance/webVitals";
+
+if (typeof window !== "undefined") {
+    startWebVitals({ sampleRate: import.meta.env.PROD ? 0.1 : 1 });
+}
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

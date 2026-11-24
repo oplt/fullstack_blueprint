@@ -1,4 +1,4 @@
-import { apiFetch, type Paginated } from "./client";
+import { apiFetch, type ApiRequestOptions, type Paginated } from "./client";
 
 const BASE = "/rag";
 
@@ -101,16 +101,17 @@ export async function listRagDocuments(options: {
     projectId?: string;
     limit?: number;
     offset?: number;
+    signal?: AbortSignal;
 } = {}): Promise<Paginated<RagDocument>> {
     const search = new URLSearchParams();
     if (options.projectId) search.set("project_id", options.projectId);
     search.set("limit", String(options.limit ?? 20));
     search.set("offset", String(options.offset ?? 0));
-    return apiFetch(`${BASE}/documents?${search}`);
+    return apiFetch(`${BASE}/documents?${search}`, { signal: options.signal });
 }
 
-export async function getRagDocument(documentId: string): Promise<RagDocument> {
-    return apiFetch(`${BASE}/documents/${encodeURIComponent(documentId)}`);
+export async function getRagDocument(documentId: string, options?: ApiRequestOptions): Promise<RagDocument> {
+    return apiFetch(`${BASE}/documents/${encodeURIComponent(documentId)}`, options);
 }
 
 export async function uploadRagDocument(
@@ -137,15 +138,13 @@ export async function indexRagDocument(documentId: string): Promise<RagIngestion
 
 export async function listRagChunks(
     documentId: string,
-    options: { limit?: number; offset?: number; contentMode?: "snippet" | "full" } = {}
+    options: { limit?: number; offset?: number; contentMode?: "snippet" | "full"; signal?: AbortSignal } = {}
 ): Promise<Paginated<RagChunk>> {
     const search = new URLSearchParams();
     search.set("limit", String(options.limit ?? 20));
     search.set("offset", String(options.offset ?? 0));
     search.set("content_mode", options.contentMode ?? "snippet");
-    return apiFetch(
-        `${BASE}/documents/${encodeURIComponent(documentId)}/chunks?${search}`
-    );
+    return apiFetch(`${BASE}/documents/${encodeURIComponent(documentId)}/chunks?${search}`, { signal: options.signal });
 }
 
 export async function retrieveRagChunks(payload: {
@@ -176,13 +175,14 @@ export async function askRag(payload: {
 export async function listRagQueries(options: {
     limit?: number;
     offset?: number;
+    signal?: AbortSignal;
 } = {}): Promise<Paginated<RagQueryHistoryItem>> {
     const search = new URLSearchParams();
     search.set("limit", String(options.limit ?? 20));
     search.set("offset", String(options.offset ?? 0));
-    return apiFetch(`${BASE}/queries?${search}`);
+    return apiFetch(`${BASE}/queries?${search}`, { signal: options.signal });
 }
 
-export async function getRagIngestionJob(jobId: string): Promise<RagIngestionJob> {
-    return apiFetch(`${BASE}/jobs/${encodeURIComponent(jobId)}`);
+export async function getRagIngestionJob(jobId: string, options?: ApiRequestOptions): Promise<RagIngestionJob> {
+    return apiFetch(`${BASE}/jobs/${encodeURIComponent(jobId)}`, options);
 }

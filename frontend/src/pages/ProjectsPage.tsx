@@ -15,16 +15,17 @@ import {
     Stack,
     TextField,
     Typography,
-} from "@mui/material";
+} from "@/components/ui/muiCompat";
 import {
     Add as AddIcon,
     AddCircleOutline as AddCircleOutlineIcon,
     FolderOpen as FolderOpenIcon,
     ArrowForward as ArrowForwardIcon,
     Close as CloseIcon,
-} from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
+} from "@/components/ui/iconsCompat";
+import { alpha } from "@/components/ui/muiCompat";
 import { useNavigate } from "react-router-dom";
+import { projectPath } from "../app/routes";
 import { createProject, listProjects } from "../api/projects";
 import { queryKeys } from "../config/queryKeys";
 import { QUERY_STALE_TIMES } from "../config/queryTiming";
@@ -51,7 +52,7 @@ export default function ProjectsPage() {
     const { data: platformMetadata } = usePlatformMetadata();
     const { data: projects, isLoading, isError, error, refetch } = useQuery({
         queryKey: queryKeys.projects.all,
-        queryFn: listProjects,
+        queryFn: ({ signal }) => listProjects({ signal }),
         staleTime: QUERY_STALE_TIMES.projects,
     });
     const {
@@ -68,7 +69,7 @@ export default function ProjectsPage() {
             reset();
             setCreateDrawerOpen(false);
             showToast({ message: "Project created successfully.", severity: "success" });
-            navigate(`/projects/${project.id}`);
+            navigate(projectPath(project.id));
         },
     });
 
@@ -163,7 +164,7 @@ export default function ProjectsPage() {
                                 },
                             }}
                         >
-                            {Array.from({ length: 4 }).map((_, index) => (
+                            {Array.from({ length: 4 }).map((_: any, index: any) => (
                                 <Skeleton
                                     key={index}
                                     variant="rounded"
@@ -204,7 +205,7 @@ export default function ProjectsPage() {
                         {projects?.map((project) => (
                             <Paper
                                 key={project.id}
-                                sx={(theme) => ({
+                                sx={(theme: any) => ({
                                     p: 2.5,
                                     borderRadius: 4,
                                     border: `1px solid ${theme.palette.divider}`,
@@ -214,7 +215,7 @@ export default function ProjectsPage() {
                                 <Stack spacing={1.25}>
                                     <Stack direction="row" spacing={1.25} alignItems="center">
                                         <Box
-                                            sx={(theme) => ({
+                                            sx={(theme: any) => ({
                                                 width: 42,
                                                 height: 42,
                                                 borderRadius: 3,
@@ -246,7 +247,7 @@ export default function ProjectsPage() {
                                         <Button
                                             variant="text"
                                             endIcon={<ArrowForwardIcon />}
-                                            onClick={() => navigate(`/projects/${project.id}`)}
+                                            onClick={() => navigate(projectPath(project.id))}
                                             sx={{ px: 0 }}
                                         >
                                             Open workspace

@@ -1,5 +1,5 @@
-import { Alert, Box, Button, Chip, MenuItem, Skeleton, Stack, TextField, Typography } from "@mui/material";
-import { Approval as ReviewIcon } from "@mui/icons-material";
+import { Alert, Box, Button, Chip, MenuItem, Skeleton, Stack, TextField, Typography } from "@/components/ui/muiCompat";
+import { Approval as ReviewIcon } from "@/components/ui/iconsCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { KeyValueList } from "../../../components/ui/KeyValueList";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
@@ -28,13 +28,13 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                 )}
                 {reviewsLoading ? (
                     <Stack spacing={1.25}>
-                        {Array.from({ length: 2 }).map((_, index) => (
+                        {Array.from({ length: 2 }).map((_: any, index: any) => (
                             <Skeleton key={index} variant="rounded" height={140} sx={{ borderRadius: 3 }} />
                         ))}
                     </Stack>
                 ) : reviews.length > 0 ? (
                     reviews.map((review) => (
-                        <Box key={review.id} sx={(theme) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
+                        <Box key={review.id} sx={(theme: any) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
                             <Stack spacing={1}>
                                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
                                     <Typography variant="body2">Run {review.run_id.slice(0, 8)}</Typography>
@@ -43,14 +43,14 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                                 <TextField
                                     label="Reviewer notes"
                                     value={reviewNotesById[review.id] ?? ""}
-                                    onChange={(event) => setReviewNotesById((current) => ({ ...current, [review.id]: event.target.value }))}
+                                    onChange={(event: any) => setReviewNotesById((current) => ({ ...current, [review.id]: event.target.value }))}
                                     fullWidth
                                     size="small"
                                 />
                                 <TextField
                                     label="Corrected output"
                                     value={correctionsById[review.id] ?? ""}
-                                    onChange={(event) => setCorrectionsById((current) => ({ ...current, [review.id]: event.target.value }))}
+                                    onChange={(event: any) => setCorrectionsById((current) => ({ ...current, [review.id]: event.target.value }))}
                                     fullWidth
                                     size="small"
                                     multiline
@@ -77,29 +77,29 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
 
             <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Evaluation datasets</Typography>
-                <TextField label="Dataset name" value={datasetForm.name} onChange={(event) => setDatasetForm((current) => ({ ...current, name: event.target.value }))} fullWidth />
-                <TextField label="Dataset description" value={datasetForm.description} onChange={(event) => setDatasetForm((current) => ({ ...current, description: event.target.value }))} fullWidth />
+                <TextField label="Dataset name" value={datasetForm.name} onChange={(event: any) => setDatasetForm((current) => ({ ...current, name: event.target.value }))} fullWidth />
+                <TextField label="Dataset description" value={datasetForm.description} onChange={(event: any) => setDatasetForm((current) => ({ ...current, description: event.target.value }))} fullWidth />
                 <Button variant="outlined" disabled={createDatasetMutation.isPending || !datasetForm.name.trim()} onClick={() => createDatasetMutation.mutate(datasetForm)}>
                     {createDatasetMutation.isPending ? "Creating..." : "Create evaluation dataset"}
                 </Button>
-                <TextField select label="Selected dataset" value={selectedDatasetId} onChange={(event) => setSelectedDatasetId(event.target.value)} fullWidth>
+                <TextField select label="Selected dataset" value={selectedDatasetId} onChange={(event: any) => setSelectedDatasetId(event.target.value)} fullWidth>
                     {datasets.map((dataset) => (
                         <MenuItem key={dataset.id} value={dataset.id}>
                             {dataset.name}
                         </MenuItem>
                     ))}
                 </TextField>
-                <TextField label="Case input variables JSON" value={datasetCaseForm.input_variables_json} onChange={(event) => setDatasetCaseForm((current) => ({ ...current, input_variables_json: event.target.value }))} fullWidth multiline minRows={4} />
-                <TextField label="Retrieval query" value={datasetCaseForm.retrieval_query} onChange={(event) => setDatasetCaseForm((current) => ({ ...current, retrieval_query: event.target.value }))} fullWidth />
-                <TextField label="Expected chunk IDs" helperText="Comma-separated chunk IDs used to calculate citation hit rate." value={datasetCaseForm.expected_chunk_ids} onChange={(event) => setDatasetCaseForm((current) => ({ ...current, expected_chunk_ids: event.target.value }))} fullWidth />
+                <TextField label="Case input variables JSON" value={datasetCaseForm.input_variables_json} onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, input_variables_json: event.target.value }))} fullWidth multiline minRows={4} />
+                <TextField label="Retrieval query" value={datasetCaseForm.retrieval_query} onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, retrieval_query: event.target.value }))} fullWidth />
+                <TextField label="Expected chunk IDs" helperText="Comma-separated chunk IDs used to calculate citation hit rate." value={datasetCaseForm.expected_chunk_ids} onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, expected_chunk_ids: event.target.value }))} fullWidth />
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                     {m.documents.map((document) => (
                         <Chip key={document.id} label={document.title} color={m.selectedEvaluationDocumentIds.includes(document.id) ? "primary" : "default"} variant={m.selectedEvaluationDocumentIds.includes(document.id) ? "filled" : "outlined"} onClick={() => m.toggleEvaluationDocument(document.id)} />
                     ))}
                 </Stack>
-                <TextField label="Expected output text" value={datasetCaseForm.expected_output_text} onChange={(event) => setDatasetCaseForm((current) => ({ ...current, expected_output_text: event.target.value }))} fullWidth multiline minRows={2} />
-                <TextField label="Expected output JSON" value={datasetCaseForm.expected_output_json} onChange={(event) => setDatasetCaseForm((current) => ({ ...current, expected_output_json: event.target.value }))} fullWidth multiline minRows={2} />
-                <TextField label="Notes" value={datasetCaseForm.notes} onChange={(event) => setDatasetCaseForm((current) => ({ ...current, notes: event.target.value }))} fullWidth />
+                <TextField label="Expected output text" value={datasetCaseForm.expected_output_text} onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, expected_output_text: event.target.value }))} fullWidth multiline minRows={2} />
+                <TextField label="Expected output JSON" value={datasetCaseForm.expected_output_json} onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, expected_output_json: event.target.value }))} fullWidth multiline minRows={2} />
+                <TextField label="Notes" value={datasetCaseForm.notes} onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, notes: event.target.value }))} fullWidth />
                 <Button
                     variant="outlined"
                     disabled={createDatasetCaseMutation.isPending || !selectedDatasetId}
@@ -138,7 +138,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                     select
                     label="Prompt version for evaluation"
                     value={runForm.prompt_version_id}
-                    onChange={(event) => setRunForm((current) => ({ ...current, prompt_version_id: event.target.value }))}
+                    onChange={(event: any) => setRunForm((current) => ({ ...current, prompt_version_id: event.target.value }))}
                     fullWidth
                 >
                     {selectedTemplateVersions.map((version) => (
@@ -163,14 +163,14 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                 )}
                 {selectedDatasetId && datasetCasesLoading ? (
                     <Stack spacing={1}>
-                        {Array.from({ length: 2 }).map((_, index) => (
+                        {Array.from({ length: 2 }).map((_: any, index: any) => (
                             <Skeleton key={index} variant="rounded" height={72} sx={{ borderRadius: 2 }} />
                         ))}
                     </Stack>
                 ) : selectedDatasetCases.length > 0 ? (
                     <Stack spacing={1}>
                         {selectedDatasetCases.map((item) => (
-                            <Box key={item.id} sx={(theme) => ({ p: 1.5, borderRadius: 3, border: `1px solid ${theme.palette.divider}` })}>
+                            <Box key={item.id} sx={(theme: any) => ({ p: 1.5, borderRadius: 3, border: `1px solid ${theme.palette.divider}` })}>
                                 {recordToKeyValueItems(item.input_variables).length ? (
                                     <KeyValueList
                                         dense
@@ -207,7 +207,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                 )}
                 {evaluationRunsLoading ? (
                     <Stack spacing={1}>
-                        {Array.from({ length: 2 }).map((_, index) => (
+                        {Array.from({ length: 2 }).map((_: any, index: any) => (
                             <Skeleton key={index} variant="rounded" height={56} sx={{ borderRadius: 2 }} />
                         ))}
                     </Stack>

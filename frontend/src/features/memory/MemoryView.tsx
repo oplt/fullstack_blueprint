@@ -18,12 +18,12 @@ import {
     TablePagination,
     TextField,
     Typography,
-} from "@mui/material";
+} from "@/components/ui/muiCompat";
 import {
     DeleteOutline as DeleteIcon,
     Memory as MemoryIcon,
     Search as SearchIcon,
-} from "@mui/icons-material";
+} from "@/components/ui/iconsCompat";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "../../app/snackbarContext";
 import { listProjects } from "../../api/projects";
@@ -65,7 +65,7 @@ export default function MemoryView() {
 
     const projectsQuery = useQuery({
         queryKey: queryKeys.projects.all,
-        queryFn: listProjects,
+        queryFn: ({ signal }) => listProjects({ signal }),
     });
 
     const listParams = useMemo(
@@ -80,22 +80,23 @@ export default function MemoryView() {
 
     const listQuery = useQuery({
         queryKey: queryKeys.memory.list(listParams),
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             listMemories({
                 ...listParams,
                 limit: PAGE_SIZE,
+                signal,
             }),
     });
 
     const detailQuery = useQuery({
         queryKey: queryKeys.memory.detail(selectedId ?? ""),
-        queryFn: () => getMemory(selectedId!),
+        queryFn: ({ signal }) => getMemory(selectedId!, { signal }),
         enabled: Boolean(selectedId),
     });
 
     const auditQuery = useQuery({
         queryKey: queryKeys.memory.audit(auditOffset),
-        queryFn: () => listMemoryAuditLogs({ limit: PAGE_SIZE, offset: auditOffset }),
+        queryFn: ({ signal }) => listMemoryAuditLogs({ limit: PAGE_SIZE, offset: auditOffset, signal }),
     });
 
     const searchMutation = useMutation({
@@ -152,7 +153,7 @@ export default function MemoryView() {
                                 size="small"
                                 label="Memory level"
                                 value={memoryLevel}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                     setMemoryLevel(e.target.value);
                                     setOffset(0);
                                     setSearchResults(null);
@@ -171,7 +172,7 @@ export default function MemoryView() {
                                 size="small"
                                 label="Project"
                                 value={projectId}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                     setProjectId(e.target.value);
                                     setOffset(0);
                                     setSearchResults(null);
@@ -189,7 +190,7 @@ export default function MemoryView() {
                                 size="small"
                                 label="Agent ID"
                                 value={agentId}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                     setAgentId(e.target.value);
                                     setOffset(0);
                                     setSearchResults(null);
@@ -202,7 +203,7 @@ export default function MemoryView() {
                                 size="small"
                                 label="Search query"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e: any) => setSearchQuery(e.target.value)}
                                 fullWidth
                             />
                             <Button
@@ -290,7 +291,7 @@ export default function MemoryView() {
                                                             size="small"
                                                             color="error"
                                                             startIcon={<DeleteIcon />}
-                                                            onClick={(e) => {
+                                                            onClick={(e: any) => {
                                                                 e.stopPropagation();
                                                                 setConfirmDelete(item);
                                                             }}
@@ -309,7 +310,7 @@ export default function MemoryView() {
                                     component="div"
                                     count={listQuery.data?.total ?? 0}
                                     page={Math.floor(offset / PAGE_SIZE)}
-                                    onPageChange={(_, page) => setOffset(page * PAGE_SIZE)}
+                                    onPageChange={(_: any, page: any) => setOffset(page * PAGE_SIZE)}
                                     rowsPerPage={PAGE_SIZE}
                                     rowsPerPageOptions={[PAGE_SIZE]}
                                 />
@@ -368,7 +369,7 @@ export default function MemoryView() {
                             component="div"
                             count={auditQuery.data?.total ?? 0}
                             page={Math.floor(auditOffset / PAGE_SIZE)}
-                            onPageChange={(_, page) => setAuditOffset(page * PAGE_SIZE)}
+                            onPageChange={(_: any, page: any) => setAuditOffset(page * PAGE_SIZE)}
                             rowsPerPage={PAGE_SIZE}
                             rowsPerPageOptions={[PAGE_SIZE]}
                         />
@@ -389,7 +390,7 @@ export default function MemoryView() {
                             size="small"
                             label="Reason"
                             value={forgetReason}
-                            onChange={(e) => setForgetReason(e.target.value)}
+                            onChange={(e: any) => setForgetReason(e.target.value)}
                             required
                             helperText="Required for forget audit trail"
                         />

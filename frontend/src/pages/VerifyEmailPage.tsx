@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Box, Button, CircularProgress, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Stack, TextField, Typography } from "@/components/ui/muiCompat";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { resendVerification, verifyEmail } from "../api/auth";
 import { AuthMarketingPanel } from "../components/auth/AuthMarketingPanel";
@@ -7,11 +7,12 @@ import { AuthShell } from "../components/auth/AuthShell";
 import { resendVerificationSchema } from "../features/auth/schemas";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
 import { getQueryErrorMessage } from "../utils/queryErrors";
+import { parseRequiredParam } from "../app/searchParams";
 
 export default function VerifyEmailPage() {
     const [searchParams] = useSearchParams();
-    const token = searchParams.get("token");
-    const [email, setEmail] = useState(searchParams.get("email") ?? "");
+    const token = parseRequiredParam(searchParams.get("token"));
+    const [email, setEmail] = useState(searchParams.get("email")?.trim() ?? "");
     const [status, setStatus] = useState<"loading" | "success" | "error" | "no-token">(
         token ? "loading" : "no-token"
     );
@@ -113,7 +114,7 @@ export default function VerifyEmailPage() {
                             label="Email"
                             type="email"
                             value={email}
-                            onChange={(event) => {
+                            onChange={(event: any) => {
                                 setEmail(event.target.value);
                                 setResendError("");
                             }}

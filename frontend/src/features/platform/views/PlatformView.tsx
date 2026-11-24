@@ -1,5 +1,5 @@
-import { Alert, Box, Skeleton } from "@mui/material";
-import { Bolt as BillingIcon, Flag as FlagIcon, Key as KeyIcon, Webhook as WebhookIcon } from "@mui/icons-material";
+import { Alert, Box, Skeleton } from "@/components/ui/muiCompat";
+import { Bolt as BillingIcon, Flag as FlagIcon, Key as KeyIcon, Webhook as WebhookIcon } from "@/components/ui/iconsCompat";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";

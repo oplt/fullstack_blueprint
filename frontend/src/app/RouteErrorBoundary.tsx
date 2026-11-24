@@ -1,5 +1,5 @@
 import { Component, type PropsWithChildren } from "react";
-import { Button, Stack, Typography } from "@mui/material";
+import { Button, Stack, Typography } from "@/components/ui/muiCompat";
 
 export class RouteErrorBoundary extends Component<PropsWithChildren, { failed: boolean }> {
     state = { failed: false };

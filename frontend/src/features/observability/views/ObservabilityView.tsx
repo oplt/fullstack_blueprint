@@ -1,5 +1,5 @@
-import { Alert, Button, Stack } from "@mui/material";
-import { OpenInNew as OpenInNewIcon } from "@mui/icons-material";
+import { Alert, Button, Stack } from "@/components/ui/muiCompat";
+import { OpenInNew as OpenInNewIcon } from "@/components/ui/iconsCompat";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
 import { InvestigationContextFields } from "../components/InvestigationContextFields";

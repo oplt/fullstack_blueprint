@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Divider, Drawer, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Divider, Drawer, MenuItem, Stack, TextField, Typography } from "@/components/ui/muiCompat";
 import type { CalendarItemType } from "../../../api/calendar";
 import type { ProjectTaskPriority } from "../../../api/projects";
 import { PROJECT_TASK_PRIORITIES } from "../../projects/taskOptions";
@@ -52,7 +52,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                     label="Type"
                     select
                     value={draft.type}
-                    onChange={(event) => {
+                    onChange={(event: any) => {
                         const nextType = event.target.value as CalendarItemType;
                         setDraft((current) => ({
                             ...current,
@@ -74,7 +74,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                 <TextField
                     label="Title"
                     value={draft.title}
-                    onChange={(event) => {
+                    onChange={(event: any) => {
                         setDraft((current) => ({ ...current, title: event.target.value }));
                         setFieldErrors((current) => ({ ...current, title: undefined }));
                     }}
@@ -85,7 +85,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                 <TextField
                     label="Description"
                     value={draft.description}
-                    onChange={(event) =>
+                    onChange={(event: any) =>
                         setDraft((current) => ({ ...current, description: event.target.value }))
                     }
                     fullWidth
@@ -99,7 +99,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                             label="Project"
                             select
                             value={draft.project_id}
-                            onChange={(event) => {
+                            onChange={(event: any) => {
                                 setDraft((current) => ({ ...current, project_id: event.target.value }));
                                 setFieldErrors((current) => ({ ...current, project_id: undefined }));
                             }}
@@ -123,7 +123,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                             label="Priority"
                             select
                             value={draft.priority}
-                            onChange={(event) =>
+                            onChange={(event: any) =>
                                 setDraft((current) => ({
                                     ...current,
                                     priority: event.target.value as ProjectTaskPriority,
@@ -149,7 +149,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                             label="Start time"
                             type="time"
                             value={draft.start_time}
-                            onChange={(event) => {
+                            onChange={(event: any) => {
                                 setDraft((current) => ({ ...current, start_time: event.target.value }));
                                 setFieldErrors((current) => ({
                                     ...current,
@@ -166,7 +166,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                             label="End time"
                             type="time"
                             value={draft.end_time}
-                            onChange={(event) => {
+                            onChange={(event: any) => {
                                 setDraft((current) => ({ ...current, end_time: event.target.value }));
                                 setFieldErrors((current) => ({ ...current, end_time: undefined }));
                             }}

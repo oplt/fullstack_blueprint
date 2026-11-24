@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider, createTheme } from "@/components/ui/muiCompat";
 import { ScrollRegion } from "./ScrollRegion";
 
 describe("ScrollRegion", () => {

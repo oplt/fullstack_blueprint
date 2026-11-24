@@ -1,4 +1,4 @@
-import { Alert, Box, Chip, Stack, Typography } from "@mui/material";
+import { Alert, Box, Chip, Stack, Typography } from "@/components/ui/muiCompat";
 import { formatAgentCostMicros, type AgentRun } from "../../api/agent";
 import { AdvancedSettings } from "../../components/ui/AdvancedSettings";
 import { JsonBlock } from "../../components/ui/JsonBlock";

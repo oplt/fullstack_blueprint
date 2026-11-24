@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchItems } from "./client";
+import { apiFetch, apiFetchItems, type ApiRequestOptions } from "./client";
 
 export type UserProfile = {
     id: string;
@@ -20,8 +20,8 @@ export type UserDirectoryEntry = {
     full_name: string | null;
 };
 
-export async function getMe(): Promise<UserProfile> {
-    return apiFetch("/users/me");
+export async function getMe(options?: ApiRequestOptions): Promise<UserProfile> {
+    return apiFetch("/users/me", options);
 }
 
 export async function updateMe(payload: { full_name?: string | null }): Promise<UserProfile> {
@@ -35,14 +35,14 @@ export async function changePassword(payload: {
     return apiFetch("/users/me/password", { method: "PATCH", body: JSON.stringify(payload) });
 }
 
-export async function getSessions(): Promise<Session[]> {
-    return apiFetch("/users/me/sessions");
+export async function getSessions(options?: ApiRequestOptions): Promise<Session[]> {
+    return apiFetch("/users/me/sessions", options);
 }
 
 export async function revokeSession(sessionId: string): Promise<void> {
     return apiFetch(`/users/me/sessions/${sessionId}`, { method: "DELETE" });
 }
 
-export async function listUserDirectory(): Promise<UserDirectoryEntry[]> {
-    return apiFetchItems<UserDirectoryEntry>("/users/directory");
+export async function listUserDirectory(options?: ApiRequestOptions): Promise<UserDirectoryEntry[]> {
+    return apiFetchItems<UserDirectoryEntry>("/users/directory", options);
 }

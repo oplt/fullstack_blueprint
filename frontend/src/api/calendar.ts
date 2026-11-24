@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, type ApiRequestOptions } from "./client";
 import type { ProjectTaskPriority, ProjectTaskStatus } from "./projects";
 
 export type CalendarItemType = "event" | "appointment" | "task";
@@ -22,13 +22,14 @@ export type CalendarItem = {
 
 export async function listCalendarItems(
     startDate: string,
-    endDate: string
+    endDate: string,
+    options?: ApiRequestOptions,
 ): Promise<CalendarItem[]> {
     const params = new URLSearchParams({
         start_date: startDate,
         end_date: endDate,
     });
-    return apiFetch(`/calendar/items?${params.toString()}`);
+    return apiFetch(`/calendar/items?${params.toString()}`, options);
 }
 
 export async function createCalendarItem(payload: {

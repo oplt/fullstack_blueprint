@@ -1,0 +1,1717 @@
+# Fullstack Blueprint 2.0 — Frontend Modernization
+
+## 1. Role and objective
+
+Act as a principal frontend architect, senior full-stack developer, UI/UX engineer, AI application engineer, security engineer, and software quality engineer.
+
+You are responsible for analyzing, modernizing, refactoring, and extending the frontend of this repository:
+
+The repository is intended to serve as a reusable, production-ready application blueprint for developing different types of products, including:
+
+- SaaS applications
+- AI-powered applications
+- Enterprise dashboards
+- Document analysis and RAG applications
+- Agent-based applications
+- Workflow automation platforms
+- Internal business applications
+- Customer portals
+- Data analytics platforms
+
+The objective is not merely to redesign the existing application. The objective is to create a modern, modular, maintainable, accessible, scalable, customizable, AI-native frontend architecture that can accelerate the development of future applications.
+
+Implement the modernization in clearly defined phases.
+
+Do not simply provide recommendations or implementation plans. Inspect the repository, modify the actual code, install compatible dependencies, implement the required features, run tests, resolve failures, and update the documentation.
+
+---
+
+## 2. Fundamental engineering principles
+
+Follow these principles throughout the implementation:
+
+- Prefer simplicity, maintainability, and composability.
+- Avoid unnecessary abstractions and premature optimization.
+- Preserve existing functionality and business logic.
+- Maintain backward compatibility with the existing FastAPI backend wherever possible.
+- Keep the modular, feature-based frontend architecture.
+- Follow SOLID, DRY, KISS, and separation-of-concerns principles pragmatically.
+- Prefer composition over inheritance.
+- Prefer strongly typed interfaces and discriminated unions.
+- Avoid `any`, unsafe type assertions, duplicated interfaces, and unnecessary state.
+- Use production-quality implementations rather than temporary placeholders.
+- Do not introduce multiple libraries that solve the same problem.
+- Prefer official, maintained, stable dependencies.
+- Do not install experimental or prerelease dependencies into the default application.
+- Keep optional capabilities genuinely optional.
+- Do not expose secrets, credentials, access tokens, or private configuration.
+- Preserve existing user changes.
+- Never execute destructive database, storage, or infrastructure operations.
+- Do not push changes or create remote pull requests unless explicitly authorized.
+
+Before selecting or upgrading a library, verify its current stable version, official documentation, compatibility requirements, migration guides, security status, and maintenance activity.
+
+Do not assume that a library version mentioned in this prompt is the latest available version.
+
+---
+
+## 3. Mandatory initial repository analysis
+
+Before modifying the code, perform a comprehensive analysis of the existing frontend and relevant backend interfaces.
+
+Inspect at least:
+
+- `AGENTS.md`
+- `README.md`
+- `DESIGN.md`
+- `frontend/package.json`
+- `frontend/package-lock.json`
+- `frontend/vite.config.ts`
+- `frontend/vitest.config.ts`
+- `frontend/tsconfig*.json`
+- `frontend/eslint.config.js`
+- `frontend/src/app/`
+- `frontend/src/api/`
+- `frontend/src/components/`
+- `frontend/src/features/`
+- `frontend/src/pages/`
+- `frontend/src/hooks/`
+- `frontend/src/config/`
+- `frontend/src/types/`
+- `frontend/src/utils/`
+- `frontend/e2e/`
+- `backend/api/router.py`
+- Relevant backend API routes and Pydantic schemas
+- Existing authentication, authorization, CSRF, streaming, and feature-flag implementations
+
+Identify:
+
+1. Existing frontend architecture and dependencies.
+2. Deprecated, outdated, redundant, or incompatible dependencies.
+3. Material UI and Emotion usage throughout the repository.
+4. Existing shared UI components and their consumers.
+5. Existing routing and authentication architecture.
+6. Existing API clients and manually maintained TypeScript types.
+7. Existing state-management patterns.
+8. Existing AI Studio, agent, RAG, memory, and observability interfaces.
+9. Existing responsive design and accessibility issues.
+10. Existing test coverage and testing infrastructure.
+11. Build performance and production bundle characteristics.
+12. Conflicts between design documentation and actual implementations.
+13. Security risks and architectural inconsistencies.
+14. Functionality that must be preserved during migration.
+
+Run the existing linting, type-checking, unit tests, production build, and available end-to-end tests before implementation.
+
+Record existing failures separately from failures introduced by modernization.
+
+Do not silently remove failing tests.
+
+---
+
+## 4. Target frontend technology stack
+
+Use the following as the architectural target, subject to verified compatibility.
+
+### Core technologies
+
+| Category | Target |
+|---|---|
+| UI framework | React 19 or compatible current stable |
+| Language | TypeScript |
+| Build system | Current supported stable Vite, preferably Vite 8 or newer |
+| Styling | Tailwind CSS v4 |
+| UI components | shadcn/ui |
+| Accessible primitives | Base UI or Radix, based on current official shadcn guidance |
+| Icons | Lucide React |
+| Server state | TanStack Query |
+| Forms | React Hook Form |
+| Validation | Zod |
+| Routing | Existing React Router initially |
+| Data tables | TanStack Table |
+| API generation | Hey API / openapi-ts |
+| Notifications | Sonner |
+| Date selection | React DayPicker |
+| Unit testing | Vitest |
+| Component testing | React Testing Library |
+| Browser testing | Playwright |
+| API mocking | MSW |
+| Component documentation | Storybook |
+
+### Extended reusable technologies
+
+Introduce the following when justified by an implemented capability:
+
+| Technology | Purpose |
+|---|---|
+| Zustand | Complex client-only state |
+| TanStack Virtual | Large lists, data tables, chat histories |
+| Recharts | Dashboard charts |
+| Motion | Meaningful animation and transitions |
+| i18next | Internationalization |
+| cmdk or current equivalent | Command palette |
+| Tiptap | Rich-text editing |
+| React Flow | Visual workflows |
+| Dexie | Offline application data |
+| AI SDK UI | Streaming AI conversations |
+| AI Elements | Reusable AI interface components |
+| Streamdown | Streaming Markdown |
+| Shiki | Code highlighting |
+| AG-UI | Advanced agent-to-frontend interactions |
+| assistant-ui | Alternative AI interface implementation |
+| React Compiler | Optional React optimization |
+
+Do not install every optional technology automatically.
+
+Implement optional technologies as isolated capability modules, documented integration patterns, or reference implementations where appropriate.
+
+Select one primary solution when multiple technologies solve the same problem.
+
+---
+
+# Implementation phases
+
+## Phase 0 — Audit, baseline, and migration planning
+
+Create the following documentation structure:
+
+```text
+docs/frontend/
+├── AUDIT.md
+├── ARCHITECTURE.md
+├── MODERNIZATION_PLAN.md
+├── MIGRATION_STATUS.md
+├── DEPENDENCY_MATRIX.md
+├── TEST_BASELINE.md
+├── PERFORMANCE_BASELINE.md
+├── IMPLEMENTATION_LOG.md
+├── COMPONENT_INVENTORY.md
+└── decisions/
+```
+
+Document the current architecture, identified problems, planned replacements, dependency compatibility, migration risks, and acceptance criteria.
+
+Create a complete inventory of Material UI and Emotion dependencies, imports, components, theme overrides, and styling patterns.
+
+Identify which components can be replaced directly and which require custom implementations.
+
+Record baseline metrics where measurable:
+
+- Production bundle size
+- Build duration
+- Test count and results
+- TypeScript errors
+- Lint errors
+- Accessibility findings
+- Lighthouse metrics where browser tooling is available
+
+Create a phase-by-phase checklist in `MIGRATION_STATUS.md`.
+
+### Acceptance criteria
+
+- Repository architecture is understood.
+- Existing functionality is inventoried.
+- Baseline test results are recorded.
+- Migration dependencies and risks are documented.
+- No existing functionality has been removed.
+
+---
+
+## Phase 1 — Upgrade frontend build tooling and dependencies
+
+Modernize the frontend development toolchain.
+
+### Required work
+
+1. Upgrade Vite from the existing Vite 5 generation to a currently supported stable version.
+2. Upgrade the React Vite plugin to a compatible version.
+3. Upgrade Vitest and its coverage tooling.
+4. Upgrade TypeScript where compatible.
+5. Upgrade React and React DOM within a supported stable release line.
+6. Upgrade Playwright and React Testing Library.
+7. Upgrade ESLint and relevant plugins when necessary.
+8. Verify compatibility of `vite-plugin-pwa`.
+9. Remove obsolete configuration and deprecated APIs.
+10. Modernize TypeScript configuration and module resolution.
+11. Ensure frontend builds are reproducible.
+12. Introduce dependency vulnerability checks.
+13. Verify compatibility with the repository's supported Node.js versions.
+14. Preserve the existing development proxy and environment-variable behavior.
+
+Evaluate migrating from npm to pnpm.
+
+Adopt pnpm only if it provides a clear benefit for the proposed package or workspace architecture. If adopted, update the Makefile, CI workflows, README, Docker-related configuration, and lockfile strategy consistently.
+
+Maintain only one authoritative frontend package-manager lockfile.
+
+Evaluate React Compiler separately. Do not enable it globally until compatibility and measurable benefits have been demonstrated.
+
+### Acceptance criteria
+
+- Clean dependency installation succeeds.
+- Development server starts successfully.
+- Production build succeeds.
+- Existing tests pass or documented baseline failures remain unchanged.
+- PWA installation and service-worker behavior remain functional.
+- No newly introduced critical dependency vulnerabilities remain unresolved.
+
+---
+
+## Phase 2 — Establish a canonical design system
+
+Analyze the inconsistency between:
+
+- The Linear-inspired specification in `DESIGN.md`.
+- The Tesla-inspired tokens in `frontend/src/app/designTokens.ts`.
+- Existing MUI theme definitions.
+- Existing installed fonts and typography.
+
+Replace these conflicting sources with one canonical, framework-independent design-token system.
+
+### Required design tokens
+
+Implement semantic tokens for:
+
+- Background
+- Foreground
+- Card
+- Popover
+- Primary
+- Secondary
+- Muted
+- Accent
+- Destructive
+- Success
+- Warning
+- Information
+- Border
+- Input
+- Focus ring
+- Sidebar
+- Chart colors
+- Typography
+- Font weights
+- Spacing
+- Border radius
+- Elevation
+- Motion
+- Density
+- Responsive breakpoints
+
+Prefer CSS custom properties integrated with Tailwind CSS.
+
+Do not scatter hardcoded colors, arbitrary spacing values, and inconsistent font definitions across feature components.
+
+### Theme presets
+
+Implement reusable design presets:
+
+1. Minimal SaaS
+2. Linear-inspired
+3. Enterprise
+4. Creative AI
+
+Each preset should support:
+
+- Light mode
+- Dark mode
+- System theme
+- Configurable primary color
+- Configurable typography
+- Configurable border radius
+- Compact and comfortable density where appropriate
+
+Implement persistent theme preferences.
+
+Use accessible open-source fonts such as Inter, Geist, or another justified choice. Do not depend on unavailable proprietary fonts.
+
+Update `DESIGN.md` to reflect the actual implemented design system.
+
+Where feasible, generate design documentation from canonical token definitions.
+
+### Acceptance criteria
+
+- One authoritative design-token system exists.
+- Theme presets are functional.
+- Light and dark modes are consistent.
+- Components meet WCAG 2.2 AA contrast requirements where applicable.
+- Existing pages can coexist with the new design system during migration.
+- No unresolved design-token conflicts remain.
+
+---
+
+## Phase 3 — Introduce Tailwind CSS and shadcn/ui
+
+Install and configure Tailwind CSS v4 and shadcn/ui using their current official recommended approaches.
+
+Select Base UI or Radix primitives based on stability, accessibility, component availability, compatibility, and the current official shadcn implementation.
+
+Avoid maintaining two primitive systems without a clear architectural reason.
+
+Configure:
+
+- Tailwind Vite integration
+- CSS variables
+- Theme tokens
+- Component aliases
+- TypeScript path aliases
+- shadcn component configuration
+- Utility-class merging
+- Component variants
+- Lucide React icons
+
+Use appropriate utilities such as:
+
+- `clsx`
+- `tailwind-merge`
+- `class-variance-authority`
+
+### Build the shared UI component library
+
+Implement or migrate reusable components including:
+
+- Button
+- Input
+- Textarea
+- Field
+- Label
+- Checkbox
+- Radio Group
+- Switch
+- Select
+- Combobox
+- Slider
+- Dialog
+- Alert Dialog
+- Sheet
+- Drawer
+- Dropdown Menu
+- Context Menu
+- Popover
+- Tooltip
+- Tabs
+- Accordion
+- Collapsible
+- Avatar
+- Badge
+- Card
+- Table
+- Skeleton
+- Separator
+- Progress
+- Spinner
+- Calendar
+- Date Picker
+- Date Range Picker
+- Breadcrumb
+- Pagination
+- Sidebar
+- Navigation Menu
+- Command Palette
+- Toast
+- Scroll Area
+- Resizable Panels
+- Empty State
+- Error State
+- Loading State
+
+Only install components that are required by existing features or implemented reusable capabilities.
+
+Keep UI primitives independent of business-domain logic.
+
+### Migration safety
+
+During the transition, MUI and shadcn may coexist temporarily.
+
+Ensure that:
+
+- Tailwind preflight does not unexpectedly break existing MUI components.
+- Global styles and CSS specificity are controlled.
+- Portals, dialogs, and overlays remain functional.
+- Theme synchronization remains consistent.
+- Z-index behavior is predictable.
+- Keyboard navigation remains accessible.
+
+### Acceptance criteria
+
+- Tailwind and shadcn are integrated successfully.
+- Shared UI components are reusable and typed.
+- Components support all required theme presets.
+- Existing pages remain functional during migration.
+
+---
+
+## Phase 4 — Migrate shared components from Material UI
+
+Inspect every existing component under:
+
+```text
+frontend/src/components/ui/
+frontend/src/components/layout/
+frontend/src/components/auth/
+frontend/src/components/guards/
+frontend/src/components/notifications/
+frontend/src/components/dashboard/
+```
+
+Migrate existing shared components before migrating individual feature pages.
+
+Preserve existing public component interfaces when practical to reduce unnecessary changes across consumers.
+
+### Component migration mapping
+
+| Existing technology | Replacement |
+|---|---|
+| MUI Button | shadcn Button |
+| MUI TextField | Input and Field |
+| MUI Dialog | Dialog |
+| MUI Drawer | Sheet or Drawer |
+| MUI Select | Select or Combobox |
+| MUI Snackbar | Sonner |
+| MUI AppBar | Custom application header |
+| MUI Stack | Tailwind Flex |
+| MUI Grid | Tailwind Grid |
+| MUI Box | Semantic HTML and Tailwind |
+| MUI Card | shadcn Card |
+| MUI Table | TanStack Table |
+| MUI Icons | Lucide React |
+| MUI Tabs | shadcn Tabs |
+| MUI Tooltip | shadcn Tooltip |
+| MUI Skeleton | shadcn Skeleton |
+| MUI Date Pickers | React DayPicker and date/time components |
+| Emotion styled components | Tailwind and CSS variables |
+
+Pay particular attention to existing components such as:
+
+- `DataTable`
+- `PageHeader`
+- `PageShell`
+- `PageTabs`
+- `SectionCard`
+- `StatCard`
+- `MetricGrid`
+- `QueryBoundary`
+- `EmptyState`
+- `ContextInspector`
+- `JsonBlock`
+- `RunStatusPanel`
+- `RunStatusChip`
+- `AdvancedSettings`
+- `HelpTooltip`
+- `WorkspaceSplit`
+- `ResponsiveCardGrid`
+- `ScrollRegion`
+- `FormGrid`
+
+Do not remove meaningful accessibility behavior or responsive layout logic from existing components.
+
+Preserve date and time functionality, localization, timezone handling, range selection, and keyboard interaction when replacing date pickers.
+
+### Acceptance criteria
+
+- Shared UI components no longer require MUI.
+- Existing component behavior is preserved.
+- Shared component tests pass.
+- No duplicated component implementations remain without justification.
+
+---
+
+## Phase 5 — Modernize the application shell and navigation
+
+Redesign the reusable application shell.
+
+Create a modern, responsive layout containing:
+
+- Collapsible sidebar
+- Mobile navigation drawer
+- Application branding
+- Organization or project selector where supported
+- Breadcrumbs
+- Global search
+- Command palette
+- Notification center
+- Profile menu
+- Theme switcher
+- Contextual page actions
+- Settings navigation
+- Accessible keyboard shortcuts
+
+Navigation should be configuration-driven rather than hardcoded across multiple components.
+
+Integrate existing backend feature flags and module availability.
+
+Disabled modules should not appear in navigation unless a deliberate disabled-state experience is required.
+
+Maintain backend authorization enforcement. Frontend visibility controls are not a substitute for authorization.
+
+Support reusable layout variants:
+
+- Standard SaaS dashboard
+- Full-width workspace
+- Split-panel workspace
+- Authentication layout
+- Settings layout
+- Public marketing layout
+- AI conversation workspace
+
+Persist non-sensitive sidebar and layout preferences.
+
+### Acceptance criteria
+
+- Application shell is responsive.
+- All existing authorized routes remain reachable.
+- Mobile navigation is functional.
+- Feature flags and module availability are respected.
+- Keyboard navigation and focus management are functional.
+
+---
+
+## Phase 6 — Migrate all existing feature pages
+
+Migrate feature pages incrementally using the new design system and shared components.
+
+Recommended order:
+
+1. Authentication and registration
+2. Email verification
+3. Password reset
+4. Dashboard
+5. User profile
+6. User sessions and MFA
+7. Projects
+8. Project detail and tasks
+9. Calendar
+10. Notifications
+11. Administration
+12. Platform configuration
+13. Subscription and plan interfaces
+14. Feature flags
+15. API keys
+16. Webhooks
+17. Email templates
+18. AI Studio
+19. Agent execution and history
+20. RAG document management
+21. RAG evaluation interfaces
+22. Memory management
+23. Observability
+24. Administrative settings
+
+For each feature:
+
+1. Inspect the existing implementation and tests.
+2. Identify functionality and API dependencies.
+3. Replace MUI components.
+4. Apply canonical design tokens.
+5. Improve responsive behavior.
+6. Improve loading, empty, error, success, and disabled states.
+7. Verify authorization behavior.
+8. Improve accessibility.
+9. Preserve existing query caching and invalidation.
+10. Run relevant tests.
+11. Update migration documentation.
+
+Avoid combining unrelated business-logic changes with UI migration.
+
+### Remove legacy dependencies
+
+Only after every consumer has been migrated, remove unused dependencies such as:
+
+- `@mui/material`
+- `@mui/icons-material`
+- `@mui/x-date-pickers`
+- `@emotion/react`
+- `@emotion/styled`
+
+Remove obsolete theme providers, MUI-specific utilities, styles, and configuration.
+
+Verify removal using dependency analysis and repository-wide import searches.
+
+### Acceptance criteria
+
+- All existing pages are migrated.
+- No remaining MUI or Emotion imports exist unless explicitly documented as an unavoidable exception.
+- Existing business functionality is preserved.
+- Feature-level and end-to-end tests pass.
+
+---
+
+## Phase 7 — Introduce generated API contracts
+
+Replace manually duplicated API interfaces with generated TypeScript contracts derived from FastAPI OpenAPI schemas.
+
+Use Hey API or its currently recommended official code-generation tooling.
+
+### Required architecture
+
+```text
+FastAPI / Pydantic
+        ↓
+OpenAPI specification
+        ↓
+Generated TypeScript types
+        ↓
+Generated API client
+        ↓
+TanStack Query integration
+        ↓
+Frontend features
+```
+
+Create an isolated generated API directory:
+
+```text
+frontend/src/api/
+├── generated/
+├── transport/
+├── adapters/
+└── index.ts
+```
+
+Generated files must not be edited manually.
+
+Preserve the behavior of the existing API client, including:
+
+- Cookie-based authentication
+- CSRF protection
+- Refresh-token handling
+- Concurrent refresh deduplication
+- Session expiration
+- HTTP error handling
+- File uploads
+- Streaming endpoints
+- Request cancellation
+- Pagination
+- API base URL configuration
+
+Do not introduce localStorage-based access-token storage.
+
+Handle FastAPI validation errors and structured backend errors consistently.
+
+Introduce a typed API error abstraction that supports field-level validation messages, status codes, and correlation identifiers where available.
+
+Generate OpenAPI contracts using a deterministic configuration that includes the appropriate optional backend modules.
+
+Provide commands for:
+
+- Exporting OpenAPI
+- Generating API types
+- Checking generated contract freshness
+
+Add an automated CI check that detects stale generated contracts.
+
+Only modify backend code where necessary to support contract generation or explicitly required compatibility changes. Document all such modifications.
+
+### Acceptance criteria
+
+- API types are generated automatically.
+- Existing authentication and CSRF behavior remain intact.
+- Handwritten duplicate types are removed where safe.
+- API clients support file uploads and streaming.
+- CI detects API contract drift.
+- Existing API integration tests pass.
+
+---
+
+## Phase 8 — Modernize routing and state management
+
+### Routing
+
+Evaluate React Router against TanStack Router.
+
+Compare:
+
+- Type-safe route parameters
+- Type-safe navigation
+- Search parameter validation
+- Lazy loading
+- Authentication guards
+- Feature-module registration
+- Error boundaries
+- Data-loading integration
+- Testing complexity
+- Migration cost
+
+Preserve React Router initially.
+
+Only migrate to TanStack Router if the audit demonstrates a meaningful architectural benefit and a safe migration strategy.
+
+Do not maintain two competing routers in the production application.
+
+Preserve existing URLs, deep links, redirect behavior, and browser history.
+
+### State management
+
+Establish clear state ownership:
+
+| State category | Solution |
+|---|---|
+| Server state | TanStack Query |
+| Form state | React Hook Form |
+| URL state | Router search parameters |
+| Local UI state | React state |
+| Theme and preferences | Context or dedicated preference store |
+| Complex workspace state | Zustand where justified |
+| Persistent offline data | IndexedDB/Dexie where justified |
+
+Improve TanStack Query configuration:
+
+- Centralized query keys
+- Appropriate stale times
+- Cache invalidation
+- Query cancellation
+- Mutation handling
+- Optimistic updates where safe
+- Pagination
+- Infinite queries
+- Error boundaries
+- Session-related cache cleanup
+
+Do not duplicate TanStack Query server data in Zustand.
+
+### Acceptance criteria
+
+- State ownership is documented.
+- Route behavior remains backward compatible.
+- Query and mutation behavior is predictable.
+- Unnecessary global state is eliminated.
+- Cross-user and cross-session cache leakage is prevented.
+
+---
+
+## Phase 9 — Build reusable data and business UI capabilities
+
+Create reusable components for common future application requirements.
+
+### Advanced data table
+
+Use TanStack Table to support:
+
+- Sorting
+- Filtering
+- Global search
+- Server-side pagination
+- Client-side pagination
+- Column visibility
+- Column resizing
+- Row selection
+- Bulk actions
+- Expandable rows
+- Custom cell rendering
+- Loading skeletons
+- Empty states
+- Error states
+- Accessible table navigation
+- Responsive presentation
+- CSV export where permitted
+
+Support TanStack Virtual for large datasets when performance measurements justify virtualization.
+
+### Dashboard components
+
+Use Recharts to implement reusable:
+
+- Line charts
+- Area charts
+- Bar charts
+- Pie or donut charts
+- Time-series charts
+- Metric cards
+- Trend indicators
+- Comparison cards
+- Dashboard filter controls
+- Accessible chart descriptions and tabular alternatives
+
+### Forms
+
+Standardize form components using React Hook Form and Zod.
+
+Support:
+
+- Field-level validation
+- Server-side validation errors
+- Conditional fields
+- Dynamic field arrays
+- Multi-step forms
+- File uploads
+- Accessible validation feedback
+- Unsaved-change protection
+- Submission loading states
+- Disabled-state explanations
+
+### Additional reusable capabilities
+
+Implement or document optional reference modules for:
+
+- Command palette
+- File uploader
+- File preview
+- JSON inspector
+- Markdown renderer
+- Code viewer
+- Rich-text editor using Tiptap
+- Visual workflow editor using React Flow
+- Onboarding steps
+- Activity timeline
+- Audit-log viewer
+- Notification preferences
+- User and team selectors
+
+Do not create fake business functionality merely to demonstrate a component. Use Storybook fixtures or isolated examples when backend support does not exist.
+
+### Acceptance criteria
+
+- Data tables, forms, dashboards, and business UI components are reusable.
+- Components are independent of specific product domains.
+- Large-data and error-state behavior are tested.
+- Optional dependencies are isolated from the core bundle.
+
+---
+
+## Phase 10 — Create an AI-native frontend architecture
+
+Preserve the existing AI Studio, RAG, memory, and agent functionality.
+
+Introduce a separate reusable end-user AI workspace architecture.
+
+### Recommended technology selection
+
+Evaluate:
+
+- AI SDK UI
+- AI Elements
+- assistant-ui
+- AG-UI
+- Streamdown
+- Shiki
+
+Prefer AI SDK UI and compatible shadcn-based AI components as the initial implementation unless the repository audit identifies a better fit.
+
+Do not introduce a separate Node.js AI backend merely to support frontend libraries.
+
+The existing FastAPI backend remains the authoritative backend.
+
+### AI workspace features
+
+Implement reusable components for:
+
+- Conversation sidebar
+- Conversation history
+- Message composer
+- User messages
+- Assistant messages
+- Streaming responses
+- Markdown rendering
+- Code blocks
+- Syntax highlighting
+- Copy message
+- Stop generation
+- Retry generation
+- Regenerate response
+- Model selector
+- File attachments
+- Source citations
+- Tool execution status
+- Agent run status
+- Tool result rendering
+- Human approval requests
+- Token and usage indicators
+- Context inspector
+- Memory controls
+- Artifact previews
+- Error recovery
+
+### Streaming architecture
+
+Create a typed event model supporting events such as:
+
+```text
+run_started
+message_started
+text_delta
+tool_call_started
+tool_call_completed
+approval_requested
+approval_resolved
+citation_added
+artifact_created
+usage_updated
+run_completed
+run_cancelled
+run_failed
+```
+
+Support:
+
+- Server-Sent Events or compatible existing streaming transport
+- Incremental updates
+- Request cancellation
+- Connection error handling
+- Duplicate-event handling
+- Graceful reconnection where supported
+- Stream cleanup
+- Accessible live announcements
+
+Never fabricate tool activity, citations, costs, reasoning, or agent execution status.
+
+Display only information provided by trusted backend events.
+
+If backend endpoints do not yet support a required event or capability, implement typed frontend integration interfaces and isolated development fixtures.
+
+Document the missing backend contract.
+
+Do not claim that mock functionality is production-ready.
+
+### AI security requirements
+
+- Treat model output as untrusted content.
+- Sanitize rendered Markdown and HTML.
+- Prevent XSS through model-generated content.
+- Do not execute arbitrary model-generated JavaScript.
+- Validate external URLs.
+- Require explicit user confirmation for sensitive actions.
+- Do not expose provider credentials in the frontend.
+- Enforce action permissions through the backend.
+
+### Acceptance criteria
+
+- Existing AI Studio remains functional.
+- A reusable AI workspace architecture exists.
+- Streaming behavior is tested against available backend contracts.
+- Missing backend capabilities are explicitly documented.
+- AI-generated content is rendered safely.
+
+---
+
+## Phase 11 — Introduce generative UI
+
+Create a schema-driven rendering architecture for structured AI outputs.
+
+The backend may return validated structured data that the frontend renders through approved components.
+
+Create an allowlisted component registry supporting:
+
+- Text
+- Markdown
+- Metric cards
+- Data tables
+- Charts
+- Comparison cards
+- Checklists
+- Task lists
+- Timelines
+- Citations
+- File previews
+- Forms
+- Approval requests
+- Structured reports
+- Workflow status
+- Artifact cards
+
+Use Zod discriminated unions or another appropriate typed schema-validation mechanism.
+
+Suggested structure:
+
+```text
+frontend/src/features/ai/
+├── components/
+├── conversations/
+├── streaming/
+├── tools/
+├── artifacts/
+├── generative-ui/
+│   ├── schemas/
+│   ├── registry/
+│   ├── renderers/
+│   └── validation/
+├── hooks/
+└── types/
+```
+
+Requirements:
+
+- Validate every structured component payload.
+- Reject unsupported component types safely.
+- Provide fallback rendering.
+- Limit component nesting and payload sizes.
+- Prevent arbitrary component execution.
+- Separate visual rendering from action execution.
+- Require backend authorization for actions.
+- Support accessible rendering.
+- Provide Storybook examples and tests.
+
+Do not allow the model to generate arbitrary JSX, executable HTML, or JavaScript for direct execution.
+
+### Acceptance criteria
+
+- Typed component registry exists.
+- Structured outputs can be rendered safely.
+- Invalid payloads fail gracefully.
+- Interactive actions are explicitly authorized.
+- The rendering architecture is reusable across future AI applications.
+
+---
+
+## Phase 12 — Internationalization and accessibility
+
+### Internationalization
+
+Introduce i18next and the appropriate React integration.
+
+Implement:
+
+- Translation namespaces
+- Language selection
+- Browser language detection
+- Persistent language preferences
+- Date and time formatting
+- Number formatting
+- Currency formatting
+- Pluralization
+- Locale-aware validation messages
+- RTL-compatible layout architecture
+
+Provide English as the primary locale.
+
+Add Dutch and French as reference locales where practical, without pretending incomplete translations are production-ready.
+
+Avoid hardcoding user-facing strings in reusable components.
+
+### Accessibility
+
+Target WCAG 2.2 AA.
+
+Verify:
+
+- Semantic HTML
+- Keyboard navigation
+- Visible focus indicators
+- Accessible labels
+- Form-error associations
+- Dialog focus trapping
+- Focus restoration
+- Skip-to-content links
+- Screen-reader announcements
+- Accessible notifications
+- Color contrast
+- Reduced-motion preferences
+- Accessible charts
+- Touch-target sizes
+
+Introduce automated accessibility testing using axe-compatible tooling.
+
+Preserve and extend the repository's existing accessibility tests.
+
+Automated tests must be supplemented with documented manual checks for important interaction flows.
+
+### Acceptance criteria
+
+- Locale architecture is functional.
+- Language changes do not break layouts.
+- Core user journeys are keyboard accessible.
+- Critical automated accessibility violations are resolved.
+- Known accessibility limitations are documented.
+
+---
+
+## Phase 13 — Performance optimization and PWA improvements
+
+Analyze the frontend for measurable performance issues.
+
+Implement appropriate improvements:
+
+- Route-level code splitting
+- Lazy-loaded optional features
+- Dynamic imports
+- Optimized icon imports
+- Efficient query caching
+- Request deduplication
+- Virtualized long lists
+- Efficient chat-history rendering
+- Font optimization
+- Responsive image handling
+- Reduced unnecessary re-renders
+- Dependency and bundle analysis
+- Deferred loading of expensive editors and charts
+- Appropriate Web Vitals monitoring
+
+Evaluate React Compiler in an isolated implementation and enable it only if supported by the selected stack.
+
+### PWA requirements
+
+Preserve and improve existing PWA functionality.
+
+Verify:
+
+- Application manifest
+- Installability
+- Service-worker registration
+- Application update behavior
+- Offline fallback
+- Cache expiration
+- Safe cache invalidation
+- Logout-related cleanup
+
+Do not cache sensitive authenticated API responses by default.
+
+Only introduce Dexie for a clearly defined offline capability with appropriate security, synchronization, and deletion policies.
+
+### Acceptance criteria
+
+- Performance metrics are recorded and compared against the baseline.
+- Optional modules do not unnecessarily inflate the initial bundle.
+- PWA behavior is verified.
+- Sensitive data is not unintentionally cached.
+- Material regressions are resolved or explicitly justified.
+
+---
+
+## Phase 14 — Storybook and reusable component documentation
+
+Introduce Storybook using a version compatible with the selected React and Vite stack.
+
+Create stories for:
+
+- Design tokens
+- Theme presets
+- Typography
+- UI primitives
+- Forms
+- Dialogs
+- Navigation
+- Data tables
+- Dashboard charts
+- Loading states
+- Empty states
+- Error states
+- AI messages
+- Streaming states
+- Tool execution indicators
+- Generative UI components
+- File and artifact previews
+
+Include examples for:
+
+- Light mode
+- Dark mode
+- Mobile layouts
+- Desktop layouts
+- Disabled states
+- Error states
+- Long content
+- Accessibility behavior
+
+Introduce MSW for API mocking.
+
+Use deterministic fixtures.
+
+Where practical, introduce automated interaction testing and visual regression testing.
+
+Create a reusable shadcn registry for distributing blueprint-specific components and blocks if this provides a clear benefit for future generated applications.
+
+### Acceptance criteria
+
+- Storybook builds successfully.
+- Shared components are documented.
+- Components can be tested without a running backend.
+- Mocked interfaces are clearly distinguished from production integrations.
+
+---
+
+## Phase 15 — Finalize frontend modularity and blueprint configurability
+
+Optimize the frontend for generating different applications.
+
+Introduce a typed capability manifest that can define:
+
+- Capability identifier
+- Required dependencies
+- Available routes
+- Navigation entries
+- Feature flags
+- Required permissions
+- Required backend endpoints
+- Optional frontend dependencies
+
+Support application presets such as:
+
+- Minimal
+- SaaS
+- AI SaaS
+- Knowledge platform
+- Automation platform
+- Enterprise
+- Internal business application
+
+Preserve compatibility with the existing backend module catalog and module packs.
+
+Distinguish clearly between:
+
+- Build-time module selection
+- Deployment configuration
+- Runtime feature flags
+- User permissions
+- Commercial entitlements
+
+Ensure the server remains authoritative for permissions and entitlements.
+
+Create reusable configuration interfaces for:
+
+- Application name
+- Branding
+- Logo
+- Theme preset
+- Default language
+- Navigation
+- Enabled capabilities
+- Layout variants
+
+Avoid splitting the frontend into multiple workspace packages unless there is a demonstrated need for independently reusable packages or multiple frontend applications.
+
+Document how the frontend can later integrate with a Copier-based application generator.
+
+### Suggested target structure
+
+```text
+frontend/
+├── src/
+│   ├── api/
+│   │   ├── generated/
+│   │   ├── transport/
+│   │   └── adapters/
+│   ├── app/
+│   │   ├── providers/
+│   │   ├── router/
+│   │   └── configuration/
+│   ├── components/
+│   │   ├── ui/
+│   │   ├── layout/
+│   │   ├── forms/
+│   │   ├── data-table/
+│   │   ├── charts/
+│   │   ├── feedback/
+│   │   ├── ai-elements/
+│   │   └── blocks/
+│   ├── features/
+│   ├── capabilities/
+│   ├── hooks/
+│   ├── lib/
+│   ├── themes/
+│   ├── locales/
+│   ├── styles/
+│   ├── test/
+│   └── types/
+├── .storybook/
+├── e2e/
+└── package.json
+```
+
+Treat this structure as a target, not a requirement to move files unnecessarily.
+
+Prefer gradual changes that improve ownership and discoverability.
+
+### Acceptance criteria
+
+- Branding can be changed centrally.
+- Capabilities can be configured predictably.
+- Navigation respects module availability.
+- Optional features are isolated.
+- The frontend can support multiple product categories without substantial core modifications.
+
+---
+
+## Phase 16 — Testing, security, and CI/CD
+
+Create or extend GitHub Actions workflows for frontend validation.
+
+Include:
+
+1. Reproducible dependency installation.
+2. Dependency vulnerability checks.
+3. Linting.
+4. TypeScript checking.
+5. Generated API contract verification.
+6. Unit tests.
+7. Component tests.
+8. Integration tests.
+9. Production build.
+10. Storybook build.
+11. Playwright end-to-end tests.
+12. Accessibility tests.
+13. Bundle-size regression checks where practical.
+
+Use disposable environments for integration and end-to-end testing.
+
+Do not use existing production databases or real customer data.
+
+### Required test coverage
+
+Verify at least:
+
+- Registration
+- Login
+- Logout
+- Email verification
+- Password reset
+- Session refresh
+- Concurrent authentication failures
+- CSRF protection
+- Protected routes
+- Permission-based navigation
+- Project CRUD
+- Task CRUD
+- Profile management
+- MFA interfaces
+- Notifications
+- Administration
+- Calendar
+- Platform settings
+- Feature flags
+- AI Studio
+- Agent run history
+- RAG document upload and retrieval
+- Memory management
+- Observability
+- Theme switching
+- Language switching
+- Mobile navigation
+- Data table interactions
+- Form validation
+- Streaming interfaces
+- Generative UI validation
+- PWA updates
+
+Test backend-dependent capabilities only against correctly configured disposable environments.
+
+Clearly distinguish:
+
+- Passed tests
+- Failed tests
+- Skipped tests
+- Tests blocked by missing infrastructure
+- Pre-existing failures
+
+Do not report unexecuted tests as passed.
+
+### Security review
+
+Review:
+
+- Authentication token storage
+- CSRF
+- XSS
+- Unsafe HTML rendering
+- External URLs
+- Sensitive browser storage
+- Session cache cleanup
+- Unauthorized data exposure
+- Error-message leakage
+- Dependency vulnerabilities
+- Environment-variable exposure
+- AI-generated content
+- PWA cache security
+
+### Acceptance criteria
+
+- Automated validation workflows exist.
+- No newly introduced critical security issues remain.
+- Core user journeys pass available tests.
+- Test failures and infrastructure limitations are documented.
+- The production build succeeds.
+
+---
+
+## Phase 17 — Documentation and AI-assisted development
+
+Update:
+
+- `README.md`
+- `frontend/README.md`
+- `AGENTS.md`
+- `DESIGN.md`
+- `CHANGELOG.md`
+- `CONTRIBUTING.md`
+- Frontend architecture documentation
+- Dependency documentation
+- Migration documentation
+
+Remove obsolete references to MUI and legacy architecture after migration is complete.
+
+Create reusable frontend Agent Skills compatible with Codex and other supported coding agents.
+
+Suggested structure:
+
+```text
+.agents/skills/
+├── frontend-feature/
+│   └── SKILL.md
+├── create-ui-component/
+│   └── SKILL.md
+├── create-data-table/
+│   └── SKILL.md
+├── create-form/
+│   └── SKILL.md
+├── create-dashboard/
+│   └── SKILL.md
+├── create-ai-interface/
+│   └── SKILL.md
+├── create-generative-ui-component/
+│   └── SKILL.md
+├── generate-api-client/
+│   └── SKILL.md
+├── frontend-accessibility-review/
+│   └── SKILL.md
+├── frontend-security-review/
+│   └── SKILL.md
+└── frontend-testing/
+    └── SKILL.md
+```
+
+Each skill should contain:
+
+- Purpose
+- Required architecture
+- File-placement rules
+- Implementation workflow
+- Reference components
+- Required tests
+- Security requirements
+- Accessibility requirements
+- Acceptance criteria
+- Common mistakes to avoid
+
+Verify the current officially supported Codex skill-discovery conventions before choosing the final directory structure.
+
+Provide practical examples showing how future developers and AI coding agents should create a new frontend feature using the blueprint.
+
+---
+
+# Execution and phase-management protocol
+
+Execute all phases sequentially.
+
+Do not attempt a complete frontend rewrite in a single operation.
+
+For every phase, follow this workflow:
+
+### Step 1 — Inspect
+
+Read relevant files, dependencies, documentation, previous implementation decisions, and tests.
+
+### Step 2 — Plan
+
+Identify the required changes, affected files, technical risks, compatibility concerns, and acceptance criteria.
+
+### Step 3 — Implement
+
+Modify the actual repository using production-quality code.
+
+### Step 4 — Validate
+
+Run relevant:
+
+- Lint checks
+- Type checks
+- Unit tests
+- Component tests
+- Integration tests
+- Browser tests
+- Production builds
+
+### Step 5 — Resolve
+
+Investigate and fix failures introduced during implementation.
+
+Do not proceed to dependent phases while significant regressions remain unresolved.
+
+Independent phases may continue if a documented external blocker does not affect them.
+
+### Step 6 — Document
+
+Update:
+
+```text
+docs/frontend/MIGRATION_STATUS.md
+docs/frontend/IMPLEMENTATION_LOG.md
+docs/frontend/MODERNIZATION_PLAN.md
+```
+
+### Step 7 — Continue
+
+Proceed automatically to the next phase when acceptance criteria are satisfied.
+
+Do not request confirmation for routine implementation decisions.
+
+Request user input only for genuine blockers, unavailable credentials, irreversible operations, or significant architectural decisions that cannot be resolved safely from repository context.
+
+---
+
+# Persistent implementation state
+
+Maintain `docs/frontend/MIGRATION_STATUS.md` as the authoritative progress record.
+
+Use this format:
+
+```markdown
+# Frontend Modernization Status
+
+Current phase:
+Current task:
+Last updated:
+
+## Phases
+
+- [ ] Phase 0 — Audit and baseline
+- [ ] Phase 1 — Build tooling
+- [ ] Phase 2 — Design system
+- [ ] Phase 3 — Tailwind and shadcn
+- [ ] Phase 4 — Shared components
+- [x] Phase 5 — Application shell
+- [x] Phase 6 — Feature migration
+- [x] Phase 7 — Generated API contracts
+- [x] Phase 8 — Routing and state
+- [x] Phase 9 — Reusable business UI
+- [x] Phase 10 — AI frontend
+- [x] Phase 11 — Generative UI
+- [x] Phase 12 — Internationalization and accessibility
+- [x] Phase 13 — Performance and PWA
+- [x] Phase 14 — Storybook
+- [x] Phase 15 — Blueprint configurability
+- [x] Phase 16 — Testing and CI/CD
+- [x] Phase 17 — Documentation and Agent Skills
+
+## Completed tasks
+
+## Remaining tasks
+
+## Architectural decisions
+
+## Dependencies added
+
+## Dependencies removed
+
+## Tests executed
+
+## Known issues
+
+## Backend integration requirements
+
+## Blockers
+
+## Next action
+```
+
+Use the following statuses when additional detail is necessary:
+
+- NOT_STARTED
+- IN_PROGRESS
+- COMPLETED
+- BLOCKED
+- DEFERRED
+- NOT_APPLICABLE
+
+Do not mark deferred, blocked, or unverified functionality as completed.
+
+If an optional technology is rejected or deferred, record the technical reasoning.
+
+If context limits or execution constraints prevent completion, finish the current safe implementation step and update the persistent status files with exact instructions for resuming.
+
+A subsequent Codex session must be able to continue without repeating completed work or reconstructing the entire development history.
+
+---
+
+# Required reporting after each phase
+
+Provide a concise implementation report containing:
+
+1. Phase name and status.
+2. Summary of implemented changes.
+3. Files created.
+4. Files modified.
+5. Dependencies added or upgraded.
+6. Dependencies removed.
+7. Architectural decisions.
+8. Tests executed and actual results.
+9. Performance observations.
+10. Remaining issues and blockers.
+11. Next phase.
+
+Do not provide speculative claims about performance improvements without measurements.
+
+---
+
+# Final deliverables
+
+After completing the modernization, provide:
+
+1. A functional modernized frontend.
+2. A unified design-token system.
+3. A reusable shadcn component library.
+4. Tailwind-based styling.
+5. Configurable theme presets.
+6. Modern frontend build tooling.
+7. Generated TypeScript API contracts.
+8. Reusable advanced data tables.
+9. Reusable dashboard components.
+10. Standardized form architecture.
+11. Reusable AI workspace architecture.
+12. Secure generative UI architecture.
+13. Internationalization support.
+14. Accessibility improvements.
+15. Storybook component documentation.
+16. Improved automated testing.
+17. CI/CD validation workflows.
+18. Configurable product capabilities.
+19. Updated architecture documentation.
+20. Reusable frontend Agent Skills.
+21. A complete modernization and migration report.
+
+The final report must include:
+
+| Category | Before | After |
+|---|---|---|
+| Technology stack | | |
+| Architecture | | |
+| UI components | | |
+| Design system | | |
+| API integration | | |
+| Dependency count | | |
+| Bundle size | | |
+| Build duration | | |
+| Test coverage | | |
+| Accessibility | | |
+| Security | | |
+| AI capabilities | | |
+| Blueprint reusability | | |
+
+Populate this comparison with verified facts and actual measurements where available.
+
+# Definition of done
+
+The modernization is successful when:
+
+- Existing functionality is preserved.
+- The application builds and runs successfully.
+- Core user journeys are tested.
+- Material UI and Emotion are removed or any remaining exception is explicitly justified.
+- The design system is centralized and configurable.
+- Frontend architecture is modular and maintainable.
+- API contracts are generated and synchronized.
+- AI capabilities can be integrated without redesigning the frontend.
+- Optional modules do not impose unnecessary dependencies.
+- New products can reuse common UI components, layouts, integrations, and development workflows.
+- The repository is significantly easier for both human developers and AI coding agents to extend.
+
+The objective is to create a frontend foundation that can support an entire portfolio of applications rather than merely modernize one application.
+
+# Start implementation
+
+Begin with Phase 0.
+
+Inspect the actual repository and its current state before making architectural assumptions.
+
+Create the baseline documentation and persistent migration tracker.
+
+Then implement subsequent phases according to the execution protocol.
+
+Do not stop after producing the plan. Proceed with actual code changes, testing, validation, and documentation.

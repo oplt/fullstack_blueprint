@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchItems } from "./client";
+import { apiFetch, apiFetchItems, type ApiRequestOptions } from "./client";
 
 export type Notification = {
     id: string;
@@ -15,8 +15,8 @@ export type NotificationPreferences = {
     marketing_enabled: boolean;
 };
 
-export async function getNotifications(): Promise<Notification[]> {
-    return apiFetchItems<Notification>("/notifications");
+export async function getNotifications(options?: ApiRequestOptions): Promise<Notification[]> {
+    return apiFetchItems<Notification>("/notifications", options);
 }
 
 export async function markRead(id: string): Promise<void> {
@@ -27,8 +27,8 @@ export async function markAllRead(): Promise<void> {
     return apiFetch("/notifications/read-all", { method: "PATCH" });
 }
 
-export async function getPreferences(): Promise<NotificationPreferences> {
-    return apiFetch("/notifications/preferences");
+export async function getPreferences(options?: ApiRequestOptions): Promise<NotificationPreferences> {
+    return apiFetch("/notifications/preferences", options);
 }
 
 export async function updatePreferences(

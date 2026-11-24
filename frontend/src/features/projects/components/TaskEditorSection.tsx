@@ -1,5 +1,5 @@
-import { Alert, Button, MenuItem, Stack, TextField } from "@mui/material";
-import { DeleteOutline as DeleteIcon } from "@mui/icons-material";
+import { Alert, Button, MenuItem, Stack, TextField } from "@/components/ui/muiCompat";
+import { DeleteOutline as DeleteIcon } from "@/components/ui/iconsCompat";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { formatDateTime } from "../../../utils/formatters";

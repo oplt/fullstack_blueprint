@@ -21,12 +21,13 @@ export async function listAdminUsers(params?: {
     page?: number;
     page_size?: number;
     search?: string;
+    signal?: AbortSignal;
 }): Promise<AdminUserListResponse> {
     const qs = new URLSearchParams();
     if (params?.page) qs.set("page", String(params.page));
     if (params?.page_size) qs.set("page_size", String(params.page_size));
     if (params?.search) qs.set("search", params.search);
-    return apiFetch(`/admin/users?${qs.toString()}`);
+    return apiFetch(`/admin/users?${qs.toString()}`, { signal: params?.signal });
 }
 
 export async function updateUserStatus(

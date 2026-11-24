@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Chip, Stack } from "@mui/material";
+import { Alert, Box, Button, Chip, Stack } from "@/components/ui/muiCompat";
 import type { ConfigSettingsResponse } from "../../../api/settings";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { getQueryErrorMessage } from "../../../utils/queryErrors";

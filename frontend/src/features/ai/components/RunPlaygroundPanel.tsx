@@ -1,5 +1,5 @@
-import { Box, Button, Chip, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography } from "@mui/material";
-import { AutoAwesome as AiIcon, PlayCircleOutline as RunIcon } from "@mui/icons-material";
+import { Box, Button, Chip, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography } from "@/components/ui/muiCompat";
+import { AutoAwesome as AiIcon, PlayCircleOutline as RunIcon } from "@/components/ui/iconsCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { AdvancedSettings } from "../../../components/ui/AdvancedSettings";
 import { JsonBlock } from "../../../components/ui/JsonBlock";
@@ -17,7 +17,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                 select
                 label="Prompt template"
                 value={runForm.prompt_template_key}
-                onChange={(event) => setRunForm((current) => ({ ...current, prompt_template_key: event.target.value }))}
+                onChange={(event: any) => setRunForm((current) => ({ ...current, prompt_template_key: event.target.value }))}
                 fullWidth
             >
                 {templateKeyOptions.map((template) => (
@@ -29,7 +29,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
             <TextField
                 label="Variables JSON"
                 value={runForm.variables_json}
-                onChange={(event) => setRunForm((current) => ({ ...current, variables_json: event.target.value }))}
+                onChange={(event: any) => setRunForm((current) => ({ ...current, variables_json: event.target.value }))}
                 fullWidth
                 multiline
                 minRows={8}
@@ -37,13 +37,13 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
             <TextField
                 label="Retrieval query"
                 value={runForm.retrieval_query}
-                onChange={(event) => setRunForm((current) => ({ ...current, retrieval_query: event.target.value }))}
+                onChange={(event: any) => setRunForm((current) => ({ ...current, retrieval_query: event.target.value }))}
                 fullWidth
             />
             <TextField
                 label="Top K chunks"
                 value={runForm.top_k}
-                onChange={(event) => setRunForm((current) => ({ ...current, top_k: event.target.value }))}
+                onChange={(event: any) => setRunForm((current) => ({ ...current, top_k: event.target.value }))}
                 fullWidth
             />
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -61,7 +61,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                 control={
                     <Switch
                         checked={runForm.review_required}
-                        onChange={(event) => setRunForm((current) => ({ ...current, review_required: event.target.checked }))}
+                        onChange={(event: any) => setRunForm((current) => ({ ...current, review_required: event.target.checked }))}
                     />
                 }
                 label="Request human review after this run"
@@ -91,7 +91,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
             {recentRuns.length > 0 ? (
                 <Stack spacing={1.25}>
                     {recentRuns.map((run) => (
-                        <Box key={run.id} sx={(theme) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
+                        <Box key={run.id} sx={(theme: any) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
                             <Stack spacing={1}>
                                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
                                     <Typography variant="subtitle2">
@@ -157,7 +157,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                                 <TextField
                                     label="Feedback note"
                                     value={feedbackCommentByRunId[run.id] ?? ""}
-                                    onChange={(event) =>
+                                    onChange={(event: any) =>
                                         setFeedbackCommentByRunId((current) => ({ ...current, [run.id]: event.target.value }))
                                     }
                                     fullWidth
@@ -166,7 +166,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                                 <TextField
                                     label="Correction"
                                     value={correctionsById[run.id] ?? ""}
-                                    onChange={(event) =>
+                                    onChange={(event: any) =>
                                         setCorrectionsById((current) => ({ ...current, [run.id]: event.target.value }))
                                     }
                                     fullWidth

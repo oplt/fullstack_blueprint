@@ -1,7 +1,8 @@
-import { alpha, type SxProps, type Theme } from "@mui/material/styles";
+import { alpha, type SxProps, type Theme } from "@/components/ui/muiCompat";
 import type { CalendarItem, CalendarItemType } from "../../api/calendar";
 import type { Project, ProjectTaskPriority } from "../../api/projects";
 import type { CalendarViewMode } from "./calendarRange";
+import { i18nInstance } from "../../i18n/config";
 export type DashboardCalendarProps = {
     projects: Project[];
     projectsLoading: boolean;
@@ -16,7 +17,7 @@ export type CalendarFieldErrors = { title?: string; project_id?: string; start_t
 export const VIEW_OPTIONS: Array<{ value: CalendarViewMode; label: string }> = [{ value: "day", label: "Day" }, { value: "week", label: "Week" }, { value: "month", label: "Month" }, { value: "twelve_month", label: "12M" }];
 export const ITEM_TYPE_OPTIONS: Array<{ value: CalendarItemType; label: string }> = [{ value: "event", label: "Event" }, { value: "appointment", label: "Appointment" }, { value: "task", label: "Task" }];
 export function buildEmptyDraft(projects: Project[], type: CalendarItemType = "event"): CalendarDraft { return { type, title: "", description: "", start_time: "", end_time: "", project_id: projects[0]?.id ?? "", priority: "medium" }; }
-export function formatTimeValue(value: string) { return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(`1970-01-01T${value}`)); }
+export function formatTimeValue(value: string) { return new Intl.DateTimeFormat(i18nInstance.resolvedLanguage ?? "en", { hour: "numeric", minute: "2-digit" }).format(new Date(`1970-01-01T${value}`)); }
 export function formatItemTime(item: CalendarItem) { if (!item.start_time) return item.type === "task" ? "Due anytime" : "All day"; return item.end_time ? `${formatTimeValue(item.start_time)} to ${formatTimeValue(item.end_time)}` : formatTimeValue(item.start_time); }
 export function getMinutesFromTimeString(value: string) { const [hours = "0", minutes = "0"] = value.split(":"); return Number(hours) * 60 + Number(minutes); }
 export function getWeekItemColor(item: CalendarItem, theme: Theme) { const palette = item.type === "task" ? theme.palette.success : item.type === "appointment" ? theme.palette.secondary : theme.palette.primary; const isDark = theme.palette.mode === "dark"; return { bg: alpha(palette.main, isDark ? .22 : .12), border: alpha(palette.main, isDark ? .45 : .35), text: isDark ? palette.light : palette.dark }; }

@@ -379,6 +379,7 @@ frontend/playwright-report/
 frontend/test-results/
 frontend/coverage/
 frontend/dist/
+frontend/storybook-static/
 backend/coverage/
 backend/htmlcov/
 

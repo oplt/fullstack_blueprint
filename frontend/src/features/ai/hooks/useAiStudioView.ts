@@ -18,7 +18,7 @@ export function useAiStudioView() {
         refetch,
     } = useQuery({
         queryKey: queryKeys.ai.overview,
-        queryFn: getAiOverview,
+        queryFn: ({ signal }) => getAiOverview({ signal }),
         staleTime: QUERY_STALE_TIMES.aiOverview,
     });
     const {
@@ -29,7 +29,7 @@ export function useAiStudioView() {
         refetch: refetchReviews,
     } = useQuery({
         queryKey: queryKeys.ai.reviews,
-        queryFn: listAiReviews,
+        queryFn: ({ signal }) => listAiReviews({ signal }),
         staleTime: QUERY_STALE_TIMES.aiReviews,
     });
     const {
@@ -40,7 +40,7 @@ export function useAiStudioView() {
         refetch: refetchEvaluationRuns,
     } = useQuery({
         queryKey: queryKeys.ai.evaluationRuns,
-        queryFn: listAiEvaluationRuns,
+        queryFn: ({ signal }) => listAiEvaluationRuns({ signal }),
         staleTime: QUERY_STALE_TIMES.aiEvaluationRuns,
         refetchInterval: (query) => {
             const runs = query.state.data ?? [];
@@ -62,7 +62,7 @@ export function useAiStudioView() {
         refetch: refetchVersions,
     } = useQuery({
         queryKey: queryKeys.ai.promptVersions(selectedTemplateId),
-        queryFn: () => listPromptVersions(selectedTemplateId),
+        queryFn: ({ signal }) => listPromptVersions(selectedTemplateId, { signal }),
         enabled: selectedTemplateId.length > 0,
         staleTime: QUERY_STALE_TIMES.aiPromptVersions,
     });
@@ -74,7 +74,7 @@ export function useAiStudioView() {
         refetch: refetchDatasetCases,
     } = useQuery({
         queryKey: queryKeys.ai.datasetCases(selectedDatasetId),
-        queryFn: () => listAiDatasetCases(selectedDatasetId),
+        queryFn: ({ signal }) => listAiDatasetCases(selectedDatasetId, { signal }),
         enabled: selectedDatasetId.length > 0,
         staleTime: QUERY_STALE_TIMES.aiDatasetCases,
     });

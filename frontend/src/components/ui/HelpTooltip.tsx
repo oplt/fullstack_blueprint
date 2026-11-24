@@ -1,184 +1,21 @@
-import { useId, useState } from "react";
-import {
-    Box,
-    IconButton,
-    Popover,
-    Stack,
-    Tooltip,
-    Typography,
-    type SxProps,
-    type Theme,
-} from "@mui/material";
-import {
-    HelpOutline as HelpIcon,
-    InfoOutlined as InfoIcon,
-} from "@mui/icons-material";
-import {
-    getHelpTerm,
-    type HelpTermId,
-} from "../../config/helpText";
-
-type HelpTooltipProps = {
-    /** Registry term id. */
-    termId?: HelpTermId | string;
-    /** Inline override when no registry term (e.g. disabled reason). */
-    title?: React.ReactNode;
-    /** Longer body for popover when not using registry detail. */
-    detail?: React.ReactNode;
-    /**
-     * `help` — subtle help icon (default).
-     * `info` — info icon.
-     * `label` — render children + icon as a field label row.
-     */
-    variant?: "help" | "info" | "label";
-    /** Optional label text/node when variant is label (or beside icon). */
-    children?: React.ReactNode;
-    /** Prefer popover even when only a short definition exists. */
-    forcePopover?: boolean;
-    size?: "small" | "medium";
-    sx?: SxProps<Theme>;
-};
-
-/**
- * Contextual help control (Phase 5).
- * Short definitions → tooltip; longer `detail` → popover "Learn more".
- */
-export function HelpTooltip({
-    termId,
-    title,
-    detail,
-    variant = "help",
-    children,
-    forcePopover = false,
-    size = "small",
-    sx,
-}: HelpTooltipProps) {
-    const reactId = useId();
-    const popoverId = `${reactId}-help`;
-    const titleId = `${reactId}-title`;
-    const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-    const term = termId ? getHelpTerm(termId) : null;
+import { Info, CircleHelp } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { getHelpTerm, type HelpTermId } from "../../config/helpText";
+type HelpTooltipProps = { termId?: HelpTermId | string; title?: ReactNode; detail?: ReactNode; variant?: "help" | "info" | "label"; children?: ReactNode; forcePopover?: boolean; size?: "small" | "medium"; sx?: unknown };
+export function HelpTooltip({ termId, title, detail, variant = "help", children, forcePopover = false }: HelpTooltipProps) {
+    const id = useId();
+    const [open, setOpen] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    const term = termId ? getHelpTerm(termId as HelpTermId) : null;
     const shortText = title ?? term?.definition ?? null;
     const longText = detail ?? term?.detail ?? null;
     const heading = term?.title;
-    const hasPopover = Boolean(longText) || forcePopover;
-    const open = Boolean(anchor);
-
-    if (!shortText && !longText) {
-        return variant === "label" ? <>{children}</> : null;
-    }
-
-    const iconFont = size === "small" ? "inherit" : "small";
-    const Icon = variant === "info" ? InfoIcon : HelpIcon;
-
-    const button = (
-        <IconButton
-            size="small"
-            aria-label={heading ? `About ${heading}` : "About this term"}
-            aria-haspopup={hasPopover ? "dialog" : undefined}
-            aria-expanded={hasPopover ? open : undefined}
-            aria-controls={hasPopover && open ? popoverId : undefined}
-            onClick={
-                hasPopover
-                    ? (event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          setAnchor(event.currentTarget);
-                      }
-                    : undefined
-            }
-            sx={{ p: 0.25, color: "text.secondary", ...((sx as object) ?? {}) }}
-        >
-            <Icon fontSize={iconFont} />
-        </IconButton>
-    );
-
-    const trigger = hasPopover ? (
-        <Tooltip title={typeof shortText === "string" ? shortText : ""} arrow enterDelay={400}>
-            <span>{button}</span>
-        </Tooltip>
-    ) : (
-        <Tooltip title={shortText ?? ""} arrow enterDelay={300}>
-            <span>{button}</span>
-        </Tooltip>
-    );
-
-    const popover = hasPopover ? (
-        <Popover
-            id={popoverId}
-            open={open}
-            anchorEl={anchor}
-            onClose={() => setAnchor(null)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            transformOrigin={{ vertical: "top", horizontal: "left" }}
-            slotProps={{
-                paper: {
-                    role: "dialog",
-                    "aria-modal": false,
-                    "aria-labelledby": heading ? titleId : undefined,
-                    "aria-label": heading ? undefined : "Help details",
-                    sx: { maxWidth: 360, p: 1.75 },
-                },
-            }}
-        >
-            <Stack spacing={1}>
-                {heading ? (
-                    <Typography id={titleId} variant="subtitle2" sx={{ fontWeight: 700 }}>
-                        {heading}
-                    </Typography>
-                ) : null}
-                {shortText ? (
-                    <Typography variant="body2">{shortText}</Typography>
-                ) : null}
-                {longText ? (
-                    <Typography variant="body2" color="text.secondary">
-                        {longText}
-                    </Typography>
-                ) : null}
-            </Stack>
-        </Popover>
-    ) : null;
-
-    if (variant === "label") {
-        return (
-            <Box
-                component="span"
-                sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.35,
-                    maxWidth: "100%",
-                }}
-            >
-                <Box component="span" sx={{ minWidth: 0 }}>
-                    {children}
-                </Box>
-                {trigger}
-                {popover}
-            </Box>
-        );
-    }
-
-    return (
-        <>
-            {children}
-            {trigger}
-            {popover}
-        </>
-    );
+    if (!shortText && !longText) return variant === "label" ? <>{children}</> : null;
+    const icon = variant === "info" ? <Info className="size-3.5" /> : <CircleHelp className="size-3.5" />;
+    const trigger = <button type="button" aria-label={heading ? "About " + heading : "About this term"} className="inline-flex items-center p-0.5 text-muted-foreground hover:text-foreground" onClick={longText || forcePopover ? () => setOpen((v) => !v) : undefined}>{icon}</button>;
+    const popover = longText || forcePopover ? <Popover open={open} onOpenChange={setOpen}><PopoverTrigger render={trigger} /><PopoverContent aria-label={heading ? undefined : "Help details"}><div className="space-y-1.5">{heading ? <h3 id={id + "-title"} className="font-semibold">{heading}</h3> : null}{shortText ? <p>{shortText}</p> : null}{longText ? <p className="text-muted-foreground">{longText}</p> : null}</div></PopoverContent></Popover> : null;
+    const control = <span className="relative inline-flex" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>{popover ?? trigger}{hovered ? <span role="tooltip" className="sr-only">{shortText}</span> : null}</span>;
+    return variant === "label" ? <span className="inline-flex max-w-full items-center gap-1"><span className="min-w-0">{children}</span>{control}</span> : <>{children}{control}</>;
 }
-
-/** Convenience: label node suitable for MUI TextField `label` prop. */
-export function HelpFieldLabel({
-    termId,
-    children,
-}: {
-    termId: HelpTermId | string;
-    children: React.ReactNode;
-}) {
-    return (
-        <HelpTooltip termId={termId} variant="label">
-            {children}
-        </HelpTooltip>
-    );
-}
+export function HelpFieldLabel({ termId, children }: { termId: HelpTermId | string; children: ReactNode }) { return <HelpTooltip termId={termId} variant="label">{children}</HelpTooltip>; }

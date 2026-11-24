@@ -1,9 +1,9 @@
 import type { Dayjs } from "dayjs";
 import { memo, useCallback } from "react";
-import { Box, Stack } from "@mui/material";
-import { alpha } from "@mui/material/styles";
-import { DateCalendar, PickersDay, type PickersDayProps } from "@mui/x-date-pickers";
-import type {} from "@mui/x-date-pickers/AdapterDayjs";
+import { Box, Stack } from "@/components/ui/muiCompat";
+import { alpha } from "@/components/ui/muiCompat";
+import { DateCalendar, PickersDay, type PickersDayProps } from "@/components/ui/dateCompat";
+import type {} from "@/components/ui/dateCompat";
 import { getDateCalendarSx } from "../calendarDisplay";
 import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 
@@ -23,11 +23,11 @@ const CalendarDayCell = memo(function CalendarDayCell({ daySize, itemTypes, open
                 day={day}
                 outsideCurrentMonth={outsideCurrentMonth}
                 disableMargin
-                onClick={(event) => {
+                onClick={(event: any) => {
                     other.onClick?.(event);
                     openDay(day);
                 }}
-                sx={(theme) => ({
+                sx={(theme: any) => ({
                     width: daySize,
                     height: daySize,
                     fontWeight: 700,
@@ -76,7 +76,7 @@ const CalendarDayCell = memo(function CalendarDayCell({ daySize, itemTypes, open
                     {itemTypes.slice(0, 3).map((itemType, index) => (
                         <Box
                             key={`${itemType}-${index}`}
-                            sx={(theme) => ({
+                            sx={(theme: any) => ({
                                 width: 5,
                                 height: 5,
                                 borderRadius: "999px",

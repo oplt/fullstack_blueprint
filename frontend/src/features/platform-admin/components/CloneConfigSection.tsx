@@ -1,4 +1,4 @@
-import { Alert, Box, Button, MenuItem, Stack, Switch, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, MenuItem, Stack, Switch, TextField, Typography } from "@/components/ui/muiCompat";
 import type { PlatformConfig } from "../../../api/platform";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { getQueryErrorMessage } from "../../../utils/queryErrors";
@@ -15,26 +15,26 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
             {model.saveConfigMutation.isPending ? "Saving..." : "Save platform config"}</Button>}>
         <Stack spacing={2.5}>
             {model.saveConfigMutation.isError && <Alert severity="error">{getQueryErrorMessage(model.saveConfigMutation.error, "Failed to save platform config.")}</Alert>}
-            <TextField label="App name" value={draft.app_name} onChange={(e) => set((v) => ({ ...v, app_name: e.target.value }))} fullWidth />
+            <TextField label="App name" value={draft.app_name} onChange={(e: any) => set((v) => ({ ...v, app_name: e.target.value }))} fullWidth />
             <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
-                <TextField label="Core domain singular" value={draft.core_domain_singular} onChange={(e) => set((v) => ({ ...v, core_domain_singular: e.target.value }))} fullWidth />
-                <TextField label="Core domain plural" value={draft.core_domain_plural} onChange={(e) => set((v) => ({ ...v, core_domain_plural: e.target.value }))} fullWidth />
+                <TextField label="Core domain singular" value={draft.core_domain_singular} onChange={(e: any) => set((v) => ({ ...v, core_domain_singular: e.target.value }))} fullWidth />
+                <TextField label="Core domain plural" value={draft.core_domain_plural} onChange={(e: any) => set((v) => ({ ...v, core_domain_plural: e.target.value }))} fullWidth />
             </Box>
-            <TextField label="Module pack" select value={draft.module_pack} onChange={(e) => {
+            <TextField label="Module pack" select value={draft.module_pack} onChange={(e: any) => {
                 const module_pack = e.target.value;
                 const defaults = source.available_module_packs.find((pack) => pack.key === module_pack)?.modules ?? [];
                 set((v) => ({ ...v, module_pack, module_states: Object.fromEntries(source.module_catalog.map((item) => [item.key, defaults.includes(item.key)])) }));
             }} fullWidth>{source.available_module_packs.map((pack) => <MenuItem key={pack.key} value={pack.key}>{pack.label}</MenuItem>)}</TextField>
             {activePack && <Alert severity="info">{activePack.description}</Alert>}
-            <Box sx={(theme) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
+            <Box sx={(theme: any) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
                 <Stack direction="row" justifyContent="space-between" spacing={1.5}><Box><Typography variant="subtitle2">MFA authentication</Typography><Typography variant="body2" color="text.secondary">Show the authenticator code field on the login page.</Typography></Box>
-                    <Switch checked={draft.mfa_enabled} onChange={(e) => set((v) => ({ ...v, mfa_enabled: e.target.checked }))} /></Stack>
+                    <Switch checked={draft.mfa_enabled} onChange={(e: any) => set((v) => ({ ...v, mfa_enabled: e.target.checked }))} /></Stack>
             </Box>
             <Box><Typography variant="subtitle2" sx={{ mb: 1.25 }}>Module access</Typography>
                 <Box sx={{ display: "grid", gap: 1.25, gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" } }}>
-                    {source.module_catalog.map((item) => <Box key={item.key} sx={(theme) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
+                    {source.module_catalog.map((item) => <Box key={item.key} sx={(theme: any) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
                         <Stack direction="row" justifyContent="space-between" spacing={1.5}><Box><Typography variant="subtitle2">{item.label}</Typography><Typography variant="body2" color="text.secondary">{item.description}</Typography></Box>
-                            <Switch checked={draft.module_states[item.key] ?? false} onChange={(e) => set((v) => ({ ...v, module_states: { ...v.module_states, [item.key]: e.target.checked } }))} /></Stack>
+                            <Switch checked={draft.module_states[item.key] ?? false} onChange={(e: any) => set((v) => ({ ...v, module_states: { ...v.module_states, [item.key]: e.target.checked } }))} /></Stack>
                     </Box>)}
                 </Box>
             </Box>

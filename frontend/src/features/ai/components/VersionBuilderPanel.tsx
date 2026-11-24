@@ -1,4 +1,4 @@
-import { Box, Button, Chip, FormControlLabel, MenuItem, Skeleton, Stack, Switch, TextField, Typography } from "@mui/material";
+import { Box, Button, Chip, FormControlLabel, MenuItem, Skeleton, Stack, Switch, TextField, Typography } from "@/components/ui/muiCompat";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { AiStudioModel } from "../hooks/useAiStudioView";
@@ -13,7 +13,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                 select
                 label="Selected template"
                 value={selectedTemplateId}
-                onChange={(event) => setSelectedTemplateId(event.target.value)}
+                onChange={(event: any) => setSelectedTemplateId(event.target.value)}
                 fullWidth
             >
                 {promptTemplates.map((template) => (
@@ -26,7 +26,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                 select
                 label="Provider"
                 value={versionForm.provider_key}
-                onChange={(event) => setVersionForm((current) => ({ ...current, provider_key: event.target.value }))}
+                onChange={(event: any) => setVersionForm((current) => ({ ...current, provider_key: event.target.value }))}
                 fullWidth
             >
                 {providers.map((provider) => (
@@ -35,24 +35,24 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     </MenuItem>
                 ))}
             </TextField>
-            <TextField label="Model name" value={versionForm.model_name} onChange={(event) => setVersionForm((current) => ({ ...current, model_name: event.target.value }))} fullWidth />
-            <TextField label="System prompt" value={versionForm.system_prompt} onChange={(event) => setVersionForm((current) => ({ ...current, system_prompt: event.target.value }))} fullWidth multiline minRows={3} />
-            <TextField label="User prompt template" value={versionForm.user_prompt_template} onChange={(event) => setVersionForm((current) => ({ ...current, user_prompt_template: event.target.value }))} fullWidth multiline minRows={5} />
-            <TextField label="Variable names (comma separated)" value={versionForm.variable_names} onChange={(event) => setVersionForm((current) => ({ ...current, variable_names: event.target.value }))} fullWidth />
+            <TextField label="Model name" value={versionForm.model_name} onChange={(event: any) => setVersionForm((current) => ({ ...current, model_name: event.target.value }))} fullWidth />
+            <TextField label="System prompt" value={versionForm.system_prompt} onChange={(event: any) => setVersionForm((current) => ({ ...current, system_prompt: event.target.value }))} fullWidth multiline minRows={3} />
+            <TextField label="User prompt template" value={versionForm.user_prompt_template} onChange={(event: any) => setVersionForm((current) => ({ ...current, user_prompt_template: event.target.value }))} fullWidth multiline minRows={5} />
+            <TextField label="Variable names (comma separated)" value={versionForm.variable_names} onChange={(event: any) => setVersionForm((current) => ({ ...current, variable_names: event.target.value }))} fullWidth />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                <TextField select label="Response format" value={versionForm.response_format} onChange={(event) => setVersionForm((current) => ({ ...current, response_format: event.target.value as "text" | "json" }))} fullWidth>
+                <TextField select label="Response format" value={versionForm.response_format} onChange={(event: any) => setVersionForm((current) => ({ ...current, response_format: event.target.value as "text" | "json" }))} fullWidth>
                     <MenuItem value="text">Text</MenuItem>
                     <MenuItem value="json">JSON</MenuItem>
                 </TextField>
-                <TextField label="Temperature" value={versionForm.temperature} onChange={(event) => setVersionForm((current) => ({ ...current, temperature: event.target.value }))} fullWidth />
+                <TextField label="Temperature" value={versionForm.temperature} onChange={(event: any) => setVersionForm((current) => ({ ...current, temperature: event.target.value }))} fullWidth />
             </Stack>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                <TextField label="Rollout %" value={versionForm.rollout_percentage} onChange={(event) => setVersionForm((current) => ({ ...current, rollout_percentage: event.target.value }))} fullWidth />
-                <FormControlLabel control={<Switch checked={versionForm.is_published} onChange={(event) => setVersionForm((current) => ({ ...current, is_published: event.target.checked }))} />} label="Published" />
+                <TextField label="Rollout %" value={versionForm.rollout_percentage} onChange={(event: any) => setVersionForm((current) => ({ ...current, rollout_percentage: event.target.value }))} fullWidth />
+                <FormControlLabel control={<Switch checked={versionForm.is_published} onChange={(event: any) => setVersionForm((current) => ({ ...current, is_published: event.target.checked }))} />} label="Published" />
             </Stack>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                <TextField label="Input cost / million" value={versionForm.input_cost_per_million} onChange={(event) => setVersionForm((current) => ({ ...current, input_cost_per_million: event.target.value }))} fullWidth />
-                <TextField label="Output cost / million" value={versionForm.output_cost_per_million} onChange={(event) => setVersionForm((current) => ({ ...current, output_cost_per_million: event.target.value }))} fullWidth />
+                <TextField label="Input cost / million" value={versionForm.input_cost_per_million} onChange={(event: any) => setVersionForm((current) => ({ ...current, input_cost_per_million: event.target.value }))} fullWidth />
+                <TextField label="Output cost / million" value={versionForm.output_cost_per_million} onChange={(event: any) => setVersionForm((current) => ({ ...current, output_cost_per_million: event.target.value }))} fullWidth />
             </Stack>
             <Button
                 variant="contained"
@@ -92,14 +92,14 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
             )}
             {selectedTemplateId && versionsLoading ? (
                 <Stack spacing={1.25}>
-                    {Array.from({ length: 2 }).map((_, index) => (
+                    {Array.from({ length: 2 }).map((_: any, index: any) => (
                         <Skeleton key={index} variant="rounded" height={96} sx={{ borderRadius: 3 }} />
                     ))}
                 </Stack>
             ) : selectedTemplateVersions.length > 0 ? (
                 <Stack spacing={1.25}>
                     {selectedTemplateVersions.map((version) => (
-                        <Box key={version.id} sx={(theme) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
+                        <Box key={version.id} sx={(theme: any) => ({ p: 2, borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
                             <Stack spacing={1}>
                                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
                                     <Typography variant="subtitle2">

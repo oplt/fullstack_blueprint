@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
-import { Box, Button, Stack, Typography } from "@mui/material";
-import { alpha, useTheme } from "@mui/material/styles";
+import { Box, Button, Stack, Typography } from "@/components/ui/muiCompat";
+import { alpha, useTheme } from "@/components/ui/muiCompat";
 import { formatDateOnly, humanizeKey } from "../../../utils/formatters";
 import { formatItemTime, getMinutesFromTimeString, getWeekItemColor } from "../calendarDisplay";
 import { DayItems } from "./DayItems";
@@ -28,7 +28,7 @@ const { anchorDate, itemsByDate, openDay } = m;
             };
         });
     const allDayItems = dayItems.filter((item) => !item.start_time);
-    const hourSlots = Array.from({ length: 24 }, (_, index) => index);
+    const hourSlots = Array.from({ length: 24 }, (_: any, index: any) => index);
     const rowHeight = 56;
     const gridStartMinutes = 0;
     const now = dayjs();
@@ -46,7 +46,7 @@ const { anchorDate, itemsByDate, openDay } = m;
             }}
         >
             <Box
-                sx={(theme) => ({
+                sx={(theme: any) => ({
                     borderRadius: 4,
                     border: `1px solid ${theme.palette.divider}`,
                     overflow: "hidden",
@@ -57,7 +57,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                     direction={{ xs: "column", sm: "row" }}
                     justifyContent="space-between"
                     spacing={1.5}
-                    sx={(theme) => ({
+                    sx={(theme: any) => ({
                         px: 2,
                         py: 1.5,
                         borderBottom: `1px solid ${theme.palette.divider}`,
@@ -77,7 +77,7 @@ const { anchorDate, itemsByDate, openDay } = m;
 
                 {allDayItems.length > 0 && (
                     <Box
-                        sx={(theme) => ({
+                        sx={(theme: any) => ({
                             px: 2,
                             py: 1.25,
                             borderBottom: `1px solid ${theme.palette.divider}`,
@@ -129,7 +129,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                     }}
                 >
                     <Box
-                        sx={(theme) => ({
+                        sx={(theme: any) => ({
                             borderRight: `1px solid ${theme.palette.divider}`,
                             backgroundColor: theme.palette.background.default,
                         })}
@@ -137,7 +137,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                         {hourSlots.map((hour) => (
                             <Box
                                 key={hour}
-                                sx={(theme) => ({
+                                sx={(theme: any) => ({
                                     height: rowHeight,
                                     px: 1.25,
                                     pt: 0.55,
@@ -151,7 +151,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                         ))}
                     </Box>
                     <Box
-                        sx={(theme) => ({
+                        sx={(theme: any) => ({
                             position: "relative",
                             backgroundColor: theme.palette.background.paper,
                         })}
@@ -159,7 +159,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                         {hourSlots.map((hour) => (
                             <Box
                                 key={hour}
-                                sx={(theme) => ({
+                                sx={(theme: any) => ({
                                     height: rowHeight,
                                     borderBottom: `1px solid ${theme.palette.divider}`,
                                 })}
@@ -238,7 +238,7 @@ const { anchorDate, itemsByDate, openDay } = m;
             </Box>
 
             <Box
-                sx={(theme) => ({
+                sx={(theme: any) => ({
                     borderRadius: 4,
                     border: `1px solid ${theme.palette.divider}`,
                     overflow: "hidden",
@@ -246,7 +246,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                 })}
             >
                 <Box
-                    sx={(theme) => ({
+                    sx={(theme: any) => ({
                         p: 1.25,
                         borderBottom: `1px solid ${theme.palette.divider}`,
                         backgroundColor: alpha(

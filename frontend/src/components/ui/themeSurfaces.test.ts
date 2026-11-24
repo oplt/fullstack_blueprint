@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTheme } from "@mui/material/styles";
+import { createTheme } from "@/components/ui/muiCompat";
 import { lightTheme, darkTheme } from "../../app/theme";
 import {
     chartHeatFill,

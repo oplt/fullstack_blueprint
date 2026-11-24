@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton, Stack } from "@mui/material";
+import { Skeleton, Stack } from "@/components/ui/muiCompat";
 import { getConfigSettings, listDatabaseSettings } from "../../../api/settings";
 import { queryKeys } from "../../../config/queryKeys";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
@@ -12,8 +12,8 @@ import { buildConfigGroups, settingsContentKey, type SettingsTabValue } from "..
 
 export default function AdminSettingsPage() {
     const [activeTab, setActiveTab] = useState<SettingsTabValue>("application");
-    const config = useQuery({ queryKey: queryKeys.settings.config, queryFn: getConfigSettings });
-    const database = useQuery({ queryKey: queryKeys.settings.database, queryFn: listDatabaseSettings });
+    const config = useQuery({ queryKey: queryKeys.settings.config, queryFn: ({ signal }) => getConfigSettings({ signal }) });
+    const database = useQuery({ queryKey: queryKeys.settings.database, queryFn: ({ signal }) => listDatabaseSettings({ signal }) });
     if ((config.isLoading && !config.data) || (database.isLoading && !database.data)) {
         return <PageShell maxWidth="xl"><Stack spacing={2}><Skeleton variant="rounded" height={180} sx={{ borderRadius: 6 }} /><Skeleton variant="rounded" height={320} sx={{ borderRadius: 6 }} /></Stack></PageShell>;
     }

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider, createTheme } from "@/components/ui/muiCompat";
 import { PageHeader } from "./PageHeader";
 import { KeyValueList } from "./KeyValueList";
 import { keyValueItemsFromRecord } from "./keyValueItems";

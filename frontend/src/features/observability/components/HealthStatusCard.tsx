@@ -1,5 +1,5 @@
-import { Box, Chip, Paper, Stack, Typography } from "@mui/material";
-import { alpha, useTheme } from "@mui/material/styles";
+import { Box, Chip, Paper, Stack, Typography } from "@/components/ui/muiCompat";
+import { alpha, useTheme } from "@/components/ui/muiCompat";
 import type { ReactNode } from "react";
 import type { HealthStatus } from "../types";
 
@@ -55,14 +55,15 @@ export function HealthStatusCard({
 
     return (
         <Paper
-            sx={(theme) => ({
+            sx={(theme: any) => ({
                 p: 2,
                 borderRadius: 1,
                 border: "none",
                 boxShadow: "none",
                 minHeight: 180,
-                backgroundColor:
-                    theme.palette.mode === "dark" ? theme.palette.background.paper : "var(--tesla-light-ash)",
+                backgroundColor: theme.palette.mode === "dark"
+                    ? theme.palette.background.paper
+                    : theme.palette.action.hover,
             })}
         >
             <Stack spacing={1.5} sx={{ height: "100%" }}>

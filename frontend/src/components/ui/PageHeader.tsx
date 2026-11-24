@@ -1,153 +1,17 @@
-import { useId, useState } from "react";
-import {
-    Box,
-    IconButton,
-    Menu,
-    MenuItem,
-    Stack,
-    Typography,
-    type SxProps,
-    type Theme,
-} from "@mui/material";
-import { MoreVert as MoreIcon } from "@mui/icons-material";
-import { headingHierarchy, layoutSpacing } from "./layoutTokens";
+import { useId, useState, type ReactNode } from "react";
+import { MoreVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { inlineStyle, type StyleCompat } from "./styleCompat";
 
-export type PageHeaderOverflowItem = {
-    id: string;
-    label: React.ReactNode;
-    onClick: () => void;
-    disabled?: boolean;
-};
+export type PageHeaderOverflowItem = { id: string; label: ReactNode; onClick: () => void; disabled?: boolean };
+type PageHeaderProps = { title: ReactNode; description?: ReactNode; status?: ReactNode; primaryAction?: ReactNode; secondaryActions?: ReactNode; overflowItems?: PageHeaderOverflowItem[]; actions?: ReactNode; icon?: ReactNode; dense?: boolean; sx?: StyleCompat };
 
-type PageHeaderProps = {
-    title: React.ReactNode;
-    description?: React.ReactNode;
-    /** Optional status chip / badge rendered under the title row. */
-    status?: React.ReactNode;
-    /** Preferred primary CTA (right-aligned). */
-    primaryAction?: React.ReactNode;
-    /** Secondary actions before the primary. */
-    secondaryActions?: React.ReactNode;
-    /** Overflow menu items (⋯). */
-    overflowItems?: PageHeaderOverflowItem[];
-    /**
-     * Legacy single actions slot. Prefer primaryAction / secondaryActions.
-     * Rendered after secondaryActions and before primaryAction when provided.
-     */
-    actions?: React.ReactNode;
-    icon?: React.ReactNode;
-    dense?: boolean;
-    sx?: SxProps<Theme>;
-};
-
-export function PageHeader({
-    title,
-    description,
-    status,
-    primaryAction,
-    secondaryActions,
-    overflowItems,
-    actions,
-    icon,
-    dense = false,
-    sx,
-}: PageHeaderProps) {
+export function PageHeader({ title, description, status, primaryAction, secondaryActions, overflowItems, actions, icon, dense = false, sx }: PageHeaderProps) {
     const menuId = useId();
-    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-    const hasActions =
-        Boolean(primaryAction) ||
-        Boolean(secondaryActions) ||
-        Boolean(actions) ||
-        Boolean(overflowItems?.length);
-
-    return (
-        <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={dense ? 1.5 : 2}
-            justifyContent="space-between"
-            alignItems={{ xs: "stretch", sm: "flex-start" }}
-            sx={[
-                {
-                    mb: dense
-                        ? layoutSpacing.headerMarginBottom.dense
-                        : layoutSpacing.headerMarginBottom.default,
-                },
-                ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
-            ]}
-        >
-            <Stack direction="row" spacing={1.5} alignItems="flex-start" sx={{ minWidth: 0 }}>
-                {icon ? (
-                    <Box sx={{ color: "primary.main", display: "flex", mt: 0.25 }}>{icon}</Box>
-                ) : null}
-                <Box sx={{ minWidth: 0 }}>
-                    <Typography
-                        variant={dense ? headingHierarchy.pageDense : headingHierarchy.page}
-                        component="h1"
-                    >
-                        {title}
-                    </Typography>
-                    {description ? (
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 0.5, maxWidth: 720 }}
-                        >
-                            {description}
-                        </Typography>
-                    ) : null}
-                    {status ? <Box sx={{ mt: 1 }}>{status}</Box> : null}
-                </Box>
-            </Stack>
-            {hasActions ? (
-                <Stack
-                    direction="row"
-                    spacing={1}
-                    flexWrap="wrap"
-                    useFlexGap
-                    justifyContent={{ xs: "flex-start", sm: "flex-end" }}
-                    alignItems="center"
-                    sx={{ flexShrink: 0 }}
-                >
-                    {secondaryActions}
-                    {actions}
-                    {primaryAction}
-                    {overflowItems && overflowItems.length > 0 ? (
-                        <>
-                            <IconButton
-                                size="small"
-                                aria-label="More actions"
-                                aria-controls={menuAnchor ? menuId : undefined}
-                                aria-haspopup="true"
-                                aria-expanded={menuAnchor ? "true" : undefined}
-                                onClick={(event) => setMenuAnchor(event.currentTarget)}
-                            >
-                                <MoreIcon fontSize="small" />
-                            </IconButton>
-                            <Menu
-                                id={menuId}
-                                anchorEl={menuAnchor}
-                                open={Boolean(menuAnchor)}
-                                onClose={() => setMenuAnchor(null)}
-                                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                                transformOrigin={{ vertical: "top", horizontal: "right" }}
-                            >
-                                {overflowItems.map((item) => (
-                                    <MenuItem
-                                        key={item.id}
-                                        disabled={item.disabled}
-                                        onClick={() => {
-                                            setMenuAnchor(null);
-                                            item.onClick();
-                                        }}
-                                    >
-                                        {item.label}
-                                    </MenuItem>
-                                ))}
-                            </Menu>
-                        </>
-                    ) : null}
-                </Stack>
-            ) : null}
-        </Stack>
-    );
+    const [open, setOpen] = useState(false);
+    const hasActions = Boolean(primaryAction || secondaryActions || actions || overflowItems?.length);
+    return <header className="mb-6 flex min-w-0 flex-col justify-between gap-4 sm:flex-row sm:items-start" style={inlineStyle(sx)}>
+        <div className="flex min-w-0 items-start gap-3">{icon ? <span className="mt-1 flex shrink-0 text-primary">{icon}</span> : null}<div className="min-w-0"><h1 className={dense ? "text-xl font-semibold tracking-tight" : "text-2xl font-semibold tracking-tight"}>{title}</h1>{description ? <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p> : null}{status ? <div className="mt-2">{status}</div> : null}</div></div>
+        {hasActions ? <div className="relative flex shrink-0 flex-wrap items-center justify-start gap-2 sm:justify-end">{secondaryActions}{actions}{primaryAction}{overflowItems?.length ? <><Button variant="ghost" size="icon" aria-label="More actions" aria-controls={menuId} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}><MoreVertical className="size-4" /></Button>{open ? <div id={menuId} role="menu" className="absolute right-0 top-full z-20 mt-1 min-w-36 rounded-lg border border-border bg-popover p-1 shadow-lg">{overflowItems.map((item) => <button key={item.id} type="button" role="menuitem" disabled={item.disabled} onClick={() => { setOpen(false); item.onClick(); }} className="block w-full rounded px-3 py-2 text-left text-sm hover:bg-muted disabled:opacity-50">{item.label}</button>)}</div> : null}</> : null}</div> : null}
+    </header>;
 }

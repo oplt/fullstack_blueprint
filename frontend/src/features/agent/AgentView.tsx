@@ -13,8 +13,8 @@ import {
     TableRow,
     TextField,
     Typography,
-} from "@mui/material";
-import { SmartToy as AgentIcon, PlayArrow as RunIcon } from "@mui/icons-material";
+} from "@/components/ui/muiCompat";
+import { SmartToy as AgentIcon, PlayArrow as RunIcon } from "@/components/ui/iconsCompat";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "../../app/snackbarContext";
 import { createAgentRun, getAgentRun, listAgentRuns, formatAgentCostMicros } from "../../api/agent";
@@ -96,37 +96,38 @@ export default function AgentView() {
 
     const overviewQuery = useQuery({
         queryKey: queryKeys.ai.overview,
-        queryFn: getAiOverview,
+        queryFn: ({ signal }) => getAiOverview({ signal }),
     });
 
     const projectsQuery = useQuery({
         queryKey: queryKeys.projects.all,
-        queryFn: listProjects,
+        queryFn: ({ signal }) => listProjects({ signal }),
     });
 
     const documentsQuery = useQuery({
         enabled: ragEnabled,
         queryKey: queryKeys.rag.documents(projectId || undefined, 0),
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             listRagDocuments({
                 projectId: projectId || undefined,
                 limit: 50,
                 offset: 0,
+                signal,
             }),
     });
 
     const templates = overviewQuery.data?.prompt_templates ?? [];
     const providers = overviewQuery.data?.providers ?? [];
-    const selectedTemplate = templates.find((t) => t.key === promptTemplateKey) ?? null;
+    const selectedTemplate = templates.find((t: any) => t.key === promptTemplateKey) ?? null;
 
     const runsQuery = useQuery({
         queryKey: queryKeys.agent.runs,
-        queryFn: () => listAgentRuns({ limit: 30 }),
+        queryFn: ({ signal }) => listAgentRuns({ limit: 30, signal }),
     });
 
     const selectedRunQuery = useQuery({
         queryKey: queryKeys.agent.run(selectedRunId ?? ""),
-        queryFn: () => getAgentRun(selectedRunId!),
+        queryFn: ({ signal }) => getAgentRun(selectedRunId!, { signal }),
         enabled: Boolean(selectedRunId),
     });
 
@@ -272,7 +273,7 @@ export default function AgentView() {
                                     size="small"
                                     label="Agent ID"
                                     value={agentId}
-                                    onChange={(e) => setAgentId(e.target.value)}
+                                    onChange={(e: any) => setAgentId(e.target.value)}
                                     sx={{ minWidth: 160 }}
                                 />
                                 <TextField
@@ -280,7 +281,7 @@ export default function AgentView() {
                                     size="small"
                                     label="Project"
                                     value={projectId}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                         setProjectId(e.target.value);
                                         setSelectedDocumentIds([]);
                                     }}
@@ -298,7 +299,7 @@ export default function AgentView() {
                                     size="small"
                                     label="Prompt template"
                                     value={promptTemplateKey}
-                                    onChange={(e) => setPromptTemplateKey(e.target.value)}
+                                    onChange={(e: any) => setPromptTemplateKey(e.target.value)}
                                     sx={{ minWidth: 220 }}
                                 >
                                     <MenuItem value="">None (message only)</MenuItem>
@@ -343,7 +344,7 @@ export default function AgentView() {
                                 size="small"
                                 label="User message"
                                 value={userMessage}
-                                onChange={(e) => setUserMessage(e.target.value)}
+                                onChange={(e: any) => setUserMessage(e.target.value)}
                                 multiline
                                 minRows={3}
                                 fullWidth
@@ -366,7 +367,7 @@ export default function AgentView() {
                                         </HelpFieldLabel>
                                     }
                                     value={topK}
-                                    onChange={(e) => setTopK(Number(e.target.value) || 4)}
+                                    onChange={(e: any) => setTopK(Number(e.target.value) || 4)}
                                     inputProps={{ min: 1, max: 20 }}
                                     sx={{ width: 120 }}
                                 />
@@ -374,7 +375,7 @@ export default function AgentView() {
                                     size="small"
                                     label="Retrieval query (optional)"
                                     value={retrievalQuery}
-                                    onChange={(e) => setRetrievalQuery(e.target.value)}
+                                    onChange={(e: any) => setRetrievalQuery(e.target.value)}
                                     sx={{ minWidth: 280, flex: 1 }}
                                     helperText="Defaults to the user message when empty."
                                 />

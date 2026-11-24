@@ -12,9 +12,10 @@ import {
     TextField,
     type TextFieldProps,
     Typography,
-} from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+} from "@/components/ui/muiCompat";
+import { Visibility, VisibilityOff } from "@/components/ui/iconsCompat";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../app/routes";
 import { forgotPassword, signIn, signUp } from "../api/auth";
 import { AuthMarketingPanel } from "../components/auth/AuthMarketingPanel";
 import { AuthShell } from "../components/auth/AuthShell";
@@ -46,7 +47,7 @@ function PasswordField(props: TextFieldProps) {
                             edge="end"
                             aria-label={showPassword ? "Hide password" : "Show password"}
                             onClick={() => setShowPassword((value) => !value)}
-                            onMouseDown={(event) => event.preventDefault()}
+                            onMouseDown={(event: any) => event.preventDefault()}
                         >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
@@ -90,7 +91,7 @@ function SignInForm() {
                 mfa_code: mfaCode || undefined,
             });
             setAuthenticated(data.user);
-            navigate("/dashboard");
+            navigate(ROUTES.dashboard);
         } catch (error) {
             setServerError(getQueryErrorMessage(error, "Sign in failed."));
         }
@@ -290,13 +291,15 @@ export default function AuthHomePage() {
                 </Box>
 
                 <Box
-                    sx={(theme) => ({
+                    sx={(theme: any) => ({
                         p: 0.5,
                         borderRadius: 1,
                         display: "grid",
                         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                         gap: 0.5,
-                        backgroundColor: theme.palette.mode === "dark" ? "action.hover" : "var(--tesla-light-ash)",
+                        backgroundColor: theme.palette.mode === "dark"
+                            ? theme.palette.background.paper
+                            : theme.palette.action.hover,
                     })}
                 >
                     <Button

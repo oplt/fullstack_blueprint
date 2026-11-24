@@ -1,5 +1,5 @@
-import { Box, Button, Skeleton, Stack } from "@mui/material";
-import { Approval as ReviewIcon, Dataset as DatasetIcon, Description as DocumentIcon, PsychologyAlt as PromptIcon } from "@mui/icons-material";
+import { Box, Button, Skeleton, Stack } from "@/components/ui/muiCompat";
+import { Approval as ReviewIcon, Dataset as DatasetIcon, Description as DocumentIcon, PsychologyAlt as PromptIcon } from "@/components/ui/iconsCompat";
 import { usePlatformMetadata } from "../../../hooks/usePlatformMetadata";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";

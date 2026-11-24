@@ -14,13 +14,13 @@ import {
     TablePagination,
     TextField,
     Typography,
-} from "@mui/material";
+} from "@/components/ui/muiCompat";
 import {
     CloudUpload as UploadIcon,
     Refresh as RetryIcon,
     Search as RetrieveIcon,
     QuestionAnswer as AskIcon,
-} from "@mui/icons-material";
+} from "@/components/ui/iconsCompat";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "../../app/snackbarContext";
 import { listProjects } from "../../api/projects";
@@ -116,33 +116,35 @@ export default function RagView() {
 
     const projectsQuery = useQuery({
         queryKey: queryKeys.projects.all,
-        queryFn: listProjects,
+        queryFn: ({ signal }) => listProjects({ signal }),
     });
 
     const documentsQuery = useQuery({
         queryKey: queryKeys.rag.documents(projectId || undefined, docOffset),
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             listRagDocuments({
                 projectId: projectId || undefined,
                 limit: PAGE_SIZE,
                 offset: docOffset,
+                signal,
             }),
     });
 
     const chunksQuery = useQuery({
         queryKey: queryKeys.rag.chunks(selectedDocumentId ?? "", chunkOffset),
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             listRagChunks(selectedDocumentId!, {
                 limit: PAGE_SIZE,
                 offset: chunkOffset,
                 contentMode: "snippet",
+                signal,
             }),
         enabled: Boolean(selectedDocumentId),
     });
 
     const jobQuery = useQuery({
         queryKey: queryKeys.rag.job(pollJobId ?? ""),
-        queryFn: () => getRagIngestionJob(pollJobId!),
+        queryFn: ({ signal }) => getRagIngestionJob(pollJobId!, { signal }),
         enabled: Boolean(pollJobId),
         refetchInterval: (query) => {
             const status = query.state.data?.status;
@@ -153,7 +155,7 @@ export default function RagView() {
 
     const historyQuery = useQuery({
         queryKey: queryKeys.rag.queries(historyOffset),
-        queryFn: () => listRagQueries({ limit: PAGE_SIZE, offset: historyOffset }),
+        queryFn: ({ signal }) => listRagQueries({ limit: PAGE_SIZE, offset: historyOffset, signal }),
     });
 
     useEffect(() => {
@@ -295,7 +297,7 @@ export default function RagView() {
                         size="small"
                         label="Project / index scope"
                         value={projectId}
-                        onChange={(e) => {
+                        onChange={(e: any) => {
                             setProjectId(e.target.value);
                             setDocOffset(0);
                             setSelectedDocumentId(null);
@@ -334,7 +336,7 @@ export default function RagView() {
                                     ref={fileInputRef}
                                     type="file"
                                     hidden
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                         const file = e.target.files?.[0];
                                         if (file) uploadMutation.mutate(file);
                                         e.target.value = "";
@@ -429,7 +431,7 @@ export default function RagView() {
                                                     direction="row"
                                                     spacing={0.5}
                                                     justifyContent="flex-end"
-                                                    onClick={(e) => e.stopPropagation()}
+                                                    onClick={(e: any) => e.stopPropagation()}
                                                 >
                                                     <Button
                                                         size="small"
@@ -668,7 +670,7 @@ export default function RagView() {
                                             component="div"
                                             count={chunksQuery.data?.total ?? 0}
                                             page={Math.floor(chunkOffset / PAGE_SIZE)}
-                                            onPageChange={(_, page) =>
+                                            onPageChange={(_: any, page: any) =>
                                                 setChunkOffset(page * PAGE_SIZE)
                                             }
                                             rowsPerPage={PAGE_SIZE}
@@ -696,7 +698,7 @@ export default function RagView() {
                                     size="small"
                                     label="Query"
                                     value={retrieveQuery}
-                                    onChange={(e) => setRetrieveQuery(e.target.value)}
+                                    onChange={(e: any) => setRetrieveQuery(e.target.value)}
                                     fullWidth
                                 />
                                 <TextField
@@ -708,7 +710,7 @@ export default function RagView() {
                                         </HelpFieldLabel>
                                     }
                                     value={topK}
-                                    onChange={(e) =>
+                                    onChange={(e: any) =>
                                         setTopK(Math.max(1, Math.min(50, Number(e.target.value) || 1)))
                                     }
                                     inputProps={{ min: 1, max: 50, step: 1 }}
@@ -805,7 +807,7 @@ export default function RagView() {
                                 size="small"
                                 label="Question"
                                 value={askQuery}
-                                onChange={(e) => setAskQuery(e.target.value)}
+                                onChange={(e: any) => setAskQuery(e.target.value)}
                                 fullWidth
                                 multiline
                                 minRows={2}
@@ -974,7 +976,7 @@ export default function RagView() {
                                 component="div"
                                 count={historyQuery.data?.total ?? 0}
                                 page={Math.floor(historyOffset / PAGE_SIZE)}
-                                onPageChange={(_, page) => setHistoryOffset(page * PAGE_SIZE)}
+                                onPageChange={(_: any, page: any) => setHistoryOffset(page * PAGE_SIZE)}
                                 rowsPerPage={PAGE_SIZE}
                                 rowsPerPageOptions={[PAGE_SIZE]}
                             />

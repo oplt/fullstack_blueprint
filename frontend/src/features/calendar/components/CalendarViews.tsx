@@ -1,5 +1,5 @@
-import { Box } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { Box } from "@/components/ui/muiCompat";
+import { alpha } from "@/components/ui/muiCompat";
 import { getMonthGridColumns } from "../calendarRange";
 import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 import { CalendarDayView } from "./CalendarDayView";
@@ -8,7 +8,7 @@ import { MonthDateCalendar } from "./MonthDateCalendar";
 
 function CalendarMonthViews({ m }: { m: DashboardCalendarModel }) {
     return <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: getMonthGridColumns(m.viewMode) }}>
-        {m.visibleMonths.map((month) => <Box key={month.format("YYYY-MM")} sx={(theme) => ({
+        {m.visibleMonths.map((month) => <Box key={month.format("YYYY-MM")} sx={(theme: any) => ({
             borderRadius: 4,
             border: `1px solid ${theme.palette.divider}`,
             p: 1.25,

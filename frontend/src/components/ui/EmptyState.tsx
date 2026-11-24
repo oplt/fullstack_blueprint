@@ -1,42 +1,4 @@
-import { Box, Stack, Typography } from "@mui/material";
-import { layoutSpacing } from "./layoutTokens";
-
-type EmptyStateProps = {
-    icon: React.ReactNode;
-    title: string;
-    description: string;
-    action?: React.ReactNode;
-};
-
-export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
-    return (
-        <Box
-            sx={{
-                px: layoutSpacing.cardPadding.default,
-                py: { xs: 3, md: 4 },
-                textAlign: "center",
-            }}
-        >
-            <Stack spacing={1.5} alignItems="center">
-                <Box
-                    sx={{
-                        width: 48,
-                        height: 48,
-                        display: "grid",
-                        placeItems: "center",
-                        color: "text.secondary",
-                    }}
-                >
-                    {icon}
-                </Box>
-                <Typography variant="h6" component="h2">
-                    {title}
-                </Typography>
-                <Typography color="text.secondary" sx={{ maxWidth: 460 }}>
-                    {description}
-                </Typography>
-                {action && <Box sx={{ pt: 0.5 }}>{action}</Box>}
-            </Stack>
-        </Box>
-    );
-}
+import type { ReactNode } from "react";
+// Stable application wrapper; `empty.tsx` remains the lower-level shadcn composition API.
+type EmptyStateProps = { icon: ReactNode; title: string; description: string; action?: ReactNode };
+export function EmptyState({ icon, title, description, action }: EmptyStateProps) { return <div className="px-5 py-8 text-center"><div className="flex flex-col items-center gap-3"><div className="grid size-12 place-items-center text-muted-foreground">{icon}</div><h2 className="text-lg font-semibold">{title}</h2><p className="max-w-xl text-sm text-muted-foreground">{description}</p>{action ? <div className="pt-1">{action}</div> : null}</div></div>; }

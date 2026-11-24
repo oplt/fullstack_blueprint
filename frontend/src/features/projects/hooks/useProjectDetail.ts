@@ -17,9 +17,9 @@ export function useProjectDetail() {
     const taskForm = useForm<TaskDraft>({ resolver: zodResolver(projectTaskSchema), defaultValues: EMPTY_TASK_DRAFT, mode: "onBlur" });
     const taskDraft = useWatch({ control: taskForm.control }); const [taskError, setTaskError] = useState("");
     const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
-    const projectQuery = useQuery({ queryKey: queryKeys.projects.detail(projectId), queryFn: () => getProject(projectId), enabled: Boolean(projectId) });
-    const tasksQuery = useQuery({ queryKey: queryKeys.projects.tasks(projectId), queryFn: () => listProjectTasks(projectId), enabled: Boolean(projectId) });
-    const usersQuery = useQuery({ queryKey: queryKeys.users.directory, queryFn: listUserDirectory, staleTime: QUERY_STALE_TIMES.userDirectory });
+    const projectQuery = useQuery({ queryKey: queryKeys.projects.detail(projectId), queryFn: ({ signal }) => getProject(projectId, { signal }), enabled: Boolean(projectId) });
+    const tasksQuery = useQuery({ queryKey: queryKeys.projects.tasks(projectId), queryFn: ({ signal }) => listProjectTasks(projectId, { signal }), enabled: Boolean(projectId) });
+    const usersQuery = useQuery({ queryKey: queryKeys.users.directory, queryFn: ({ signal }) => listUserDirectory({ signal }), staleTime: QUERY_STALE_TIMES.userDirectory });
     const orderedTasks = sortTasks(tasksQuery.data ?? []); const selectedTask = orderedTasks.find((task) => task.id === selectedTaskId) ?? null;
     const reset = () => { setSelectedTaskId(null); taskForm.reset(EMPTY_TASK_DRAFT); setTaskError(""); };
     const select = (task: ProjectTask) => { setSelectedTaskId(task.id); taskForm.reset(taskToDraft(task)); setTaskError(""); };

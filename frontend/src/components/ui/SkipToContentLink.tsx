@@ -1,51 +1,6 @@
-import { Box, Link } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
-/**
- * First focusable control for keyboard users (Phase 21).
- * Visually hidden until focused.
- */
-export function SkipToContentLink({
-    href = "#main-content",
-    label = "Skip to main content",
-}: {
-    href?: string;
-    label?: string;
-}) {
-    return (
-        <Box
-            component={Link}
-            href={href}
-            underline="none"
-            sx={{
-                position: "absolute",
-                left: 16,
-                top: 16,
-                zIndex: (theme) => theme.zIndex.tooltip + 1,
-                px: 1.5,
-                py: 1,
-                borderRadius: 1,
-                bgcolor: "background.paper",
-                color: "text.primary",
-                border: 1,
-                borderColor: "divider",
-                boxShadow: 2,
-                transform: "translateY(-160%)",
-                transition: (theme) =>
-                    theme.transitions.create("transform", {
-                        duration: theme.transitions.duration.shorter,
-                    }),
-                "&:focus": {
-                    transform: "translateY(0)",
-                    outline: "none",
-                },
-                "&:focus-visible": {
-                    transform: "translateY(0)",
-                    boxShadow: (theme) =>
-                        `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${theme.palette.primary.main}`,
-                },
-            }}
-        >
-            {label}
-        </Box>
-    );
+export function SkipToContentLink({ href = "#main-content", label }: { href?: string; label?: string }) {
+    const { t } = useTranslation();
+    return <a href={href} className="fixed start-4 top-4 z-[1800] -translate-y-[160%] rounded-md border border-border bg-background px-3 py-2 text-foreground shadow-lg transition-transform focus-visible:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{label ?? t("accessibility.skipToMain", { defaultValue: "Skip to main content" })}</a>;
 }

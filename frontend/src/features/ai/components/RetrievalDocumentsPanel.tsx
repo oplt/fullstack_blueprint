@@ -1,5 +1,5 @@
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
-import { Description as DocumentIcon } from "@mui/icons-material";
+import { Box, Button, Stack, TextField, Typography } from "@/components/ui/muiCompat";
+import { Description as DocumentIcon } from "@/components/ui/iconsCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { formatDateTime } from "../../../utils/formatters";
@@ -10,9 +10,9 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
     return (
     <SectionCard title="Retrieval documents" description="Ingest source files or direct text, chunk them, and use them as retrieval context in prompt runs.">
         <Stack spacing={2}>
-            <TextField label="Document title" value={textDocumentForm.title} onChange={(event) => setTextDocumentForm((current) => ({ ...current, title: event.target.value }))} fullWidth />
-            <TextField label="Description" value={textDocumentForm.description} onChange={(event) => setTextDocumentForm((current) => ({ ...current, description: event.target.value }))} fullWidth />
-            <TextField label="Document content" value={textDocumentForm.content} onChange={(event) => setTextDocumentForm((current) => ({ ...current, content: event.target.value }))} fullWidth multiline minRows={6} />
+            <TextField label="Document title" value={textDocumentForm.title} onChange={(event: any) => setTextDocumentForm((current) => ({ ...current, title: event.target.value }))} fullWidth />
+            <TextField label="Description" value={textDocumentForm.description} onChange={(event: any) => setTextDocumentForm((current) => ({ ...current, description: event.target.value }))} fullWidth />
+            <TextField label="Document content" value={textDocumentForm.content} onChange={(event: any) => setTextDocumentForm((current) => ({ ...current, content: event.target.value }))} fullWidth multiline minRows={6} />
             <Button
                 variant="outlined"
                 disabled={createTextDocumentMutation.isPending || !textDocumentForm.title.trim() || !textDocumentForm.content.trim()}
@@ -26,7 +26,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
                     hidden
                     type="file"
                     accept=".txt,.md,.json,.ndjson,text/plain,text/markdown,application/json"
-                    onChange={(event) => {
+                    onChange={(event: any) => {
                         const file = event.target.files?.[0];
                         if (file) {
                             uploadDocumentMutation.mutate({ file, description: uploadDescription || undefined });
@@ -35,11 +35,11 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
                     }}
                 />
             </Button>
-            <TextField label="Upload description" value={uploadDescription} onChange={(event) => setUploadDescription(event.target.value)} fullWidth />
+            <TextField label="Upload description" value={uploadDescription} onChange={(event: any) => setUploadDescription(event.target.value)} fullWidth />
             {documents.length > 0 ? (
                 <Stack spacing={1}>
                     {documents.map((document) => (
-                        <Box key={document.id} sx={(theme) => ({ p: 1.5, borderRadius: 3, border: `1px solid ${theme.palette.divider}` })}>
+                        <Box key={document.id} sx={(theme: any) => ({ p: 1.5, borderRadius: 3, border: `1px solid ${theme.palette.divider}` })}>
                             <Typography variant="subtitle2">{document.title}</Typography>
                             <Typography variant="caption" color="text.secondary">
                                 {document.chunk_count} chunks • {document.content_type} • {formatDateTime(document.updated_at)}

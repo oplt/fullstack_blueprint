@@ -8,14 +8,14 @@ import {
     Tab,
     Tabs,
     Typography,
-} from "@mui/material";
+} from "@/components/ui/muiCompat";
 import {
     Add as AddIcon,
     PlaylistAddCheck as TaskIcon,
     ViewKanban as BoardIcon,
     ViewList as ListIcon,
-} from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
+} from "@/components/ui/iconsCompat";
+import { alpha } from "@/components/ui/muiCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { ProjectTask } from "../../../api/projects";
@@ -119,12 +119,12 @@ export function ProjectFlowSection({
                             return (
                                 <Box
                                     key={option.value}
-                                    onDragOver={(e) => e.preventDefault()}
-                                    onDrop={(e) => {
+                                    onDragOver={(e: any) => e.preventDefault()}
+                                    onDrop={(e: any) => {
                                         e.preventDefault();
                                         m.drop(option.value);
                                     }}
-                                    sx={(t) => ({
+                                    sx={(t: any) => ({
                                         minHeight: 240,
                                         p: 1.25,
                                         borderRadius: 4,
@@ -169,7 +169,7 @@ export function ProjectFlowSection({
                                                 ))
                                             ) : (
                                                 <Box
-                                                    sx={(t) => ({
+                                                    sx={(t: any) => ({
                                                         p: 2,
                                                         borderRadius: 3,
                                                         border: `1px dashed ${t.palette.divider}`,

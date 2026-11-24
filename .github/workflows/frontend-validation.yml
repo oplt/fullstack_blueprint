@@ -1,0 +1,254 @@
+name: Frontend validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend static and component checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql+asyncpg://ci:ci@127.0.0.1:5432/ci
+      REDIS_URL: redis://127.0.0.1:6379/0
+      JWT_SECRET: ci-contract-only-secret-0123456789abcdef
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      LOG_TO_FILE: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.8.17"
+      - name: Install locked backend contract profile
+        run: uv sync --locked --all-extras
+        working-directory: backend
+      - name: Install locked frontend dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Audit frontend dependencies
+        run: npm run audit
+        working-directory: frontend
+      - name: Lint frontend
+        run: npm run lint
+        working-directory: frontend
+      - name: Type-check frontend
+        run: npx tsc -b
+        working-directory: frontend
+      - name: Verify generated API contract
+        run: npm run api:check
+        working-directory: frontend
+      - name: Run unit and component tests
+        run: npm test -- --run
+        working-directory: frontend
+      - name: Run focused accessibility tests
+        run: npm test -- --run src/components/ui/a11y.axe.test.tsx src/components/ui/a11y.phase21.test.tsx
+        working-directory: frontend
+      - name: Build production frontend
+        run: npm run build
+        working-directory: frontend
+      - name: Verify PWA artifacts and cache policy
+        run: npm run pwa:check
+        working-directory: frontend
+      - name: Enforce bundle budgets
+        run: npm run perf:check
+        working-directory: frontend
+      - name: Build Storybook
+        run: npm run storybook:build
+        working-directory: frontend
+      - name: Upload frontend artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-validation-artifacts
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            frontend/dist
+            frontend/storybook-static
+            frontend/coverage
+      - name: Write validation classification
+        if: always()
+        run: |
+          {
+            echo "## Frontend validation classification"
+            echo "- Passed: lock install, audit threshold, lint, TypeScript, API contract, unit/component, axe, production build, PWA artifact, bundle budget, and Storybook checks when this job succeeds."
+            echo "- Skipped: backend-dependent browser journeys are executed only in the disposable-service E2E job."
+            echo "- Blocked: a failing step is reported by GitHub Actions; no unexecuted test is counted as passed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  backend:
+    name: Backend lint and integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.8.17"
+      - name: Install locked backend dependencies
+        run: uv sync --locked --all-extras
+        working-directory: backend
+      - name: Check backend formatting and lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+        working-directory: backend
+      - name: Run backend tests
+        run: uv run pytest . --junitxml=backend-test-results.xml
+        working-directory: backend
+      - name: Upload backend test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          if-no-files-found: ignore
+          retention-days: 7
+          path: backend/backend-test-results.xml
+      - name: Write validation classification
+        if: always()
+        run: |
+          {
+            echo "## Backend validation classification"
+            echo "- Passed: locked dependency installation, Ruff checks, and pytest when the job succeeds."
+            echo "- Skipped: tests marked by pytest are preserved in the test report."
+            echo "- Blocked: database-backed browser journeys are isolated in the disposable PostgreSQL/Redis E2E job."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  e2e:
+    name: Disposable browser and PWA checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: fullstack_blueprint
+          POSTGRES_PASSWORD: fullstack_blueprint
+          POSTGRES_DB: fullstack_blueprint
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fullstack_blueprint -d fullstack_blueprint"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      APP_ENV: dev
+      APP_HOST: 127.0.0.1
+      APP_PORT: 8000
+      DATABASE_URL: postgresql+asyncpg://fullstack_blueprint:fullstack_blueprint@127.0.0.1:5432/fullstack_blueprint
+      REDIS_URL: redis://127.0.0.1:6379/0
+      JWT_SECRET: ci-only-ephemeral-secret-0123456789abcdef
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      FRONTEND_URL: http://127.0.0.1:5173
+      CORS_ALLOWED_ORIGINS: http://127.0.0.1:5173,http://localhost:5173
+      COOKIE_SECURE: false
+      REQUIRE_EMAIL_VERIFICATION: false
+      HEALTH_READY_PUBLIC: true
+      E2E_RELAX_RATE_LIMITS: true
+      CELERY_TASK_ALWAYS_EAGER: true
+      CACHE_ENABLED: true
+      AI_ENABLED: false
+      RAG_ENABLED: false
+      MEMORY_ENABLED: false
+      OBSERVABILITY_ENABLED: false
+      LOG_TO_FILE: false
+      E2E_API_URL: http://127.0.0.1:8000
+      E2E_WORKERS: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.8.17"
+      - name: Install locked backend dependencies
+        run: uv sync --locked --all-extras
+        working-directory: backend
+      - name: Install locked frontend dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Apply migrations to disposable PostgreSQL
+        run: uv run alembic -c alembic.ini upgrade head
+        working-directory: backend
+      - name: Start disposable API
+        run: |
+          nohup uv run uvicorn backend.api.main:app --host 127.0.0.1 --port 8000 > /tmp/blueprint-api.log 2>&1 &
+          echo $! > /tmp/blueprint-api.pid
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8000/health/ready > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/blueprint-api.log
+          exit 1
+        working-directory: backend
+      - name: Install Chromium for browser and PWA checks
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Build and probe production PWA
+        run: |
+          npm run build
+          npm run pwa:check
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/blueprint-preview.log 2>&1 &
+          echo $! > /tmp/blueprint-preview.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then break; fi
+            sleep 1
+          done
+          PWA_BASE_URL=http://127.0.0.1:4173 npm run pwa:browser
+          kill "$(cat /tmp/blueprint-preview.pid)" || true
+        working-directory: frontend
+      - name: Run Chromium E2E journeys against disposable services
+        run: npm run test:e2e -- --project=chromium
+        working-directory: frontend
+      - name: Upload browser and service logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-browser-artifacts
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+            /tmp/blueprint-api.log
+            /tmp/blueprint-preview.log
+      - name: Write validation classification
+        if: always()
+        run: |
+          {
+            echo "## Browser validation classification"
+            echo "- Passed: production PWA browser probe and configured Chromium journeys when this job succeeds."
+            echo "- Skipped: provisioned-user/admin and AI/RAG tests remain explicitly skipped unless their credentials and optional services are supplied."
+            echo "- Blocked: service startup or missing optional infrastructure is reported as a job failure or test skip, never as a pass."
+          } >> "$GITHUB_STEP_SUMMARY"

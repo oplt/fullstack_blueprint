@@ -9,7 +9,7 @@ type UseCurrentUserOptions = Pick<UseQueryOptions<UserProfile>, "enabled">;
 export function useCurrentUser(options?: UseCurrentUserOptions) {
     return useQuery({
         queryKey: queryKeys.users.me,
-        queryFn: getMe,
+        queryFn: ({ signal }) => getMe({ signal }),
         staleTime: QUERY_STALE_TIMES.userProfile,
         ...options,
     });

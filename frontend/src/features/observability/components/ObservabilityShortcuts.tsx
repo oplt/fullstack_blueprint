@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Box, Skeleton } from "@mui/material";
+import { Box, Skeleton } from "@/components/ui/muiCompat";
 import {
     Api as ApiIcon,
     Assessment as OverviewIcon,
@@ -12,7 +12,7 @@ import {
     Timeline as TracesIcon,
     Web as FrontendIcon,
     WorkHistory as WorkerIcon,
-} from "@mui/icons-material";
+} from "@/components/ui/iconsCompat";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { ObservabilityToolLink } from "../types";
@@ -53,7 +53,7 @@ export function ObservabilityShortcuts({ context, isAdmin, linksQuery }: Props) 
         <SectionCard title="Shortcuts" description="Open Grafana as the main investigation surface. Prometheus is kept as an admin debug tool.">
             {linksQuery.isLoading ? (
                 <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", xl: "repeat(3, 1fr)" } }}>
-                    {Array.from({ length: 6 }).map((_, index) => <Skeleton key={index} variant="rounded" height={218} sx={{ borderRadius: 4 }} />)}
+                    {Array.from({ length: 6 }).map((_: any, index: any) => <Skeleton key={index} variant="rounded" height={218} sx={{ borderRadius: 4 }} />)}
                 </Box>
             ) : shortcuts.length === 0 ? (
                 <EmptyState icon={<RouteIcon />} title="No observability shortcuts" description="Configure Grafana, Tempo, or Prometheus public URLs to enable launch links." />

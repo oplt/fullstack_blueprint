@@ -1,4 +1,4 @@
-import { apiFetch, type Paginated } from "./client";
+import { apiFetch, type ApiRequestOptions, type Paginated } from "./client";
 
 const BASE = "/memory";
 
@@ -56,6 +56,7 @@ export async function listMemories(options: {
     agentId?: string;
     limit?: number;
     offset?: number;
+    signal?: AbortSignal;
 } = {}): Promise<Paginated<MemoryItem>> {
     const search = new URLSearchParams();
     if (options.memoryLevel) search.set("memory_level", options.memoryLevel);
@@ -63,7 +64,7 @@ export async function listMemories(options: {
     if (options.agentId) search.set("agent_id", options.agentId);
     search.set("limit", String(options.limit ?? 20));
     search.set("offset", String(options.offset ?? 0));
-    return apiFetch(`${BASE}?${search}`);
+    return apiFetch(`${BASE}?${search}`, { signal: options.signal });
 }
 
 export async function searchMemories(payload: {
@@ -84,8 +85,8 @@ export async function searchMemories(payload: {
     });
 }
 
-export async function getMemory(memoryId: string): Promise<MemoryItem> {
-    return apiFetch(`${BASE}/${encodeURIComponent(memoryId)}`);
+export async function getMemory(memoryId: string, options?: ApiRequestOptions): Promise<MemoryItem> {
+    return apiFetch(`${BASE}/${encodeURIComponent(memoryId)}`, options);
 }
 
 export async function deleteMemory(memoryId: string): Promise<void> {
@@ -102,11 +103,12 @@ export async function forgetMemory(memoryId: string, reason: string): Promise<vo
 export async function listMemoryAuditLogs(options: {
     limit?: number;
     offset?: number;
+    signal?: AbortSignal;
 } = {}): Promise<Paginated<MemoryAuditLog>> {
     const search = new URLSearchParams();
     search.set("limit", String(options.limit ?? 20));
     search.set("offset", String(options.offset ?? 0));
-    return apiFetch(`${BASE}/audit?${search}`);
+    return apiFetch(`${BASE}/audit?${search}`, { signal: options.signal });
 }
 
 export async function createMemory(payload: {

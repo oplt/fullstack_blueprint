@@ -1,5 +1,5 @@
-import { Button, Chip, Paper, Stack, Typography } from "@mui/material";
-import { OpenInNew as OpenInNewIcon } from "@mui/icons-material";
+import { Button, Chip, Paper, Stack, Typography } from "@/components/ui/muiCompat";
+import { OpenInNew as OpenInNewIcon } from "@/components/ui/iconsCompat";
 import type { ReactNode } from "react";
 
 type ObservabilityShortcutCardProps = {
@@ -27,15 +27,16 @@ export function ObservabilityShortcutCard({
 
     return (
         <Paper
-            sx={(theme) => ({
+            sx={(theme: any) => ({
                 p: 2.5,
                 borderRadius: 1,
                 border: "none",
                 boxShadow: "none",
                 minHeight: 218,
                 display: "flex",
-                backgroundColor:
-                    theme.palette.mode === "dark" ? theme.palette.background.paper : "var(--tesla-light-ash)",
+                backgroundColor: theme.palette.mode === "dark"
+                    ? theme.palette.background.paper
+                    : theme.palette.action.hover,
             })}
         >
             <Stack spacing={2} sx={{ width: "100%" }}>

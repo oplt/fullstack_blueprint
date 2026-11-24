@@ -1,38 +1,3 @@
-import { Box, Tab, Tabs } from "@mui/material";
-import { alpha } from "@mui/material/styles";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import { getActiveSettingsTab, useSettingsTabs } from "../../hooks/useSettingsTabs";
-
-export function SettingsTabs() {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const tabs = useSettingsTabs();
-    const activePath =
-        getActiveSettingsTab(location.pathname, tabs)?.path ?? tabs[0]?.path ?? "/profile";
-
-    if (tabs.length === 0) return null;
-
-    return (
-        <Box
-            sx={(theme) => ({
-                p: 0.75,
-                borderRadius: 4,
-                border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: alpha(theme.palette.background.paper, 0.82),
-            })}
-        >
-            <Tabs
-                value={activePath}
-                onChange={(_, value: string) => navigate(value)}
-                variant="scrollable"
-                scrollButtons="auto"
-                allowScrollButtonsMobile
-            >
-                {tabs.map((item) => (
-                    <Tab key={item.path} value={item.path} label={item.label} />
-                ))}
-            </Tabs>
-        </Box>
-    );
-}
+export function SettingsTabs() { const location = useLocation(); const navigate = useNavigate(); const tabs = useSettingsTabs(); const activePath = getActiveSettingsTab(location.pathname, tabs)?.path ?? tabs[0]?.path ?? "/profile"; if (!tabs.length) return null; return <nav aria-label="Settings sections" className="rounded-xl border border-border bg-card/80 p-1.5"><div className="flex max-w-full gap-1 overflow-x-auto">{tabs.map((item) => <button key={item.path} type="button" aria-current={activePath === item.path ? "page" : undefined} onClick={() => navigate(item.path)} className={activePath === item.path ? "shrink-0 rounded-md bg-muted px-3 py-2 text-sm font-medium text-foreground" : "shrink-0 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"}>{item.label}</button>)}</div></nav>; }

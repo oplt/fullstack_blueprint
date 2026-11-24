@@ -16,12 +16,12 @@ export function useObservabilityView() {
     const [timeRangeIndex, setTimeRangeIndex] = useState(1);
     const linksQuery = useQuery({
         queryKey: queryKeys.observability.links,
-        queryFn: getObservabilityLinks,
+        queryFn: ({ signal }) => getObservabilityLinks({ signal }),
         staleTime: 5 * 60_000,
     });
     const statusQuery = useQuery({
         queryKey: queryKeys.observability.status,
-        queryFn: getObservabilityStatus,
+        queryFn: ({ signal }) => getObservabilityStatus({ signal }),
         refetchInterval: 60_000,
     });
     const context = useMemo(

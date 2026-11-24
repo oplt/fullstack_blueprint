@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Button, Stack } from "@mui/material";
-import { ArrowForward as ArrowForwardIcon } from "@mui/icons-material";
+import { Button, Stack } from "@/components/ui/muiCompat";
+import { ArrowForward as ArrowForwardIcon } from "@/components/ui/iconsCompat";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../app/routes";
 import { listProjects } from "../api/projects";
 import { queryKeys } from "../config/queryKeys";
 import { DashboardCalendar } from "../components/dashboard/DashboardCalendar";
@@ -20,7 +21,7 @@ export default function CalendarPage() {
         refetch: refetchProjects,
     } = useQuery({
         queryKey: queryKeys.projects.all,
-        queryFn: listProjects,
+        queryFn: ({ signal }) => listProjects({ signal }),
     });
 
     const coreDomainPlural = platformMetadata?.core_domain_plural ?? "Projects";
@@ -31,7 +32,7 @@ export default function CalendarPage() {
                 <Button
                     variant="outlined"
                     endIcon={<ArrowForwardIcon />}
-                    onClick={() => navigate("/projects")}
+                    onClick={() => navigate(ROUTES.projects)}
                 >
                     Open {coreDomainPlural}
                 </Button>
@@ -47,7 +48,7 @@ export default function CalendarPage() {
                     <DashboardCalendar
                         projects={[]}
                         projectsLoading
-                        onOpenProjects={() => navigate("/projects")}
+                        onOpenProjects={() => navigate(ROUTES.projects)}
                         allowedViews={["day", "week", "month", "twelve_month"]}
                         initialView="twelve_month"
                     />
@@ -56,7 +57,7 @@ export default function CalendarPage() {
                 <DashboardCalendar
                     projects={projects ?? []}
                     projectsLoading={false}
-                    onOpenProjects={() => navigate("/projects")}
+                    onOpenProjects={() => navigate(ROUTES.projects)}
                     allowedViews={["day", "week", "month", "twelve_month"]}
                     initialView="twelve_month"
                 />

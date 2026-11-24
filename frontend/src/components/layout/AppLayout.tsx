@@ -1,511 +1,89 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-    AppBar,
-    Avatar,
-    Box,
-    Button,
-    Drawer,
-    IconButton,
-    List,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Stack,
-    Toolbar,
-    Tooltip,
-    Typography,
-    useMediaQuery,
-} from "@mui/material";
-import {
-    CalendarMonth as CalendarIcon,
-    ChevronLeft as ChevronLeftIcon,
-    ChevronRight as ChevronRightIcon,
-    Dashboard as DashboardIcon,
-    DarkMode as DarkModeIcon,
-    FolderOpen as ProjectsIcon,
-    LightMode as LightModeIcon,
-    Logout as LogoutIcon,
-    Menu as MenuIcon,
-    Notifications as NotificationsIcon,
-    Settings as SettingsIcon,
-    SettingsBrightness as SystemModeIcon,
-} from "@mui/icons-material";
-import { useTheme } from "@mui/material/styles";
-import { colors, fonts } from "../../app/designTokens";
-import { useSnackbar } from "../../app/snackbarContext";
-import { useColorMode } from "../../app/colorModeContext";
+import { useQuery } from "@tanstack/react-query";
+import { Bell, Bot, CalendarDays, ChevronLeft, ChevronRight, Command, FolderKanban, LayoutDashboard, LogOut, Menu, Moon, Search, Settings, ShieldCheck, Sun, UserRound, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { usePlatformMetadata } from "../../hooks/usePlatformMetadata";
 import { useUserProfile } from "../../hooks/useUserProfile";
-import {
-    getSettingsHubLabel,
-    isSettingsHubPath,
-    useSettingsTabs,
-} from "../../hooks/useSettingsTabs";
+import { useNotifications } from "../../hooks/useNotifications";
+import { useColorMode } from "../../app/colorModeContext";
+import { useSnackbar } from "../../app/snackbarContext";
+import { useSettingsTabs, getSettingsHubLabel } from "../../hooks/useSettingsTabs";
 import { NotificationNavBadge } from "./NotificationNavBadge";
-import { SkipToContentLink } from "../ui/SkipToContentLink";
+import { layoutContentClass, layoutVariantForPath } from "./layoutVariants";
 import { getInitials } from "../../utils/formatters";
+import { listProjects, type Project } from "../../api/projects";
+import { queryKeys } from "../../config/queryKeys";
+import { projectPath, ROUTES } from "../../app/routes";
+import { LanguageSelector } from "../ui/LanguageSelector";
+import { SkipToContentLink } from "../ui/SkipToContentLink";
+import { getConfiguredNavigation } from "../../app/configuration/configuration";
+import { serverStateFromPlatformMetadata, visibleNavigation } from "../../app/configuration/capabilities";
+import { useApplicationConfiguration } from "../../app/configuration/useConfiguration";
+import type { NavigationEntry, NavigationIcon } from "../../app/configuration/types";
 
-const DRAWER_WIDTH = 195;
-const COLLAPSED_DRAWER_WIDTH = 54;
-
-type NavItem = {
-    label: string;
-    icon: ReactNode;
-    path: string;
-    group: "workspace";
-    isSelected?: (pathname: string) => boolean;
+type Entry = Omit<NavigationEntry, "icon"> & { icon: typeof LayoutDashboard };
+const NAV_ICONS: Record<NavigationIcon, typeof LayoutDashboard> = {
+  dashboard: LayoutDashboard,
+  projects: FolderKanban,
+  calendar: CalendarDays,
+  ai: Bot,
+  search: Search,
+  memory: Bot,
+  agent: Bot,
+  observability: LayoutDashboard,
+  platform: Settings,
+  profile: UserRound,
+  notifications: Bell,
+  admin: ShieldCheck,
 };
+const SIDEBAR_KEY = "blueprint.sidebar.collapsed";
 
-function ThemeToggle() {
-    const { colorMode, setColorMode } = useColorMode();
-    const cycle = () => {
-        const next: Record<string, typeof colorMode> = { light: "dark", dark: "system", system: "light" };
-        setColorMode(next[colorMode]);
-    };
-    const icon =
-        colorMode === "light" ? <LightModeIcon fontSize="small" /> :
-        colorMode === "dark" ? <DarkModeIcon fontSize="small" /> :
-        <SystemModeIcon fontSize="small" />;
-
-    return (
-        <Tooltip title={`Theme: ${colorMode}`}>
-            <IconButton
-                onClick={cycle}
-                size="small"
-                aria-label="Cycle color theme"
-            >
-                {icon}
-            </IconButton>
-        </Tooltip>
-    );
-}
-
-function NavBlock({
-    title,
-    items,
-    currentPath,
-    onNavigate,
-    collapsed,
-}: {
-    title: string;
-    items: NavItem[];
-    currentPath: string;
-    onNavigate: () => void;
-    collapsed: boolean;
-}) {
-    if (items.length === 0) {
-        return null;
-    }
-
-    return (
-        <Stack spacing={1}>
-            {!collapsed && (
-                <Typography variant="subtitle2" color="text.secondary" sx={{ px: 2 }}>
-                    {title}
-                </Typography>
-            )}
-            <List disablePadding sx={{ display: "grid", gap: 0.75 }}>
-                {items.map((item) => {
-                    const selected = item.isSelected
-                        ? item.isSelected(currentPath)
-                        : item.path === "/dashboard"
-                          ? currentPath === item.path
-                          : currentPath.startsWith(item.path);
-                    const itemButton = (
-                        <ListItemButton
-                            key={item.path}
-                            selected={selected}
-                            aria-current={selected ? "page" : undefined}
-                            component={Link}
-                            to={item.path}
-                            aria-label={item.label}
-                            onClick={onNavigate}
-                            sx={
-                                collapsed
-                                    ? {
-                                          minHeight: 48,
-                                          px: 1,
-                                          justifyContent: "center",
-                                      }
-                                    : undefined
-                            }
-                        >
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: collapsed ? "auto" : 40,
-                                    justifyContent: "center",
-                                }}
-                            >
-                                {item.icon}
-                            </ListItemIcon>
-                            {!collapsed && (
-                                <ListItemText
-                                    primary={item.label}
-                                    // secondary={selected ? "Current section" : undefined}
-                                    secondaryTypographyProps={{ sx: { fontSize: "0.74rem" } }}
-                                />
-                            )}
-                        </ListItemButton>
-                    );
-
-                    if (!collapsed) {
-                        return itemButton;
-                    }
-
-                    return (
-                        <Tooltip key={item.path} title={item.label} placement="right">
-                            {itemButton}
-                        </Tooltip>
-                    );
-                })}
-            </List>
-        </Stack>
-    );
+function ProjectSelector({ projects, selectedId, collapsed, onSelect }: { projects: Project[]; selectedId?: string; collapsed: boolean; onSelect: (project: Project) => void }) {
+  if (collapsed) return null;
+  const selected = projects.find((project) => project.id === selectedId);
+  return <details className="relative mt-1"><summary className="flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted"><FolderKanban size={14} /><span className="min-w-0 flex-1 truncate">{selected?.name ?? "Select project"}</span><ChevronRight size={13} /></summary><div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border bg-popover p-1 shadow-lg">{projects.length ? projects.slice(0, 8).map((project) => <button type="button" key={project.id} className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted" onClick={() => onSelect(project)}>{project.name}</button>) : <p className="p-3 text-sm text-muted-foreground">No projects available.</p>}<Link to="/projects" className="block rounded-md px-3 py-2 text-sm text-primary hover:bg-muted">View all projects</Link></div></details>;
 }
 
 export function AppLayout() {
-    const [drawerOpen, setDrawerOpen] = useState(false);
-    const [desktopNavCollapsed, setDesktopNavCollapsed] = useState(false);
-    const { logout, currentUser } = useAuth();
-    const { showToast } = useSnackbar();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const { data: platformMetadata } = usePlatformMetadata();
-    const { data: profile } = useUserProfile();
-    const settingsTabs = useSettingsTabs();
-    const appName = platformMetadata?.app_name ?? "Fullstack Blueprint";
-    const coreDomainPlural = platformMetadata?.core_domain_plural ?? "Projects";
-    const drawerCollapsed = !isMobile && desktopNavCollapsed;
-    const desktopDrawerWidth = drawerCollapsed ? COLLAPSED_DRAWER_WIDTH : DRAWER_WIDTH;
-
-    const settingsNavItem = useMemo<NavItem>(
-        () => ({
-            label: "Settings",
-            icon: <SettingsIcon />,
-            path: "/profile",
-            group: "workspace",
-            isSelected: (pathname) => isSettingsHubPath(pathname, settingsTabs),
-        }),
-        [settingsTabs]
-    );
-
-    const navItems = useMemo<NavItem[]>(
-        () => [
-            { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard", group: "workspace" },
-            { label: coreDomainPlural, icon: <ProjectsIcon />, path: "/projects", group: "workspace" },
-        ],
-        [coreDomainPlural]
-    );
-
-    const visibleNavItems = navItems;
-    const settingsSelected = settingsNavItem.isSelected?.(location.pathname) ?? false;
-    const currentItem =
-        settingsSelected
-            ? settingsNavItem
-            : visibleNavItems.find((item) =>
-                  item.isSelected
-                      ? item.isSelected(location.pathname)
-                      : item.path === "/dashboard"
-                        ? location.pathname === item.path
-                        : location.pathname.startsWith(item.path)
-              );
-
-    const pageTitle =
-        getSettingsHubLabel(location.pathname, settingsTabs) ??
-        currentItem?.label ??
-        (location.pathname.startsWith("/calendar") ? "Calendar" : undefined) ??
-        (location.pathname.startsWith("/notifications") ? "Notifications" : undefined) ??
-        "Workspace";
-    const avatarLabel = getInitials(currentUser?.full_name, currentUser?.email);
-
-    function handleNavigate(path: string) {
-        navigate(path);
-        setDrawerOpen(false);
-    }
-
-    async function handleSignOut() {
-        try {
-            await logout();
-            setDrawerOpen(false);
-            navigate("/", { replace: true });
-        } catch {
-            showToast({ message: "Could not sign out. Try again.", severity: "error" });
-        }
-    }
-
-    const drawerContent = (
-        <Stack sx={{ height: "100%", p: drawerCollapsed ? 1.25 : 2 }}>
-            <Tooltip
-                title={appName}
-                placement="right"
-                disableHoverListener={!drawerCollapsed}
-            >
-                <Box
-                    sx={{
-                        px: drawerCollapsed ? 1 : 2,
-                        py: drawerCollapsed ? 1.75 : 2.25,
-                        mb: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: drawerCollapsed ? "center" : "flex-start",
-                        textAlign: drawerCollapsed ? "center" : "left",
-                    }}
-                >
-                    {drawerCollapsed ? (
-                        <Typography
-                            variant="h6"
-                            sx={{
-                                lineHeight: 1,
-                                fontFamily: fonts.display,
-                                letterSpacing: "0.12em",
-                            }}
-                        >
-                            {appName.trim().charAt(0).toUpperCase() || "W"}
-                        </Typography>
-                    ) : (
-                        <Box>
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontFamily: fonts.display,
-                                    letterSpacing: "0.12em",
-                                    textTransform: "uppercase",
-                                }}
-                            >
-                                {appName}
-                            </Typography>
-
-                        </Box>
-                    )}
-                </Box>
-            </Tooltip>
-
-            <Stack spacing={drawerCollapsed ? 1 : 2}>
-                <NavBlock
-                    title="Product"
-                    items={visibleNavItems}
-                    currentPath={location.pathname}
-                    onNavigate={() => setDrawerOpen(false)}
-                    collapsed={drawerCollapsed}
-                />
-            </Stack>
-
-            <Box sx={{ flexGrow: 1 }} />
-
-            <Box sx={{ p: drawerCollapsed ? 1.25 : 2 }}>
-                <Stack spacing={1.5} alignItems={drawerCollapsed ? "center" : "stretch"}>
-                    {drawerCollapsed ? (
-                        <Tooltip title="Settings" placement="right">
-                            <IconButton
-                                aria-label="Settings"
-                                aria-current={settingsSelected ? "page" : undefined}
-                                onClick={() => handleNavigate(settingsNavItem.path)}
-                                color={settingsSelected ? "primary" : "default"}
-                            >
-                                <SettingsIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    ) : (
-                        <ListItemButton
-                            selected={settingsSelected}
-                            aria-current={settingsSelected ? "page" : undefined}
-                            onClick={() => handleNavigate(settingsNavItem.path)}
-                            sx={{ borderRadius: 2 }}
-                        >
-                            <ListItemIcon sx={{ minWidth: 40 }}>{settingsNavItem.icon}</ListItemIcon>
-                            <ListItemText
-                                primary={settingsNavItem.label}
-                                // secondary={settingsSelected ? "Current section" : undefined}
-                                secondaryTypographyProps={{ sx: { fontSize: "0.74rem" } }}
-                            />
-                        </ListItemButton>
-                    )}
-                    <Tooltip title="Profile" placement="right" disableHoverListener={!drawerCollapsed}>
-                        <ListItemButton
-                            selected={location.pathname.startsWith("/profile")}
-                            aria-label="Open profile settings"
-                            onClick={() => handleNavigate("/profile")}
-                            sx={{
-                                borderRadius: 2,
-                                px: drawerCollapsed ? 1 : 2,
-                                py: drawerCollapsed ? 1 : 1.25,
-                                justifyContent: drawerCollapsed ? "center" : "flex-start",
-                            }}
-                        >
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: drawerCollapsed ? "auto" : 52,
-                                    justifyContent: "center",
-                                }}
-                            >
-                                <Avatar
-                                    src={profile?.avatar_url ?? undefined}
-                                    sx={{ width: drawerCollapsed ? 40 : 44, height: drawerCollapsed ? 40 : 44 }}
-                                >
-                                    {avatarLabel}
-                                </Avatar>
-                            </ListItemIcon>
-                            {!drawerCollapsed && (
-                                <ListItemText
-                                    primary={currentUser?.full_name ?? "Your profile"}
-                                    secondary={currentUser?.email ?? "Signed in"}
-                                    primaryTypographyProps={{ noWrap: true }}
-                                    secondaryTypographyProps={{ noWrap: true }}
-                                />
-                            )}
-                        </ListItemButton>
-                    </Tooltip>
-                    {drawerCollapsed ? (
-                        <Tooltip title="Sign out" placement="right">
-                            <IconButton aria-label="Sign out" onClick={() => void handleSignOut()}>
-                                <LogoutIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    ) : (
-                        <Button
-                            variant="text"
-                            color="inherit"
-                            fullWidth
-                            startIcon={<LogoutIcon />}
-                            onClick={() => void handleSignOut()}
-                        >
-                            Sign out
-                        </Button>
-                    )}
-                </Stack>
-            </Box>
-        </Stack>
-    );
-
-    return (
-        <Box sx={{ minHeight: "100vh" }}>
-            <SkipToContentLink />
-            <AppBar
-                position="fixed"
-                elevation={0}
-                color="inherit"
-                sx={{
-                    left: { md: `${desktopDrawerWidth}px` },
-                    width: { md: `calc(100% - ${desktopDrawerWidth}px)` },
-                    backgroundColor:
-                        theme.palette.mode === "dark"
-                            ? theme.palette.background.paper
-                            : colors.frostedGlass,
-                    backdropFilter: "blur(12px)",
-                    color: "text.primary",
-                    transition: theme.transitions.create(["left", "width", "background-color"], {
-                        duration: theme.transitions.duration.shorter,
-                    }),
-                }}
-            >
-                <Toolbar sx={{ minHeight: { xs: 56, md: 64 }, px: { xs: 2, md: 3 } }}>
-                    {isMobile ? (
-                        <IconButton
-                            edge="start"
-                            onClick={() => setDrawerOpen(true)}
-                            sx={{ mr: 1.25 }}
-                            aria-label="Open navigation menu"
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                    ) : (
-                        <Tooltip title={drawerCollapsed ? "Expand menu" : "Collapse menu"}>
-                            <IconButton
-                                edge="start"
-                                onClick={() => setDesktopNavCollapsed((current) => !current)}
-                                aria-label={drawerCollapsed ? "Expand menu" : "Collapse menu"}
-                                sx={{ mr: 1.25 }}
-                            >
-                                {drawerCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-                            </IconButton>
-                        </Tooltip>
-                    )}
-                    <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-                   
-                        <Typography variant="h6" noWrap>
-                            {pageTitle}
-                        </Typography>
-                    </Box>
-                    <Stack direction="row" spacing={0.25} alignItems="center">
-                        {platformMetadata?.available_features?.includes("calendar") && (
-                            <Tooltip title="Calendar">
-                                <IconButton
-                                    aria-label="Open calendar"
-                                    size="small"
-                                    onClick={() => navigate("/calendar")}
-                                    color={location.pathname.startsWith("/calendar") ? "primary" : "default"}
-                                >
-                                    <CalendarIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        )}
-                        <Tooltip title="Notifications">
-                            <IconButton
-                                aria-label="Open notifications"
-                                size="small"
-                                onClick={() => navigate("/notifications")}
-                                color={location.pathname.startsWith("/notifications") ? "primary" : "default"}
-                            >
-                                <NotificationNavBadge>
-                                    <NotificationsIcon fontSize="small" />
-                                </NotificationNavBadge>
-                            </IconButton>
-                        </Tooltip>
-                        <ThemeToggle />
-                    </Stack>
-                </Toolbar>
-            </AppBar>
-
-            {isMobile ? (
-                <Drawer
-                    open={drawerOpen}
-                    onClose={() => setDrawerOpen(false)}
-                    ModalProps={{ keepMounted: true }}
-                    sx={{ "& .MuiDrawer-paper": { width: DRAWER_WIDTH } }}
-                >
-                    {drawerContent}
-                </Drawer>
-            ) : (
-                <Drawer
-                    variant="permanent"
-                    open
-                    sx={{
-                        width: desktopDrawerWidth,
-                        flexShrink: 0,
-                        "& .MuiDrawer-paper": {
-                            width: desktopDrawerWidth,
-                            boxSizing: "border-box",
-                            overflowX: "hidden",
-                            transition: theme.transitions.create("width", {
-                                duration: theme.transitions.duration.shorter,
-                            }),
-                        },
-                    }}
-                >
-                    {drawerContent}
-                </Drawer>
-            )}
-
-            <Box
-                component="main"
-                id="main-content"
-                tabIndex={-1}
-                sx={{
-                    minHeight: "100vh",
-                    ml: { md: `${desktopDrawerWidth}px` },
-                    pt: { xs: "56px", md: "64px" },
-                    transition: theme.transitions.create("margin-left", {
-                        duration: theme.transitions.duration.shorter,
-                    }),
-                    outline: "none",
-                }}
-            >
-                <Outlet />
-            </Box>
-        </Box>
-    );
+  const location = useLocation(); const navigate = useNavigate();
+  const { logout, currentUser } = useAuth(); const { data: metadata } = usePlatformMetadata(); const { t } = useTranslation();
+  const applicationConfiguration = useApplicationConfiguration();
+  const applicationName = metadata?.app_name ?? applicationConfiguration.appName;
+  const { data: profile } = useUserProfile(); const settingsTabs = useSettingsTabs();
+  const { data: notifications } = useNotifications();
+  const { colorMode, setColorMode } = useColorMode(); const { showToast } = useSnackbar();
+  const [collapsed, setCollapsed] = useState(() => typeof window !== "undefined" && window.localStorage.getItem(SIDEBAR_KEY) === "true");
+  const [mobileOpen, setMobileOpen] = useState(false); const [commandOpen, setCommandOpen] = useState(false); const [search, setSearch] = useState(""); const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(() => typeof window !== "undefined" ? window.localStorage.getItem("blueprint.selected-project") ?? undefined : undefined);
+  const projectQuery = useQuery({ queryKey: queryKeys.projects.all, queryFn: ({ signal }) => listProjects({ signal }), staleTime: 60_000 });
+  useEffect(() => { localStorage.setItem(SIDEBAR_KEY, String(collapsed)); }, [collapsed]);
+  useEffect(() => { if (selectedProjectId) localStorage.setItem("blueprint.selected-project", selectedProjectId); }, [selectedProjectId]);
+  useEffect(() => { const onKey = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setCommandOpen(v => !v); } if (event.key === "/" && !["INPUT", "TEXTAREA"].includes((event.target as HTMLElement).tagName)) { event.preventDefault(); setCommandOpen(true); } if (event.key === "Escape") { setCommandOpen(false); setMobileOpen(false); } }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, []);
+  const entries = useMemo<Entry[]>(() => visibleNavigation(getConfiguredNavigation(applicationConfiguration), applicationConfiguration, serverStateFromPlatformMetadata(metadata)).map(item => ({ ...item, icon: NAV_ICONS[item.icon], label: item.capability === "projects" ? metadata?.core_domain_plural ?? t(item.translationKey ?? item.label) : t(item.translationKey ?? item.label) })), [applicationConfiguration, metadata, t]);
+  const title = getSettingsHubLabel(location.pathname, settingsTabs) ?? entries.find(item => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`))?.label ?? (location.pathname === ROUTES.notifications ? t("navigation.notifications") : t("navigation.workspace"));
+  const crumbs = location.pathname.split("/").filter(Boolean);
+  const projectId = location.pathname.match(/^\/projects\/([^/]+)/)?.[1] ?? selectedProjectId;
+  const selectedProject = projectQuery.data?.find(project => project.id === projectId);
+  const commands = [...entries, { label: "Notifications", path: ROUTES.notifications, icon: Bell }, { label: "Settings", path: ROUTES.profile, icon: Settings }].filter(item => item.label.toLowerCase().includes(search.toLowerCase()));
+  async function signOut() { try { await logout(); navigate("/", { replace: true }); } catch { showToast({ message: t("status.couldNotSignOut"), severity: "error" }); } }
+  function go(path: string) { navigate(path); setMobileOpen(false); setCommandOpen(false); }
+  const sidebar = <>
+    <div className="px-4"><div className="flex h-16 items-center justify-between"><Link to={ROUTES.dashboard} className="flex min-w-0 items-center gap-2 truncate font-semibold tracking-tight" aria-label={applicationName}>{applicationConfiguration.branding.logo ? <img src={applicationConfiguration.branding.logo} alt={applicationConfiguration.branding.logoAlt ?? applicationName} className="h-7 w-7 shrink-0 rounded object-contain" /> : null}{collapsed ? applicationName.slice(0, 1) : applicationName}</Link><button className="rounded-md p-2 hover:bg-muted md:hidden" aria-label="Close navigation" onClick={() => setMobileOpen(false)}><X size={18}/></button></div><ProjectSelector projects={projectQuery.data ?? []} selectedId={projectId} collapsed={collapsed} onSelect={(project) => { setSelectedProjectId(project.id); go(projectPath(project.id)); }} /></div>
+    <nav aria-label={t("navigation.main")} className="flex-1 space-y-1 px-2">{entries.map(item => { const active = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`); const Icon = item.icon; return <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} aria-current={active ? "page" : undefined} title={collapsed ? item.label : undefined} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${active ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}><Icon size={18}/>{!collapsed && item.label}</Link>; })}
+    <div className="mt-5 border-t pt-3"><p className={`px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ${collapsed ? "sr-only" : ""}`}>Settings</p>{settingsTabs.map(item => <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} aria-current={location.pathname === item.path ? "page" : undefined} title={collapsed ? item.label : undefined} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"><Settings size={17}/>{!collapsed && item.label}</Link>)}</div></nav>
+    <div className="border-t p-3"><Link to="/profile" className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted" aria-label="Open profile">{profile?.avatar_url ? <img className="h-9 w-9 rounded-full object-cover" src={profile.avatar_url} alt=""/> : <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">{getInitials(currentUser?.full_name, currentUser?.email)}</span>}<span className="min-w-0 flex-1 truncate text-sm">{!collapsed && (currentUser?.full_name ?? currentUser?.email ?? "Profile")}</span></Link><button onClick={() => void signOut()} className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted"><LogOut size={18}/>{!collapsed && "Sign out"}</button></div>
+  </>;
+  return <div className="min-h-screen bg-background text-foreground">
+    <SkipToContentLink />
+    <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r bg-card transition-[width] md:flex ${collapsed ? "w-[4.5rem]" : "w-64"}`}>{sidebar}</aside>
+    {mobileOpen && <div className="fixed inset-0 z-50 md:hidden"><button className="absolute inset-0 bg-black/40" aria-label="Close navigation overlay" onClick={() => setMobileOpen(false)}/><aside className="relative flex h-full w-72 flex-col border-r bg-card shadow-xl">{sidebar}</aside></div>}
+    <div className={collapsed ? "md:pl-[4.5rem]" : "md:pl-64"}><header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/90 px-3 backdrop-blur sm:px-6">
+      <button className="rounded-md p-2 hover:bg-muted md:hidden" aria-label="Open navigation menu" onClick={() => setMobileOpen(true)}><Menu size={19}/></button><button className="hidden rounded-md p-2 hover:bg-muted md:block" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={() => setCollapsed(v => !v)}>{collapsed ? <ChevronRight size={18}/> : <ChevronLeft size={18}/>}</button>
+      <div className="min-w-0 flex-1"><nav aria-label="Breadcrumb" className="hidden items-center gap-1 truncate text-xs text-muted-foreground sm:flex"><Link to="/dashboard" className="hover:text-foreground">Workspace</Link>{crumbs.map((crumb, i) => <span key={`${crumb}-${i}`}> / <span className={i === crumbs.length - 1 ? "text-foreground" : ""}>{i === 1 && selectedProject ? selectedProject.name : crumb.replaceAll("-", " ")}</span></span>)}</nav><h1 className="truncate text-base font-semibold">{title}</h1></div>
+      <button onClick={() => setCommandOpen(true)} className="hidden items-center gap-2 rounded-md border px-3 py-2 text-sm text-muted-foreground hover:bg-muted sm:flex" aria-label="Search pages"><Search size={16}/> Search <kbd className="rounded bg-muted px-1.5 text-xs">⌘K</kbd></button><button onClick={() => setCommandOpen(true)} className="rounded-md p-2 hover:bg-muted sm:hidden" aria-label="Search pages"><Search size={18}/></button>
+      <details className="relative"><summary className="flex cursor-pointer list-none rounded-md p-2 hover:bg-muted" aria-label={t("navigation.openNotificationCenter")}><NotificationNavBadge><Bell size={18}/></NotificationNavBadge></summary><div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border bg-popover p-4 shadow-xl"><div className="flex items-center justify-between"><h2 className="font-semibold">{t("navigation.notifications")}</h2><span className="text-xs text-muted-foreground">{t("status.unread", { count: notifications?.filter(item => !item.is_read).length ?? 0 })}</span></div><p className="py-4 text-sm text-muted-foreground">{notifications?.length ? t("status.reviewNotifications") : t("status.allCaughtUp")}</p><Link to="/notifications" className="text-sm font-medium text-primary hover:underline" onClick={() => setMobileOpen(false)}>{t("navigation.openNotificationCenter")}</Link></div></details><details className="relative"><summary className="flex cursor-pointer list-none rounded-md p-2 hover:bg-muted" aria-label={t("navigation.openProfileMenu")}><span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">{getInitials(currentUser?.full_name, currentUser?.email)}</span></summary><div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg border bg-popover p-3 shadow-xl"><p className="font-medium">{currentUser?.full_name ?? t("status.yourProfile")}</p><p className="mb-3 truncate text-xs text-muted-foreground">{currentUser?.email ?? t("status.signedIn")}</p><Link to="/profile" className="block rounded-md px-3 py-2 text-sm hover:bg-muted">{t("navigation.profile")}</Link><button type="button" onClick={() => void signOut()} className="mt-1 flex w-full items-center rounded-md px-3 py-2 text-left text-sm hover:bg-muted"><LogOut size={15} className="mr-2"/>{t("actions.signOut")}</button></div></details><LanguageSelector compact /><button aria-label={t("actions.toggleTheme")} title={t("accessibility.theme", { mode: colorMode })} onClick={() => setColorMode(colorMode === "dark" ? "light" : "dark")} className="min-h-10 min-w-10 rounded-md p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">{colorMode === "dark" ? <Sun size={18}/> : <Moon size={18}/>}</button>
+    </header><main id="main-content" tabIndex={-1} className={`${layoutContentClass(layoutVariantForPath(location.pathname, applicationConfiguration.layoutVariants))} outline-none`}><Outlet/></main></div>
+    {commandOpen && <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/40 px-4 pt-[15vh]" onMouseDown={event => { if (event.target === event.currentTarget) setCommandOpen(false); }}><section role="dialog" aria-modal="true" aria-labelledby="command-title" className="w-full max-w-lg rounded-xl border bg-popover p-3 shadow-2xl"><h2 id="command-title" className="sr-only">Search pages</h2><div className="flex items-center gap-2 border-b px-2 pb-3"><Command size={17}/><input autoFocus value={search} onChange={event => setSearch(event.target.value)} placeholder="Search pages and settings..." className="w-full bg-transparent p-2 outline-none" aria-label="Search pages and settings"/></div><div className="max-h-72 overflow-auto py-2">{commands.length ? commands.map(item => <button key={item.path} onClick={() => go(item.path)} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-muted"><item.icon size={17}/>{item.label}</button>) : <p className="p-4 text-sm text-muted-foreground">No matching pages.</p>}</div></section></div>}
+  </div>;
 }
