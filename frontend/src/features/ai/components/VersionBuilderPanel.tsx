@@ -39,13 +39,13 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     label="System prompt"
                     value={versionForm.system_prompt}
                     onChange={(event: any) => setVersionForm((current) => ({ ...current, system_prompt: event.target.value }))}
-                    multiline
+                    as="textarea"
                     rows={3} />
                 <FormField
                     label="User prompt template"
                     value={versionForm.user_prompt_template}
                     onChange={(event: any) => setVersionForm((current) => ({ ...current, user_prompt_template: event.target.value }))}
-                    multiline
+                    as="textarea"
                     rows={5} />
                 <FormField
                     label="Variable names (comma separated)"

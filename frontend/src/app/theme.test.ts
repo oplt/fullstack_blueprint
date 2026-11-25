@@ -1,35 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { applyTheme, loadThemePreferences, normalizeThemePreferences, saveThemePreferences, THEME_PREFERENCES_STORAGE_KEY } from "./theme";
 
-describe("runtime theme controller", () => {
-    it("normalizes untrusted preferences", () => {
-        expect(normalizeThemePreferences({ colorMode: "invalid", preset: "unknown", primaryColor: "red", radius: "huge" })).toEqual({
-            colorMode: "system", preset: "minimal-saas", radius: "md", density: "comfortable",
-        });
+describe("runtime color mode", () => {
+    it("normalizes untrusted preferences to system mode", () => {
+        expect(normalizeThemePreferences({ colorMode: "invalid", preset: "enterprise", primaryColor: "red" })).toEqual({ colorMode: "system" });
     });
 
-    it("applies attributes and only supported dynamic overrides", () => {
+    it("applies only the canonical color mode", () => {
         const root = document.createElement("html");
-        applyTheme({ colorMode: "dark", preset: "enterprise", density: "compact", radius: "lg", primaryColor: "#123456" }, "dark", root);
-        expect(root.dataset).toMatchObject({ theme: "dark", themePreset: "enterprise", density: "compact", radius: "lg" });
-        expect(root.style.getPropertyValue("--primary")).toBe("#123456");
-        applyTheme({ colorMode: "light", preset: "minimal-saas", density: "comfortable", radius: "md" }, "light", root);
+        applyTheme("dark", root);
+        expect(root.dataset.theme).toBe("dark");
+        expect(root.classList.contains("dark")).toBe(true);
         expect(root.style.getPropertyValue("--primary")).toBe("");
+        applyTheme("light", root);
+        expect(root.classList.contains("dark")).toBe(false);
     });
 
-    it("round-trips validated preferences through storage", () => {
+    it("round-trips color mode through storage", () => {
         const values = new Map<string, string>();
-        const storage = {
-            getItem: (key: string) => values.get(key) ?? null,
-            setItem: (key: string, value: string) => { values.set(key, value); },
-            removeItem: (key: string) => { values.delete(key); },
-            clear: () => values.clear(),
-            key: (index: number) => [...values.keys()][index] ?? null,
-            get length() { return values.size; },
-        } satisfies Storage;
-        const preferences = normalizeThemePreferences({ colorMode: "system", preset: "creative-ai", density: "compact", radius: "sm" });
-        saveThemePreferences(preferences, storage);
+        const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: () => undefined, clear: () => values.clear(), key: () => null, get length() { return values.size; } } satisfies Storage;
+        saveThemePreferences({ colorMode: "dark" }, storage);
         expect(values.has(THEME_PREFERENCES_STORAGE_KEY)).toBe(true);
-        expect(loadThemePreferences(storage)).toEqual(preferences);
+        expect(loadThemePreferences(storage)).toEqual({ colorMode: "dark" });
     });
 });

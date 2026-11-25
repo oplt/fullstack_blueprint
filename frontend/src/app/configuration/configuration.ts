@@ -1,4 +1,3 @@
-import { themePresets, type ThemePreset } from "../theme";
 import { CAPABILITY_IDS, CAPABILITY_MANIFESTS } from "./capabilities";
 import type {
     ApplicationConfiguration,
@@ -23,16 +22,6 @@ export const PRESET_CAPABILITIES: Readonly<Record<ApplicationPreset, readonly Ca
     "automation-platform": [...CORE_CAPABILITIES, "ai", "agent", "observability"],
     enterprise: ALL_CAPABILITIES,
     "internal-business": [...CORE_CAPABILITIES, "calendar", "observability"],
-};
-
-const PRESET_THEME: Readonly<Record<ApplicationPreset, ThemePreset>> = {
-    minimal: "minimal-saas",
-    saas: "minimal-saas",
-    "ai-saas": "creative-ai",
-    "knowledge-platform": "linear-inspired",
-    "automation-platform": "linear-inspired",
-    enterprise: "enterprise",
-    "internal-business": "enterprise",
 };
 
 const defaultNavigation = Object.values(CAPABILITY_MANIFESTS)
@@ -83,7 +72,6 @@ const DEFAULT_APPLICATION_CONFIGURATION: ApplicationConfiguration = {
     preset: "minimal",
     appName: "Fullstack Blueprint",
     branding: {},
-    themePreset: PRESET_THEME.minimal,
     defaultLanguage: "en",
     navigation: defaultNavigation,
     enabledCapabilities: CORE_CAPABILITIES,
@@ -110,7 +98,6 @@ export function createApplicationConfiguration(input: ApplicationConfigurationIn
         ...DEFAULT_APPLICATION_CONFIGURATION,
         ...input,
         preset,
-        themePreset: input.themePreset ?? PRESET_THEME[preset],
         navigation,
         enabledCapabilities,
         layoutVariants: { ...DEFAULT_LAYOUT_VARIANTS, ...input.layoutVariants },
@@ -121,8 +108,4 @@ export function createApplicationConfiguration(input: ApplicationConfigurationIn
 
 export function getConfiguredNavigation(configuration: ApplicationConfiguration): NavigationEntry[] {
     return configuration.navigation.filter((entry) => entry.placement === "primary" && configuration.enabledCapabilities.includes(entry.capability));
-}
-
-export function isThemePreset(value: string): value is ThemePreset {
-    return (themePresets as readonly string[]).includes(value);
 }

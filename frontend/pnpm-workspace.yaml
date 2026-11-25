@@ -1,4 +1,0 @@
-allowBuilds:
-  esbuild: false
-minimumReleaseAgeExclude:
-  - '@types/node@24.19.3'

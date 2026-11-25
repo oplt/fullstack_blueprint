@@ -2,7 +2,7 @@ import { Info, CircleHelp } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { getHelpTerm, type HelpTermId } from "../../config/helpText";
-type HelpTooltipProps = { termId?: HelpTermId | string; title?: ReactNode; detail?: ReactNode; variant?: "help" | "info" | "label"; children?: ReactNode; forcePopover?: boolean; size?: "small" | "medium"; sx?: unknown };
+type HelpTooltipProps = { termId?: HelpTermId | string; title?: ReactNode; detail?: ReactNode; variant?: "help" | "info" | "label"; children?: ReactNode; forcePopover?: boolean };
 export function HelpTooltip({ termId, title, detail, variant = "help", children, forcePopover = false }: HelpTooltipProps) {
     const id = useId();
     const [open, setOpen] = useState(false);

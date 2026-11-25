@@ -28,7 +28,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                     label="Variables JSON"
                     value={runForm.variables_json}
                     onChange={(event: any) => setRunForm((current) => ({ ...current, variables_json: event.target.value }))}
-                    multiline
+                    as="textarea"
                     rows={8} />
                 <FormField
                     label="Retrieval query"
@@ -151,7 +151,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                                         onChange={(event: any) =>
                                             setCorrectionsById((current) => ({ ...current, [run.id]: event.target.value }))
                                         }
-                                        multiline
+                                        as="textarea"
                                         rows={2} />
                                 </div>
                             </div>

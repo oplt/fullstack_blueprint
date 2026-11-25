@@ -75,7 +75,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                         onChange={(event: any) =>
                             setDraft((current) => ({ ...current, description: event.target.value }))
                         }
-                        multiline
+                        as="textarea"
                         rows={3} />
 
                     {draft.type === "task" ? (

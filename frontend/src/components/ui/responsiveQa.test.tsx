@@ -80,7 +80,7 @@ describe("Responsive layout primitives", () => {
         );
         const aside = container.querySelector("aside");
         expect(aside).toBeTruthy();
-        // MUI sx compiles responsive display; assert the side landmark exists for lg+.
+        // Responsive display utility; assert the side landmark exists for lg+.
         expect(aside?.textContent).toContain("Side");
     });
 

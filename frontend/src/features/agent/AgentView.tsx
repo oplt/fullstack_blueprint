@@ -17,7 +17,7 @@ import { PageHeader } from "../../components/ui/PageHeader";
 import { PageShell } from "../../components/ui/PageShell";
 import { PageTabs } from "../../components/ui/PageTabs";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { RunStatusChip } from "../../components/ui/RunStatusChip";
+import { RunStatusBadge } from "../../components/ui/RunStatusBadge";
 import { RunStatusPanel } from "../../components/ui/RunStatusPanel";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { recordToKeyValueItems } from "../../components/ui/jsonDisplay";
@@ -288,7 +288,7 @@ export default function AgentView() {
                                 label="User message"
                                 value={userMessage}
                                 onChange={(e: any) => setUserMessage(e.target.value)}
-                                multiline
+                                as="textarea"
                                 rows={3} />
 
                             {ragEnabled && <>
@@ -303,7 +303,7 @@ export default function AgentView() {
                                     }
                                     value={topK}
                                     onChange={(e: any) => setTopK(Number(e.target.value) || 4)}
-                                    inputAttributes={{ min: 1, max: 20 }} />
+                                    min={1} max={20} />
                                 <FormField
                                     label="Retrieval query (optional)"
                                     value={retrievalQuery}
@@ -489,7 +489,7 @@ export default function AgentView() {
                                                                     : ""}
                                                             </td>
                                                             <td className="p-2 align-top">
-                                                                <RunStatusChip status={run.status} />
+                                                                <RunStatusBadge status={run.status} />
                                                             </td>
                                                             <td className="p-2 align-top">
                                                                 {run.provider_key}/
@@ -567,7 +567,7 @@ export default function AgentView() {
                                         <div className="flex flex-row gap-[8px] flex-wrap">
                                             <div
                                                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
-                                            <RunStatusChip status={selectedRun.status} />
+                                            <RunStatusBadge status={selectedRun.status} />
                                             <HelpTooltip termId="agent_trace" />
                                         </div>
 
@@ -718,7 +718,7 @@ export default function AgentView() {
                                 >
                                     <div className="flex gap-[12px]">
                                         <div className="flex flex-row gap-[8px] flex-wrap">
-                                            <RunStatusChip status={selectedRun.status} />
+                                            <RunStatusBadge status={selectedRun.status} />
                                             <div
                                                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                             <Button variant="ghost" onClick={() => setTab("trace")} type="button">

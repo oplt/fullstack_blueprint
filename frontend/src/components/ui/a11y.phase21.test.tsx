@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { runStatusAriaLabel } from "../../app/a11y";
 import { SkipToContentLink } from "./SkipToContentLink";
-import { RunStatusChip } from "./RunStatusChip";
+import { RunStatusBadge } from "./RunStatusBadge";
 import { RunStatusPanel } from "./RunStatusPanel";
 import { AdvancedSettings } from "./AdvancedSettings";
 
@@ -22,7 +22,7 @@ function wrap(ui: React.ReactElement) {
 describe("a11y helpers", () => {
     it("labels run status with text, not color alone", () => {
         expect(runStatusAriaLabel("Completed")).toBe("Status: Completed");
-        wrap(<RunStatusChip status="failed" />);
+        wrap(<RunStatusBadge status="failed" />);
         expect(screen.getByLabelText("Status: Failed")).toBeInTheDocument();
         expect(screen.getByText("Failed")).toBeInTheDocument();
     });

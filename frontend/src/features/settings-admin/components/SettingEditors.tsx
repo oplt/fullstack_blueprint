@@ -61,13 +61,13 @@ export function DatabaseSettingEditor({ item, draft, onDraftChange, onSave, onDe
                     label="Value"
                     value={draft.value}
                     onChange={(event: any) => onDraftChange({ ...draft, value: event.target.value })}
-                    multiline
+                    as="textarea"
                     rows={3} />
                 <FormField
                     label="Description"
                     value={draft.description}
                     onChange={(event: any) => onDraftChange({ ...draft, description: event.target.value })}
-                    multiline
+                    as="textarea"
                     rows={3} />
                 <Button variant="default" disabled={isSaving} onClick={onSave} type="button">{isSaving ? "Saving..." : "Save setting"}</Button>
             </div>

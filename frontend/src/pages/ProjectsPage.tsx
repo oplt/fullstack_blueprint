@@ -85,7 +85,7 @@ export default function ProjectsPage() {
                     {...register("description")}
                     error={!!errors.description}
                     description={errors.description?.message}
-                    multiline
+                    as="textarea"
                     rows={4} />
                 {mutation.isError && (
                     <div role="alert" className="rounded-lg border border-border p-3 text-sm">

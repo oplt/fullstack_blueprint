@@ -23,7 +23,7 @@ export function PromptLibraryPanel({ m }: { m: AiStudioModel }) {
                     label="Description"
                     value={templateForm.description}
                     onChange={(event: any) => setTemplateForm((current) => ({ ...current, description: event.target.value }))}
-                    multiline
+                    as="textarea"
                     rows={2} />
                 <Button
                     variant="default"

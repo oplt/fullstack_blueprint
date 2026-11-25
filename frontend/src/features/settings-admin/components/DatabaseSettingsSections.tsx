@@ -23,13 +23,13 @@ export function DatabaseSettingsSections({ settings, model }: { settings: Databa
                         label="Value"
                         value={model.newSetting.value}
                         onChange={(event: any) => model.setNewSetting((current) => ({ ...current, value: event.target.value }))}
-                        multiline
+                        as="textarea"
                         rows={3} />
                     <FormField
                         label="Description"
                         value={model.newSetting.description}
                         onChange={(event: any) => model.setNewSetting((current) => ({ ...current, description: event.target.value }))}
-                        multiline
+                        as="textarea"
                         rows={3} />
                     <Button
                         variant="default"

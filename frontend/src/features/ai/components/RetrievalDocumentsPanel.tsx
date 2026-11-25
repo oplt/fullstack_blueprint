@@ -22,7 +22,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
                     label="Document content"
                     value={textDocumentForm.content}
                     onChange={(event: any) => setTextDocumentForm((current) => ({ ...current, content: event.target.value }))}
-                    multiline
+                    as="textarea"
                     rows={6} />
                 <Button
                     variant="outline"

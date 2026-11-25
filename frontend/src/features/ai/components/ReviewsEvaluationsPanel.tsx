@@ -56,7 +56,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                                         label="Corrected output"
                                         value={correctionsById[review.id] ?? ""}
                                         onChange={(event: any) => setCorrectionsById((current) => ({ ...current, [review.id]: event.target.value }))}
-                                        multiline
+                                        as="textarea"
                                         rows={2} />
                                     <div className="flex flex-col sm:flex-row gap-[8px]">
                                         <Button
@@ -118,7 +118,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                         label="Case input variables JSON"
                         value={datasetCaseForm.input_variables_json}
                         onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, input_variables_json: event.target.value }))}
-                        multiline
+                        as="textarea"
                         rows={4} />
                     <FormField
                         label="Retrieval query"
@@ -141,13 +141,13 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                         label="Expected output text"
                         value={datasetCaseForm.expected_output_text}
                         onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, expected_output_text: event.target.value }))}
-                        multiline
+                        as="textarea"
                         rows={2} />
                     <FormField
                         label="Expected output JSON"
                         value={datasetCaseForm.expected_output_json}
                         onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, expected_output_json: event.target.value }))}
-                        multiline
+                                        as="textarea"
                         rows={2} />
                     <FormField
                         label="Notes"

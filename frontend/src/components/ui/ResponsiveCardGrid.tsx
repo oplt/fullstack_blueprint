@@ -1,13 +1,11 @@
 import type { ReactNode } from "react";
-import type { CSSProperties } from "react";
 export type ResponsiveCardColumns = 2 | 3 | 4;
-type ResponsiveCardGridProps = { children: ReactNode; columns?: ResponsiveCardColumns; gap?: number; sx?: CSSProperties };
-export function ResponsiveCardGrid({ children, columns = 3, gap = 16, sx }: ResponsiveCardGridProps) {
+type ResponsiveCardGridProps = { children: ReactNode; columns?: ResponsiveCardColumns; className?: string };
+export function ResponsiveCardGrid({ children, columns = 3, className }: ResponsiveCardGridProps) {
     return (
         <div
-            className="responsive-card-grid"
+            className={`responsive-card-grid gap-4 ${className ?? ""}`}
             data-columns={columns}
-            style={{ ...sx, "--layout-gap": `${gap}px` } as CSSProperties}
         >
             {children}
         </div>

@@ -12,9 +12,6 @@
             ? saved.colorMode
             : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
           document.documentElement.dataset.theme = mode;
-          document.documentElement.dataset.themePreset = typeof saved?.preset === "string" ? saved.preset : "minimal-saas";
-          document.documentElement.dataset.density = saved?.density === "compact" ? "compact" : "comfortable";
-          document.documentElement.dataset.radius = typeof saved?.radius === "string" ? saved.radius : "md";
         } catch { /* use CSS defaults when storage is unavailable */ }
       })();
     </script>

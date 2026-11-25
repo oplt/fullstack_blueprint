@@ -1,4 +1,3 @@
-import type { ThemePreset } from "../theme";
 
 /** Stable identifiers used by product presets and generated applications. */
 export type CapabilityId =
@@ -84,14 +83,12 @@ type BrandingConfiguration = {
     logo?: string;
     logoAlt?: string;
     favicon?: string;
-    primaryColor?: string;
 };
 
 export type ApplicationConfiguration = {
     preset: ApplicationPreset;
     appName: string;
     branding: BrandingConfiguration;
-    themePreset: ThemePreset;
     defaultLanguage: "en" | "nl" | "fr";
     navigation: readonly NavigationEntry[];
     enabledCapabilities: readonly CapabilityId[];

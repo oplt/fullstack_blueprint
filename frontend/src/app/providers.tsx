@@ -4,7 +4,6 @@ import {
     applyTheme,
     loadThemePreferences,
     saveThemePreferences,
-    THEME_PREFERENCES_STORAGE_KEY,
     type ThemePreferences,
 } from "./theme";
 import { queryClient } from "../config/queryClient";
@@ -48,16 +47,7 @@ export function AppProviders({ children, configuration }: PropsWithChildren<{ co
 }
 
 function ConfiguredProviders({ children }: PropsWithChildren) {
-    const applicationConfiguration = useApplicationConfiguration();
-    const [preferences, setPreferences] = useState<ThemePreferences>(() => {
-        const storage = getBrowserStorage();
-        const loaded = loadThemePreferences(storage);
-        let hasPersistedPreferences = false;
-        try { hasPersistedPreferences = Boolean(storage?.getItem(THEME_PREFERENCES_STORAGE_KEY)); } catch { /* storage is optional */ }
-        return hasPersistedPreferences
-            ? loaded
-            : { ...loaded, preset: applicationConfiguration.themePreset, primaryColor: applicationConfiguration.branding.primaryColor };
-    });
+    const [preferences, setPreferences] = useState<ThemePreferences>(() => loadThemePreferences(getBrowserStorage()));
     const prefersDark = usePrefersDark();
     const resolvedMode = preferences.colorMode === "system"
         ? prefersDark
@@ -70,29 +60,14 @@ function ConfiguredProviders({ children }: PropsWithChildren) {
     }, [preferences]);
 
     useLayoutEffect(() => {
-        applyTheme(preferences, resolvedMode);
-    }, [preferences, resolvedMode]);
+        applyTheme(resolvedMode);
+    }, [resolvedMode]);
 
     const contextValue = useMemo(
         () => ({
             colorMode: preferences.colorMode,
             setColorMode: (colorMode: ThemePreferences["colorMode"]) =>
                 setPreferences((current) => ({ ...current, colorMode })),
-            preset: preferences.preset,
-            setPreset: (preset: ThemePreferences["preset"]) =>
-                setPreferences((current) => ({ ...current, preset })),
-            density: preferences.density,
-            setDensity: (density: ThemePreferences["density"]) =>
-                setPreferences((current) => ({ ...current, density })),
-            radius: preferences.radius,
-            setRadius: (radius: ThemePreferences["radius"]) =>
-                setPreferences((current) => ({ ...current, radius })),
-            primaryColor: preferences.primaryColor,
-            setPrimaryColor: (primaryColor: string | undefined) =>
-                setPreferences((current) => ({ ...current, primaryColor })),
-            fontFamily: preferences.fontFamily,
-            setFontFamily: (fontFamily: string | undefined) =>
-                setPreferences((current) => ({ ...current, fontFamily })),
         }),
         [preferences],
     );

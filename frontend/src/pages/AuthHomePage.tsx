@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useState, type ComponentProps } from "react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Input } from "@/components/ui/input";import { useId, useState, type ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
@@ -23,25 +23,21 @@ type Mode = "signIn" | "signUp";
 
 function PasswordField(props: ComponentProps<typeof FormField>) {
     const [showPassword, setShowPassword] = useState(false);
+    const generatedId = useId();
+    const { label, description, error, id, className, ...inputProps } = props;
+    const controlId = id ?? `password-${generatedId.replaceAll(":", "")}`;
 
     return (
-        <FormField
-            {...props}
-            type={showPassword ? "text" : "password"}
-            endAdornment={
-                    <span>
-                        <Button size="icon"
-
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                            type="button"
-                            onClick={() => setShowPassword((value) => !value)}
-                            onMouseDown={(event) => event.preventDefault()}
-                        >
-                            {showPassword ? <EyeOff /> : <Eye />}
-                        </Button>
-                    </span>
-                }
-        />
+        <div className="grid w-full gap-1.5 text-sm">
+            {label ? <label htmlFor={controlId} className="font-medium">{label}</label> : null}
+            <div className="flex items-center gap-1 rounded-md border border-input bg-background px-2 focus-within:ring-2 focus-within:ring-ring/40">
+                <Input {...inputProps} id={controlId} className={className} type={showPassword ? "text" : "password"} aria-invalid={error || undefined} />
+                <Button size="icon" variant="ghost" aria-label={showPassword ? "Hide password" : "Show password"} type="button" onClick={() => setShowPassword((value) => !value)} onMouseDown={(event) => event.preventDefault()}>
+                    {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+            </div>
+            {description ? <span className={error ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>{description}</span> : null}
+        </div>
     );
 }
 

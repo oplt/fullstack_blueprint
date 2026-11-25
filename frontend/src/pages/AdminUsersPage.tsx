@@ -2,6 +2,7 @@ import { FormField } from "@/components/ui/form-field";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Users } from "lucide-react";
+import { Input } from "../components/ui/input";
 import { listAdminUsers, updateUserStatus, type AdminUserListResponse } from "../api/admin";
 import { SettingsTabs } from "../components/layout/SettingsTabs";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -72,18 +73,10 @@ export default function AdminUsersPage() {
             <SettingsTabs />
 
             <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
-                <FormField
-                    placeholder="Search users..."
-                    value={search}
-                    onChange={(event: any) => {
-                        setSearch(event.target.value);
-                        setPage(0);
-                    }}
-                    startAdornment={
-                            <span>
-                                <Search fontSize="small" />
-                            </span>
-                        } />
+                <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input className="pl-9" placeholder="Search users..." value={search} onChange={(event: any) => { setSearch(event.target.value); setPage(0); }} />
+                </div>
             </div>
 
             <div

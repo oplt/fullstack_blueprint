@@ -28,7 +28,7 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                 {...m.taskForm.register("description")}
                 error={Boolean(m.taskForm.formState.errors.description)}
                 description={m.taskForm.formState.errors.description?.message}
-                multiline
+                as="textarea"
                 rows={4}
             />
             <FormField label="Status" as="select" value={d.status} {...m.taskForm.register("status")}>

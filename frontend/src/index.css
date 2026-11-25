@@ -5,11 +5,9 @@
  * file owns only the token bridge, document defaults, accessibility affordances
  * and browser-level primitives described by DESIGN.md.
  */
-@layer theme, base, components, utilities;
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss";
 
-@custom-variant dark (&:is([data-theme="dark"] *));
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -67,30 +65,33 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --font-display: var(--font-family-display);
-  --font-sans: var(--font-family-text);
+  --font-sans: Inter, Arial, ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-family-mono);
-  --text-display-xl: 4rem;
-  --text-display-xl--line-height: 1.05;
-  --text-display-xl--letter-spacing: -1.5px;
-  --text-display-lg: 3rem;
-  --text-display-lg--line-height: 1.1;
-  --text-display-lg--letter-spacing: -1px;
-  --text-display-md: 2.25rem;
-  --text-display-md--line-height: 1.15;
-  --text-display-md--letter-spacing: -0.5px;
-  --text-display-sm: 1.75rem;
-  --text-display-sm--line-height: 1.2;
-  --text-display-sm--letter-spacing: -0.3px;
-  --text-title-lg: 1.375rem;
-  --text-title-md: 1.125rem;
-  --text-title-sm: 1rem;
-  --text-body-md: 1rem;
-  --text-body-md--line-height: 1.55;
-  --text-body-sm: 0.875rem;
-  --text-body-sm--line-height: 1.55;
-  --text-caption: 0.8125rem;
+  --text-display-xl: 3rem;
+  --text-display-xl--line-height: 3rem;
+  --text-display-xl--letter-spacing: -2.4px;
+  --text-display-lg: 2rem;
+  --text-display-lg--line-height: 2.5rem;
+  --text-display-lg--letter-spacing: -1.28px;
+  --text-display-md: 1.25rem;
+  --text-display-md--line-height: 1.75rem;
+  --text-display-md--letter-spacing: -0.4px;
+  --text-display-sm: 1rem;
+  --text-display-sm--line-height: 1.5rem;
+  --text-display-sm--letter-spacing: 0;
+  --text-title-lg: 1.25rem;
+  --text-title-lg--line-height: 1.75rem;
+  --text-title-md: 0.875rem;
+  --text-title-md--line-height: 1.25rem;
+  --text-title-sm: 0.75rem;
+  --text-title-sm--line-height: 1rem;
+  --text-body-md: 0.875rem;
+  --text-body-md--line-height: 1.25rem;
+  --text-body-sm: 0.75rem;
+  --text-body-sm--line-height: 1rem;
+  --text-caption: 0.75rem;
   --text-code: 0.875rem;
-  --text-code--line-height: 1.6;
+  --text-code--line-height: 1.25rem;
   --spacing-xxs: var(--space-xxs);
   --spacing-xs: var(--space-xs);
   --spacing-sm: var(--space-sm);
@@ -99,11 +100,11 @@
   --spacing-xl: var(--space-xl);
   --spacing-xxl: var(--space-xxl);
   --spacing-section: var(--section-rhythm);
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius);
-  --radius-xl: var(--radius-xl);
-  --radius-pill: var(--radius-pill);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 16px;
+  --radius-pill: 100px;
   --shadow-raised: var(--shadow-raised);
   --shadow-overlay: var(--shadow-overlay);
 }
@@ -133,11 +134,11 @@
   --accent-foreground: #171717;
   --destructive: #ee0000;
   --destructive-foreground: #ffffff;
-  --success: #5db872;
+  --success: #0070f3;
   --success-foreground: #ffffff;
-  --warning: #d4a017;
-  --warning-foreground: #ffffff;
-  --information: #397f73;
+  --warning: #f5a623;
+  --warning-foreground: #171717;
+  --information: #0070f3;
   --information-foreground: #ffffff;
   --border: #ebebeb;
   --input: #ebebeb;
@@ -171,18 +172,17 @@
   --chart-3: #50e3c2;
   --chart-4: #ff0080;
   --chart-5: #f9cb28;
-  --font-family-display: Manrope, Arial, ui-sans-serif, system-ui, sans-serif;
-  --font-family-text: Manrope, Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-family-display: Inter, Arial, ui-sans-serif, system-ui, sans-serif;
   --font-family-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-size-body: 1rem;
-  --line-height-body: 1.55;
+  --font-size-body: 0.875rem;
+  --line-height-body: 1.25rem;
   --font-weight-heading: 600;
   --font-weight-body: 400;
   --font-weight-label: 500;
-  --radius: 8px;
+  --radius: 6px;
   --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-xl: 16px;
   --radius-pill: 9999px;
   --spacing-page: 24px;
@@ -192,13 +192,13 @@
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
-  --space-xxl: 48px;
-  --section-rhythm: 96px;
-  --spacing-section-gap: 24px;
-  --control-height: 40px;
-  --control-padding-x: 16px;
-  --shadow-raised: 0 1px 3px rgb(20 20 19 / 8%);
-  --shadow-overlay: 0 16px 48px rgb(20 20 19 / 16%);
+  --space-xxl: 40px;
+  --section-rhythm: 128px;
+  --spacing-section-gap: 16px;
+  --control-height: 44px;
+  --control-padding-x: 14px;
+  --shadow-raised: 0 1px 1px rgb(0 0 0 / 4%);
+  --shadow-overlay: 0 2px 2px rgb(0 0 0 / 4%), 0 8px 16px -4px rgb(0 0 0 / 8%);
   --motion-normal: 220ms;
   --motion-easing: cubic-bezier(0.2, 0, 0, 1);
 }
@@ -238,14 +238,6 @@
   --body: #a1a1a1;
 }
 
-[data-theme-preset="linear-inspired"] { --primary: #5e6ad2; --ring: #5e6ad2; }
-[data-theme-preset="enterprise"] { --primary: #0f766e; --ring: #0f766e; }
-[data-theme-preset="creative-ai"] { --primary: #7c3aed; --ring: #7c3aed; }
-[data-density="compact"] { --control-height: 36px; --control-padding-x: 12px; --spacing-section-gap: 16px; }
-[data-radius="none"] { --radius: 0px; }
-[data-radius="sm"] { --radius: 6px; }
-[data-radius="lg"] { --radius: 12px; }
-
 @layer components {
   .responsive-card-grid,
   .form-grid,
@@ -269,6 +261,26 @@
 
   .workspace-split {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-split[data-ratio="8-4"] {
+    --workspace-main: minmax(0, 2fr);
+    --workspace-side: minmax(280px, 1fr);
+  }
+
+  .workspace-split[data-ratio="9-3"] {
+    --workspace-main: minmax(0, 3fr);
+    --workspace-side: minmax(240px, 1fr);
+  }
+
+  .workspace-split[data-ratio="3-9"] {
+    --workspace-main: minmax(220px, 1fr);
+    --workspace-side: minmax(0, 3fr);
+  }
+
+  .workspace-split[data-ratio="4-8"] {
+    --workspace-main: minmax(280px, 1fr);
+    --workspace-side: minmax(0, 2fr);
   }
 
   .calendar-month-grid {
@@ -518,7 +530,7 @@
     margin: 0;
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-family-text);
+    font-family: var(--font-sans);
     font-size: var(--font-size-body);
     line-height: var(--line-height-body);
     text-rendering: optimizeLegibility;

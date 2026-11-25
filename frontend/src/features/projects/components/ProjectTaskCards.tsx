@@ -31,7 +31,7 @@ export function TaskBoardCard({ task, selected, isDragging, onSelect, onDragStar
                     onClick={(e: any) => e.stopPropagation()}
                     onChange={(e: any) => { e.stopPropagation(); onMove(e.target.value as ProjectTaskStatus); }}
 
-                    inputAttributes={{ "aria-label": `Move ${task.title} to another column` }}>{TASK_STATUS_OPTIONS.filter((o) => o.value !== task.status).map((o) => <option key={o.value}>{o.label}</option>)}</FormField>
+                    aria-label={`Move ${task.title} to another column`}>{TASK_STATUS_OPTIONS.filter((o) => o.value !== task.status).map((o) => <option key={o.value}>{o.label}</option>)}</FormField>
             </div></div>
     );
 }

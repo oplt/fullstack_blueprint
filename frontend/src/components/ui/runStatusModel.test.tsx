@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { RunStatusChip } from "./RunStatusChip";
+import { RunStatusBadge } from "./RunStatusBadge";
 import { RunStatusPanel } from "./RunStatusPanel";
 import {
     formatRunDurationMs,
@@ -33,9 +33,9 @@ describe("runStatusModel", () => {
     });
 });
 
-describe("RunStatusChip", () => {
+describe("RunStatusBadge", () => {
     it("renders canonical label", () => {
-        render(<RunStatusChip status="pending" />);
+        render(<RunStatusBadge status="pending" />);
         expect(screen.getByText("Queued")).toBeInTheDocument();
     });
 });

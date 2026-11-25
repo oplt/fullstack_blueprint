@@ -30,7 +30,7 @@ import { PageShell } from "../../components/ui/PageShell";
 import { PageTabs } from "../../components/ui/PageTabs";
 import { QueryBoundary, QueryErrorAlert } from "../../components/ui/QueryBoundary";
 import { DataTable } from "../../components/ui/DataTable";
-import { RunStatusChip } from "../../components/ui/RunStatusChip";
+import { RunStatusBadge } from "../../components/ui/RunStatusBadge";
 import { RunStatusPanel } from "../../components/ui/RunStatusPanel";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { PaginationControls } from "../../components/ui/pagination";
@@ -383,7 +383,7 @@ export default function RagView() {
                                             sortable: true,
                                             getSortValue: (doc) => doc.status,
                                             render: (doc) => (
-                                                <RunStatusChip status={doc.status} showRaw />
+                                                <RunStatusBadge status={doc.status} showRaw />
                                             ),
                                         },
                                         {
@@ -655,7 +655,7 @@ export default function RagView() {
                                     onChange={(e: any) =>
                                         setTopK(Math.max(1, Math.min(50, Number(e.target.value) || 1)))
                                     }
-                                    inputAttributes={{ min: 1, max: 50, step: 1 }} />
+                                    min={1} max={50} step={1} />
                             </div>
                             {selectedDocumentId ? (
                                 <span className="text-muted-foreground">
@@ -744,7 +744,7 @@ export default function RagView() {
                                 label="Question"
                                 value={askQuery}
                                 onChange={(e: any) => setAskQuery(e.target.value)}
-                                multiline
+                                as="textarea"
                                 rows={2} />
                             <Button
                                 variant="default"
