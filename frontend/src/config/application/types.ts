@@ -14,14 +14,6 @@ export type CapabilityId =
     | "notifications"
     | "admin";
 
-export type ApplicationPreset =
-    | "minimal"
-    | "saas"
-    | "ai-saas"
-    | "knowledge-platform"
-    | "automation-platform"
-    | "enterprise"
-    | "internal-business";
 
 export type ConfigurationSource = "default" | "environment" | "generator" | "deployment";
 export type LayoutVariant =
@@ -86,7 +78,6 @@ type BrandingConfiguration = {
 };
 
 export type ApplicationConfiguration = {
-    preset: ApplicationPreset;
     appName: string;
     branding: BrandingConfiguration;
     defaultLanguage: "en" | "nl" | "fr";
@@ -97,10 +88,15 @@ export type ApplicationConfiguration = {
     deployment: DeploymentConfiguration;
 };
 
-export type ApplicationConfigurationInput = Partial<Omit<ApplicationConfiguration, "build" | "deployment">> & {
-    build?: Partial<BuildConfiguration>;
-    deployment?: Partial<DeploymentConfiguration>;
-};
+export type ApplicationConfigurationInput = Partial<
+    Pick<
+        ApplicationConfiguration,
+        "appName" |
+        "branding" |
+        "defaultLanguage" |
+        "layoutVariants"
+    >
+>;
 
 export type ServerCapabilityState = {
     availableFeatures?: readonly string[];

@@ -32,14 +32,14 @@ class GenerationPort(Protocol):
     ) -> RagGenerationResult: ...
 
 
-class AiServiceGenerationPort:
+class AiRunGenerationPort:
     def __init__(self, db: AsyncSession):
         self._db = db
 
     def _get_service(self):
-        from backend.modules.ai.service import AiService
+        from backend.modules.ai.run_service import AiRunService
 
-        return AiService(self._db)
+        return AiRunService(self._db)
 
     async def run_rag_answer(
         self,

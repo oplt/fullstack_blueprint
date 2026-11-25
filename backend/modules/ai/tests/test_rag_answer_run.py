@@ -1,5 +1,6 @@
 import unittest
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.modules.ai.application.rag_answer_prompt import (
@@ -7,7 +8,9 @@ from backend.modules.ai.application.rag_answer_prompt import (
     RAG_STRUCTURED_OUTPUT_CONTRACT,
     resolve_rag_answer_prompt,
 )
-from backend.modules.ai.service import AiService
+from backend.modules.ai.contracts import AiProviderRequest, AiProviderResponse, AiUsage
+from backend.modules.ai.models import AiRun
+from backend.modules.ai.run_service import AiRunService
 from backend.modules.identity_access.models import User
 
 
@@ -60,24 +63,14 @@ class RagAnswerPromptTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(spec.response_format, "json")
 
 
-class AiServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
+class AiRunServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
     @patch("backend.modules.ai.run_service.resolve_rag_answer_prompt")
     async def test_run_rag_answer_creates_run_with_retrieved_chunk_ids(self, resolve_prompt):
         db = AsyncMock()
-        service = AiService(db)
+        service = AiRunService(db)
         service.repo = MagicMock()
         service.repo.create_run = AsyncMock(
             return_value=SimpleNamespace(id="run-1", provider_key="local")
-        )
-        service.providers = MagicMock()
-        service.providers.get.return_value.generate = AsyncMock(
-            return_value=SimpleNamespace(
-                output_text="Answer text",
-                output_json=None,
-                input_tokens=10,
-                output_tokens=5,
-                total_tokens=15,
-            )
         )
         service._finalize_run_generation = AsyncMock(
             return_value=SimpleNamespace(
@@ -126,3 +119,53 @@ class AiServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("What is Postgres?", create_kwargs["input_messages_json"][1]["content"])
         self.assertNotIn("User question:", create_kwargs["input_messages_json"][1]["content"])
         service._finalize_run_generation.assert_awaited_once()
+
+
+class AiRunProviderContractTest(unittest.IsolatedAsyncioTestCase):
+    async def test_generation_uses_canonical_request_and_usage_contract(self):
+        service = AiRunService(AsyncMock())
+        service.repo = MagicMock()
+        service.repo.create_usage_record = AsyncMock()
+        provider = MagicMock()
+        provider.generate_contract = AsyncMock(
+            return_value=AiProviderResponse(
+                provider_key="local",
+                model="model-v1",
+                output_text="answer",
+                usage=AiUsage(input_tokens=1_000_000, output_tokens=500_000),
+                provider_request_id="request-123",
+            )
+        )
+        service.providers = MagicMock()
+        service.providers.get.return_value = provider
+        run = cast(
+            AiRun,
+            SimpleNamespace(id="run-1", provider_key="local", model_name="model-v1"),
+        )
+        version = SimpleNamespace(
+            model_name="model-v1",
+            response_format="text",
+            temperature=0.2,
+            input_cost_per_million=1,
+            output_cost_per_million=2,
+        )
+        user = User(id="user-1", email="a@example.com", password_hash="x")
+
+        await service._finalize_run_generation(
+            user=user,
+            run=run,
+            version=version,
+            rendered_system_prompt="system",
+            rendered_user_prompt="question",
+            review_required=False,
+            commit=False,
+        )
+
+        request = provider.generate_contract.await_args.args[0]
+        self.assertIsInstance(request, AiProviderRequest)
+        self.assertEqual(request.system_prompt, "system")
+        self.assertEqual(request.user_prompt, "question")
+        self.assertEqual(run.status, "completed")
+        self.assertEqual(run.total_tokens, 1_500_000)
+        self.assertEqual(run.provider_request_id, "request-123")
+        self.assertEqual(run.estimated_cost_micros, 2)

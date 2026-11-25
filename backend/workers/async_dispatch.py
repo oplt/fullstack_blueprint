@@ -6,6 +6,7 @@ import asyncio
 import logging
 from collections.abc import Callable, Coroutine
 from concurrent.futures import Future, ThreadPoolExecutor
+from importlib import import_module
 from queue import Queue
 from threading import BoundedSemaphore, Event, Lock, Thread
 from typing import Any, TypeVar
@@ -23,6 +24,12 @@ _worker_runtime: _WorkerAsyncRuntime | None = None
 _worker_runtime_lock = Lock()
 
 T = TypeVar("T")
+
+
+def resolve_celery_task(name: str) -> Any | None:
+    if settings.CELERY_TASK_ALWAYS_EAGER:
+        return None
+    return getattr(import_module("backend.workers.tasks"), name)
 
 
 class _WorkerAsyncRuntime:
@@ -67,11 +74,13 @@ class _WorkerAsyncRuntime:
                     except BaseException as exc:
                         future.set_exception(exc)
         finally:
-            from backend.modules.ai.providers import close_ai_provider_http_clients
 
             async def close_resources() -> None:
                 try:
-                    await close_ai_provider_http_clients()
+                    if settings.AI_ENABLED or settings.RAG_ENABLED:
+                        from backend.modules.ai.providers import close_ai_provider_http_clients
+
+                        await close_ai_provider_http_clients()
                 finally:
                     try:
                         await self._redis.aclose()
@@ -159,7 +168,7 @@ def dispatch_background_sync_job(
     *,
     target: Callable[..., None],
     kwargs: dict[str, Any],
-    celery_task: Any,
+    celery_task: Any | None,
     celery_kwargs: dict[str, Any],
     queue: str,
     job_name: str,
@@ -186,6 +195,10 @@ def dispatch_background_sync_job(
         future.add_done_callback(lambda completed: _release_eager_slot(completed, slots))
         return task_id
 
+    if celery_task is None:
+        raise RuntimeError(
+            "Celery worker extra is required unless eager background mode is enabled"
+        )
     apply_kwargs: dict[str, Any] = {
         "kwargs": celery_kwargs,
         "queue": queue,

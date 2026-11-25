@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import exists, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
@@ -190,6 +190,25 @@ class AiRepository:
         )
         return result.scalar_one_or_none()
 
+    async def transition_workflow(
+        self,
+        workflow_id: str,
+        *,
+        expected_statuses: set[str],
+        values: dict,
+    ) -> bool:
+        result = await self.db.execute(
+            update(AiWorkflowRun)
+            .where(
+                AiWorkflowRun.id == workflow_id,
+                AiWorkflowRun.status.in_(expected_statuses),
+                AiWorkflowRun.cancellation_requested.is_(False),
+            )
+            .values(**values)
+            .returning(AiWorkflowRun.id)
+        )
+        return result.scalar_one_or_none() is not None
+
     async def create_workflow_run(self, **kwargs) -> AiWorkflowRun:
         workflow = AiWorkflowRun(**kwargs)
         self.db.add(workflow)
@@ -222,6 +241,31 @@ class AiRepository:
             select(AiToolApproval).where(AiToolApproval.id == approval_id)
         )
         return result.scalar_one_or_none()
+
+    async def approve_tool_approval(
+        self, approval_id: str, workflow_id: str, user_id: str, decided_at
+    ) -> bool:
+        awaiting_approval = exists(
+            select(AiWorkflowRun.id).where(
+                AiWorkflowRun.id == workflow_id,
+                AiWorkflowRun.status == "awaiting_approval",
+                AiWorkflowRun.cancellation_requested.is_(False),
+            )
+        )
+        result = await self.db.execute(
+            update(AiToolApproval)
+            .where(
+                AiToolApproval.id == approval_id,
+                AiToolApproval.workflow_run_id == workflow_id,
+                AiToolApproval.tenant_id == user_id,
+                AiToolApproval.status == "pending",
+                AiToolApproval.expires_at > decided_at,
+                awaiting_approval,
+            )
+            .values(status="approved", approved_by_user_id=user_id, decided_at=decided_at)
+            .returning(AiToolApproval.id)
+        )
+        return result.scalar_one_or_none() is not None
 
     async def create_tool_execution(self, **kwargs) -> AiToolExecution:
         execution = AiToolExecution(**kwargs)

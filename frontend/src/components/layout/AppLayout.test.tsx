@@ -31,9 +31,8 @@ it("keeps the shell operable when storage is blocked and labels its collapsed an
         expect(screen.queryByRole("button", { name: "Select project" })).not.toBeInTheDocument();
         expect(client.getQueryCache().find({ queryKey: queryKeys.notifications.all })).toBeUndefined();
         expect(client.getQueryCache().find({ queryKey: queryKeys.projects.all })?.state.fetchStatus).toBe("idle");
-        const mode = screen.getByRole("combobox", { name: "Theme: Dark" });
-        expect(mode).toHaveDisplayValue("System (Dark)");
-        await user.selectOptions(mode, "light");
+        const mode = screen.getByRole("button", { name: "Theme: Light" });
+        await user.click(mode);
         expect(setMode).toHaveBeenCalledWith("light");
         await user.click(screen.getByRole("button", { name: "Open navigation menu" }));
         const sheet = await screen.findByRole("dialog", { name: "Main navigation" });

@@ -17,5 +17,8 @@
     "ui": "@/components/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
+  },
+  "registries": {
+    "@fullcalendar": "https://shadcn-registry.fullcalendar.io/{name}.json"
   }
 }

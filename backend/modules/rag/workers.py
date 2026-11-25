@@ -5,6 +5,7 @@ import logging
 from backend.core.config import settings
 from backend.workers.async_dispatch import (
     dispatch_background_sync_job,
+    resolve_celery_task,
     run_async_in_sync_context,
 )
 
@@ -64,7 +65,7 @@ def queue_document_indexing(
     if job_id:
         payload["job_id"] = job_id
 
-    from backend.workers.tasks import index_rag_document_task
+    celery_task = resolve_celery_task("index_rag_document_task")
 
     dispatch_background_sync_job(
         target=index_document_sync,
@@ -73,7 +74,7 @@ def queue_document_indexing(
             "user_id": user_id,
             "job_id": job_id,
         },
-        celery_task=index_rag_document_task,
+        celery_task=celery_task,
         celery_kwargs=payload,
         queue=settings.CELERY_TASK_DEFAULT_QUEUE,
         job_name="rag-indexing",
@@ -107,7 +108,7 @@ def queue_document_cleanup(
     user_id: str,
     storage_path: str | None,
 ) -> None:
-    from backend.workers.tasks import cleanup_rag_document_task
+    celery_task = resolve_celery_task("cleanup_rag_document_task")
 
     payload = {
         "document_id": document_id,
@@ -117,7 +118,7 @@ def queue_document_cleanup(
     dispatch_background_sync_job(
         target=cleanup_document_sync,
         kwargs=payload,
-        celery_task=cleanup_rag_document_task,
+        celery_task=celery_task,
         celery_kwargs=payload,
         queue=settings.CELERY_TASK_DEFAULT_QUEUE,
         job_name="rag-document-cleanup",

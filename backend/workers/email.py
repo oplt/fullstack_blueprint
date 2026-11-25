@@ -5,7 +5,11 @@ from email.mime.text import MIMEText
 import aiosmtplib
 
 from backend.core.config import settings
-from backend.workers.async_dispatch import dispatch_background_sync_job, run_async_in_sync_context
+from backend.workers.async_dispatch import (
+    dispatch_background_sync_job,
+    resolve_celery_task,
+    run_async_in_sync_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +52,7 @@ def send_email_sync(*, to: str, subject: str, html_body: str, text_body: str | N
 def queue_email(*, to: str, subject: str, html_body: str, text_body: str | None = None) -> None:
     if not settings.SMTP_HOST:
         return
-    from backend.workers.tasks import send_email_task
+    celery_task = resolve_celery_task("send_email_task")
 
     payload = {
         "to": to,
@@ -59,7 +63,7 @@ def queue_email(*, to: str, subject: str, html_body: str, text_body: str | None 
     dispatch_background_sync_job(
         target=send_email_sync,
         kwargs=payload,
-        celery_task=send_email_task,
+        celery_task=celery_task,
         celery_kwargs=payload,
         queue=settings.CELERY_EMAIL_QUEUE,
         job_name="email",

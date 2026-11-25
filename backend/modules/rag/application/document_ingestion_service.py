@@ -27,7 +27,7 @@ from backend.modules.rag.infrastructure.file_storage_adapter import (
 )
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
-from backend.modules.rag.infrastructure.vector_store_adapter import build_vector_store
+from backend.modules.rag.infrastructure.pgvector_adapter import build_vector_store
 from backend.modules.rag.workers import queue_document_cleanup, queue_document_indexing
 
 logger = logging.getLogger(__name__)
@@ -239,6 +239,12 @@ class DocumentIngestionService:
         )
         active_job = await self.repo.get_active_ingestion_job(document.id)
         if active_job:
+            if active_job.status == IngestionJobStatus.PENDING.value:
+                queue_document_indexing(
+                    document_id=document.id,
+                    user_id=user_id,
+                    job_id=active_job.id,
+                )
             return active_job
         try:
             async with self.db.begin_nested():
@@ -250,6 +256,12 @@ class DocumentIngestionService:
         except IntegrityError:
             active_job = await self.repo.get_active_ingestion_job(document.id)
             if active_job:
+                if active_job.status == IngestionJobStatus.PENDING.value:
+                    queue_document_indexing(
+                        document_id=document.id,
+                        user_id=user_id,
+                        job_id=active_job.id,
+                    )
                 return active_job
             raise
         await self.db.commit()
@@ -285,7 +297,9 @@ class DocumentIngestionService:
                 user_id=user_id,
                 project_id=document.project_id,
             )
-        await self.repo.update_ingestion_job(job, status=IngestionJobStatus.RUNNING, started=True)
+        if not await self.repo.claim_ingestion_job(job.id):
+            await self.db.refresh(job)
+            return document, [], job
         await self.repo.update_document_status(document, DocumentStatus.PARSING)
         await self.db.commit()
 

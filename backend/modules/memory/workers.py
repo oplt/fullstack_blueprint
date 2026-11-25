@@ -4,7 +4,11 @@ import logging
 
 from backend.core.cache import get_redis_client
 from backend.core.config import settings
-from backend.workers.async_dispatch import dispatch_background_sync_job, run_async_in_sync_context
+from backend.workers.async_dispatch import (
+    dispatch_background_sync_job,
+    resolve_celery_task,
+    run_async_in_sync_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +56,7 @@ def extract_turn_memories_sync(
 
 
 def queue_turn_memory_extraction(**payload: str | None) -> None:
-    from backend.workers.tasks import extract_turn_memories_task
+    celery_task = resolve_celery_task("extract_turn_memories_task")
 
     kwargs = {
         "user_id": str(payload["user_id"]),
@@ -66,7 +70,7 @@ def queue_turn_memory_extraction(**payload: str | None) -> None:
     dispatch_background_sync_job(
         target=extract_turn_memories_sync,
         kwargs=kwargs,
-        celery_task=extract_turn_memories_task,
+        celery_task=celery_task,
         celery_kwargs=kwargs,
         queue=settings.CELERY_TASK_DEFAULT_QUEUE,
         job_name="memory-extraction",

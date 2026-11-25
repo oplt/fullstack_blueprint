@@ -5,9 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
-
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from backend.blueprint.environment import environment_for
+from backend.blueprint.profiles import PROFILES, Profile
+from backend.modules.capabilities import CAPABILITY_REGISTRY
 
 MODULE_TO_CAPABILITY = {
     "identity": "identity",
@@ -19,34 +21,18 @@ MODULE_TO_CAPABILITY = {
     "feature_flags": "feature_flags",
     "email_templates": "email_templates",
     "ai": "ai",
-    "agents": "ai",
+    "agents": "agents",
     "rag": "rag",
     "memory": "memory",
     "calendar": "calendar",
     "integrations": "reusable_capabilities",
-    "notifications": "reusable_capabilities",
+    "notifications": "notifications",
     "analytics": "reusable_capabilities",
     "storage": "reusable_capabilities",
     "workflows": "ai",
     "entitlements": "billing",
 }
-KNOWN_MODULES = frozenset((*MODULE_TO_CAPABILITY, "entitlements"))
-CAPABILITY_DEPENDENCIES = {
-    "identity": set(),
-    "organizations": {"identity"},
-    "projects": {"identity"},
-    "billing": {"identity", "platform"},
-    "api_keys": {"identity", "platform"},
-    "webhooks": {"identity", "platform"},
-    "feature_flags": {"identity", "platform"},
-    "email_templates": {"identity", "platform"},
-    "ai": {"identity"},
-    "rag": {"identity", "projects"},
-    "memory": {"identity"},
-    "calendar": {"identity", "projects"},
-    "reusable_capabilities": {"identity", "platform"},
-    "platform": {"identity"},
-}
+KNOWN_MODULES = frozenset(MODULE_TO_CAPABILITY)
 
 
 class ProjectSettings(BaseModel):
@@ -61,14 +47,14 @@ class BackendSettings(BaseModel):
 
     database: Literal["postgresql"] = "postgresql"
     cache: Literal["redis"] = "redis"
-    task_queue: Literal["celery"] = "celery"
+    task_queue: Literal["none", "celery"] = "none"
 
 
 class DeploymentSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     target: Literal["docker", "compose"] = "docker"
-    observability: Literal["none", "standard"] = "standard"
+    observability: Literal["none", "standard"] = "none"
 
 
 class BlueprintConfig(BaseModel):
@@ -96,154 +82,6 @@ class BlueprintConfig(BaseModel):
         if not isinstance(raw, dict):
             raise ValueError("Blueprint YAML must contain a mapping")
         return cls.model_validate(raw)
-
-
-@dataclass(frozen=True, slots=True)
-class Profile:
-    name: str
-    required_modules: frozenset[str]
-    optional_modules: frozenset[str]
-    default_settings: dict[str, bool]
-    infrastructure: tuple[str, ...]
-    security_requirements: tuple[str, ...]
-    tests: tuple[str, ...]
-    deployment_assumptions: tuple[str, ...]
-    notes: tuple[str, ...] = ()
-
-
-def _profile(
-    name: str,
-    required: set[str],
-    optional: set[str],
-    infrastructure: tuple[str, ...],
-    security: tuple[str, ...],
-    tests: tuple[str, ...],
-    deployment: tuple[str, ...],
-    notes: tuple[str, ...] = (),
-) -> Profile:
-    return Profile(
-        name,
-        frozenset(required),
-        frozenset(optional),
-        {"ai": "ai" in required, "rag": "rag" in required, "memory": "memory" in required},
-        infrastructure,
-        security,
-        tests,
-        deployment,
-        notes,
-    )
-
-
-PROFILES = {
-    profile.name: profile
-    for profile in (
-        _profile(
-            "minimal_api",
-            {"identity"},
-            {"projects", "calendar"},
-            ("postgresql", "redis"),
-            ("secure_cookies", "explicit_cors"),
-            ("backend/tests",),
-            ("docker_api",),
-        ),
-        _profile(
-            "lean_saas",
-            {"identity", "projects"},
-            {
-                "organizations",
-                "billing",
-                "entitlements",
-                "feature_flags",
-                "notifications",
-                "storage",
-                "analytics",
-            },
-            ("postgresql", "redis", "celery"),
-            ("secure_cookies", "explicit_cors", "csrf"),
-            ("backend/tests", "frontend"),
-            ("docker_api", "celery_worker"),
-        ),
-        _profile(
-            "ai_saas",
-            {"identity", "projects", "ai"},
-            {
-                "organizations",
-                "billing",
-                "rag",
-                "memory",
-                "agents",
-                "integrations",
-                "notifications",
-                "storage",
-                "analytics",
-            },
-            ("postgresql", "redis", "celery"),
-            ("secure_cookies", "csrf", "ai_budgets"),
-            ("backend/modules/ai/tests", "frontend"),
-            ("docker_api", "celery_worker"),
-        ),
-        _profile(
-            "knowledge_base",
-            {"identity", "projects", "ai", "rag"},
-            {
-                "organizations",
-                "memory",
-                "storage",
-                "notifications",
-                "analytics",
-                "billing",
-            },
-            ("postgresql_pgvector", "redis", "celery", "object_storage"),
-            ("secure_cookies", "csrf", "upload_limits", "tenant_rag_acl"),
-            ("backend/modules/rag/tests",),
-            ("docker_api", "celery_worker", "pgvector"),
-        ),
-        _profile(
-            "automation",
-            {"identity", "ai", "agents", "integrations"},
-            {
-                "organizations",
-                "workflows",
-                "notifications",
-                "memory",
-                "analytics",
-                "storage",
-            },
-            ("postgresql", "redis", "celery"),
-            ("secure_cookies", "csrf", "tool_approval", "integration_secrets"),
-            ("backend/modules/ai/tests",),
-            ("docker_api", "celery_worker"),
-        ),
-        _profile(
-            "enterprise_saas",
-            {"identity", "organizations", "projects", "billing", "integrations", "analytics"},
-            {"ai", "rag", "memory", "notifications", "storage"},
-            ("postgresql", "redis", "celery"),
-            ("secure_cookies", "csrf", "audit_logging", "explicit_cors"),
-            ("backend/tests",),
-            ("docker_api", "celery_worker"),
-        ),
-        _profile(
-            "marketplace",
-            {"identity", "projects", "billing", "integrations"},
-            {"notifications", "analytics", "storage", "ai"},
-            ("postgresql", "redis", "celery"),
-            ("secure_cookies", "csrf", "payment_provider_review"),
-            ("backend/tests",),
-            ("docker_api", "celery_worker"),
-            ("Payment, payout, tax, and regulatory marketplace flows are not included.",),
-        ),
-        _profile(
-            "internal_tool",
-            {"identity", "projects"},
-            {"calendar", "notifications", "analytics", "storage"},
-            ("postgresql", "redis"),
-            ("secure_cookies", "csrf", "trusted_network_review"),
-            ("backend/tests",),
-            ("docker_api",),
-        ),
-    )
-}
 
 
 @dataclass(frozen=True, slots=True)
@@ -276,16 +114,24 @@ def resolve_blueprint(config: BlueprintConfig) -> ResolvedBlueprint:
     missing = profile.required_modules.difference(enabled)
     if missing:
         raise ValueError(f"Profile {profile.name} requires modules: {sorted(missing)}")
-    capabilities = {MODULE_TO_CAPABILITY[name] for name in enabled}
-    capabilities.add("platform")
-    changed = True
-    while changed:
-        changed = False
-        for capability in tuple(capabilities):
-            dependencies = CAPABILITY_DEPENDENCIES.get(capability, set())
-            if not dependencies.issubset(capabilities):
-                capabilities.update(dependencies)
-                changed = True
+    capabilities = _resolve_capabilities(enabled)
+    dependency_modules = capabilities.intersection(KNOWN_MODULES)
+    explicitly_disabled = {name for name, selected in config.modules.items() if not selected}
+    conflicts = dependency_modules.intersection(explicitly_disabled)
+    if conflicts:
+        raise ValueError(
+            f"Enabled modules require explicitly disabled modules: {sorted(conflicts)}"
+        )
+    unsupported_dependencies = dependency_modules.difference(
+        profile.required_modules | profile.optional_modules
+    )
+    if unsupported_dependencies:
+        raise ValueError(
+            f"Profile {profile.name} does not support required modules: "
+            f"{sorted(unsupported_dependencies)}"
+        )
+    enabled.update(dependency_modules)
+    _require_task_queue(config, capabilities)
     all_optional = frozenset(
         {"ai", "rag", "memory", "reusable_capabilities", "calendar", "billing"}
     )
@@ -318,25 +164,18 @@ def resolve_blueprint(config: BlueprintConfig) -> ResolvedBlueprint:
     )
 
 
-def environment_for(config: BlueprintConfig, capabilities: set[str]) -> dict[str, str]:
-    values = {
-        "ACCESS_TOKEN_EXPIRE_MINUTES": "15",
-        "AI_ENABLED": str("ai" in capabilities).lower(),
-        "AI_MCP_ENABLED": str(config.modules.get("agents", False)).lower(),
-        "ALLOWED_HOSTS": "localhost,127.0.0.1",
-        "ANALYTICS_ENABLED": str("reusable_capabilities" in capabilities).lower(),
-        "APP_NAME": config.project.name,
-        "BLUEPRINT_PROFILE": config.profile,
-        "CORS_ALLOWED_ORIGINS": "http://localhost:5173",
-        "DATABASE_URL": "postgresql+asyncpg://app:change-me@localhost:5432/app",
-        "INTEGRATIONS_ENABLED": str("reusable_capabilities" in capabilities).lower(),
-        "JWT_ALGORITHM": "HS256",
-        "JWT_SECRET": "replace-in-local-secret-storage",
-        "MEMORY_ENABLED": str("memory" in capabilities).lower(),
-        "MEM0_MODE": "oss" if "memory" in capabilities else "hosted",
-        "OBSERVABILITY_ENABLED": str(config.deployment.observability == "standard").lower(),
-        "RAG_ENABLED": str("rag" in capabilities).lower(),
-        "REDIS_URL": "redis://localhost:6379/0",
-        "REFRESH_TOKEN_EXPIRE_DAYS": "7",
-    }
-    return dict(sorted(values.items()))
+def _resolve_capabilities(enabled_modules: set[str]) -> set[str]:
+    capabilities = {MODULE_TO_CAPABILITY[name] for name in enabled_modules}
+    pending = list(capabilities)
+    while pending:
+        for dependency in CAPABILITY_REGISTRY.get(pending.pop()).dependencies:
+            if dependency not in capabilities:
+                capabilities.add(dependency)
+                pending.append(dependency)
+    return capabilities
+
+
+def _require_task_queue(config: BlueprintConfig, capabilities: set[str]) -> None:
+    queued_capabilities = {"ai", "agents", "rag", "memory", "reusable_capabilities"}
+    if config.backend.task_queue == "none" and capabilities.intersection(queued_capabilities):
+        raise ValueError("Selected capabilities require backend.task_queue: celery")

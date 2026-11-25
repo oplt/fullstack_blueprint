@@ -1,34 +1,30 @@
-import { CAPABILITY_IDS, CAPABILITY_MANIFESTS } from "./capabilities";
+
+import {
+    CAPABILITY_IDS,
+    CAPABILITY_MANIFESTS,
+} from "./capabilities";
+
 import type {
     ApplicationConfiguration,
     ApplicationConfigurationInput,
-    ApplicationPreset,
-    BuildConfiguration,
     CapabilityId,
-    ConfigurationSource,
-    DeploymentConfiguration,
     LayoutVariant,
     NavigationEntry,
 } from "./types";
 
-const ALL_CAPABILITIES = [...CAPABILITY_IDS];
-const CORE_CAPABILITIES: CapabilityId[] = ["dashboard", "profile"];
+const ALL_CAPABILITIES: readonly CapabilityId[] = [
+    ...CAPABILITY_IDS,
+];
 
-export const PRESET_CAPABILITIES: Readonly<Record<ApplicationPreset, readonly CapabilityId[]>> = {
-    minimal: CORE_CAPABILITIES,
-    saas: [...CORE_CAPABILITIES, "calendar"],
-    "ai-saas": [...CORE_CAPABILITIES, "calendar", "ai", "rag", "memory", "agent"],
-    "knowledge-platform": [...CORE_CAPABILITIES, "ai", "rag", "memory"],
-    "automation-platform": [...CORE_CAPABILITIES, "ai", "agent", "observability"],
-    enterprise: ALL_CAPABILITIES,
-    "internal-business": [...CORE_CAPABILITIES, "calendar", "observability"],
-};
-
-const defaultNavigation = Object.values(CAPABILITY_MANIFESTS)
+const DEFAULT_NAVIGATION = Object.values(
+    CAPABILITY_MANIFESTS,
+)
     .flatMap((manifest) => manifest.navigation)
     .sort((left, right) => left.order - right.order);
 
-const DEFAULT_LAYOUT_VARIANTS: Partial<Record<CapabilityId, LayoutVariant>> = {
+const DEFAULT_LAYOUT_VARIANTS: Partial<
+    Record<CapabilityId, LayoutVariant>
+> = {
     dashboard: "saas-dashboard",
     projects: "split-panel-workspace",
     calendar: "full-width-workspace",
@@ -39,73 +35,42 @@ const DEFAULT_LAYOUT_VARIANTS: Partial<Record<CapabilityId, LayoutVariant>> = {
     platform: "settings",
 };
 
-function uniqueCapabilities(capabilities: readonly CapabilityId[]): CapabilityId[] {
-    return [...new Set(capabilities)].filter((capability) => CAPABILITY_IDS.includes(capability));
-}
-
-export function parseCapabilitySelection(value: string | undefined): CapabilityId[] | undefined {
-    if (!value?.trim()) return undefined;
-    const selected = uniqueCapabilities(value.split(",").map((item) => item.trim() as CapabilityId));
-    return selected.length ? selected : undefined;
-}
-
-export function buildConfigurationForPreset(
-    preset: ApplicationPreset,
-    environment: Record<string, string | undefined> = typeof import.meta !== "undefined" ? import.meta.env : {},
-): BuildConfiguration {
-    const fromEnvironment = parseCapabilitySelection(environment.VITE_BLUEPRINT_CAPABILITIES);
+export function createApplicationConfiguration(
+    input: ApplicationConfigurationInput = {},
+): ApplicationConfiguration {
     return {
-        enabledCapabilities: fromEnvironment ?? [...PRESET_CAPABILITIES[preset]],
-        source: fromEnvironment ? "environment" : "default",
-    };
-}
+        appName: "Fullstack Blueprint",
+        branding: {},
+        defaultLanguage: "en",
 
-function deploymentConfigurationFor(
-    capabilities: readonly CapabilityId[],
-    environment: DeploymentConfiguration["environment"] = "custom",
-    source: ConfigurationSource = "deployment",
-): DeploymentConfiguration {
-    return { availableCapabilities: uniqueCapabilities(capabilities), environment, source };
-}
-
-const DEFAULT_APPLICATION_CONFIGURATION: ApplicationConfiguration = {
-    preset: "minimal",
-    appName: "Fullstack Blueprint",
-    branding: {},
-    defaultLanguage: "en",
-    navigation: defaultNavigation,
-    enabledCapabilities: CORE_CAPABILITIES,
-    layoutVariants: DEFAULT_LAYOUT_VARIANTS,
-    build: { enabledCapabilities: CORE_CAPABILITIES, source: "default" },
-    deployment: deploymentConfigurationFor(CORE_CAPABILITIES, "custom", "default"),
-};
-
-export function createApplicationConfiguration(input: ApplicationConfigurationInput = {}): ApplicationConfiguration {
-    const preset = input.preset ?? DEFAULT_APPLICATION_CONFIGURATION.preset;
-    const build = {
-        ...buildConfigurationForPreset(preset),
-        ...input.build,
-        enabledCapabilities: uniqueCapabilities(input.build?.enabledCapabilities ?? buildConfigurationForPreset(preset).enabledCapabilities),
-    };
-    const enabledCapabilities = uniqueCapabilities(input.enabledCapabilities ?? build.enabledCapabilities);
-    const deployment = {
-        ...deploymentConfigurationFor(enabledCapabilities),
-        ...input.deployment,
-        availableCapabilities: uniqueCapabilities(input.deployment?.availableCapabilities ?? enabledCapabilities),
-    };
-    const navigation = input.navigation ?? defaultNavigation;
-    return {
-        ...DEFAULT_APPLICATION_CONFIGURATION,
         ...input,
-        preset,
-        navigation,
-        enabledCapabilities,
-        layoutVariants: { ...DEFAULT_LAYOUT_VARIANTS, ...input.layoutVariants },
-        build,
-        deployment,
+
+        navigation: DEFAULT_NAVIGATION,
+
+        enabledCapabilities: ALL_CAPABILITIES,
+
+        layoutVariants: {
+            ...DEFAULT_LAYOUT_VARIANTS,
+            ...input.layoutVariants,
+        },
+
+        build: {
+            enabledCapabilities: ALL_CAPABILITIES,
+            source: "default",
+        },
+
+        deployment: {
+            availableCapabilities: ALL_CAPABILITIES,
+            environment: "custom",
+            source: "default",
+        },
     };
 }
 
-export function getConfiguredNavigation(configuration: ApplicationConfiguration): NavigationEntry[] {
-    return configuration.navigation.filter((entry) => entry.placement === "primary" && configuration.enabledCapabilities.includes(entry.capability));
+export function getConfiguredNavigation(
+    configuration: ApplicationConfiguration,
+): NavigationEntry[] {
+    return configuration.navigation.filter(
+        (entry) => entry.placement === "primary",
+    );
 }

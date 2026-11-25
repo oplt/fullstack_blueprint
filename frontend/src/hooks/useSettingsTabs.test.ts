@@ -2,22 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { getVisibleSettingsTabs } from "./useSettingsTabs";
 import { createApplicationConfiguration } from "@/config/application/configuration";
-import type { CapabilityId } from "@/config/application/types";
 
 const paths = (isAdmin: boolean, hasUserPlatformModule: boolean, features: string[]) => {
-    const featureCapabilities: Record<string, CapabilityId[]> = {
-        ai: ["ai", "agent"], rag: ["rag"], memory: ["memory"],
-        observability: ["observability"], notifications: ["notifications"],
-    };
-    const capabilities: CapabilityId[] = ["dashboard", "profile"];
-    for (const feature of features) capabilities.push(...(featureCapabilities[feature] ?? []));
-    if (hasUserPlatformModule) capabilities.push("platform");
-    if (isAdmin) capabilities.push("admin");
-    const configuration = createApplicationConfiguration({
-        enabledCapabilities: capabilities,
-        build: { enabledCapabilities: capabilities, source: "default" },
-        deployment: { availableCapabilities: capabilities, environment: "test", source: "deployment" },
-    });
+    const configuration = createApplicationConfiguration();
     return getVisibleSettingsTabs({
         isAdmin, hasUserPlatformModule, features, configuration,
         server: { availableFeatures: features },

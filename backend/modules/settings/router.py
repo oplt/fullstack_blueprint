@@ -12,6 +12,7 @@ from backend.modules.settings.schemas import (
     DatabaseSettingResponse,
     DatabaseSettingUpdate,
 )
+from backend.modules.settings.config_service import SettingsConfigService
 from backend.modules.settings.service import SettingsService
 
 router = APIRouter()
@@ -19,7 +20,7 @@ router = APIRouter()
 
 @router.get("/config", response_model=ConfigSettingsResponse)
 async def get_config_settings(_: User = Depends(get_admin_user)):
-    return await SettingsService.list_config_entries()
+    return await SettingsConfigService.list_config_entries()
 
 
 @router.put("/config", response_model=ConfigSettingsResponse)
@@ -29,7 +30,7 @@ async def update_config_settings(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_admin_user),
 ):
-    response = await SettingsService.update_config_entries(payload.items)
+    response = await SettingsConfigService.update_config_entries(payload.items)
     await log_request_audit_event(
         db,
         request,

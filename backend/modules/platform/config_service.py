@@ -69,14 +69,15 @@ class PlatformConfigService:
             {"key": key, "value": value, "description": description}
             for key, value, description in setting_defaults
         ]
-        inserted = sum(
-            (
-                await self.settings_repo.upsert_defaults(default_settings),
-                await self.repo.upsert_default_plans(list(DEFAULT_PLANS)),
-                await self.repo.upsert_default_feature_flags(list(DEFAULT_FEATURE_FLAGS)),
-                await self.repo.upsert_default_email_templates(list(DEFAULT_EMAIL_TEMPLATES)),
+        inserted = await self.settings_repo.upsert_defaults(default_settings)
+        if settings.PLATFORM_API_ENABLED:
+            inserted += sum(
+                (
+                    await self.repo.upsert_default_plans(list(DEFAULT_PLANS)),
+                    await self.repo.upsert_default_feature_flags(list(DEFAULT_FEATURE_FLAGS)),
+                    await self.repo.upsert_default_email_templates(list(DEFAULT_EMAIL_TEMPLATES)),
+                )
             )
-        )
         await self.db.commit()
         if inserted:
             await invalidate_platform_caches()
@@ -100,6 +101,7 @@ class PlatformConfigService:
                     ("rag", settings.RAG_ENABLED),
                     ("memory", settings.MEMORY_ENABLED),
                     ("calendar", settings.CALENDAR_ENABLED),
+                    ("notifications", settings.NOTIFICATIONS_ENABLED),
                     ("observability", settings.OBSERVABILITY_ENABLED),
                 )
                 if enabled
@@ -259,16 +261,10 @@ class PlatformConfigService:
 
     @staticmethod
     def _resolve_enabled_modules(
-        module_pack: str, explicit_overrides: dict[str, bool]
+        module_pack: str,
+        explicit_overrides: dict[str, bool],
     ) -> list[str]:
-        enabled = set(MODULE_PACKS[module_pack]["modules"])
-        for key, value in explicit_overrides.items():
-            if value:
-                enabled.add(key)
-            else:
-                enabled.discard(key)
-        ordered_module_keys = [item["key"] for item in MODULE_CATALOG]
-        return [key for key in ordered_module_keys if key in enabled]
+        return [item["key"] for item in MODULE_CATALOG]
 
     @staticmethod
     def _parse_bool(raw_value: str) -> bool:

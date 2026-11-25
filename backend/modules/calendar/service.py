@@ -26,7 +26,7 @@ from backend.modules.projects.service import ProjectsService
 
 
 class CalendarService:
-    MAX_RANGE_DAYS = 90
+    MAX_RANGE_DAYS = 378
 
     def __init__(self, db: AsyncSession):
         self.db = db

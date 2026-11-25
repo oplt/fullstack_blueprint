@@ -1,10 +1,31 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "../ui/button";
-import { QueryErrorAlert } from "../ui/QueryBoundary";
-import { SectionCard } from "../ui/SectionCard";
-import { CalendarItemDrawer } from "../../features/calendar/components/CalendarItemDrawer";
-import { CalendarViews } from "../../features/calendar/components/CalendarViews";
-import { shiftCalendarAnchor } from "../../features/calendar/calendarRange";
-import { VIEW_OPTIONS, type DashboardCalendarProps } from "../../features/calendar/calendarDisplay";
-import { useDashboardCalendar } from "../../features/calendar/hooks/useDashboardCalendar";
-export function DashboardCalendar(props: DashboardCalendarProps) { const m = useDashboardCalendar(props); return <div className="flex h-full min-h-0 flex-col"><SectionCard title="Workspace calendar" description="Switch between focused day planning, weekly scheduling, monthly scanning, and a 12-month horizon." className={props.className} contentClassName={props.contentClassName} action={<div className="flex flex-col items-end gap-2">{m.allowedViews.length > 1 ? <div className="flex flex-wrap justify-end gap-1.5">{VIEW_OPTIONS.filter((option) => m.allowedViews.includes(option.value)).map((option) => <Button key={option.value} variant={m.viewMode === option.value ? "default" : "outline"} onClick={() => m.setViewMode(option.value)} type="button">{option.label}</Button>)}</div> : null}<div className="flex justify-end gap-1.5"><Button variant="ghost" onClick={() => m.setAnchorDate((current) => shiftCalendarAnchor(current, m.viewMode, -1))} type="button"><ChevronLeft className="mr-1 size-4" />Back</Button><Button variant="ghost" onClick={() => m.setAnchorDate((current) => shiftCalendarAnchor(current, m.viewMode, 1))} type="button">Forward<ChevronRight className="ml-1 size-4" /></Button></div></div>}>{m.itemsQuery.isError ? <QueryErrorAlert error={m.itemsQuery.error} fallback="Failed to load calendar items." onRetry={() => void m.itemsQuery.refetch()} /> : m.itemsQuery.isLoading ? <div className={m.viewMode === "day" || m.viewMode === "week" ? "space-y-4" : "grid gap-3"}>{m.viewMode === "day" || m.viewMode === "week" ? <><div className="animate-pulse rounded-md bg-muted h-[340px] rounded-xl" /><div className="animate-pulse rounded-md bg-muted h-[220px] rounded-xl" /></> : m.visibleMonths.map((month) => <div key={month.format("YYYY-MM")} className="animate-pulse rounded-md bg-muted rounded-xl" style={{ height: m.viewMode === "twelve_month" ? 360 : 420 }} />)}</div> : <CalendarViews m={m} />}</SectionCard><CalendarItemDrawer m={m} /></div>; }
+import { SectionCard } from "@/components/ui/SectionCard";
+import { QueryErrorAlert } from "@/components/ui/QueryBoundary";
+import { CalendarCanvas } from "@/features/calendar/components/CalendarCanvas";
+import { CalendarItemDrawer } from "@/features/calendar/components/CalendarItemDrawer";
+import type { DashboardCalendarProps } from "@/features/calendar/calendarDisplay";
+import { useDashboardCalendar } from "@/features/calendar/hooks/useDashboardCalendar";
+
+export function DashboardCalendar(props: DashboardCalendarProps) {
+    const model = useDashboardCalendar(props);
+
+    return (
+        <div className="flex h-full min-h-0 flex-col gap-4">
+            <SectionCard
+                title="Workspace calendar"
+                description="Switch between day, week, month, and rolling 12-month views."
+                className={props.className}
+                contentClassName={props.contentClassName}
+            >
+                {model.calendarError ? (
+                    <QueryErrorAlert
+                        error={model.calendarError}
+                        fallback="Failed to load calendar items."
+                        onRetry={model.retryCalendar}
+                    />
+                ) : null}
+                <CalendarCanvas model={model} />
+            </SectionCard>
+            <CalendarItemDrawer m={model} />
+        </div>
+    );
+}

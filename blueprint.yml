@@ -1,30 +1,30 @@
 project:
   name: Example Product
   slug: example-product
-profile: ai_saas
+profile: minimal_api
 backend:
   database: postgresql
   cache: redis
-  task_queue: celery
+  task_queue: none
 modules:
   identity: true
-  organizations: true
-  projects: true
-  billing: true
-  ai: true
+  organizations: false
+  projects: false
+  billing: false
+  ai: false
   agents: false
   rag: false
   memory: false
   workflows: false
-  integrations: true
-  notifications: true
-  analytics: true
-  storage: true
+  integrations: false
+  notifications: false
+  analytics: false
+  storage: false
 providers:
-  billing: stripe
-  ai: [openai, anthropic]
-  storage: s3
+  billing: none
+  ai: []
+  storage: none
 deployment:
   target: docker
-  observability: standard
+  observability: none
 generation_mode: reference

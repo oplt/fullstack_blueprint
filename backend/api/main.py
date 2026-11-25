@@ -14,15 +14,7 @@ from backend.core.log_redaction import redact_url
 from backend.core.logging import setup_logging
 from backend.core.storage import object_storage
 from backend.db.session import SessionLocal, engine
-from backend.modules.ai.providers import close_ai_provider_http_clients
-from backend.modules.memory.infrastructure.memory_config import validate_memory_config
-from backend.modules.platform.service import PlatformService
-from backend.modules.rag.infrastructure.rag_config import (
-    validate_rag_config,
-    validate_rag_index_health,
-)
-from backend.observability import setup_observability
-from backend.observability.service import close_observability_http_client
+from backend.modules.platform.config_service import PlatformConfigService
 from backend.workers.async_dispatch import (
     log_eager_mode_startup_warning,
     shutdown_background_runtime,
@@ -54,19 +46,37 @@ async def lifespan(app: FastAPI):
     async with AsyncExitStack() as resources:
         resources.push_async_callback(engine.dispose)
         resources.push_async_callback(redis_client.aclose)
-        resources.push_async_callback(close_observability_http_client)
-        resources.push_async_callback(close_ai_provider_http_clients)
+        if settings.OBSERVABILITY_ENABLED:
+            from backend.observability.service import close_observability_http_client
+
+            resources.push_async_callback(close_observability_http_client)
+        if settings.AI_ENABLED or settings.RAG_ENABLED:
+            from backend.modules.ai.providers import close_ai_provider_http_clients
+
+            resources.push_async_callback(close_ai_provider_http_clients)
         resources.push_async_callback(asyncio.to_thread, shutdown_background_runtime)
 
         log_eager_mode_startup_warning()
-        validate_rag_config()
-        validate_memory_config()
-        await object_storage.ensure_bucket()
+        if settings.RAG_ENABLED:
+            from backend.modules.rag.infrastructure.rag_config import validate_rag_config
+
+            validate_rag_config()
+        if settings.MEMORY_ENABLED:
+            from backend.modules.memory.infrastructure.memory_config import validate_memory_config
+
+            validate_memory_config()
+        if settings.STORAGE_BUCKET:
+            await object_storage.ensure_bucket()
         await ping_redis()
         logger.info("Redis connection established url=%s", redact_url(settings.REDIS_URL))
         async with SessionLocal() as db:
-            await PlatformService(db).ensure_defaults()
-            await validate_rag_index_health(db)
+            await PlatformConfigService(db).ensure_defaults()
+            if settings.RAG_ENABLED:
+                from backend.modules.rag.infrastructure.rag_config import (
+                    validate_rag_index_health,
+                )
+
+                await validate_rag_index_health(db)
         logger.info("Application startup complete")
         try:
             yield
@@ -82,19 +92,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(RequestBodyLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
-app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(PublicRateLimitMiddleware)
 app.add_middleware(CSRFMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", settings.CSRF_HEADER_NAME],
+    allow_methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Idempotency-Key",
+        "X-Correlation-ID",
+        "X-Request-ID",
+        settings.CSRF_HEADER_NAME,
+    ],
+    expose_headers=["Retry-After", "X-Correlation-ID", "X-Request-ID"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
 if settings.ALLOWED_HOSTS:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 if settings.TRUSTED_PROXY_IPS:
@@ -112,4 +130,7 @@ def _openapi() -> dict:
 app.openapi = _openapi
 
 # Metrics and OTLP instrumentation must register before the ASGI app starts.
-setup_observability(app)
+if settings.OBSERVABILITY_ENABLED:
+    from backend.observability import setup_observability
+
+    setup_observability(app)

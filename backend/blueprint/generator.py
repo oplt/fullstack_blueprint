@@ -12,11 +12,15 @@ import yaml
 
 from backend.blueprint.schema import BlueprintConfig, ResolvedBlueprint, resolve_blueprint
 
-TEMPLATE_VERSION = "2026.11.phase10"
+TEMPLATE_VERSION = "2026.11.phase11"
 GENERATED_DIR = ".blueprint"
 IGNORED_NAMES = shutil.ignore_patterns(
     ".git",
+    ".agents",
+    ".aws",
+    ".codex",
     ".venv",
+    ".pnpm-store",
     "node_modules",
     "dist",
     "__pycache__",
@@ -24,6 +28,11 @@ IGNORED_NAMES = shutil.ignore_patterns(
     ".ruff_cache",
     ".coverage",
     ".env",
+    ".env.local",
+    ".env.*.local",
+    "backend_prompt.txt",
+    "*.pem",
+    "*.key",
     "*.pyc",
     "*.egg-info",
     "logs",
@@ -81,21 +90,25 @@ class BlueprintGenerator:
             extras = " ".join(
                 f"--extra {group}" for group in sorted(resolved.optional_dependency_groups)
             )
-            compose_content = compose.read_text(encoding="utf-8").replace(
-                "context: ./infra", "context: ../infra"
+            compose_data = yaml.safe_load(compose.read_text(encoding="utf-8"))
+            for service, config in compose_data.get("services", {}).items():
+                if service in {"migrate", "api", "worker"}:
+                    config["env_file"] = _merge_env_files(
+                        config.get("env_file"), "../.env.generated"
+                    )
+                build = config.get("build")
+                if isinstance(build, dict):
+                    if service == "minio":
+                        build["context"] = "../infra"
+                    else:
+                        build["context"] = ".."
+                    if service in {"migrate", "api", "worker"}:
+                        build["dockerfile"] = "infra/backend.Dockerfile"
+                        build["args"] = {**build.get("args", {}), "UV_EXTRAS": extras}
+            _write_text(
+                deployment / "docker-compose.yml",
+                yaml.safe_dump(compose_data, sort_keys=False),
             )
-            compose_content = compose_content.replace(
-                "      dockerfile: infra/backend.Dockerfile\n",
-                "      dockerfile: infra/backend.Dockerfile\n"
-                f"      args:\n        UV_EXTRAS: {extras!r}\n",
-            )
-            for service in ("migrate", "api", "worker"):
-                compose_content = compose_content.replace(
-                    f"  {service}:\n",
-                    f"  {service}:\n    env_file:\n      - ../.env.generated\n",
-                    1,
-                )
-            _write_text(deployment / "docker-compose.yml", compose_content)
 
     def _metadata(self, resolved: ResolvedBlueprint) -> dict[str, Any]:
         config_json = json.dumps(
@@ -191,8 +204,15 @@ def _render_deployment(resolved: ResolvedBlueprint) -> str:
                 "```bash",
                 "docker compose -f deployment/docker-compose.yml up -d postgres redis",
                 "docker compose -f deployment/docker-compose.yml --profile ops run --rm migrate",
-                "docker compose -f deployment/docker-compose.yml --profile app up -d "
-                "--scale worker=1 api worker",
+                "docker compose -f deployment/docker-compose.yml --profile app up -d api",
+                *(
+                    [
+                        "docker compose -f deployment/docker-compose.yml --profile worker "
+                        "up -d worker"
+                    ]
+                    if resolved.config.backend.task_queue == "celery"
+                    else []
+                ),
                 "```",
             ]
         )
@@ -209,3 +229,15 @@ def _background_workers(resolved: ResolvedBlueprint) -> list[str]:
     if "ai" in resolved.required_capabilities:
         workers.append("ai-evaluation")
     return workers
+
+
+def _merge_env_files(current: Any, generated: str) -> list[str]:
+    if current is None:
+        existing: list[str] = []
+    elif isinstance(current, str):
+        existing = [current]
+    else:
+        existing = list(current)
+    if generated not in existing:
+        existing.append(generated)
+    return existing

@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Protocol
 
 from sqlalchemy import or_, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modules.events.domain import DomainEvent
@@ -21,15 +22,7 @@ class OutboxRepository:
         self.db = db
 
     async def enqueue(self, event: DomainEvent) -> OutboxEvent:
-        existing = None
-        if event.dedupe_key:
-            existing = await self.db.scalar(
-                select(OutboxEvent).where(OutboxEvent.dedupe_key == event.dedupe_key)
-            )
-        if existing is not None:
-            return existing
-
-        row = OutboxEvent(
+        values = dict(
             event_id=event.event_id,
             event_type=event.event_type,
             event_version=event.event_version,
@@ -39,9 +32,38 @@ class OutboxRepository:
             payload_json=event.model_dump_json_payload(),
             dedupe_key=event.dedupe_key,
         )
-        self.db.add(row)
-        await self.db.flush()
-        return row
+        statement = (
+            insert(OutboxEvent).values(**values).on_conflict_do_nothing().returning(OutboxEvent.id)
+        )
+        inserted_id = (await self.db.execute(statement)).scalar_one_or_none()
+        if inserted_id is not None:
+            return await self.db.get(OutboxEvent, inserted_id)
+
+        conditions = [OutboxEvent.event_id == event.event_id]
+        if event.dedupe_key:
+            conditions.append(OutboxEvent.dedupe_key == event.dedupe_key)
+        matches = list(
+            (await self.db.execute(select(OutboxEvent).where(or_(*conditions)))).scalars().all()
+        )
+        if len(matches) != 1 or not self._same_event(matches[0], values):
+            raise ValueError("Outbox event identity conflicts with an existing event")
+        return matches[0]
+
+    @staticmethod
+    def _same_event(existing: OutboxEvent, values: dict) -> bool:
+        return all(
+            getattr(existing, key) == values[key]
+            for key in (
+                "event_id",
+                "event_type",
+                "event_version",
+                "aggregate_type",
+                "aggregate_id",
+                "producer",
+                "payload_json",
+                "dedupe_key",
+            )
+        )
 
     async def claim_batch(
         self, *, limit: int = 100, lock_timeout_seconds: int = 300
@@ -103,10 +125,17 @@ class OutboxRepository:
         return receipt is not None
 
     async def record_consumer_processed(self, *, event_id: str, consumer_name: str) -> None:
-        self.db.add(
-            OutboxConsumerReceipt(
-                event_id=event_id,
-                consumer_name=consumer_name,
-            )
+        await self.db.execute(
+            insert(OutboxConsumerReceipt)
+            .values(event_id=event_id, consumer_name=consumer_name)
+            .on_conflict_do_nothing(index_elements=["event_id", "consumer_name"])
         )
-        await self.db.flush()
+
+    async def claim_consumer_receipt(self, *, event_id: str, consumer_name: str) -> bool:
+        result = await self.db.execute(
+            insert(OutboxConsumerReceipt)
+            .values(event_id=event_id, consumer_name=consumer_name)
+            .on_conflict_do_nothing(index_elements=["event_id", "consumer_name"])
+            .returning(OutboxConsumerReceipt.id)
+        )
+        return result.scalar_one_or_none() is not None

@@ -1,3 +1,5 @@
+import secrets
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, Response
@@ -26,7 +28,11 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         auth_cookie = request.cookies.get(settings.ACCESS_COOKIE_NAME) or request.cookies.get(
             settings.REFRESH_COOKIE_NAME
         )
-        if auth_cookie and (not csrf_cookie or not csrf_header or csrf_cookie != csrf_header):
+        if auth_cookie and (
+            not csrf_cookie
+            or not csrf_header
+            or not secrets.compare_digest(csrf_cookie.encode(), csrf_header.encode())
+        ):
             return JSONResponse(status_code=403, content={"detail": "CSRF validation failed"})
 
         return await call_next(request)

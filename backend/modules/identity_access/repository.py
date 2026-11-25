@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modules.identity_access.models import RefreshSession, User
@@ -60,10 +60,16 @@ class IdentityRepository:
         await self.db.flush()
 
     async def revoke_all_refresh_sessions_for_user(self, user_id: str) -> None:
-        sessions = await self.list_active_sessions(user_id, limit=None)
-        for session in sessions:
-            session.is_revoked = True
-        await self.db.flush()
+        await self.db.execute(
+            update(RefreshSession)
+            .where(
+                RefreshSession.user_id == user_id,
+                RefreshSession.is_revoked.is_(False),
+                RefreshSession.expires_at > datetime.now(UTC),
+            )
+            .values(is_revoked=True)
+            .execution_options(synchronize_session="fetch")
+        )
 
     async def list_active_sessions(
         self, user_id: str, *, limit: int | None = 50

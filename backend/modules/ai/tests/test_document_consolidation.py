@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from backend.modules.ai.service import AiService
+from backend.modules.ai.document_service import AiDocumentService
 from backend.modules.rag.application.legacy_ai_document_service import (
     AiDocumentView,
     LegacyAiDocumentService,
@@ -30,7 +30,7 @@ class RagDocumentMappingTest(unittest.TestCase):
         self.assertEqual(view.title, "Notes")
 
 
-class AiServiceDocumentDelegationTest(unittest.IsolatedAsyncioTestCase):
+class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.db = AsyncMock()
         self.user = SimpleNamespace(id="user-1")
@@ -61,7 +61,7 @@ class AiServiceDocumentDelegationTest(unittest.IsolatedAsyncioTestCase):
                 1,
             )
         )
-        service = AiService(self.db)
+        service = AiDocumentService(self.db)
 
         documents, _ = await service.list_documents(self.user)
         self.assertEqual(documents[0].id, "doc-1")
@@ -87,7 +87,7 @@ class AiServiceDocumentDelegationTest(unittest.IsolatedAsyncioTestCase):
                 }
             ]
         )
-        service = AiService(self.db)
+        service = AiDocumentService(self.db)
 
         matches = await service.retrieve_chunks(
             self.user,

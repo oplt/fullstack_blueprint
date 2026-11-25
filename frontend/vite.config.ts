@@ -19,6 +19,11 @@ function readCssToken(name: string) {
 function manualChunk(id: string) {
   const normalizedId = id.replaceAll('\\\\', '/')
   if (!normalizedId.includes('/node_modules/')) return undefined
+  if (
+    normalizedId.includes('/@fullcalendar/') ||
+    normalizedId.includes('/@full-ui/headless-calendar/') ||
+    normalizedId.includes('/temporal-polyfill/')
+  ) return 'calendar-runtime'
   if (normalizedId.includes('/react/') || normalizedId.includes('/react-dom/')) return 'react'
   if (normalizedId.includes('/react-router-dom/')) return 'router'
   if (normalizedId.includes('/@tanstack/react-query/')) return 'query'

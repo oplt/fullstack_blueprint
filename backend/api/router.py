@@ -1,54 +1,81 @@
+from importlib import import_module
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.deps.db import get_db
-from backend.core.config import settings
-from backend.modules.admin.router import router as admin_router
-from backend.modules.ai.agent_router import router as agent_router
-from backend.modules.ai.router import router as ai_router
-from backend.modules.calendar.router import router as calendar_router
+from backend.core.config import Settings, settings
 from backend.modules.capabilities import CAPABILITY_REGISTRY
 from backend.modules.identity_access.router import router as auth_router
-from backend.modules.memory.api.routes import router as memory_router
-from backend.modules.notifications.router import router as notifications_router
-from backend.modules.organizations.router import router as organizations_router
 from backend.modules.platform.config_service import PlatformConfigService
-from backend.modules.platform.router import router as platform_router
 from backend.modules.profile.router import router as profile_router
-from backend.modules.projects.router import router as projects_router
-from backend.modules.rag.api.routes import router as rag_router
-from backend.modules.settings.router import router as settings_router
 from backend.modules.users.router import router as users_router
-from backend.observability.router import router as observability_router
 
 
 async def require_ai_module(db: AsyncSession = Depends(get_db)) -> None:
     await PlatformConfigService(db).ensure_module_enabled("ai")
 
 
-api_router = APIRouter(prefix="/api/v1")
+def _include_registered_router(
+    target: APIRouter,
+    identifier: str,
+    *,
+    capability_settings: Settings,
+    prefix: str,
+    tag: str,
+    dependencies: list | None = None,
+) -> None:
+    definition = CAPABILITY_REGISTRY.get(identifier)
+    if not definition.router or not CAPABILITY_REGISTRY.deployment_enabled(
+        identifier, capability_settings
+    ):
+        return
+    module_path, attribute = definition.router.split(":", maxsplit=1)
+    router = getattr(import_module(module_path), attribute)
+    target.include_router(router, prefix=prefix, tags=[tag], dependencies=dependencies or [])
 
-api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
-if CAPABILITY_REGISTRY.deployment_enabled("ai", settings):
-    api_router.include_router(
-        ai_router, prefix="/ai", tags=["ai"], dependencies=[Depends(require_ai_module)]
+
+def build_api_router(capability_settings: Settings = settings) -> APIRouter:
+    router = APIRouter(prefix="/api/v1")
+    router.include_router(auth_router, prefix="/auth", tags=["auth"])
+    _include_registered_router(
+        router,
+        "ai",
+        capability_settings=capability_settings,
+        prefix="/ai",
+        tag="ai",
+        dependencies=[Depends(require_ai_module)],
     )
-    api_router.include_router(
-        agent_router, prefix="/agent", tags=["agent"], dependencies=[Depends(require_ai_module)]
+    _include_registered_router(
+        router,
+        "agents",
+        capability_settings=capability_settings,
+        prefix="/agent",
+        tag="agent",
+        dependencies=[Depends(require_ai_module)],
     )
-if CAPABILITY_REGISTRY.deployment_enabled("memory", settings):
-    api_router.include_router(memory_router, prefix="/memory", tags=["memory"])
-if CAPABILITY_REGISTRY.deployment_enabled("rag", settings):
-    api_router.include_router(rag_router, prefix="/rag", tags=["rag"])
-if CAPABILITY_REGISTRY.deployment_enabled("calendar", settings):
-    api_router.include_router(calendar_router, prefix="/calendar", tags=["calendar"])
-api_router.include_router(users_router, prefix="/users", tags=["users"])
-api_router.include_router(organizations_router, prefix="/organizations", tags=["organizations"])
-api_router.include_router(profile_router, prefix="/profile", tags=["profile"])
-api_router.include_router(projects_router, prefix="/projects", tags=["projects"])
-api_router.include_router(notifications_router, prefix="/notifications", tags=["notifications"])
-if CAPABILITY_REGISTRY.deployment_enabled("observability", settings):
-    api_router.include_router(observability_router, prefix="/observability", tags=["observability"])
-api_router.include_router(platform_router, prefix="/platform", tags=["platform"])
-api_router.include_router(settings_router, prefix="/settings", tags=["settings"])
-api_router.include_router(admin_router, prefix="/admin", tags=["admin"])
+    for identifier, prefix, tag in (
+        ("memory", "/memory", "memory"),
+        ("rag", "/rag", "rag"),
+        ("calendar", "/calendar", "calendar"),
+        ("organizations", "/organizations", "organizations"),
+        ("projects", "/projects", "projects"),
+        ("notifications", "/notifications", "notifications"),
+        ("observability", "/observability", "observability"),
+        ("platform", "/platform", "platform"),
+        ("settings_api", "/settings", "settings"),
+        ("admin_api", "/admin", "admin"),
+    ):
+        _include_registered_router(
+            router,
+            identifier,
+            capability_settings=capability_settings,
+            prefix=prefix,
+            tag=tag,
+        )
+    router.include_router(users_router, prefix="/users", tags=["users"])
+    router.include_router(profile_router, prefix="/profile", tags=["profile"])
+    return router
+
+
+api_router = build_api_router()

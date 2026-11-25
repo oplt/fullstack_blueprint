@@ -33,7 +33,7 @@ services:
       - "127.0.0.1:${MAILPIT_WEB_PORT:-8025}:8025"
   minio:
     build:
-      context: ./infra
+      context: .
       dockerfile: minio.Dockerfile
     profiles: ["storage"]
     command: server /data --console-address ":9001"
@@ -86,7 +86,7 @@ services:
       redis:
         condition: service_healthy
   worker:
-    profiles: ["app"]
+    profiles: ["worker"]
     build:
       context: ..
       dockerfile: infra/backend.Dockerfile

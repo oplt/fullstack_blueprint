@@ -41,7 +41,8 @@ from backend.modules.rag.infrastructure import metrics
 from backend.modules.rag.infrastructure.pgvector_adapter import _parse_scope
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
-from backend.modules.rag.infrastructure.vector_store_adapter import build_vector_store
+from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
+from backend.modules.rag.infrastructure.pgvector_adapter import build_vector_store
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +196,7 @@ class RetrievalService:
             heuristic=bool(getattr(self.config, "rerank_heuristic_enabled", False)),
         )
         self.repo = RagRepository(db)
+        self.search_repo = RagSearchRepository(db)
         self.query_expansion = QueryExpansionService()
         self._db_branch_lock = asyncio.Lock()
 
@@ -856,7 +858,7 @@ class RetrievalService:
             return [], True, None
         try:
             async with self._database_branch():
-                lexical = await self.repo.lexical_search(
+                lexical = await self.search_repo.lexical_search(
                     user_id=user_id,
                     project_id=project_id,
                     document_ids=document_ids,

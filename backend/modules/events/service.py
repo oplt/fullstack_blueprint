@@ -36,9 +36,9 @@ class OutboxService:
         delivered = 0
         rows = await self.repository.claim_batch(limit=limit)
         for row in rows:
-            handler = handlers.get(row.event_type)
-            event = DomainEvent.model_validate(row.payload_json)
             try:
+                handler = handlers.get(row.event_type)
+                event = DomainEvent.model_validate(row.payload_json)
                 if handler is None:
                     raise LookupError(f"No handler registered for {row.event_type}")
                 await self.consume_once(
@@ -47,8 +47,12 @@ class OutboxService:
                     handler=handler,
                 )
             except Exception as exc:
-                await self.repository.mark_failed(row, error=f"{type(exc).__name__}: {exc}")
-                logger.warning("Outbox delivery failed event=%s", row.event_id, exc_info=True)
+                await self.repository.mark_failed(row, error=type(exc).__name__)
+                logger.warning(
+                    "Outbox delivery failed event=%s error=%s",
+                    row.event_id,
+                    type(exc).__name__,
+                )
             else:
                 await self.repository.mark_published(row)
                 delivered += 1
@@ -70,14 +74,12 @@ class OutboxService:
         key.
         """
 
-        if await self.repository.has_consumer_processed(
-            event_id=event.event_id,
-            consumer_name=consumer_name,
-        ):
-            return False
-        await handler(event)
-        await self.repository.record_consumer_processed(
-            event_id=event.event_id,
-            consumer_name=consumer_name,
-        )
+        async with self.db.begin_nested():
+            claimed = await self.repository.claim_consumer_receipt(
+                event_id=event.event_id,
+                consumer_name=consumer_name,
+            )
+            if not claimed:
+                return False
+            await handler(event)
         return True

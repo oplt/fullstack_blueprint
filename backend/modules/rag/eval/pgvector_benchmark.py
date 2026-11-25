@@ -13,7 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.lib.vectors import vector_literal
-from backend.modules.rag.infrastructure.repositories import RagRepository
+from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
 
 
 def recall_at_k(exact_ids: list[str], ann_ids: list[str], *, k: int) -> float:
@@ -117,7 +117,7 @@ async def measure_pgvector_search(
     """
     if not queries or k < 10:
         raise ValueError("Provide queries and k >= 10 for Recall@10")
-    repo = RagRepository(db)
+    repo = RagSearchRepository(db)
     samples = []
     plans = []
     options = dict(

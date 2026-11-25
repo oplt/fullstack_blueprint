@@ -77,9 +77,13 @@ class CapabilityRegistry:
 
     def deployment_enabled(self, identifier: str, settings: Settings) -> bool:
         definition = self.get(identifier)
-        if definition.deployment_flag is None:
-            return True
-        return bool(getattr(settings, definition.deployment_flag, False))
+        if definition.deployment_flag is not None and not bool(
+            getattr(settings, definition.deployment_flag, False)
+        ):
+            return False
+        return all(
+            self.deployment_enabled(dependency, settings) for dependency in definition.dependencies
+        )
 
     def manifest(
         self,
@@ -133,6 +137,7 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
             label="Projects",
             description="Projects, memberships, tasks, and project access control.",
             dependencies=("identity",),
+            deployment_flag="PROJECTS_ENABLED",
             router="backend.modules.projects.router:router",
             required_permissions=("project.viewer", "project.editor", "project.owner"),
             database_dependencies=("projects", "project_members", "project_tasks"),
@@ -142,6 +147,7 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
             label="Organizations",
             description="Tenant organizations, memberships, and organization-scoped access.",
             dependencies=("identity",),
+            deployment_flag="ORGANIZATIONS_ENABLED",
             router="backend.modules.organizations.router:router",
             required_permissions=("organization.member", "organization.admin"),
             database_dependencies=("organizations", "organization_members"),
@@ -151,6 +157,7 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
             label="Platform",
             description="Deployment metadata, plans, flags, keys, webhooks, and templates.",
             dependencies=("identity",),
+            deployment_flag="PLATFORM_API_ENABLED",
             router="backend.modules.platform.router:router",
             database_dependencies=("app_settings", "feature_flags", "subscription_plans"),
             optional_integrations=("smtp", "outbound_http"),
@@ -174,6 +181,31 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
                 "data_lifecycle_jobs",
             ),
             optional_integrations=("s3", "minio", "posthog", "smtp", "outbound_http"),
+        ),
+        CapabilityDefinition(
+            identifier="notifications",
+            label="Notifications",
+            description="User notification inbox and delivery settings.",
+            dependencies=("identity",),
+            deployment_flag="NOTIFICATIONS_ENABLED",
+            router="backend.modules.notifications.router:router",
+            database_dependencies=("notifications",),
+        ),
+        CapabilityDefinition(
+            identifier="settings_api",
+            label="Settings API",
+            description="Administrative runtime configuration endpoints.",
+            dependencies=("identity", "platform"),
+            deployment_flag="SETTINGS_API_ENABLED",
+            router="backend.modules.settings.router:router",
+        ),
+        CapabilityDefinition(
+            identifier="admin_api",
+            label="Admin API",
+            description="Administrative operations.",
+            dependencies=("identity", "platform"),
+            deployment_flag="ADMIN_API_ENABLED",
+            router="backend.modules.admin.router:router",
         ),
         CapabilityDefinition(
             identifier="ai",
@@ -203,6 +235,17 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
                 "mcp",
                 "temporal",
             ),
+        ),
+        CapabilityDefinition(
+            identifier="agents",
+            label="AI agents",
+            description="Agent tools, approvals, and execution endpoints.",
+            dependencies=("ai",),
+            configuration_requirements=("AI_MCP_ENABLED",),
+            deployment_flag="AI_MCP_ENABLED",
+            router="backend.modules.ai.agent_router:router",
+            required_permissions=("ai.run", "ai.admin"),
+            background_workers=("agent-execution",),
         ),
         CapabilityDefinition(
             identifier="rag",

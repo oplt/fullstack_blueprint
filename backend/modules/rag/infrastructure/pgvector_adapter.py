@@ -8,23 +8,9 @@ from backend.modules.rag.application.document_scope import document_ids_is_empty
 from backend.modules.rag.domain.models import RetrievedChunk
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
+from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
 
 logger = logging.getLogger(__name__)
-
-
-class VectorStoreAdapter:
-    async def similarity_search(
-        self,
-        query: str,
-        *,
-        user_id: str,
-        project_id: str | None,
-        top_k: int,
-        filters: dict | None = None,
-        query_embedding: list[float] | None = None,
-    ) -> list[RetrievedChunk]: ...
-
-    async def delete_document(self, document_id: str, user_id: str) -> None: ...
 
 
 def _parse_scope(filters: dict | None) -> tuple[list[str] | None, bool]:
@@ -57,6 +43,7 @@ class PgVectorAdapter:
     def __init__(self, db: AsyncSession, config: RagConfig | None = None):
         self.db = db
         self.repo = RagRepository(db)
+        self.search_repo = RagSearchRepository(db)
         self.config = config or RagConfig.from_settings()
 
     async def similarity_search(
@@ -78,7 +65,7 @@ class PgVectorAdapter:
         exclude_parents = bool((filters or {}).get("exclude_parents", False))
         index_revision_ids = (filters or {}).get("index_revision_ids")
 
-        indexed = await self.repo.similarity_search_indexed(
+        indexed = await self.search_repo.similarity_search_indexed(
             user_id=user_id,
             project_id=project_id,
             document_ids=document_ids,
@@ -97,7 +84,7 @@ class PgVectorAdapter:
                 "(pgvector unavailable or dimension mismatch)"
             )
             metrics.rag_json_fallback_total.inc()
-            return await self.repo.similarity_search_json_fallback(
+            return await self.search_repo.similarity_search_json_fallback(
                 user_id=user_id,
                 project_id=project_id,
                 document_ids=document_ids,
@@ -115,7 +102,7 @@ class PgVectorAdapter:
 
         relaxed_threshold = max(0.05, self.config.score_threshold * 0.5)
         if relaxed_threshold < self.config.score_threshold:
-            relaxed = await self.repo.similarity_search_indexed(
+            relaxed = await self.search_repo.similarity_search_indexed(
                 user_id=user_id,
                 project_id=project_id,
                 document_ids=document_ids,
@@ -138,7 +125,7 @@ class PgVectorAdapter:
 
         logger.debug("Indexed search returned no matches; trying JSON embedding fallback")
         metrics.rag_json_fallback_total.inc()
-        return await self.repo.similarity_search_json_fallback(
+        return await self.search_repo.similarity_search_json_fallback(
             user_id=user_id,
             project_id=project_id,
             document_ids=document_ids,

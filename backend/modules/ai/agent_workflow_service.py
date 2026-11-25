@@ -5,6 +5,7 @@ from typing import Any
 from uuid import uuid4
 
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
@@ -115,19 +116,31 @@ class AgentWorkflowService:
             if existing.user_id != user.id:
                 raise HTTPException(status_code=409, detail="Workflow idempotency key is in use")
             return existing
-        workflow = await self.repo.create_workflow_run(
-            user_id=user.id,
-            tenant_id=user.id,
-            agent_definition_id=definition.id,
-            status=WorkflowStatus.PENDING.value,
-            state_json={
-                "run_id": str(uuid4()),
-                "messages": [{"role": "user", "content": user_message}],
-            },
-            checkpoint_json={},
-            idempotency_key=idempotency_key,
-            resume_token=uuid4().hex,
-        )
+        try:
+            async with self.db.begin_nested():
+                workflow = await self.repo.create_workflow_run(
+                    user_id=user.id,
+                    tenant_id=user.id,
+                    agent_definition_id=definition.id,
+                    status=WorkflowStatus.PENDING.value,
+                    state_json={
+                        "run_id": str(uuid4()),
+                        "messages": [{"role": "user", "content": user_message}],
+                    },
+                    checkpoint_json={},
+                    idempotency_key=idempotency_key,
+                    resume_token=uuid4().hex,
+                )
+        except IntegrityError as exc:
+            existing = await self.repo.get_workflow_by_idempotency_key(idempotency_key)
+            if existing is None:
+                raise exc from None
+            if existing.user_id != user.id:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Workflow idempotency key is in use",
+                ) from None
+            return existing
         await self.db.commit()
         await self._execute(user, workflow, definition)
         return workflow
@@ -147,17 +160,26 @@ class AgentWorkflowService:
             raise HTTPException(status_code=404, detail="Approval not found")
         if approval.tenant_id != user.id:
             raise HTTPException(status_code=403, detail="Approval tenant mismatch")
-        if approval.status != "pending" or approval.expires_at <= datetime.now(UTC):
+        now = datetime.now(UTC)
+        if approval.status != "pending" or approval.expires_at <= now:
             raise HTTPException(status_code=409, detail="Approval is expired or already decided")
-        approval.status = "approved"
-        approval.approved_by_user_id = user.id
-        approval.decided_at = datetime.now(UTC)
         definition = await self.repo.get_agent_definition_for_user(
             user.id, workflow.agent_definition_id
         )
         if definition is None:
             raise HTTPException(status_code=404, detail="Agent definition not found")
+        if not await self.repo.approve_tool_approval(approval.id, workflow.id, user.id, now):
+            raise HTTPException(status_code=409, detail="Approval is expired or already decided")
+        transitioned = await self.repo.transition_workflow(
+            workflow.id,
+            expected_statuses={WorkflowStatus.AWAITING_APPROVAL.value},
+            values={"status": WorkflowStatus.RUNNING.value},
+        )
+        if not transitioned:
+            await self.db.rollback()
+            raise HTTPException(status_code=409, detail="Workflow is no longer awaiting approval")
         await self.db.commit()
+        await self.db.refresh(workflow)
         await self._execute(
             user,
             workflow,
@@ -178,18 +200,37 @@ class AgentWorkflowService:
         )
         if definition is None:
             raise HTTPException(status_code=404, detail="Agent definition not found")
-        workflow.status = WorkflowStatus.RUNNING.value
-        workflow.last_error = None
+        transitioned = await self.repo.transition_workflow(
+            workflow.id,
+            expected_statuses={WorkflowStatus.PENDING.value, WorkflowStatus.FAILED.value},
+            values={"status": WorkflowStatus.RUNNING.value, "last_error": None},
+        )
+        if not transitioned:
+            raise HTTPException(status_code=409, detail="Workflow is not resumable")
         await self.db.commit()
+        await self.db.refresh(workflow)
         await self._execute(user, workflow, definition)
         return workflow
 
     async def cancel(self, user: User, workflow_id: str) -> AiWorkflowRun:
         workflow = await self.get(user, workflow_id)
-        workflow.cancellation_requested = True
-        workflow.status = WorkflowStatus.CANCELLED.value
-        workflow.completed_at = datetime.now(UTC)
+        transitioned = await self.repo.transition_workflow(
+            workflow.id,
+            expected_statuses={
+                WorkflowStatus.PENDING.value,
+                WorkflowStatus.RUNNING.value,
+                WorkflowStatus.AWAITING_APPROVAL.value,
+            },
+            values={
+                "cancellation_requested": True,
+                "status": WorkflowStatus.CANCELLED.value,
+                "completed_at": datetime.now(UTC),
+            },
+        )
+        if not transitioned:
+            raise HTTPException(status_code=409, detail="Workflow is already finished")
         await self.db.commit()
+        await self.db.refresh(workflow)
         return workflow
 
     async def _execute(
@@ -224,23 +265,37 @@ class AgentWorkflowService:
                 next_state.approval = next_state.approval.model_copy(
                     update={"approval_id": approval.id, "expires_at": expires_at.isoformat()}
                 )
-            workflow.status = next_state.status
-            workflow.current_step = next_state.step
-            workflow.input_tokens = next_state.input_tokens
-            workflow.output_tokens = next_state.output_tokens
-            workflow.estimated_cost_micros = next_state.estimated_cost_micros
-            workflow.state_json = _state_to_json(next_state)
-            workflow.checkpoint_json = {
-                "sequence": next_state.step,
-                "status": next_state.status,
-            }
+            state_json = _state_to_json(next_state)
+            persisted = await self.repo.transition_workflow(
+                workflow.id,
+                expected_statuses={
+                    WorkflowStatus.PENDING.value,
+                    WorkflowStatus.RUNNING.value,
+                    WorkflowStatus.AWAITING_APPROVAL.value,
+                },
+                values={
+                    "status": next_state.status,
+                    "current_step": next_state.step,
+                    "input_tokens": next_state.input_tokens,
+                    "output_tokens": next_state.output_tokens,
+                    "estimated_cost_micros": next_state.estimated_cost_micros,
+                    "state_json": state_json,
+                    "checkpoint_json": {
+                        "sequence": next_state.step,
+                        "status": next_state.status,
+                    },
+                },
+            )
+            if not persisted:
+                raise RuntimeError("Workflow is no longer active")
             await self.repo.create_workflow_checkpoint(
                 workflow_run_id=workflow.id,
                 sequence=next_state.step,
                 status=next_state.status,
-                state_json=_state_to_json(next_state),
+                state_json=state_json,
             )
             await self.db.commit()
+            await self.db.refresh(workflow)
 
         try:
             await runtime.run(
@@ -268,6 +323,10 @@ class AgentWorkflowService:
                 checkpoint=checkpoint,
             )
         except Exception as exc:
+            await self.db.rollback()
+            await self.db.refresh(workflow)
+            if workflow.status == WorkflowStatus.CANCELLED.value:
+                return
             workflow.status = WorkflowStatus.FAILED.value
             workflow.last_error = "Agent workflow execution failed"
             workflow.completed_at = datetime.now(UTC)

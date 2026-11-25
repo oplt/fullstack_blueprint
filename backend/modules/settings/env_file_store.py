@@ -22,9 +22,36 @@ class EnvFileStore:
     ) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.lock_path.open("a+", encoding="utf-8") as lock_file:
+            os.chmod(self.lock_path, 0o600)
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
             try:
                 self._write_atomic(self._merge(updates, parse_line=parse_line))
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+    def update_from_current(
+        self,
+        transform: Callable[[dict[str, str]], dict[str, str]],
+        *,
+        parse_line: Callable[[str], tuple[str, str] | None],
+    ) -> dict[str, str]:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.lock_path.open("a+", encoding="utf-8") as lock_file:
+            os.chmod(self.lock_path, 0o600)
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                lines = (
+                    self.path.read_text(encoding="utf-8").splitlines() if self.path.exists() else []
+                )
+                current = {
+                    key: value
+                    for line in lines
+                    if (parsed := parse_line(line)) is not None
+                    for key, value in [parsed]
+                }
+                updates = transform(current)
+                self._write_atomic(self._merge_lines(lines, updates, parse_line))
+                return updates
             finally:
                 fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
@@ -35,6 +62,14 @@ class EnvFileStore:
         parse_line: Callable[[str], tuple[str, str] | None],
     ) -> list[str]:
         existing = self.path.read_text(encoding="utf-8").splitlines() if self.path.exists() else []
+        return self._merge_lines(existing, updates, parse_line)
+
+    @staticmethod
+    def _merge_lines(
+        existing: list[str],
+        updates: dict[str, str],
+        parse_line: Callable[[str], tuple[str, str] | None],
+    ) -> list[str]:
         remaining = dict(updates)
         rendered: list[str] = []
         for line in existing:
@@ -62,7 +97,7 @@ class EnvFileStore:
                 temp_file.flush()
                 os.fsync(temp_file.fileno())
             if self.path.exists():
-                os.chmod(temp_name, self.path.stat().st_mode)
+                os.chmod(temp_name, 0o600)
             os.replace(temp_name, self.path)
         finally:
             if os.path.exists(temp_name):

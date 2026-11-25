@@ -60,7 +60,7 @@ security-audit:
 	cd backend && uv run pip-audit --strict --cache-dir /tmp/fullstack-blueprint-pip-audit-cache --requirement /tmp/fullstack-blueprint-requirements.txt
 	cd frontend && npm audit --audit-level=high
 
-load-test:
+test-load:
 	k6 run k6/phase09.js
 
 backup:

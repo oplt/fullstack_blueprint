@@ -3,7 +3,11 @@ from __future__ import annotations
 import logging
 
 from backend.core.config import settings
-from backend.workers.async_dispatch import dispatch_background_sync_job, run_async_in_sync_context
+from backend.workers.async_dispatch import (
+    dispatch_background_sync_job,
+    resolve_celery_task,
+    run_async_in_sync_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +20,11 @@ def run_evaluation_sync(
     prompt_version_id: str,
 ) -> None:
     from backend.db.session import SessionLocal
-    from backend.modules.ai.service import AiService
+    from backend.modules.ai.evaluation_service import AiEvaluationService
 
     async def _run() -> None:
         async with SessionLocal() as db:
-            service = AiService(db)
+            service = AiEvaluationService(db)
             await service.execute_evaluation_run(
                 evaluation_run_id=evaluation_run_id,
                 user_id=user_id,
@@ -44,12 +48,12 @@ def queue_evaluation_run(
         "dataset_id": dataset_id,
         "prompt_version_id": prompt_version_id,
     }
-    from backend.workers.tasks import run_ai_evaluation_task
+    celery_task = resolve_celery_task("run_ai_evaluation_task")
 
     dispatch_background_sync_job(
         target=run_evaluation_sync,
         kwargs=payload,
-        celery_task=run_ai_evaluation_task,
+        celery_task=celery_task,
         celery_kwargs=payload,
         queue=settings.CELERY_TASK_DEFAULT_QUEUE,
         job_name="ai-evaluation",

@@ -135,6 +135,12 @@ class Settings(BaseSettings):
     OTLP_ENDPOINT: str = ""  # e.g. http://localhost:4317
     OTLP_INSECURE: bool = True
     OBSERVABILITY_ENABLED: bool = False
+    PROJECTS_ENABLED: bool = False
+    ORGANIZATIONS_ENABLED: bool = False
+    PLATFORM_API_ENABLED: bool = False
+    NOTIFICATIONS_ENABLED: bool = False
+    SETTINGS_API_ENABLED: bool = False
+    ADMIN_API_ENABLED: bool = False
     PROMETHEUS_METRICS_ENABLED: bool = True
     PROMETHEUS_METRICS_PATH: str = "/metrics"
     OTEL_METRICS_EXPORTER: str = "none"
@@ -182,7 +188,7 @@ class Settings(BaseSettings):
     ANALYTICS_POSTHOG_API_KEY: str = ""
 
     AI_ENABLED: bool = False
-    CALENDAR_ENABLED: bool = True
+    CALENDAR_ENABLED: bool = False
     AI_DEFAULT_PROVIDER: str = "local"
     AI_EMBEDDING_PROVIDER: str = "local"
     AI_LOCAL_MODEL_NAME: str = "local-heuristic"

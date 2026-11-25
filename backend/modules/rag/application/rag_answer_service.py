@@ -5,7 +5,7 @@ from time import perf_counter
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.lib.generation_port import AiServiceGenerationPort, GenerationPort
+from backend.lib.generation_port import AiRunGenerationPort, GenerationPort
 from backend.lib.project_access import ProjectAccessPort, SqlAlchemyProjectAccessPort
 from backend.modules.identity_access.models import User
 from backend.modules.memory.application.memory_service import MemoryService
@@ -107,7 +107,7 @@ class RagAnswerService:
             memory=self.memory,
             memory_config=self.memory_config,
         )
-        self.generation: GenerationPort = AiServiceGenerationPort(db)
+        self.generation: GenerationPort = AiRunGenerationPort(db)
 
     @traced("rag.request")
     async def answer(

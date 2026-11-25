@@ -109,10 +109,7 @@ async def sign_up(
     db: AsyncSession = Depends(get_db),
 ):
     await check_rate_limit(
-        key=(
-            f"rate_limit:signup:"
-            f"{request.client.host if request.client else 'unknown'}:{payload.email}"
-        ),
+        key=(auth_rate_limit_key(request, payload.email, namespace="signup")),
         max_attempts=settings.effective_auth_signup_limit,
         window_seconds=settings.AUTH_SIGNUP_WINDOW_SECONDS,
     )
@@ -143,10 +140,7 @@ async def sign_in(
         max_attempts=settings.effective_auth_signin_limit,
         window_seconds=settings.AUTH_SIGNIN_WINDOW_SECONDS,
     )
-    failure_key = (
-        f"rate_limit:auth_fail:"
-        f"{request.client.host if request.client else 'unknown'}:{payload.email}"
-    )
+    failure_key = auth_rate_limit_key(request, payload.email, namespace="auth_fail")
     await enforce_rate_limit(failure_key, settings.AUTH_FAILURE_LIMIT)
     service = IdentityService(db)
     try:
@@ -155,8 +149,7 @@ async def sign_in(
         if exc.status_code in {401, 403}:
             await increment_rate_limit(failure_key, settings.AUTH_FAILURE_WINDOW_SECONDS)
             logger.warning(
-                "authentication_failed email=%s ip=%s status=%s",
-                payload.email,
+                "authentication_failed ip=%s status=%s",
                 request.client.host if request.client else "unknown",
                 exc.status_code,
             )
@@ -249,10 +242,7 @@ async def forgot_password(
     db: AsyncSession = Depends(get_db),
 ):
     await check_rate_limit(
-        key=(
-            f"rate_limit:forgot:"
-            f"{request.client.host if request.client else 'unknown'}:{payload.email}"
-        ),
+        key=(auth_rate_limit_key(request, payload.email, namespace="forgot")),
         max_attempts=5,
         window_seconds=300,
     )

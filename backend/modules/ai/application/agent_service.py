@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modules.ai import metrics
 from backend.modules.ai.application.prompt_context_builder import AgentPromptContextBuilder
-from backend.modules.ai.service import AiService
+from backend.modules.ai.run_service import AiRunService
 from backend.modules.identity_access.models import User
 from backend.modules.memory.application.memory_service import MemoryService
 from backend.modules.memory.domain.models import WorkingMemoryContext
@@ -31,7 +31,7 @@ class AgentService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.ai = AiService(db)
+        self.ai = AiRunService(db)
         self.memory = MemoryService(db)
         self.config = MemoryConfig.from_settings()
         self.prompt_context = AgentPromptContextBuilder(db, self.memory)

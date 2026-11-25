@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { queryKeys } from "../config/queryKeys";
@@ -16,7 +16,8 @@ vi.mock("../hooks/usePlatformMetadata", () => ({
 describe("minimal dashboard capability gates", () => {
     afterEach(() => vi.clearAllMocks());
 
-    it("does not request or show disabled project and notification features", () => {
+    it("keeps core projects available and hides disabled notifications", async () => {
+        vi.mocked(listProjects).mockResolvedValue([]);
         const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
         render(
             <QueryClientProvider client={client}>
@@ -28,10 +29,10 @@ describe("minimal dashboard capability gates", () => {
 
         expect(screen.getByText("Account health")).toBeInTheDocument();
         expect(screen.queryByText("Recent activity")).not.toBeInTheDocument();
-        expect(screen.queryByText("Projects snapshot")).not.toBeInTheDocument();
-        expect(listProjects).not.toHaveBeenCalled();
+        expect(screen.getByText("Projects snapshot")).toBeInTheDocument();
+        expect(listProjects).toHaveBeenCalledOnce();
         expect(getNotifications).not.toHaveBeenCalled();
-        expect(client.getQueryCache().find({ queryKey: queryKeys.projects.all })?.state.fetchStatus).toBe("idle");
+        await waitFor(() => expect(client.getQueryCache().find({ queryKey: queryKeys.projects.all })?.state.fetchStatus).toBe("idle"));
         expect(client.getQueryCache().find({ queryKey: queryKeys.notifications.all })?.state.fetchStatus).toBe("idle");
         client.clear();
     });

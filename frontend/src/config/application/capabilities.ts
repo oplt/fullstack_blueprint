@@ -51,6 +51,7 @@ export const CAPABILITY_MANIFESTS: Readonly<Record<CapabilityId, CapabilityManif
     },
     notifications: {
         ...core({ id: "notifications", label: "Notifications", path: "/notifications", icon: "notifications", order: 30, translationKey: "navigation.notifications" }),
+        serverFeature: "notifications",
         navigation: [{ id: "notifications", capability: "notifications", path: "/notifications", label: "Notifications", translationKey: "navigation.notifications", icon: "notifications", placement: "settings", order: 20 }],
     },
     calendar: {

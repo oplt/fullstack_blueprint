@@ -11,11 +11,11 @@ from fastapi import HTTPException
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.modules.ai import metrics
 from backend.modules.ai.application.rag_answer_prompt import resolve_rag_answer_prompt
+from backend.modules.ai.contracts import AiMessage, AiMessageRole, AiProviderRequest
 from backend.modules.ai.document_service import AiDocumentService
 from backend.modules.ai.errors import AiErrorKind, AiProviderError
 from backend.modules.ai.models import AiPromptVersion, AiRun
 from backend.modules.ai.prompt_service import AiPromptService, _render_template
-from backend.modules.ai.providers import ProviderGenerateRequest
 from backend.modules.identity_access.models import User
 from backend.modules.rag.application.prompt_context_service import PromptContextService
 from backend.modules.rag.infrastructure.rag_config import RagConfig
@@ -215,11 +215,13 @@ class AiRunService(AiPromptService, AiDocumentService):
         started = perf_counter()
         try:
             provider = self.providers.get(run.provider_key)
-            result = await provider.generate(
-                ProviderGenerateRequest(
+            result = await provider.generate_contract(
+                AiProviderRequest(
                     model=version.model_name,
-                    system_prompt=rendered_system_prompt,
-                    user_prompt=rendered_user_prompt,
+                    messages=[
+                        AiMessage(role=AiMessageRole.SYSTEM, content=rendered_system_prompt),
+                        AiMessage(role=AiMessageRole.USER, content=rendered_user_prompt),
+                    ],
                     response_format=version.response_format,
                     temperature=version.temperature,
                 )
@@ -230,14 +232,14 @@ class AiRunService(AiPromptService, AiDocumentService):
             run.output_text = result.output_text
             run.output_json = result.output_json
             run.latency_ms = latency_ms
-            run.input_tokens = result.input_tokens
-            run.output_tokens = result.output_tokens
-            run.total_tokens = result.total_tokens
-            run.provider_request_id = getattr(result, "provider_request_id", None)
+            run.input_tokens = result.usage.input_tokens
+            run.output_tokens = result.usage.output_tokens
+            run.total_tokens = result.usage.total_tokens
+            run.provider_request_id = result.provider_request_id
             run.estimated_cost_micros = round(
                 (
-                    result.input_tokens * version.input_cost_per_million
-                    + result.output_tokens * version.output_cost_per_million
+                    result.usage.input_tokens * version.input_cost_per_million
+                    + result.usage.output_tokens * version.output_cost_per_million
                 )
                 / 1_000_000
             )
@@ -249,8 +251,8 @@ class AiRunService(AiPromptService, AiDocumentService):
                 tenant_id=getattr(run, "tenant_id", None) or user.id,
                 provider_key=run.provider_key,
                 model_name=run.model_name,
-                input_tokens=result.input_tokens,
-                output_tokens=result.output_tokens,
+                input_tokens=result.usage.input_tokens,
+                output_tokens=result.usage.output_tokens,
                 cost_micros=run.estimated_cost_micros,
             )
         except AiProviderError as exc:
