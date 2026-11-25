@@ -29,8 +29,9 @@ test("registers, signs in, refreshes, manages a project and signs out", async ({
 
     await page.getByLabel(/^language$/i).selectOption("fr");
     await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe("fr");
-    await page.locator("select[aria-label]").selectOption("en");
-    await page.getByRole("button", { name: "Cycle color theme" }).click();
+    await page.getByRole("combobox", { name: "Langue" }).selectOption("en");
+    await page.getByRole("combobox", { name: /^Theme:/ }).selectOption("dark");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "Open navigation menu" }).click();
     await page.getByRole("link", { name: "Projects", exact: true }).click();

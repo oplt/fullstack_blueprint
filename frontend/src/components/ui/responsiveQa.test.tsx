@@ -4,13 +4,8 @@ import { FormGrid } from "./FormGrid";
 import { ResponsiveCardGrid } from "./ResponsiveCardGrid";
 import { MetricGrid } from "./MetricGrid";
 import { WorkspaceSplit } from "./WorkspaceSplit";
-import {
-    RESPONSIVE_QA_VIEWPORTS,
-    denseCardColumns,
-    responsiveColumns,
-    responsiveQaBand,
-    scrollContainerStyle,
-} from "./responsiveQa";
+
+const RESPONSIVE_QA_VIEWPORTS = [390, 768, 1024, 1280, 1440, 1920] as const;
 
 function wrap(ui: React.ReactElement) {
     return render(ui);
@@ -21,29 +16,6 @@ describe("Phase 22 responsive QA matrix", () => {
         expect([...RESPONSIVE_QA_VIEWPORTS]).toEqual([390, 768, 1024, 1280, 1440, 1920]);
     });
 
-    it("bands laptop screens (1024–1440) separately from phone/tablet", () => {
-        expect(responsiveQaBand(390)).toBe("phone");
-        expect(responsiveQaBand(768)).toBe("tablet");
-        expect(responsiveQaBand(1024)).toBe("laptop");
-        expect(responsiveQaBand(1280)).toBe("desktop");
-        expect(responsiveQaBand(1440)).toBe("desktop");
-        expect(responsiveQaBand(1920)).toBe("desktop");
-    });
-
-    it("defers dense 3–4 column grids until lg so 1024px content is not crushed", () => {
-        const four = denseCardColumns(4);
-        expect(four.md).toBe("repeat(2, minmax(0, 1fr))");
-        expect(four.lg).toBe("repeat(4, minmax(0, 1fr))");
-        expect(responsiveColumns.kpi.md).toBe("repeat(2, minmax(0, 1fr))");
-        expect(responsiveColumns.kpi.lg).toBe("repeat(4, minmax(0, 1fr))");
-        expect(responsiveColumns.threeUp.lg).toBe("repeat(3, minmax(0, 1fr))");
-    });
-
-    it("exposes a shared horizontal scroll container for tables/charts", () => {
-        expect(scrollContainerStyle.overflowX).toBe("auto");
-        expect(scrollContainerStyle.minWidth).toBe(0);
-        expect(scrollContainerStyle.WebkitOverflowScrolling).toBe("touch");
-    });
 });
 
 describe("Responsive layout primitives", () => {

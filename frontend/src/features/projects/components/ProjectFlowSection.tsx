@@ -25,7 +25,7 @@ export function ProjectFlowSection({
             title="Project flow"
             description="Switch between a sortable Kanban board and a detailed list view."
             action={
-                <div className="flex flex-row gap-[8px] items-center flex-wrap">
+                <div className="flex flex-row gap-2 items-center flex-wrap">
                     <Button
                         variant="default"
                         size="sm"
@@ -41,7 +41,7 @@ export function ProjectFlowSection({
             }
         >
             {m.tasksQuery.isLoading ? (
-                <div className="flex gap-[12px]">
+                <div className="flex gap-3">
                     <div
                         style={{ borderRadius: 12 }}
                         className="animate-pulse rounded-md bg-muted" />
@@ -60,7 +60,7 @@ export function ProjectFlowSection({
                     }
                 />
             ) : m.taskView === "list" ? (
-                <div className="flex gap-[12px]">
+                <div className="flex gap-3">
                     {m.orderedTasks.map((task) => (
                         <TaskListCard
                             key={task.id}
@@ -110,7 +110,7 @@ export function ProjectFlowSection({
                                         ) / 2)
                                     })}
                                 >
-                                    <div className="flex gap-[10px]">
+                                    <div className="flex gap-2.5">
                                         <div className="flex flex-row justify-between">
                                             <p>
                                                 {option.label}
@@ -119,7 +119,7 @@ export function ProjectFlowSection({
                                                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                         </div>
                                         <hr className="border-border" />
-                                        <div className="flex gap-[8px]">
+                                        <div className="flex gap-2">
                                             {tasks.length ? (
                                                 tasks.map((task) => (
                                                     <TaskBoardCard
@@ -140,13 +140,12 @@ export function ProjectFlowSection({
                                                     />
                                                 ))
                                             ) : (
-                                                <div
+                                                <div className="text-muted-foreground"
                                                     style={({
                                                         padding: 16,
                                                         borderRadius: 12,
                                                         border: `1px dashed ${"var(--border)"}`,
                                                         textAlign: "center",
-                                                        color: "text.secondary"
                                                     })}
                                                 >
                                                     <p>

@@ -1,16 +1,11 @@
+import { notify } from "../../../lib/notify";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import {
-    createAdminEmailTemplate,
-    createAdminFeatureFlag,
-    createAdminPlan,
-    updateAdminEmailTemplate,
-    updateAdminFeatureFlag,
-    updateAdminPlan,
-    updatePlatformConfig,
-} from "../../../api/platform";
-import { useSnackbar } from "../../../app/snackbarContext";
+import { createAdminEmailTemplate, updateAdminEmailTemplate } from "../../../api/platform/emailTemplates";
+import { createAdminFeatureFlag, updateAdminFeatureFlag } from "../../../api/platform/featureFlags";
+import { createAdminPlan, updateAdminPlan } from "../../../api/platform/billing";
+import { updatePlatformConfig } from "../../../api/platform/config";
 import { queryKeys } from "../../../config/queryKeys";
 import { useMutationErrorToast } from "../../../hooks/useMutationErrorToast";
 
@@ -61,11 +56,10 @@ export function usePlatformAdminMutations({
     setNewTemplate: Dispatch<SetStateAction<NewTemplateDraft>>;
 }) {
     const queryClient = useQueryClient();
-    const { showToast } = useSnackbar();
     const toastMutationError = useMutationErrorToast();
     const success = async (capability: "all" | "plans" | "featureFlags" | "emailTemplates", message: string) => {
         await invalidatePlatformAdminCapability(queryClient, capability);
-        showToast({ message, severity: "success" });
+        notify({ message, severity: "success" });
     };
 
     const saveConfigMutation = useMutation({

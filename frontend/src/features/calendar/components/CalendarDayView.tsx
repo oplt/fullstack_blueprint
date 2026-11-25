@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { colorMix } from "@/lib/color";
 import dayjs from "dayjs";
-import { formatDateOnly, humanizeKey } from "../../../utils/formatters";
-import { formatItemTime, getMinutesFromTimeString, getWeekItemColor } from "../calendarDisplay";
-import { DayItems } from "./DayItems";
+import { formatDateOnly } from "../../../utils/formatters";
+import { getCalendarEventLayout, getMinutesFromTimeString } from "../calendarDisplay";
+import { EventBlock } from "./EventBlock";
+import { CalendarTimeAxis } from "./CalendarTimeAxis";
+import { CalendarDaySummary } from "./CalendarDaySummary";
 import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 import { MonthDateCalendar } from "./MonthDateCalendar";
 
 export function CalendarDayView({ m }: { m: DashboardCalendarModel }) {
-const { anchorDate, itemsByDate, openDay } = m;
+    const { anchorDate, itemsByDate, openDay } = m;
     const dayKey = anchorDate.format("YYYY-MM-DD");
     const dayItems = itemsByDate[dayKey] ?? [];
+    const rowHeight = 56;
     const timedItems = dayItems
         .filter((item) => item.start_time)
         .map((item) => {
@@ -24,12 +27,11 @@ const { anchorDate, itemsByDate, openDay } = m;
                 ...item,
                 startMinutes,
                 endMinutes: clampedEnd,
+                ...getCalendarEventLayout(startMinutes, clampedEnd, 0, rowHeight, 44),
             };
         });
     const allDayItems = dayItems.filter((item) => !item.start_time);
-    const hourSlots = Array.from({ length: 24 }, (_: any, index: any) => index);
-    const rowHeight = 56;
-    const gridStartMinutes = 0;
+    const hourSlots = Array.from({ length: 24 }, (_, index) => index);
     const now = dayjs();
     const isToday = anchorDate.isSame(now, "day");
     const nowMinutes = now.hour() * 60 + now.minute();
@@ -53,7 +55,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                 })}
             >
                 <div
-                    className="flex flex-col sm:flex-row gap-[12px] justify-between"
+                    className="flex flex-col sm:flex-row gap-3 justify-between"
                     style={({
                         paddingInline: 16,
                         paddingBlock: 12,
@@ -83,31 +85,16 @@ const { anchorDate, itemsByDate, openDay } = m;
                         <span style={{ fontWeight: 700 }} className="text-muted-foreground">
                             All day
                         </span>
-                        <div className="flex flex-row gap-[8px] flex-wrap" style={{ marginTop: 8 }}>
-                            {allDayItems.map((item) => {
-                                const colors = getWeekItemColor(item);
-                                return (
-                                    <div
-                                        key={item.id}
-                                        onClick={() => openDay(anchorDate)}
-                                        aria-label={`Open ${item.title} on ${anchorDate.format("dddd, MMMM D")}`}
-                                        style={{
-                                            width: "100%",
-                                            textAlign: "left",
-                                            paddingInline: 10,
-                                            paddingBlock: 6.4,
-                                            borderRadius: 8,
-                                            border: `1px solid ${colors.border}`,
-                                            backgroundColor: colors.bg,
-                                            color: colors.text,
-                                            cursor: "pointer",
-                                        }}>
-                                        <p style={{ fontWeight: 600 }}>
-                                            {item.title}
-                                        </p>
-                                    </div>
-                                );
-                            })}
+                        <div className="mt-2 flex flex-row gap-2 flex-wrap">
+                            {allDayItems.map((item) => (
+                                <EventBlock
+                                    key={item.id}
+                                    item={item}
+                                    day={anchorDate}
+                                    onOpen={() => openDay(anchorDate)}
+                                    style={{ width: "100%" }}
+                                />
+                            ))}
                         </div>
                     </div>
                 )}
@@ -121,28 +108,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                         overflow: "auto",
                     }}
                 >
-                    <div
-                        style={({
-                            borderRight: `1px solid ${"var(--border)"}`,
-                            backgroundColor: "var(--background)"
-                        })}
-                    >
-                        {hourSlots.map((hour) => (
-                            <div
-                                key={hour}
-                                style={({
-                                    height: rowHeight,
-                                    paddingInline: 10,
-                                    paddingTop: 4.4,
-                                    borderBottom: `1px solid ${"var(--border)"}`
-                                })}
-                            >
-                                <p style={{ fontWeight: 600 }} className="text-muted-foreground">
-                                    {dayjs().hour(hour).minute(0).format("h A")}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
+                    <CalendarTimeAxis hours={hourSlots} rowHeight={rowHeight} paddingTop={4.4} />
                     <div
                         style={({
                             position: "relative",
@@ -174,42 +140,22 @@ const { anchorDate, itemsByDate, openDay } = m;
                         )}
 
                         {timedItems.map((item) => {
-                            const colors = getWeekItemColor(item);
-                            const top = ((item.startMinutes - gridStartMinutes) / 60) * rowHeight;
-                            const height = Math.max(
-                                ((item.endMinutes - item.startMinutes) / 60) * rowHeight,
-                                44
-                            );
-
                             return (
-                                <div
+                                <EventBlock
                                     key={item.id}
-                                    onClick={() => openDay(anchorDate)}
-                                    aria-label={`Open ${item.title} on ${anchorDate.format("dddd, MMMM D")} at ${formatItemTime(item)}`}
+                                    item={item}
+                                    day={anchorDate}
+                                    onOpen={() => openDay(anchorDate)}
+                                    showTime
                                     style={{
                                         position: "absolute",
-                                        top,
+                                        top: item.top,
                                         left: 12,
                                         right: 12,
-                                        height,
-                                        paddingInline: 10,
-                                        paddingBlock: 8,
-                                        borderRadius: 8,
-                                        border: `1px solid ${colors.border}`,
-                                        backgroundColor: colors.bg,
-                                        color: colors.text,
-                                        cursor: "pointer",
-                                        overflow: "hidden",
-                                        textAlign: "left",
+                                        height: item.height,
                                         zIndex: 1,
-                                    }}>
-                                    <p style={{ fontWeight: 700, lineHeight: 1.3 }}>
-                                        {item.title}
-                                    </p>
-                                    <p style={{ marginTop: 3.2 }}>
-                                        {formatItemTime(item)}
-                                    </p>
-                                </div>
+                                    }}
+                                />
                             );
                         })}
                     </div>
@@ -234,45 +180,12 @@ const { anchorDate, itemsByDate, openDay } = m;
                 >
                     <MonthDateCalendar m={m} date={anchorDate} />
                 </div>
-                <div style={{ padding: 16 }}>
-                    {selectedDetailItem ? (
-                        <div className="flex gap-[16px]">
-                            <div>
-                                <h6>{selectedDetailItem.title}</h6>
-                                <p style={{ marginTop: 4 }} className="text-muted-foreground">
-                                    {selectedDetailItem.description || "No extra notes for this item."}
-                                </p>
-                            </div>
-                            <div className="flex gap-[8px]">
-                                <p className="text-muted-foreground">
-                                    {formatDateOnly(dayKey)}
-                                </p>
-                                <p className="text-muted-foreground">
-                                    {formatItemTime(selectedDetailItem)}
-                                </p>
-                                {selectedDetailItem.project_name && (
-                                    <p className="text-muted-foreground">
-                                        Project: {selectedDetailItem.project_name}
-                                    </p>
-                                )}
-                                {selectedDetailItem.priority && (
-                                    <p className="text-muted-foreground">
-                                        Priority: {humanizeKey(selectedDetailItem.priority)}
-                                    </p>
-                                )}
-                            </div>
-                            <Button variant="outline" onClick={() => openDay(anchorDate)} type="button">
-                                Edit or add item
-                            </Button>
-                        </div>
-                    ) : (
-                        <DayItems
-                            items={dayItems}
-                            emptyTitle="Nothing scheduled for this day"
-                            emptyDescription="Use Add item to create an event, appointment, or task."
-                        />
-                    )}
-                </div>
+                <CalendarDaySummary
+                    item={selectedDetailItem}
+                    items={dayItems}
+                    dayKey={dayKey}
+                    onEdit={() => openDay(anchorDate)}
+                />
             </div>
         </div>
     );

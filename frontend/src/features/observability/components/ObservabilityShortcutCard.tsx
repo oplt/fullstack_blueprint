@@ -38,15 +38,15 @@ export function ObservabilityShortcutCard({
                 backgroundColor: "var(--card)"
             })}
         >
-            <div className="flex gap-[16px]" style={{ width: "100%" }}>
-                <div className="flex flex-row gap-[12px] items-center justify-between">
+            <div className="flex gap-4" style={{ width: "100%" }}>
+                <div className="flex flex-row gap-3 items-center justify-between">
                     <h6>{title}</h6>
                     {icon}
                 </div>
                 <p style={{ flexGrow: 1 }} className="text-muted-foreground">
                     {description}
                 </p>
-                <div className="flex flex-row gap-[12px] items-center justify-between">
+                <div className="flex flex-row gap-3 items-center justify-between">
                     {disabledReason ? (
                         <div
                             className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs">{disabledReason}</div>

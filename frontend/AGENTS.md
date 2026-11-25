@@ -31,11 +31,9 @@
 
 ## 4. Runtime theme and branding
 
-- Static light/dark themes, preset palettes, density and radius scales belong in `index.css`, not TypeScript. Use selectors such as `data-theme`, `data-theme-preset`, `data-density`, and `data-radius` consistently.
-- Runtime theme modules may manage preference validation, persistence, system-mode detection, theme attributes, and explicitly supported dynamic branding overrides. They must not own or regenerate static token maps.
-- Migrate consumers of legacy `src/app/designTokens.ts` to CSS and narrowly scoped runtime theme logic. Remove obsolete exports and the legacy module once its required responsibilities and consumers have been migrated; do not recreate the static token system elsewhere.
-- Apply only genuinely dynamic, validated CSS overrides. Clear stale overrides on reset; avoid rewriting all CSS variables or re-rendering the entire application on preference changes.
-- Preserve stored preference compatibility, server-provided branding, existing configuration contracts, and light/dark/system behavior. Prevent initial theme flashes and verify the default appearance before and after JavaScript initialization.
+- Keep light and dark palettes, density, and radii in `index.css`. The supported user preference is `colorMode` (light, dark, or system).
+- Keep stored preference validation in `src/app/theme.ts`. Ignore obsolete keys and resolve system mode from the browser preference.
+- Apply the resolved mode through the document's `data-theme` attribute and `dark` class. Keep pre-paint initialization, React providers and Storybook aligned. Preserve server-provided branding and configuration contracts.
 
 ## 5. Architecture and component ownership
 

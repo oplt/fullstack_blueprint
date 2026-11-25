@@ -6,8 +6,14 @@
  * and browser-level primitives described by DESIGN.md.
  */
 @import "tailwindcss";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";
 
 @custom-variant dark (&:is(.dark *));
+
+@utility form-control {
+  @apply w-full min-w-0 rounded-md border border-input bg-background px-3.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40;
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -100,23 +106,24 @@
   --spacing-xl: var(--space-xl);
   --spacing-xxl: var(--space-xxl);
   --spacing-section: var(--section-rhythm);
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 16px;
-  --radius-pill: 100px;
-  --shadow-raised: var(--shadow-raised);
-  --shadow-overlay: var(--shadow-overlay);
+  --radius-sm: var(--ui-radius-sm);
+  --radius-md: var(--ui-radius-md);
+  --radius-lg: var(--ui-radius-lg);
+  --radius-xl: var(--ui-radius-xl);
+  --radius-pill: var(--ui-radius-pill);
+  --shadow-raised: var(--ui-shadow-raised);
+  --shadow-overlay: var(--ui-shadow-overlay);
 }
 
 :root {
   color-scheme: light;
-  --z-dropdown: 1300;
-  --z-overlay: 1600;
-  --z-dialog: 1600;
-  --z-popover: 1600;
-  --z-tooltip: 1700;
-  --z-toast: 1800;
+  --z-sidebar: 30;
+  --z-sticky: 20;
+  --z-overlay: 40;
+  --z-popover: 50;
+  --z-dialog: 60;
+  --z-tooltip: 70;
+  --z-toast: 80;
   /* Geist-inspired default. Static theme ownership stays here. */
   --background: #fafafa;
   --foreground: #171717;
@@ -134,7 +141,7 @@
   --accent-foreground: #171717;
   --destructive: #ee0000;
   --destructive-foreground: #ffffff;
-  --success: #0070f3;
+  --success: #166534;
   --success-foreground: #ffffff;
   --warning: #f5a623;
   --warning-foreground: #171717;
@@ -151,18 +158,18 @@
   --sidebar-accent-foreground: #171717;
   --sidebar-border: #ebebeb;
   --sidebar-ring: #0070f3;
-  --surface-soft: #f2f2f2;
-  --surface-card: #ffffff;
-  --surface-cream-strong: #f2f2f2;
+  --surface-soft: var(--muted);
+  --surface-card: var(--card);
+  --surface-cream-strong: #e5e5e5;
   --surface-dark: #181715;
   --surface-dark-elevated: #252320;
   --surface-dark-soft: #1f1e1b;
-  --hairline: #ebebeb;
-  --hairline-soft: #f2f2f2;
-  --ink: #171717;
+  --hairline: var(--border);
+  --hairline-soft: var(--muted);
+  --ink: var(--foreground);
   --body-strong: #333333;
   --body: #4d4d4d;
-  --muted-soft: #8f8f8f;
+  --muted-soft: #6f6f6f;
   --on-dark: #fafafa;
   --on-dark-soft: #a1a1a1;
   --accent-teal: #50e3c2;
@@ -173,18 +180,18 @@
   --chart-4: #ff0080;
   --chart-5: #f9cb28;
   --font-family-display: Inter, Arial, ui-sans-serif, system-ui, sans-serif;
-  --font-family-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-family-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-size-body: 0.875rem;
   --line-height-body: 1.25rem;
   --font-weight-heading: 600;
   --font-weight-body: 400;
   --font-weight-label: 500;
-  --radius: 6px;
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 16px;
-  --radius-pill: 9999px;
+  --radius: var(--ui-radius-sm);
+  --ui-radius-sm: 6px;
+  --ui-radius-md: 12px;
+  --ui-radius-lg: 16px;
+  --ui-radius-xl: 16px;
+  --ui-radius-pill: 100px;
   --spacing-page: 24px;
   --space-xxs: 4px;
   --space-xs: 8px;
@@ -197,8 +204,8 @@
   --spacing-section-gap: 16px;
   --control-height: 44px;
   --control-padding-x: 14px;
-  --shadow-raised: 0 1px 1px rgb(0 0 0 / 4%);
-  --shadow-overlay: 0 2px 2px rgb(0 0 0 / 4%), 0 8px 16px -4px rgb(0 0 0 / 8%);
+  --ui-shadow-raised: 0 1px 1px rgb(0 0 0 / 4%);
+  --ui-shadow-overlay: 0 2px 2px rgb(0 0 0 / 4%), 0 8px 16px -4px rgb(0 0 0 / 8%);
   --motion-normal: 220ms;
   --motion-easing: cubic-bezier(0.2, 0, 0, 1);
 }
@@ -232,10 +239,23 @@
   --sidebar-ring: #0070f3;
   --surface-soft: #1a1a1a;
   --surface-card: #111111;
+  --surface-cream-strong: #262626;
+  --surface-dark: #000000;
+  --surface-dark-elevated: #111111;
+  --surface-dark-soft: #1a1a1a;
   --hairline: #333333;
   --hairline-soft: #1a1a1a;
   --ink: #ededed;
+  --body-strong: #d4d4d4;
   --body: #a1a1a1;
+  --muted-soft: #a1a1a1;
+}
+
+.toaster {
+  --normal-bg: var(--popover);
+  --normal-text: var(--popover-foreground);
+  --normal-border: var(--border);
+  --border-radius: var(--radius);
 }
 
 @layer components {
@@ -312,23 +332,20 @@
     padding-block: 12px;
   }
 
-  .page-shell__content[data-width="xs"],
   .page-shell__content[data-width="compact"] {
     max-width: 600px;
   }
 
-  .page-shell__content[data-width="sm"] {
-    max-width: 600px;
-  }
-
-  .page-shell__content[data-width="md"],
   .page-shell__content[data-width="readable"] {
     max-width: 900px;
   }
 
-  .page-shell__content[data-width="lg"],
   .page-shell__content[data-width="default"] {
     max-width: 1200px;
+  }
+
+  .page-shell__content[data-width="wide"] {
+    max-width: 1440px;
   }
 
   .page-shell__content[data-width="full"] {
@@ -409,7 +426,7 @@
     border-left-color: var(--warning);
   }
 
-  @media (min-width: 600px) {
+  @media (min-width: 640px) {
     .responsive-card-grid[data-columns="2"],
     .responsive-card-grid[data-columns="3"],
     .responsive-card-grid[data-columns="4"],
@@ -426,7 +443,7 @@
     }
   }
 
-  @media (min-width: 900px) {
+  @media (min-width: 768px) {
     .calendar-month-grid[data-columns="3"] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -582,12 +599,6 @@
   pre,
   kbd {
     font-family: var(--font-family-mono);
-  }
-}
-
-@media (pointer: coarse) {
-  :where(button, [role="button"], input, select, textarea) {
-    min-height: var(--control-height);
   }
 }
 

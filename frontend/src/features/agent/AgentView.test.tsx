@@ -8,21 +8,19 @@ import {
     listAgentRuns,
     type AgentRun,
 } from "../../api/agent";
-import { getAiOverview } from "../../api/ai";
+import { getAiOverview } from "../../api/ai/overview";
 import { listProjects } from "../../api/projects";
 import { listRagDocuments } from "../../api/rag";
 import AgentView from "./AgentView";
 
-vi.mock("../../app/snackbarContext", () => ({
-    useSnackbar: () => ({ showToast: vi.fn() }),
-}));
+vi.mock("../../lib/notify", () => ({ notify: vi.fn() }));
 vi.mock("../../api/agent", () => ({
     createAgentRun: vi.fn(),
     getAgentRun: vi.fn(),
     listAgentRuns: vi.fn(),
     formatAgentCostMicros: () => "$0.00",
 }));
-vi.mock("../../api/ai", () => ({ getAiOverview: vi.fn() }));
+vi.mock("../../api/ai/overview", () => ({ getAiOverview: vi.fn() }));
 vi.mock("../../api/projects", () => ({ listProjects: vi.fn() }));
 vi.mock("../../api/rag", () => ({ listRagDocuments: vi.fn() }));
 vi.mock("../../components/layout/SettingsTabs", () => ({ SettingsTabs: () => null }));

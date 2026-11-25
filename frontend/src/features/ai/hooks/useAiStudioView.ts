@@ -1,13 +1,15 @@
+import { notify } from "../../../lib/notify";
 import { useQuery } from "@tanstack/react-query";
-import { getAiOverview, listAiDatasetCases, listAiEvaluationRuns, listAiReviews, listPromptVersions } from "../../../api/ai";
-import { useSnackbar } from "../../../app/snackbarContext";
+import { getAiOverview } from "../../../api/ai/overview";
+import { listAiDatasetCases, listAiEvaluationRuns } from "../../../api/ai/evaluations";
+import { listAiReviews } from "../../../api/ai/reviews";
+import { listPromptVersions } from "../../../api/ai/prompts";
 import { queryKeys } from "../../../config/queryKeys";
-import { QUERY_STALE_TIMES } from "../../../config/queryTiming";
+import { jobPollInterval, QUERY_STALE_TIMES } from "../../../config/queryTiming";
 import { useAiStudioForms } from "./useAiStudioForms";
 import { useAiPromptAssetMutations } from "./useAiPromptAssetMutations";
 import { useAiRunEvaluationMutations } from "./useAiRunEvaluationMutations";
 export function useAiStudioView() {
-    const { showToast } = useSnackbar();
     const forms = useAiStudioForms();
     const { selectedTemplateId, selectedDatasetId } = forms;
     const {
@@ -44,8 +46,13 @@ export function useAiStudioView() {
         staleTime: QUERY_STALE_TIMES.aiEvaluationRuns,
         refetchInterval: (query) => {
             const runs = query.state.data ?? [];
-            return runs.some((run) => run.status === "running") ? 3_000 : false;
+            const running = runs.filter((run) => run.status === "running");
+            if (!running.length) return false;
+            const starts = running.map((run) => Date.parse(run.created_at)).filter(Number.isFinite);
+            const newestStart = starts.length ? Math.max(...starts) : Date.now();
+            return jobPollInterval(Math.max(0, Date.now() - newestStart));
         },
+        refetchIntervalInBackground: false,
     });
 
     const promptTemplates = overview?.prompt_templates ?? [];
@@ -91,6 +98,6 @@ export function useAiStudioView() {
     return { overview, isLoading, isError, error, refetch, reviews, reviewsLoading, reviewsIsError, reviewsError, refetchReviews, evaluationRuns, evaluationRunsLoading, evaluationRunsIsError, evaluationRunsError, refetchEvaluationRuns,
         ...forms,
         promptTemplates, documents, datasets, recentRuns, providers, selectedTemplateVersions, versionsLoading, versionsIsError, versionsError, refetchVersions, selectedDatasetCases, datasetCasesLoading, datasetCasesIsError, datasetCasesError, refetchDatasetCases, templateKeyOptions,
-        ...promptAssetMutations, ...runEvaluationMutations, showToast };
+        ...promptAssetMutations, ...runEvaluationMutations, notify };
 }
 export type AiStudioModel = ReturnType<typeof useAiStudioView>;

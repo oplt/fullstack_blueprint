@@ -11,11 +11,9 @@ export const signInSchema = z.object({
         .or(z.literal("")),
 });
 
-export const forgotPasswordSchema = z.object({
+export const emailSchema = z.object({
     email: z.string().email("Enter a valid email"),
 });
-
-export const resendVerificationSchema = forgotPasswordSchema;
 
 export const signUpSchema = z.object({
     full_name: z.string().optional(),
@@ -25,5 +23,5 @@ export const signUpSchema = z.object({
 });
 
 export type SignInValues = z.infer<typeof signInSchema>;
-export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+export type ForgotPasswordValues = z.infer<typeof emailSchema>;
 export type SignUpValues = z.infer<typeof signUpSchema>;

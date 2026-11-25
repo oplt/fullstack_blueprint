@@ -7,10 +7,10 @@ import { useAuth } from "../hooks/useAuth";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
 import AuthHomePage from "../pages/AuthHomePage";
 import { RouteErrorBoundary } from "./RouteErrorBoundary";
-import { ROUTES } from "./routes";
-import { capabilityAvailability, serverStateFromPlatformMetadata } from "./configuration/capabilities";
-import { useApplicationConfiguration } from "./configuration/useConfiguration";
-import type { CapabilityId } from "./configuration/types";
+import { ROUTES } from "@/config/routes";
+import { capabilityAvailability, serverStateFromPlatformMetadata } from "@/config/application/capabilities";
+import { useApplicationConfiguration } from "@/config/application/useConfiguration";
+import type { CapabilityId } from "@/config/application/types";
 
 const AppLayout = lazy(() =>
     import("../components/layout/AppLayout").then((module) => ({ default: module.AppLayout }))
@@ -64,7 +64,7 @@ function RoutedErrorBoundary({ children }: { children: React.ReactNode }) {
 
 function NotFoundPage() {
     return (
-        <div className="flex gap-[16px] items-center" style={{ padding: 32 }}>
+        <div className="flex gap-4 items-center" style={{ padding: 32 }}>
             <h1>Page not found</h1>
             <Button render={<Link to={ROUTES.home} />} type="button">Back to home</Button>
         </div>
@@ -77,7 +77,7 @@ function CapabilityPage({ feature, capability, children }: { feature?: string; c
     if (isPending) return <PageLoader />;
     if (isError) {
         return (
-            <div className="flex gap-[16px] items-center" style={{ padding: 32 }}>
+            <div className="flex gap-4 items-center" style={{ padding: 32 }}>
                 <span role="alert">Could not load application settings.</span>
                 <Button onClick={() => void refetch()} type="button">Retry</Button>
             </div>

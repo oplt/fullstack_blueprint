@@ -52,13 +52,11 @@ export function HealthStatusCard({
                 backgroundColor: "var(--card)"
             })}
         >
-            <div className="flex gap-[12px]" style={{ height: "100%" }}>
-                <div className="flex flex-row gap-[12px] items-start justify-between">
+            <div className="flex gap-3" style={{ height: "100%" }}>
+                <div className="flex flex-row gap-3 items-start justify-between">
                     <div style={{ minWidth: 0 }}>
                         <p>{title}</p>
-                        <div
-                            style={{ marginTop: 8 }}
-                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                        <div className="mt-2 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                     </div>
                     <div
                         style={{

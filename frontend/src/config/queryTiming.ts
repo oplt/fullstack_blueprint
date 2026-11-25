@@ -13,6 +13,7 @@ export const QUERY_STALE_TIMES = {
     /** Projects list/detail — moderate freshness */
     projects: 30_000,
     calendar: 60_000,
+    agentRuns: 30_000,
     aiOverview: 60_000,
     aiReviews: 30_000,
     aiEvaluationRuns: 60_000,
@@ -22,3 +23,11 @@ export const QUERY_STALE_TIMES = {
 
 export const NOTIFICATIONS_REFETCH_INTERVAL_MS = 60_000;
 export const QUERY_GC_TIME_MS = 10 * 60_000;
+
+export function jobPollInterval(elapsedMs: number): number {
+    if (elapsedMs < 10_000) return 2_000;
+    if (elapsedMs < 30_000) return 4_000;
+    if (elapsedMs < 60_000) return 8_000;
+    if (elapsedMs < 120_000) return 15_000;
+    return 30_000;
+}

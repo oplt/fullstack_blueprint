@@ -9,3 +9,13 @@ describe("AI workspace rendering trust boundary", () => {
         expect(screen.queryByRole("link", { name: /Unsafe/ })).not.toBeInTheDocument();
     });
 });
+
+it("keeps variable-length messages in document order through the end of a long history", () => {
+    const messages = Array.from({ length: 85 }, (_, i) => ({
+        id: String(i), role: "user" as const, content: `Message ${i}\n${"line\n".repeat(i)}`, citations: [],
+    }));
+    const { rerender } = render(<ConversationHistory messages={messages} />);
+    expect(screen.getAllByRole("listitem").at(-1)).toHaveTextContent("Message 84");
+    rerender(<ConversationHistory messages={messages.slice(0, 2)} />);
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+});

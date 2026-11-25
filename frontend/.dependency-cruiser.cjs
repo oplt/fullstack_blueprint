@@ -1,5 +1,5 @@
 /** @type {import('dependency-cruiser').IConfiguration} */
-const TEST = '(?:^|/)(?:__tests__|tests|__mocks__|__fixtures__|test-utils)(?:/|$)|[.](?:test|spec)[.](?:[cm]?[jt]s|[jt]sx)$|(?:^|/)setupTests[.][jt]sx?$';
+const TEST = '(?:^|/)(?:__tests__|tests|test|mocks|__mocks__|__fixtures__|test-utils)(?:/|$)|[.](?:test|spec|stories)[.](?:[cm]?[jt]s|[jt]sx)$|(?:^|/)setupTests[.][jt]sx?$';
 const SRC = '^src/';
 const SHARED = '^src/(?:shared|components/ui|lib|utils)/';
 const APP = '^src/(?:app|pages|routes)/';

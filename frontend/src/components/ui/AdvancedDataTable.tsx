@@ -15,7 +15,7 @@ import {
     type VisibilityState,
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight, Download, Search, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 import { Button } from "./button";
@@ -32,6 +32,7 @@ export type AdvancedDataTableProps<T> = {
     emptyTitle?: string;
     emptyDescription?: string;
     emptyAction?: ReactNode;
+    emptyIcon?: ReactNode;
     globalFilter?: string;
     onGlobalFilterChange?: (value: string) => void;
     searchable?: boolean;
@@ -50,6 +51,13 @@ export type AdvancedDataTableProps<T> = {
     pagination?: PaginationState;
     onPaginationChange?: (pagination: PaginationState) => void;
     pageSizeOptions?: number[];
+    density?: "compact" | "comfortable";
+    onDensityChange?: (density: "compact" | "comfortable") => void;
+    showDensityToggle?: boolean;
+    stickyHeader?: boolean;
+    stickyFirstColumn?: boolean;
+    selectedRowId?: string | null;
+    onRowClick?: (row: T) => void;
     csvFileName?: string;
     onExport?: (rows: T[]) => void;
     toolbarStart?: ReactNode;
@@ -63,7 +71,8 @@ function resolveUpdater<T>(updater: T | ((previous: T) => T), previous: T): T {
 }
 
 function csvValue(value: unknown): string {
-    const text = value == null ? "" : typeof value === "string" ? value : JSON.stringify(value);
+    const raw = value == null ? "" : typeof value === "string" ? value : JSON.stringify(value);
+    const text = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
     return `"${text.replaceAll('"', '""')}"`;
 }
 
@@ -78,7 +87,7 @@ function downloadCsv<T>(table: ReturnType<typeof useReactTable<T>>, fileName: st
     anchor.href = url;
     anchor.download = fileName.endsWith(".csv") ? fileName : `${fileName}.csv`;
     anchor.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export function AdvancedDataTable<T>({
@@ -91,6 +100,7 @@ export function AdvancedDataTable<T>({
     emptyTitle = "No rows",
     emptyDescription = "Nothing to show yet.",
     emptyAction,
+    emptyIcon,
     globalFilter: globalFilterProp,
     onGlobalFilterChange,
     searchable = true,
@@ -109,6 +119,13 @@ export function AdvancedDataTable<T>({
     pagination: paginationProp,
     onPaginationChange,
     pageSizeOptions = [10, 25, 50],
+    density: densityProp,
+    onDensityChange,
+    showDensityToggle = false,
+    stickyHeader = true,
+    stickyFirstColumn = false,
+    selectedRowId,
+    onRowClick,
     csvFileName,
     onExport,
     toolbarStart,
@@ -119,16 +136,17 @@ export function AdvancedDataTable<T>({
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [expanded, setExpanded] = useState<ExpandedState>({});
+    const [internalDensity, setInternalDensity] = useState<"compact" | "comfortable">("compact");
+    const density = densityProp ?? internalDensity;
     const [internalPagination, setInternalPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: pageSizeOptions[0] ?? 25 });
     const globalFilter = globalFilterProp ?? internalFilter;
     const pagination = paginationProp ?? internalPagination;
-    const tableColumns = useMemo(() => columns, [columns]);
     // TanStack Table returns an intentionally mutable instance; React Compiler
     // must not memoize this hook result.
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data,
-        columns: tableColumns,
+        columns,
         getRowId,
         state: { sorting, globalFilter, columnVisibility, rowSelection: selectedRowIds ?? rowSelection, expanded, pagination },
         onSortingChange: setSorting,
@@ -179,6 +197,9 @@ export function AdvancedDataTable<T>({
                         <Input value={globalFilter} onChange={(event) => table.setGlobalFilter(event.target.value)} placeholder={searchPlaceholder} aria-label={`${ariaLabel} search`} className="pl-8" />
                     </label> : null}
                     {toolbarStart}
+                    {showDensityToggle ? <div className="inline-flex rounded-md border border-border p-0.5" aria-label="Table density">
+                        {(["compact", "comfortable"] as const).map((value) => <Button key={value} variant={density === value ? "secondary" : "ghost"} aria-pressed={density === value} onClick={() => { if (densityProp === undefined) setInternalDensity(value); onDensityChange?.(value); }} type="button">{value === "compact" ? "Compact" : "Comfortable"}</Button>)}
+                    </div> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {toolbarEnd}
@@ -187,18 +208,18 @@ export function AdvancedDataTable<T>({
                 </div>
             </div>
             {error ? <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
-            {loading ? <div className="space-y-2" aria-busy="true"><div className="animate-pulse rounded-md bg-muted h-10 w-full rounded-lg" /><div className="animate-pulse rounded-md bg-muted h-52 w-full rounded-lg" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={<span aria-hidden="true">∅</span>} /> : <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full border-collapse text-sm" aria-label={ariaLabel} aria-busy={loading}>
-                    <thead className="bg-muted/60"><tr>
+            {loading ? <div className="space-y-2" aria-busy="true"><div className="animate-pulse rounded-md bg-muted h-10 w-full rounded-lg" /><div className="animate-pulse rounded-md bg-muted h-52 w-full rounded-lg" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={emptyIcon ?? <span aria-hidden="true">∅</span>} /> : <div className="overflow-x-auto rounded-lg border border-border">
+                <table className={`w-full border-collapse text-sm ${density === "compact" ? "[&_td]:py-0.5 [&_th]:py-1" : "[&_td]:py-1.5 [&_th]:py-1.5"}`} aria-label={ariaLabel} aria-busy={loading}>
+                    <thead className={stickyHeader ? "sticky top-0 z-10 bg-muted/95" : "bg-muted/60"}><tr>
                         {enableExpanding ? <th scope="col" className="w-10 p-2" /> : null}
                         {enableRowSelection ? <th scope="col" className="w-10 p-2"><input type="checkbox" aria-label="Select all rows" checked={table.getIsAllRowsSelected()} ref={(element) => { if (element) element.indeterminate = table.getIsSomeRowsSelected(); }} onChange={table.getToggleAllRowsSelectedHandler()} /></th> : null}
-                        {table.getHeaderGroups().map((group) => group.headers.map((header) => <th key={header.id} scope="col" className="relative whitespace-nowrap border-b border-border px-3 py-2 text-left font-semibold" style={{ width: header.getSize() }}>{header.isPlaceholder ? null : <div className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined} onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === "asc" ? " ↑" : header.column.getIsSorted() === "desc" ? " ↓" : null}</div>}{enableColumnResizing && header.column.getCanResize() ? <span onMouseDown={header.getResizeHandler()} onTouchStart={header.getResizeHandler()} className="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary" aria-hidden="true" /> : null}</th>))}
+                        {table.getHeaderGroups().map((group) => group.headers.map((header) => <th key={header.id} scope="col" className={`relative whitespace-nowrap border-b border-border px-3 text-left font-semibold ${stickyFirstColumn && header.column.getIndex() === 0 ? "sticky left-0 z-10 bg-muted" : ""}`} style={{ width: header.getSize() }}>{header.isPlaceholder ? null : <div className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined} onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === "asc" ? " ↑" : header.column.getIsSorted() === "desc" ? " ↓" : null}</div>}{enableColumnResizing && header.column.getCanResize() ? <span onMouseDown={header.getResizeHandler()} onTouchStart={header.getResizeHandler()} className="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary" aria-hidden="true" /> : null}</th>))}
                     </tr></thead>
                     <tbody>{table.getRowModel().rows.map((row) => <>
-                        <tr key={row.id} className="border-b border-border hover:bg-muted/30" aria-selected={row.getIsSelected()}>
+                        <tr key={row.id} onClick={(event) => { if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea, label")) return; onRowClick?.(row.original); }} className={selectedRowId === row.id ? "border-b border-border bg-primary/10" : "border-b border-border hover:bg-muted/30"} aria-selected={selectedRowId === row.id || row.getIsSelected()}>
                             {enableExpanding ? <td className="p-2"><button type="button" aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"} onClick={row.getToggleExpandedHandler()}>{row.getIsExpanded() ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}</button></td> : null}
                             {enableRowSelection ? <td className="p-2"><input type="checkbox" aria-label={`Select row ${row.id}`} checked={row.getIsSelected()} disabled={!row.getCanSelect()} onChange={row.getToggleSelectedHandler()} /></td> : null}
-                            {row.getVisibleCells().map((cell) => <td key={cell.id} className="px-3 py-2 align-top">{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}
+                            {row.getVisibleCells().map((cell) => <td key={cell.id} className={`px-3 align-top ${stickyFirstColumn && cell.column.getIndex() === 0 ? "sticky left-0 bg-card" : ""}`}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}
                         </tr>
                         {row.getIsExpanded() ? <tr key={`${row.id}-expanded`}><td colSpan={colSpan} className="bg-muted/20 p-3">{renderSubComponent?.(row.original)}</td></tr> : null}
                     </>)}</tbody>

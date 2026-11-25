@@ -8,7 +8,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
     const { selectedTemplateId, setSelectedTemplateId, promptTemplates, versionForm, setVersionForm, providers, createVersionMutation, parseVariableDefinitions, versionsIsError, versionsError, refetchVersions, versionsLoading, selectedTemplateVersions, activateVersionMutation, publishVersionMutation } = m;
     return (
         <SectionCard title="Version builder" description="Attach deployable versions to a prompt template with model selection, rollout state, and provider pricing.">
-            <div className="flex gap-[16px]">
+            <div className="flex gap-4">
                 <FormField
                     as="select"
                     label="Selected template"
@@ -51,7 +51,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     label="Variable names (comma separated)"
                     value={versionForm.variable_names}
                     onChange={(event: any) => setVersionForm((current) => ({ ...current, variable_names: event.target.value }))} />
-                <div className="flex flex-col sm:flex-row gap-[12px]">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <FormField
                         as="select"
                         label="Response format"
@@ -65,7 +65,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                         value={versionForm.temperature}
                         onChange={(event: any) => setVersionForm((current) => ({ ...current, temperature: event.target.value }))} />
                 </div>
-                <div className="flex flex-col sm:flex-row gap-[12px]">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <FormField
                         label="Rollout %"
                         value={versionForm.rollout_percentage}
@@ -76,7 +76,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                             type="checkbox"
                             role="switch" /></label>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-[12px]">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <FormField
                         label="Input cost / million"
                         value={versionForm.input_cost_per_million}
@@ -92,7 +92,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     onClick={() => {
                         const result = promptVersionDraftSchema.safeParse(versionForm);
                         if (!result.success) {
-                            m.showToast({ message: firstSchemaError(result), severity: "error" });
+                            m.notify({ message: firstSchemaError(result), severity: "error" });
                             return;
                         }
                         createVersionMutation.mutate({
@@ -123,7 +123,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     />
                 )}
                 {selectedTemplateId && versionsLoading ? (
-                    <div className="flex gap-[10px]">
+                    <div className="flex gap-2.5">
                         {Array.from({ length: 2 }).map((_: any, index: any) => (
                             <div
                                 key={index}
@@ -132,19 +132,19 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                         ))}
                     </div>
                 ) : selectedTemplateVersions.length > 0 ? (
-                    <div className="flex gap-[10px]">
+                    <div className="flex gap-2.5">
                         {selectedTemplateVersions.map((version) => (
                             <div key={version.id} style={({
                                 padding: 16,
                                 borderRadius: 16,
                                 border: `1px solid ${"var(--border)"}`
                             })}>
-                                <div className="flex gap-[8px]">
-                                    <div className="flex flex-col sm:flex-row gap-[8px] justify-between">
+                                <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2 justify-between">
                                         <p>
                                             v{version.version_number} • {version.provider_key}/{version.model_name}
                                         </p>
-                                        <div className="flex flex-row gap-[8px] flex-wrap">
+                                        <div className="flex flex-row gap-2 flex-wrap">
                                             {version.is_published && <div
                                                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}
                                             <div
@@ -154,7 +154,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                                     <p className="text-muted-foreground">
                                         {version.user_prompt_template.slice(0, 180)}
                                     </p>
-                                    <div className="flex flex-col sm:flex-row gap-[8px]">
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                         <Button
                                             variant="outline"
                                             onClick={() => activateVersionMutation.mutate({ templateId: selectedTemplateId, versionId: version.id })}

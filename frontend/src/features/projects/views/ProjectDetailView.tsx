@@ -9,7 +9,7 @@ import {
     Kanban as BoardIcon,
 } from "lucide-react";
 import type { ProjectTask } from "../../../api/projects";
-import { ROUTES } from "../../../app/routes";
+import { ROUTES } from "@/config/routes";
 import { PageShell } from "../../../components/ui/PageShell";
 import { MetricGrid } from "../../../components/ui/MetricGrid";
 import { StatCard } from "../../../components/ui/StatCard";
@@ -26,7 +26,7 @@ export default function ProjectDetailPage() {
     if (m.projectQuery.isLoading) {
         return (
             <PageShell width="wide">
-                <div className="flex gap-[16px]">
+                <div className="flex gap-4">
                     <div
                         className="animate-pulse rounded-md bg-muted"
                         style={{
@@ -89,7 +89,7 @@ export default function ProjectDetailPage() {
 
     return (
         <PageShell width="wide">
-            <div className="flex flex-row gap-[8px]" style={{ marginBottom: 16 }}>
+            <div className="flex flex-row gap-2" style={{ marginBottom: 16 }}>
                 <Button
                     variant="outline"
                     onClick={() => m.navigate(ROUTES.projects)}

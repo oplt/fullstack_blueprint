@@ -27,5 +27,28 @@ export function saveThemePreferences(preferences: ThemePreferences, storage?: St
 export function applyTheme(resolvedMode: "light" | "dark", root: HTMLElement = document.documentElement): void {
     root.dataset.theme = resolvedMode;
     root.classList.toggle("dark", resolvedMode === "dark");
-    root.style.colorScheme = resolvedMode;
+}
+
+export function getBrowserStorage(): Storage | undefined {
+    if (typeof window === "undefined") {
+        return undefined;
+    }
+
+    try {
+        return window.localStorage;
+    } catch {
+        return undefined;
+    }
+}
+
+const systemModeQuery = "(prefers-color-scheme: dark)";
+
+export function prefersDarkMode(): boolean {
+    return typeof window !== "undefined" && Boolean(window.matchMedia?.(systemModeQuery).matches);
+}
+
+export function subscribeToSystemMode(onChange: () => void): () => void {
+    const media = window.matchMedia?.(systemModeQuery);
+    media?.addEventListener("change", onChange);
+    return () => media?.removeEventListener("change", onChange);
 }

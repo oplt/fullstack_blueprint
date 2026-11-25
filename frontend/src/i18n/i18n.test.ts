@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { formatCurrency, formatDate, formatNumber, localizeValidationIssue } from "./formatters";
+import { formatCurrency, formatDate, formatDateTime, formatNumber, localizeValidationIssue } from "./formatters";
 import { languageDirection, readLanguage, setLanguage } from "./config";
 import { i18nInstance } from "./config";
 
@@ -26,5 +26,9 @@ describe("internationalization foundation", () => {
         await setLanguage("nl");
         expect(localizeValidationIssue({ code: "too_small", minimum: 3 })).toContain("3");
         expect(localizeValidationIssue({ code: "invalid_type", path: ["email"] })).toContain("verplicht");
+    });
+
+    it("supports explicit localized date options", () => {
+        expect(() => formatDateTime("2026-11-24T12:30:00Z", { year: "numeric", month: "long" }, "fr")).not.toThrow();
     });
 });

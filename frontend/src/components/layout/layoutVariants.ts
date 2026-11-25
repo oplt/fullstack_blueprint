@@ -1,7 +1,7 @@
-import type { LayoutVariant } from "../../app/configuration/types";
-import type { CapabilityId } from "../../app/configuration/types";
+import type { LayoutVariant } from "@/config/application/types";
+import type { CapabilityId } from "@/config/application/types";
 
-export type { LayoutVariant } from "../../app/configuration/types";
+export type { LayoutVariant } from "@/config/application/types";
 
 export function layoutVariantForPath(pathname: string, overrides: Partial<Record<CapabilityId, LayoutVariant>> = {}): LayoutVariant {
     if (pathname === "/" || pathname.startsWith("/pricing") || pathname.startsWith("/about")) {

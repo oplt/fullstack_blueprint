@@ -337,8 +337,13 @@ pnpm-debug.log*
 
 # Caches
 .cache/
+.pnpm-store/
 .parcel-cache/
 .eslintcache
+
+# Generated dependency graph reports
+/frontend/dependency-graph.svg
+/frontend/dependencies.svg
 
 # Env files
 .env.local

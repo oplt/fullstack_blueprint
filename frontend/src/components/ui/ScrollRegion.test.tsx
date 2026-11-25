@@ -11,6 +11,7 @@ describe("ScrollRegion", () => {
         );
         expect(container.textContent).toContain("wide content");
         const el = container.firstElementChild as HTMLElement;
-        expect(getComputedStyle(el).overflowX).toBe("auto");
+        expect(el.classList).toContain("overflow-x-auto");
+        expect(el.classList).toContain("min-w-0");
     });
 });

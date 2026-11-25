@@ -53,7 +53,7 @@ These, blended together, form the hero's multi-stop mesh.
 ## Typography
 
 ### Font Family
-The system runs entirely on **Geist** — Vercel's own type family. **Geist Sans** (with an `Arial` system fallback) sets all UI and prose; **Geist Mono** sets code, inline technical tokens, and the small uppercase section eyebrows. There is no third face. Geist Sans is a clean geometric-humanist sans; substitute **Inter** if Geist is unavailable, and **JetBrains Mono** or **IBM Plex Mono** for Geist Mono.
+The sans stack prefers **Inter** when available and falls back to the platform UI sans stack; no additional sans font is downloaded. **IBM Plex Mono** is self-hosted for code and technical labels. Geist remains the visual reference, not a runtime font dependency.
 
 ### Hierarchy
 
@@ -77,7 +77,7 @@ The system runs entirely on **Geist** — Vercel's own type family. **Geist Sans
 - Geist Mono is reserved for two roles only — code, and the small uppercase eyebrow labels that introduce sections like spec-sheet headers.
 
 ### Note on Font Substitutes
-Geist Sans and Geist Mono are freely available (open-source, via Vercel / Google Fonts). If unavailable, **Inter** (sans) and **JetBrains Mono** (mono) are the closest open substitutes; keep heading weight at 600 and preserve the negative display tracking.
+Inter is used when already available on the system; otherwise the UI sans stack is used. IBM Plex Mono is bundled locally for the monospace role. Keep heading weight at 600 and preserve the negative display tracking.
 
 ## Layout
 
@@ -103,10 +103,10 @@ Whitespace is structural. The near-white canvas and generous section padding do 
 | Mobile  | ≤ 640px | Single-column stacks; nav → menu trigger; hero type scales down; pill CTAs go full-width |
 | Tablet  | 768px   | 2-up card grids; condensed nav                                                           |
 | Laptop  | 1024px  | 3–4-up grids; full nav row                                                               |
-| Desktop | 1200px+ | Centered max-width container, full multi-column grids                                    |
+| Desktop | 1280px+ | Centered max-width container, full multi-column grids                                    |
 
 #### Touch Targets
-Marketing pill CTAs (`{components.button-primary}`) and nav buttons clear the 44px WCAG-AAA target via line-height-driven height. Circular icon buttons (`{components.button-icon-circular}`) keep adequate hit area.
+Marketing pill CTAs (`{components.button-primary}`) and primary application controls use the 44px target. Calendar cells remain compact and retain their own accessible interaction model.
 
 #### Collapsing Strategy
 The nav row collapses behind a menu trigger; multi-column hairline-card grids reflow to a single column; code-editor and node-graph illustrations scale or scroll rather than shrink illegibly; the pricing tier grid stacks vertically.

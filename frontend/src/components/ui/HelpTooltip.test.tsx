@@ -33,20 +33,25 @@ describe("helpText registry", () => {
 describe("HelpTooltip", () => {
     it("shows a short tooltip for terms without forcing a popover click", async () => {
         const user = userEvent.setup();
-        wrap(
-            <HelpTooltip termId="precision" variant="label">
-                Precision
-            </HelpTooltip>
-        );
-        expect(screen.getByText("Precision")).toBeInTheDocument();
-        await user.hover(screen.getByRole("button", { name: /About Precision/i }));
-        expect(await screen.findByRole("tooltip")).toHaveTextContent(/true positives|predicted/i);
+        wrap(<HelpTooltip title="Brief explanation" />);
+        const trigger = screen.getByRole("button", { name: "About this term" });
+        await user.tab();
+        expect(trigger).toHaveFocus();
+        expect(await screen.findByText("Brief explanation")).toBeVisible();
+        expect(trigger).toHaveAccessibleDescription("Brief explanation");
+        await user.keyboard("{Escape}");
+        expect(screen.queryByRole("tooltip")).toBeNull();
+        await user.hover(trigger);
+        expect(await screen.findByText("Brief explanation")).toBeVisible();
     });
 
     it("opens a popover when detail exists", async () => {
         const user = userEvent.setup();
         wrap(<HelpFieldLabel termId="chunk_overlap">Chunk overlap</HelpFieldLabel>);
         await user.click(screen.getByRole("button", { name: /About Chunk overlap/i }));
+        expect(await screen.findByRole("dialog", { name: "Chunk overlap" })).toBeVisible();
         expect(await screen.findByText(/overlap too high|duplicate|overlapping/i)).toBeVisible();
+        await user.keyboard("{Escape}");
+        expect(screen.getByRole("button", { name: /About Chunk overlap/i })).toHaveFocus();
     });
 });

@@ -19,11 +19,11 @@ export function ConfigSettingsSection({ configData, model }: Props) {
                 {model.configMutation.isPending ? "Saving..." : "Save all config"}
             </Button>
         }>
-            <div className="flex gap-[16px]">
+            <div className="flex gap-4">
                 <div role="alert" className="rounded-lg border border-border p-3 text-sm">{configData.notice}</div>
                 {model.configMutation.isSuccess && <div role="alert" className="rounded-lg border border-border p-3 text-sm">Config saved. Restart the backend if a startup-bound value changed.</div>}
                 {model.configMutation.isError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{getQueryErrorMessage(model.configMutation.error, "Failed to save config.")}</div>}
-                <div className="flex flex-row gap-[8px] flex-wrap">
+                <div className="flex flex-row gap-2 flex-wrap">
                     <div
                         className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                     <div

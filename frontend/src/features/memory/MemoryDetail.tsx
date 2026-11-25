@@ -40,9 +40,9 @@ export function MemoryDetail({
                         Select a memory to inspect.
                     </p>
                 ) : (
-                    <div className="flex gap-[12px]">
+                    <div className="flex gap-3">
                         <p>{item.content}</p>
-                        <div className="flex flex-row gap-[8px] flex-wrap">
+                        <div className="flex flex-row gap-2 flex-wrap">
                             <div
                                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                             <div

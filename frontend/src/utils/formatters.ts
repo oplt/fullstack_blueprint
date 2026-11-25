@@ -1,41 +1,37 @@
-import { i18nInstance } from "../i18n/config";
-
-function currentLocale() {
-    return i18nInstance.resolvedLanguage ?? i18nInstance.language ?? "en";
-}
+import { formatDate as formatLocalizedDate, formatDateTime as formatLocalizedDateTime, formatNumber } from "../i18n/formatters";
 
 export function formatCurrency(priceCents: number, currency = "USD") {
-    return new Intl.NumberFormat(currentLocale(), {
+    return formatNumber(priceCents / 100, {
         style: "currency",
         currency,
         maximumFractionDigits: 0,
-    }).format(priceCents / 100);
+    });
 }
 
 export function formatDate(value: string) {
-    return new Intl.DateTimeFormat(currentLocale(), {
+    return formatLocalizedDate(value, {
         month: "short",
         day: "numeric",
         year: "numeric",
-    }).format(new Date(value));
+    });
 }
 
 export function formatDateOnly(value: string) {
-    return new Intl.DateTimeFormat(currentLocale(), {
+    return formatLocalizedDate(`${value}T12:00:00`, {
         month: "short",
         day: "numeric",
         year: "numeric",
-    }).format(new Date(`${value}T12:00:00`));
+    });
 }
 
 export function formatDateTime(value: string) {
-    return new Intl.DateTimeFormat(currentLocale(), {
+    return formatLocalizedDateTime(value, {
         month: "short",
         day: "numeric",
         year: "numeric",
         hour: "numeric",
         minute: "2-digit",
-    }).format(new Date(value));
+    });
 }
 
 export function getInitials(name?: string | null, fallback?: string | null) {
@@ -48,10 +44,6 @@ export function getInitials(name?: string | null, fallback?: string | null) {
         .slice(0, 2)
         .map((part) => part[0]?.toUpperCase() ?? "")
         .join("");
-}
-
-export function getFirstName(name?: string | null) {
-    return name?.trim().split(/\s+/)[0] ?? "";
 }
 
 export function humanizeKey(value: string) {

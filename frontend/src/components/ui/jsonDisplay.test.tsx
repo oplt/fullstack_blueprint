@@ -7,9 +7,7 @@ import {
     stringifyPretty,
 } from "./jsonDisplay";
 
-vi.mock("../../app/snackbarContext", () => ({
-    useSnackbar: () => ({ showToast: vi.fn() }),
-}));
+vi.mock("../../lib/notify", () => ({ notify: vi.fn() }));
 
 describe("jsonDisplay helpers", () => {
     it("formats nested values without dumping full JSON", () => {

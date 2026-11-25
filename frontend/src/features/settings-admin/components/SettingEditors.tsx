@@ -10,13 +10,13 @@ export function ConfigEntryEditor({ item, value, onChange }: { item: ConfigEntry
             border: `1px solid ${"var(--border)"}`,
             backgroundColor: colorMix("var(--card)", 0.78)
         })}>
-            <div className="flex gap-[10px]">
-                <div className="flex flex-col sm:flex-row gap-[8px] justify-between">
+            <div className="flex gap-2.5">
+                <div className="flex flex-col sm:flex-row gap-2 justify-between">
                     <div>
                         <p>{item.key}</p>
                         {item.description && <p className="text-muted-foreground">{item.description}</p>}
                     </div>
-                    <div className="flex flex-row gap-[8px] flex-wrap">
+                    <div className="flex flex-row gap-2 flex-wrap">
                         <div
                             className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                         {item.is_custom && <div
@@ -52,8 +52,8 @@ export function DatabaseSettingEditor({ item, draft, onDraftChange, onSave, onDe
             borderRadius: 16,
             border: `1px solid ${"var(--border)"}`
         })}>
-            <div className="flex gap-[12px]">
-                <div className="flex flex-row gap-[12px] justify-between">
+            <div className="flex gap-3">
+                <div className="flex flex-row gap-3 justify-between">
                     <div><p>{item.key}</p><span className="text-muted-foreground">Updated {formatDateTime(item.updated_at)}</span></div>
                     <Button size="icon" aria-label={`Delete ${item.key}`} onClick={onDelete} disabled={isDeleting}><DeleteIcon /></Button>
                 </div>

@@ -16,7 +16,7 @@ type TaskEditorSectionProps = {
 export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSectionProps) {
     const d = m.taskDraft;
     const form = (
-        <div className="flex gap-[16px]">
+        <div className="flex gap-4">
             <FormField
                 label="Title"
                 {...m.taskForm.register("title")}
@@ -88,7 +88,7 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                 </div>
             )}
             {m.taskError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{m.taskError}</div>}
-            <div className="flex flex-row gap-[10px]">
+            <div className="flex flex-row gap-2.5">
                 <Button
                     variant="default"
                     onClick={m.submit}

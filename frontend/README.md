@@ -4,7 +4,7 @@ Product presets, typed capability manifests, branding and generated-application 
 
 React and TypeScript frontend using Vite, the canonical CSS-variable design system, and shared Tailwind/Base UI primitives. See [`DESIGN.md`](../DESIGN.md) for the token contract and the [repository README](../README.md) for setup and development commands.
 
-Static design tokens and shared styling recipes live in [`src/index.css`](src/index.css). Runtime theme preferences in `src/app/designTokens.ts` only project validated user/configuration choices into CSS custom properties. Responsive layout primitives use CSS data-attribute variants so breakpoint behavior stays centralized and statically discoverable.
+Static design tokens and shared styling recipes live in [`src/index.css`](src/index.css). The runtime theme helper in [src/app/theme.ts](src/app/theme.ts) validates the stored light, dark, or system preference and applies the resolved document mode. Responsive layout primitives use CSS data-attribute variants so breakpoint behavior stays centralized and statically discoverable.
 
 The shared primitive layer is configured in [`components.json`](components.json), uses Base UI with Tailwind CSS v4, and exposes typed components from `src/components/ui`. Use `cn()` from `src/lib/utils.ts` for class composition and import the canonical aliases with `@/*`.
 

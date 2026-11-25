@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getPlatformMetadata } from "../api/platform";
+import { getPlatformMetadata } from "../api/platform/config";
 import { queryKeys } from "../config/queryKeys";
 import { QUERY_STALE_TIMES } from "../config/queryTiming";
 

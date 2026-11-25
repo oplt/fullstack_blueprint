@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink as OpenInNewIcon } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
 import { InvestigationContextFields } from "../components/InvestigationContextFields";
@@ -24,7 +24,7 @@ export default function ObservabilityPage() {
                         if (url) openExternalUrl(url);
                     }}
                     type="button"
-                ><OpenInNewIcon />Open Grafana
+                ><ExternalLink />Open Grafana
                                     </Button>
             </div>
             {model.linksQuery.isError && (

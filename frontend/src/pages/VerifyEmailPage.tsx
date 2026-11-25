@@ -3,7 +3,7 @@ import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { resendVerification, verifyEmail } from "../api/auth";
 import { AuthMarketingPanel } from "../components/auth/AuthMarketingPanel";
 import { AuthShell } from "../components/auth/AuthShell";
-import { resendVerificationSchema } from "../features/auth/schemas";
+import { emailSchema } from "../features/auth/schemas";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
 import { getQueryErrorMessage } from "../utils/queryErrors";
 import { parseRequiredParam } from "../app/searchParams";
@@ -34,7 +34,7 @@ export default function VerifyEmailPage() {
     }, [token]);
 
     async function handleResend() {
-        const parsed = resendVerificationSchema.safeParse({ email: email.trim() });
+        const parsed = emailSchema.safeParse({ email: email.trim() });
         if (!parsed.success) {
             setResendError(parsed.error.issues[0]?.message ?? "Enter a valid email address.");
             return;
@@ -80,7 +80,7 @@ export default function VerifyEmailPage() {
                     <h4 style={{ marginTop: 4 }}>
                         Confirm your email address
                     </h4>
-                    <span style={{ marginTop: 8 }} className="text-muted-foreground">
+                    <span className="mt-2 text-muted-foreground">
                         Verification improves account trust and unlocks the full sign-in experience.
                     </span>
                 </div>
@@ -94,7 +94,7 @@ export default function VerifyEmailPage() {
                 )}
 
                 {status === "success" && (
-                    <div className="flex gap-[16px]">
+                    <div className="flex gap-4">
                         <div role="alert" className="rounded-lg border border-border p-3 text-sm">Your email has been verified. You can now sign in.</div>
                         <Button variant="default" render={<RouterLink to="/" />} type="button">
                             Go to sign in
@@ -103,7 +103,7 @@ export default function VerifyEmailPage() {
                 )}
 
                 {(status === "error" || status === "no-token") && (
-                    <div className="flex gap-[16px]">
+                    <div className="flex gap-4">
                         {status === "error" && (
                             <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                                 The verification link is invalid or has expired.

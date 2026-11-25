@@ -9,7 +9,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
     const { textDocumentForm, setTextDocumentForm, createTextDocumentMutation, uploadDocumentMutation, uploadDescription, setUploadDescription, documents } = m;
     return (
         <SectionCard title="Retrieval documents" description="Ingest source files or direct text, chunk them, and use them as retrieval context in prompt runs.">
-            <div className="flex gap-[16px]">
+            <div className="flex gap-4">
                 <FormField
                     label="Document title"
                     value={textDocumentForm.title}
@@ -55,7 +55,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
                     value={uploadDescription}
                     onChange={(event: any) => setUploadDescription(event.target.value)} />
                 {documents.length > 0 ? (
-                    <div className="flex gap-[8px]">
+                    <div className="flex gap-2">
                         {documents.map((document) => (
                             <div key={document.id} style={({
                                 padding: 12,

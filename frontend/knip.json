@@ -4,7 +4,7 @@
     "scripts/**/*.{js,mjs,ts}"
   ],
   "project": [
-    "src/**/*.{ts,tsx,js,jsx}",
+    "src/**/*.{ts,tsx,js,jsx,css}",
     "scripts/**/*.{js,mjs,ts}"
   ],
   "ignoreIssues": {

@@ -1,4 +1,7 @@
-import type { EmailTemplate, FeatureFlag, PlatformConfig, SubscriptionPlan } from "../../../api/platform";
+import type { EmailTemplate } from "../../../api/platform/emailTemplates";
+import type { FeatureFlag } from "../../../api/platform/featureFlags";
+import type { PlatformConfig } from "../../../api/platform/config";
+import type { SubscriptionPlan } from "../../../api/platform/billing";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
 import { usePlatformAdminContent } from "../hooks/usePlatformAdminContent";

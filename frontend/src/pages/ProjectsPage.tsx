@@ -1,3 +1,4 @@
+import { notify } from "../lib/notify";
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { colorMix } from "@/lib/color";import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,15 +8,14 @@ import {
     Plus as AddIcon,
     CirclePlus as AddCircleOutlineIcon,
     FolderOpen as FolderOpenIcon,
-    ArrowRight as ArrowForwardIcon,
+    ArrowRight,
     X as CloseIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { projectPath } from "../app/routes";
+import { projectPath } from "@/config/routes";
 import { createProject, listProjects } from "../api/projects";
 import { queryKeys } from "../config/queryKeys";
 import { QUERY_STALE_TIMES } from "../config/queryTiming";
-import { useSnackbar } from "../app/snackbarContext";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PageShell } from "../components/ui/PageShell";
 import { QueryBoundary } from "../components/ui/QueryBoundary";
@@ -33,7 +33,6 @@ type ProjectValues = z.infer<typeof projectSchema>;
 export default function ProjectsPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const { showToast } = useSnackbar();
     const [, setCreateDrawerOpen] = useState(false);
     const { data: platformMetadata } = usePlatformMetadata();
     const { data: projects, isLoading, isError, error, refetch } = useQuery({
@@ -54,7 +53,7 @@ export default function ProjectsPage() {
             await queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
             reset();
             setCreateDrawerOpen(false);
-            showToast({ message: "Project created successfully.", severity: "success" });
+            notify({ message: "Project created successfully.", severity: "success" });
             navigate(projectPath(project.id));
         },
     });
@@ -164,8 +163,8 @@ export default function ProjectsPage() {
                                     backgroundColor: "var(--card)"
                                 })}
                             >
-                                <div className="flex gap-[10px]">
-                                    <div className="flex flex-row gap-[10px] items-center">
+                                <div className="flex gap-2.5">
+                                    <div className="flex flex-row gap-2.5 items-center">
                                         <div
                                             style={({
                                                 width: 42,
@@ -197,7 +196,7 @@ export default function ProjectsPage() {
                                             variant="ghost"
                                             onClick={() => navigate(projectPath(project.id))}
                                             type="button">Open workspace
-                                                                                    <ArrowForwardIcon /></Button>
+                                                                                    <ArrowRight /></Button>
                                     </div>
                                 </div>
                             </div>

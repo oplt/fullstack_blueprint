@@ -12,7 +12,7 @@ export function DatabaseSettingsSections({ settings, model }: { settings: Databa
     return (
         <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr", alignItems: "start" }}>
             <SectionCard title="Add database setting" description="Store arbitrary key/value settings inside the database.">
-                <div className="flex gap-[16px]">
+                <div className="flex gap-4">
                     {create.isSuccess && <div role="alert" className="rounded-lg border border-border p-3 text-sm">Database setting created.</div>}
                     {create.isError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{getQueryErrorMessage(create.error, "Failed to create database setting.")}</div>}
                     <FormField

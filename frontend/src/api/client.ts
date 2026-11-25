@@ -1,4 +1,5 @@
 const CSRF_COOKIE_NAME = import.meta.env.VITE_CSRF_COOKIE_NAME || "blueprint_csrf";
+const CSRF_HEADER_NAME = import.meta.env.VITE_CSRF_HEADER_NAME || "X-CSRF-Token";
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
 
 let refreshPromise: Promise<boolean> | null = null;
@@ -25,48 +26,83 @@ export class ApiError extends Error {
 }
 
 function readCookie(name: string): string | null {
-    const match = document.cookie.match(
-        new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}=([^;]*)`)
-    );
-    return match ? decodeURIComponent(match[1]) : null;
+    const prefix = name + "=";
+    const cookie = document.cookie.split(";").map(part => part.trim()).find(part => part.startsWith(prefix));
+    if (!cookie) return null;
+    try {
+        const token = decodeURIComponent(cookie.slice(prefix.length));
+        // The backend generates URL-safe tokens. An invalid cookie cannot authorize a write.
+        return /^[A-Za-z0-9_-]+$/.test(token) ? token : null;
+    } catch {
+        return null;
+    }
+}
+
+function request(path: string, options: RequestInit): Promise<Response> {
+    const headers = new Headers(options.headers);
+    if (typeof options.body === "string" && !headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+    }
+    if (!headers.has(CSRF_HEADER_NAME)) {
+        const token = readCookie(CSRF_COOKIE_NAME);
+        if (token) headers.set(CSRF_HEADER_NAME, token);
+    }
+    return fetch(API_BASE + path, { ...options, headers, credentials: "include" });
 }
 
 async function refreshAccessToken(): Promise<boolean> {
+    const refresh = async () => (await request("/auth/refresh", { method: "POST" })).ok;
     try {
-        const res = await fetch(`${API_BASE}/auth/refresh`, {
-            method: "POST",
-            credentials: "include",
-            headers: buildCsrfHeaders(),
-        });
-        return res.ok;
+        // Refresh rotates a single-use cookie. Serialize rotations across tabs.
+        return navigator.locks ? await navigator.locks.request("blueprint-auth-refresh", refresh) : await refresh();
     } catch {
         return false;
     }
 }
 
-function buildCsrfHeaders(): HeadersInit {
-    const csrfToken = readCookie(CSRF_COOKIE_NAME);
-    return csrfToken ? { "X-CSRF-Token": csrfToken } : {};
+async function waitForRefresh(signal?: AbortSignal | null): Promise<boolean> {
+    signal?.throwIfAborted();
+    refreshPromise ??= refreshAccessToken().finally(() => { refreshPromise = null; });
+    if (!signal) return refreshPromise;
+    const pending = refreshPromise;
+    return new Promise<boolean>((resolve, reject) => {
+        const abort = () => reject(signal.reason);
+        signal.addEventListener("abort", abort, { once: true });
+        void pending.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+    });
 }
 
-async function parseApiError(response: Response): Promise<ApiError> {
-    const payload = await response.json().catch(() => undefined) as
-        | { detail?: unknown; errors?: Record<string, string[]> }
-        | undefined;
-    const detail = typeof payload?.detail === "string"
-        ? payload.detail
-        : Array.isArray(payload?.detail)
-          ? payload.detail.map((item) => typeof item === "object" && item && "msg" in item ? String(item.msg) : String(item)).join("; ")
-          : "Request failed";
-    const fieldErrors: Record<string, string[]> = { ...(payload?.errors ?? {}) };
-    if (Array.isArray(payload?.detail)) {
-        for (const item of payload.detail) {
-            if (typeof item !== "object" || !item || !("loc" in item)) continue;
-            const location = Array.isArray(item.loc) ? item.loc.filter((part: unknown) => part !== "body").join(".") : "form";
-            const message = "msg" in item ? String(item.msg) : detail;
-            fieldErrors[location] = [...(fieldErrors[location] ?? []), message];
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function validationMessage(item: unknown): string {
+    return isRecord(item) && typeof item.msg === "string" ? item.msg : String(item);
+}
+
+function errorFields(payload: Record<string, unknown>) {
+    const result: Record<string, string[]> = Object.create(null);
+    if (isRecord(payload.errors)) {
+        for (const [key, value] of Object.entries(payload.errors)) {
+            if (Array.isArray(value)) result[key] = value.filter(item => typeof item === "string");
         }
     }
+    if (!Array.isArray(payload.detail)) return result;
+    for (const item of payload.detail) {
+        if (!isRecord(item) || !("loc" in item)) continue;
+        const key = Array.isArray(item.loc) ? item.loc.filter(part => part !== "body").join(".") : "form";
+        (result[key] ??= []).push(validationMessage(item));
+    }
+    return result;
+}
+
+async function parseApiError(response: Response, signal?: AbortSignal | null): Promise<ApiError> {
+    const json: unknown = await response.json().catch(() => undefined);
+    signal?.throwIfAborted();
+    const payload = isRecord(json) ? json : {};
+    const detail = typeof payload.detail === "string" ? payload.detail
+        : Array.isArray(payload.detail) ? payload.detail.map(validationMessage).join("; ") : "Request failed";
+    const fieldErrors = errorFields(payload);
     return new ApiError({
         status: response.status,
         detail,
@@ -90,69 +126,28 @@ export async function apiFetch<T>(
     options: RequestInit = {},
     retry = true
 ): Promise<T> {
-    const headers = new Headers(options.headers ?? {});
-    const isFormData = options.body instanceof FormData;
+    const response = await apiFetchStream(path, options, retry);
+    return response.status === 204 ? undefined as T : response.json();
+}
 
-    if (!isFormData && options.body !== undefined && !headers.has("Content-Type")) {
-        headers.set("Content-Type", "application/json");
-    }
-    if (!headers.has("X-CSRF-Token")) {
-        const csrfValue = readCookie(CSRF_COOKIE_NAME);
-        if (csrfValue) {
-            headers.set("X-CSRF-Token", csrfValue);
-        }
-    }
+const unauthenticatedRoutes = new Set([
+    "/auth/sign-in", "/auth/sign-up", "/auth/refresh", "/auth/forgot-password",
+    "/auth/reset-password", "/auth/verify-email", "/auth/resend-verification",
+]);
 
-    const response = await fetch(`${API_BASE}${path}`, {
-        ...options,
-        headers,
-        credentials: "include",
-    });
-
-    if (response.status === 401 && retry) {
-        // Deduplicate concurrent refresh attempts
-        if (!refreshPromise) {
-            refreshPromise = refreshAccessToken().finally(() => {
-                refreshPromise = null;
-            });
-        }
-        const refreshed = await refreshPromise;
-        if (!refreshed) {
-            throw new Error("Session expired. Please sign in again.");
-        }
-        return apiFetch<T>(path, options, false);
-    }
-
-    if (!response.ok) {
-        throw await parseApiError(response);
-    }
-
-    // Handle 204 No Content
-    if (response.status === 204) return undefined as T;
-
-    return response.json();
+function canRefreshRequest(path: string, options: RequestInit) {
+    const route = path.split("?", 1)[0].replace(/\/$/, "");
+    return !unauthenticatedRoutes.has(route) && !(options.body instanceof ReadableStream);
 }
 
 export async function apiFetchStream(path: string, options: RequestInit = {}, retry = true): Promise<Response> {
-    const headers = new Headers(options.headers ?? {});
-    const isFormData = options.body instanceof FormData;
-    if (!isFormData && options.body !== undefined && !headers.has("Content-Type")) {
-        headers.set("Content-Type", "application/json");
+    let response = await request(path, options);
+    if (response.status === 401 && retry && canRefreshRequest(path, options) && await waitForRefresh(options.signal)) {
+        options.signal?.throwIfAborted();
+        await response.body?.cancel();
+        response = await request(path, options);
     }
-    if (!headers.has("X-CSRF-Token")) {
-        const csrfValue = readCookie(CSRF_COOKIE_NAME);
-        if (csrfValue) headers.set("X-CSRF-Token", csrfValue);
-    }
-    const response = await fetch(`${API_BASE}${path}`, {
-        ...options,
-        headers,
-        credentials: "include",
-    });
-    if (response.status === 401 && retry) {
-        if (!refreshPromise) refreshPromise = refreshAccessToken().finally(() => { refreshPromise = null; });
-        if (await refreshPromise) return apiFetchStream(path, options, false);
-    }
-    if (!response.ok) throw await parseApiError(response);
+    if (!response.ok) throw await parseApiError(response, options.signal);
     return response;
 }
 

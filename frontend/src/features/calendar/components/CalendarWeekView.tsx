@@ -1,13 +1,15 @@
 import dayjs from "dayjs";
-import { formatTimeValue, getMinutesFromTimeString, getWeekItemColor } from "../calendarDisplay";
+import { formatTimeValue, getCalendarEventLayout, getMinutesFromTimeString } from "../calendarDisplay";
+import { EventBlock } from "./EventBlock";
+import { CalendarTimeAxis } from "./CalendarTimeAxis";
 import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 
 export function CalendarWeekView({ m }: { m: DashboardCalendarModel }) {
-const { anchorDate, itemsByDate, openDay } = m;
-    const weekDays = Array.from({ length: 7 }, (_: any, index: any) =>
+    const { anchorDate, itemsByDate, openDay } = m;
+    const weekDays = Array.from({ length: 7 }, (_, index) =>
         anchorDate.startOf("week").add(index, "day")
     );
-    const hourSlots = Array.from({ length: 10 }, (_: any, index: any) => 9 + index);
+    const hourSlots = Array.from({ length: 10 }, (_, index) => 9 + index);
     const rowHeight = 88;
     const dayColumnWidth = 194;
 
@@ -25,8 +27,7 @@ const { anchorDate, itemsByDate, openDay } = m;
 
                 return {
                     ...item,
-                    top: ((clampedStart - 9 * 60) / 60) * rowHeight,
-                    height: Math.max(((clampedEnd - clampedStart) / 60) * rowHeight, 44),
+                    ...getCalendarEventLayout(clampedStart, clampedEnd, 9 * 60, rowHeight, 44),
                 };
             });
     });
@@ -37,7 +38,7 @@ const { anchorDate, itemsByDate, openDay } = m;
     });
 
     return (
-        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div className="min-w-0 max-w-full overflow-x-auto">
             <div
                 style={({
                     borderRadius: 16,
@@ -77,7 +78,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                                 justifyContent: "center"
                             })}
                         >
-                            <div className="flex flex-row gap-[8px] items-center">
+                            <div className="flex flex-row gap-2 items-center">
                                 <p style={{ fontWeight: 600 }}>
                                     {day.format("ddd D")}
                                 </p>
@@ -131,30 +132,15 @@ const { anchorDate, itemsByDate, openDay } = m;
                             })}
                         >
                             <div className="flex gap-[6px]">
-                                {allDayItems.slice(0, 2).map((item) => {
-                                    const colors = getWeekItemColor(item);
-                                    return (
-                                        <div
-                                            key={item.id}
-                                            onClick={() => openDay(day)}
-                                            aria-label={`Open ${item.title} on ${day.format("dddd, MMMM D")}`}
-                                            style={{
-                                                width: "100%",
-                                                textAlign: "left",
-                                                paddingInline: 10,
-                                                paddingBlock: 6,
-                                                borderRadius: 8,
-                                                border: `1px solid ${colors.border}`,
-                                                backgroundColor: colors.bg,
-                                                color: colors.text,
-                                                cursor: "pointer",
-                                            }}>
-                                            <p style={{ fontWeight: 600 }}>
-                                                {item.title}
-                                            </p>
-                                        </div>
-                                    );
-                                })}
+                                {allDayItems.slice(0, 2).map((item) => (
+                                    <EventBlock
+                                        key={item.id}
+                                        item={item}
+                                        day={day}
+                                        onOpen={() => openDay(day)}
+                                        style={{ width: "100%" }}
+                                    />
+                                ))}
                                 {allDayItems.length > 2 && (
                                     <span className="text-muted-foreground">
                                         +{allDayItems.length - 2} more
@@ -165,29 +151,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                     );
                 })}
 
-                <div
-                    style={({
-                        position: "relative",
-                        borderRight: `1px solid ${"var(--border)"}`,
-                        backgroundColor: "var(--background)"
-                    })}
-                >
-                    {hourSlots.map((hour) => (
-                        <div
-                            key={hour}
-                            style={({
-                                height: rowHeight,
-                                paddingInline: 10,
-                                paddingTop: 6.4,
-                                borderBottom: `1px solid ${"var(--border)"}`
-                            })}
-                        >
-                            <p style={{ fontWeight: 600 }} className="text-muted-foreground">
-                                {dayjs().hour(hour).minute(0).format("h A")}
-                            </p>
-                        </div>
-                    ))}
-                </div>
+                <CalendarTimeAxis hours={hourSlots} rowHeight={rowHeight} paddingTop={6.4} />
                 {weekDays.map((day, dayIndex) => (
                     <div
                         key={`${day.format("YYYY-MM-DD")}-grid`}
@@ -207,38 +171,23 @@ const { anchorDate, itemsByDate, openDay } = m;
                                 })}
                             />
                         ))}
-                        {timedWeekItems[dayIndex].map((item) => {
-                            const colors = getWeekItemColor(item);
-                            return (
-                                <div
-                                    key={item.id}
-                                    onClick={() => openDay(day)}
-                                    aria-label={`Open ${item.title} on ${day.format("dddd, MMMM D")} at ${formatTimeValue(item.start_time ?? "09:00")}`}
-                                    style={{
-                                        position: "absolute",
-                                        top: item.top,
-                                        left: 8,
-                                        right: 8,
-                                        height: item.height,
-                                        paddingInline: 10,
-                                        paddingBlock: 8,
-                                        borderRadius: 8,
-                                        border: `1px solid ${colors.border}`,
-                                        backgroundColor: colors.bg,
-                                        color: colors.text,
-                                        cursor: "pointer",
-                                        overflow: "hidden",
-                                        textAlign: "left",
-                                    }}>
-                                    <p style={{ fontWeight: 700, lineHeight: 1.3 }}>
-                                        {item.title}
-                                    </p>
-                                    <p style={{ marginTop: 3.2 }}>
-                                        {formatTimeValue(item.start_time ?? "09:00")}
-                                    </p>
-                                </div>
-                            );
-                        })}
+                        {timedWeekItems[dayIndex].map((item) => (
+                            <EventBlock
+                                key={item.id}
+                                item={item}
+                                day={day}
+                                onOpen={() => openDay(day)}
+                                showTime
+                                timeLabel={formatTimeValue(item.start_time ?? "09:00")}
+                                style={{
+                                    position: "absolute",
+                                    top: item.top,
+                                    left: 8,
+                                    right: 8,
+                                    height: item.height,
+                                }}
+                            />
+                        ))}
                     </div>
                 ))}
             </div>

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import type { PlatformConfig } from "../../../api/platform";
+import type { PlatformConfig } from "../../../api/platform/config";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { getQueryErrorMessage } from "../../../utils/queryErrors";
 import type { PlatformAdminModel } from "../hooks/usePlatformAdminContent";
@@ -48,7 +48,7 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                     borderRadius: 16,
                     border: `1px solid ${"var(--border)"}`
                 })}>
-                    <div className="flex flex-row gap-[12px] justify-between"><div><p>MFA authentication</p><p className="text-muted-foreground">Show the authenticator code field on the login page.</p></div>
+                    <div className="flex flex-row gap-3 justify-between"><div><p>MFA authentication</p><p className="text-muted-foreground">Show the authenticator code field on the login page.</p></div>
                         <input
                             checked={draft.mfa_enabled}
                             onChange={(e: any) => set((v) => ({ ...v, mfa_enabled: e.target.checked }))}
@@ -62,7 +62,7 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                             borderRadius: 16,
                             border: `1px solid ${"var(--border)"}`
                         })}>
-                            <div className="flex flex-row gap-[12px] justify-between"><div><p>{item.label}</p><p className="text-muted-foreground">{item.description}</p></div>
+                            <div className="flex flex-row gap-3 justify-between"><div><p>{item.label}</p><p className="text-muted-foreground">{item.description}</p></div>
                                 <input
                                     checked={draft.module_states[item.key] ?? false}
                                     onChange={(e: any) => set((v) => ({ ...v, module_states: { ...v.module_states, [item.key]: e.target.checked } }))}

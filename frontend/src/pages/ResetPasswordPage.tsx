@@ -78,13 +78,13 @@ export default function ResetPasswordPage() {
                     <h4 style={{ marginTop: 4 }}>
                         Choose a new password
                     </h4>
-                    <span style={{ marginTop: 8 }} className="text-muted-foreground">
+                    <span className="mt-2 text-muted-foreground">
                         Use a secure password that you have not used elsewhere.
                     </span>
                 </div>
 
                 {done ? (
-                    <div className="flex gap-[16px]">
+                    <div className="flex gap-4">
                         <div role="alert" className="rounded-lg border border-border p-3 text-sm">Password reset successfully.</div>
                         <Button variant="default" render={<RouterLink to="/" />} type="button">
                             Return to sign in

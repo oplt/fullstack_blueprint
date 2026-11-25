@@ -72,19 +72,5 @@ ${paths}
 ${schemas}
 `;
 
-const clientOutput = `
-/** GENERATED FILE. Do not edit manually. */
-import { apiFetch } from "../client";
-import type { ApiPaths } from "./types";
-
-export type GeneratedPath = keyof ApiPaths;
-
-export function generatedRequest<TResponse = unknown>(path: GeneratedPath, options?: RequestInit): Promise<TResponse> {
-  const normalizedPath = String(path).replace(new RegExp("^/api/v1"), "");
-  return apiFetch<TResponse>(normalizedPath, options);
-}
-`;
-
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, output, "utf8");
-fs.writeFileSync(outputPath.replace(/types\.ts$/, "client.ts"), clientOutput, "utf8");

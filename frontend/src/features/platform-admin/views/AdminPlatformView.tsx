@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPlatformConfig, listAdminEmailTemplates, listAdminFeatureFlags, listAdminPlans } from "../../../api/platform";
+import { getPlatformConfig } from "../../../api/platform/config";
+import { listAdminEmailTemplates } from "../../../api/platform/emailTemplates";
+import { listAdminFeatureFlags } from "../../../api/platform/featureFlags";
+import { listAdminPlans } from "../../../api/platform/billing";
 import { queryKeys } from "../../../config/queryKeys";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
@@ -13,7 +16,7 @@ export default function AdminPlatformPage() {
     const flags = useQuery({ queryKey: queryKeys.platform.admin.featureFlags, queryFn: ({ signal }) => listAdminFeatureFlags({ signal }) });
     const templates = useQuery({ queryKey: queryKeys.platform.admin.emailTemplates, queryFn: ({ signal }) => listAdminEmailTemplates({ signal }) });
     if ([config, plans, flags, templates].some((query) => query.isLoading)) return (
-        <PageShell width="wide"><div className="flex gap-[16px]"><div
+        <PageShell width="wide"><div className="flex gap-4"><div
                 style={{ borderRadius: 24 }}
                 className="animate-pulse rounded-md bg-muted" /><div
                 style={{ borderRadius: 24 }}
@@ -22,7 +25,7 @@ export default function AdminPlatformPage() {
                 className="animate-pulse rounded-md bg-muted" /></div></PageShell>
     );
     if (!config.data || !plans.data || !flags.data || !templates.data) return (
-        <PageShell width="wide"><SettingsTabs /><div className="flex gap-[16px]" style={{ marginTop: 16 }}>
+        <PageShell width="wide"><SettingsTabs /><div className="mt-4 flex gap-4">
             {!config.data && <QueryErrorAlert error={config.error ?? new Error("Failed to load platform configuration.")} fallback="Failed to load platform configuration." title="Configuration" onRetry={() => void config.refetch()} />}
             {!plans.data && <QueryErrorAlert error={plans.error ?? new Error("Failed to load subscription plans.")} fallback="Failed to load subscription plans." title="Plans" onRetry={() => void plans.refetch()} />}
             {!flags.data && <QueryErrorAlert error={flags.error ?? new Error("Failed to load feature flags.")} fallback="Failed to load feature flags." title="Feature flags" onRetry={() => void flags.refetch()} />}

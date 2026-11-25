@@ -1,18 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight as ArrowForwardIcon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "../app/routes";
+import { ROUTES } from "@/config/routes";
 import { listProjects } from "../api/projects";
 import { queryKeys } from "../config/queryKeys";
 import { DashboardCalendar } from "../components/dashboard/DashboardCalendar";
 import { PageShell } from "../components/ui/PageShell";
 import { QueryBoundary } from "../components/ui/QueryBoundary";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
+import { useApplicationConfiguration } from "@/config/application/useConfiguration";
+import { capabilityAvailability, serverStateFromPlatformMetadata } from "@/config/application/capabilities";
 
 export default function CalendarPage() {
     const navigate = useNavigate();
     const { data: platformMetadata } = usePlatformMetadata();
+    const configuration = useApplicationConfiguration();
+    const projectsEnabled = capabilityAvailability(
+        "projects",
+        configuration,
+        serverStateFromPlatformMetadata(platformMetadata),
+    ).available;
     const {
         data: projects,
         isLoading: projectsLoading,
@@ -22,6 +30,7 @@ export default function CalendarPage() {
     } = useQuery({
         queryKey: queryKeys.projects.all,
         queryFn: ({ signal }) => listProjects({ signal }),
+        enabled: projectsEnabled,
     });
 
     const coreDomainPlural = platformMetadata?.core_domain_plural ?? "Projects";
@@ -29,25 +38,26 @@ export default function CalendarPage() {
     return (
         <PageShell width="wide">
             <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
-                <Button
+                {projectsEnabled && <Button
                     variant="outline"
                     onClick={() => navigate(ROUTES.projects)}
                     type="button"
                 >Open {coreDomainPlural}
-                    <ArrowForwardIcon /></Button>
+                    <ArrowRight /></Button>}
             </div>
 
             <QueryBoundary
-                isLoading={projectsLoading}
-                isError={projectsIsError}
+                isLoading={projectsEnabled && projectsLoading}
+                isError={projectsEnabled && projectsIsError}
                 error={projectsError}
                 errorFallback={`Failed to load ${coreDomainPlural.toLowerCase()}.`}
                 onRetry={() => void refetchProjects()}
                 loadingFallback={
                     <DashboardCalendar
                         projects={[]}
-                        projectsLoading
-                        onOpenProjects={() => navigate(ROUTES.projects)}
+                        projectsLoading={projectsEnabled}
+                        projectsEnabled={projectsEnabled}
+                        onOpenProjects={projectsEnabled ? () => navigate(ROUTES.projects) : undefined}
                         allowedViews={["day", "week", "month", "twelve_month"]}
                         initialView="twelve_month"
                     />
@@ -56,7 +66,8 @@ export default function CalendarPage() {
                 <DashboardCalendar
                     projects={projects ?? []}
                     projectsLoading={false}
-                    onOpenProjects={() => navigate(ROUTES.projects)}
+                    projectsEnabled={projectsEnabled}
+                    onOpenProjects={projectsEnabled ? () => navigate(ROUTES.projects) : undefined}
                     allowedViews={["day", "week", "month", "twelve_month"]}
                     initialView="twelve_month"
                 />

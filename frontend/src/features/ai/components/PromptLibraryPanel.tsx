@@ -8,8 +8,8 @@ export function PromptLibraryPanel({ m }: { m: AiStudioModel }) {
     const { templateForm, setTemplateForm, createTemplateMutation, promptTemplates, setSelectedTemplateId, selectedTemplateId } = m;
     return (
         <SectionCard title="Prompt library" description="Create reusable prompt templates and publish versioned variants with rollout and pricing metadata.">
-            <div className="flex gap-[16px]">
-                <div className="flex flex-col md:flex-row gap-[12px]">
+            <div className="flex gap-4">
+                <div className="flex flex-col md:flex-row gap-3">
                     <FormField
                         label="Template key"
                         value={templateForm.key}
@@ -33,22 +33,22 @@ export function PromptLibraryPanel({ m }: { m: AiStudioModel }) {
                     {createTemplateMutation.isPending ? "Creating..." : "Create prompt template"}
                 </Button>
                 {promptTemplates.length > 0 ? (
-                    <div className="flex gap-[10px]">
+                    <div className="flex gap-2.5">
                         {promptTemplates.map((template) => (
                             <div key={template.id} style={({
                                 padding: 16,
                                 borderRadius: 16,
                                 border: `1px solid ${"var(--border)"}`
                             })}>
-                                <div className="flex gap-[8px]">
-                                    <div className="flex flex-col sm:flex-row gap-[8px] justify-between">
+                                <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2 justify-between">
                                         <div>
                                             <p>{template.name}</p>
                                             <p className="text-muted-foreground">
                                                 {template.key}
                                             </p>
                                         </div>
-                                        <div className="flex flex-row gap-[8px] flex-wrap">
+                                        <div className="flex flex-row gap-2 flex-wrap">
                                             {template.is_active && <div
                                                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}
                                             {template.active_version_id && <div

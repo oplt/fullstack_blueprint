@@ -18,7 +18,7 @@ export default function AiStudioPage() {
     const { data: platform } = usePlatformMetadata();
     const ragEnabled = platform?.available_features?.includes("rag") ?? false;
     if (m.isLoading) return (
-        <PageShell width="wide"><SettingsTabs /><StatCardSkeletonGrid /><div className="flex gap-[16px]" style={{ marginTop: 16 }}><div className="animate-pulse rounded-md bg-muted" style={{
+        <PageShell width="wide"><SettingsTabs /><StatCardSkeletonGrid /><div className="mt-4 flex gap-4"><div className="animate-pulse rounded-md bg-muted" style={{
             height: 320
         }} /><div className="animate-pulse rounded-md bg-muted" style={{
             height: 280
@@ -43,13 +43,13 @@ export default function AiStudioPage() {
             <div
 
                 aria-label="AI Studio sections"
-                className="flex flex-row gap-[8px]"
+                className="flex flex-row gap-2"
                 style={{ marginTop: 16, overflowX: "auto", paddingBottom: 4, display: "" }}>
                 {sections.map(([id, label]) => <Button key={id} variant="outline" render={<a href={`#${id}`} />}>{label}</Button>)}
             </div>
             <div style={{ marginTop: 16, display: "grid", gap: 16, gridTemplateColumns: "1fr", alignItems: "start" }}>
-                <div className="flex gap-[16px]"><div id="ai-prompts" style={{ scrollMarginTop: 88 }}><PromptLibraryPanel m={m} /></div><div id="ai-runs" style={{ scrollMarginTop: 88 }}><RunPlaygroundPanel m={m} /></div></div>
-                <div className="flex gap-[16px]"><div id="ai-versions" style={{ scrollMarginTop: 88 }}><VersionBuilderPanel m={m} /></div>{ragEnabled && <div id="ai-documents" style={{ scrollMarginTop: 88 }}><RetrievalDocumentsPanel m={m} /></div>}<div id="ai-evaluations" style={{ scrollMarginTop: 88 }}><ReviewsEvaluationsPanel m={m} /></div></div>
+                <div className="flex gap-4"><div id="ai-prompts" style={{ scrollMarginTop: 88 }}><PromptLibraryPanel m={m} /></div><div id="ai-runs" style={{ scrollMarginTop: 88 }}><RunPlaygroundPanel m={m} /></div></div>
+                <div className="flex gap-4"><div id="ai-versions" style={{ scrollMarginTop: 88 }}><VersionBuilderPanel m={m} /></div>{ragEnabled && <div id="ai-documents" style={{ scrollMarginTop: 88 }}><RetrievalDocumentsPanel m={m} /></div>}<div id="ai-evaluations" style={{ scrollMarginTop: 88 }}><ReviewsEvaluationsPanel m={m} /></div></div>
             </div>
         </PageShell>
     );

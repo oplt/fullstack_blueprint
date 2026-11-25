@@ -1,46 +1,24 @@
-import { useEffect, useLayoutEffect, useMemo, useState, type PropsWithChildren } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore, type PropsWithChildren } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import {
     applyTheme,
+    getBrowserStorage,
+    prefersDarkMode,
+    subscribeToSystemMode,
     loadThemePreferences,
     saveThemePreferences,
     type ThemePreferences,
 } from "./theme";
 import { queryClient } from "../config/queryClient";
 import { AuthProvider } from "../features/auth/context/AuthContext";
-import { SnackbarProvider } from "./SnackbarProvider";
 import { ColorModeContext } from "./colorModeContext";
 import { Toaster } from "../components/ui/sonner";
 import { I18nextProvider } from "react-i18next";
 import { i18nInstance, setLanguage } from "../i18n/config";
 import { useLanguage } from "../i18n/useLanguage";
-import { ApplicationConfigurationProvider } from "./configuration/context";
-import { useApplicationConfiguration } from "./configuration/useConfiguration";
-import type { ApplicationConfiguration, ApplicationConfigurationInput } from "./configuration/types";
-
-function getBrowserStorage(): Storage | undefined {
-    if (typeof window === "undefined") {
-        return undefined;
-    }
-
-    try {
-        return window.localStorage;
-    } catch {
-        return undefined;
-    }
-}
-
-function usePrefersDark(): boolean {
-    const [matches, setMatches] = useState(false);
-    useEffect(() => {
-        const media = window.matchMedia("(prefers-color-scheme: dark)");
-        const update = () => setMatches(media.matches);
-        update();
-        media.addEventListener("change", update);
-        return () => media.removeEventListener("change", update);
-    }, []);
-    return matches;
-}
+import { ApplicationConfigurationProvider } from "@/config/application/context";
+import { useApplicationConfiguration } from "@/config/application/useConfiguration";
+import type { ApplicationConfiguration, ApplicationConfigurationInput } from "@/config/application/types";
 
 export function AppProviders({ children, configuration }: PropsWithChildren<{ configuration?: ApplicationConfiguration | ApplicationConfigurationInput }>) {
     return <ApplicationConfigurationProvider configuration={configuration}><ConfiguredProviders>{children}</ConfiguredProviders></ApplicationConfigurationProvider>;
@@ -48,7 +26,7 @@ export function AppProviders({ children, configuration }: PropsWithChildren<{ co
 
 function ConfiguredProviders({ children }: PropsWithChildren) {
     const [preferences, setPreferences] = useState<ThemePreferences>(() => loadThemePreferences(getBrowserStorage()));
-    const prefersDark = usePrefersDark();
+    const prefersDark = useSyncExternalStore(subscribeToSystemMode, prefersDarkMode, () => false);
     const resolvedMode = preferences.colorMode === "system"
         ? prefersDark
             ? "dark"
@@ -66,10 +44,11 @@ function ConfiguredProviders({ children }: PropsWithChildren) {
     const contextValue = useMemo(
         () => ({
             colorMode: preferences.colorMode,
+            resolvedMode,
             setColorMode: (colorMode: ThemePreferences["colorMode"]) =>
                 setPreferences((current) => ({ ...current, colorMode })),
         }),
-        [preferences],
+        [preferences, resolvedMode],
     );
 
     return (
@@ -78,10 +57,8 @@ function ConfiguredProviders({ children }: PropsWithChildren) {
                 <ColorModeContext.Provider value={contextValue}>
                     <QueryClientProvider client={queryClient}>
                         <AuthProvider>
-                            <SnackbarProvider>
-                                <Toaster position="bottom-center" />
-                                {children}
-                            </SnackbarProvider>
+                            <Toaster theme={resolvedMode} position="bottom-center" />
+                            {children}
                         </AuthProvider>
                     </QueryClientProvider>
                 </ColorModeContext.Provider>

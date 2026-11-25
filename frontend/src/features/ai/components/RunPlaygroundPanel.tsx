@@ -9,10 +9,10 @@ import { aiRunDraftSchema, firstSchemaError, formatCostMicros, parseJsonObject }
 import type { AiStudioModel } from "../hooks/useAiStudioView";
 
 export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
-    const { runForm, setRunForm, templateKeyOptions, documents, selectedDocumentIds, toggleDocument, createRunMutation, showToast, recentRuns, createReviewMutation, createFeedbackMutation, feedbackCommentByRunId, setFeedbackCommentByRunId, correctionsById, setCorrectionsById } = m;
+    const { runForm, setRunForm, templateKeyOptions, documents, selectedDocumentIds, toggleDocument, createRunMutation, notify, recentRuns, createReviewMutation, createFeedbackMutation, feedbackCommentByRunId, setFeedbackCommentByRunId, correctionsById, setCorrectionsById } = m;
     return (
         <SectionCard title="Run playground" description="Execute prompt versions with structured variables, retrieval context, and human-review routing.">
-            <div className="flex gap-[16px]">
+            <div className="flex gap-4">
                 <FormField
                     as="select"
                     label="Prompt template"
@@ -38,7 +38,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                     label="Top K chunks"
                     value={runForm.top_k}
                     onChange={(event: any) => setRunForm((current) => ({ ...current, top_k: event.target.value }))} />
-                <div className="flex flex-row gap-[8px] flex-wrap">
+                <div className="flex flex-row gap-2 flex-wrap">
                     {documents.map((document) => (
                         <div
                             key={document.id}
@@ -57,7 +57,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                     onClick={() => {
                         const result = aiRunDraftSchema.safeParse(runForm);
                         if (!result.success) {
-                            showToast({ message: firstSchemaError(result), severity: "error" });
+                            notify({ message: firstSchemaError(result), severity: "error" });
                             return;
                         }
                         createRunMutation.mutate({
@@ -74,15 +74,15 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                     {createRunMutation.isPending ? "Running..." : "Run prompt"}
                 </Button>
                 {recentRuns.length > 0 ? (
-                    <div className="flex gap-[10px]">
+                    <div className="flex gap-2.5">
                         {recentRuns.map((run) => (
                             <div key={run.id} style={({
                                 padding: 16,
                                 borderRadius: 16,
                                 border: `1px solid ${"var(--border)"}`
                             })}>
-                                <div className="flex gap-[8px]">
-                                    <div className="flex flex-col sm:flex-row gap-[8px] justify-between">
+                                <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2 justify-between">
                                         <p>
                                             {run.provider_key}/{run.model_name}
                                         </p>
@@ -110,7 +110,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                                             style={{ alignSelf: "flex-start" }}
                                             className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                     )}
-                                    <div className="flex flex-col sm:flex-row gap-[8px]">
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                         <Button
                                             variant="outline"
                                             onClick={() => createReviewMutation.mutate(run.id)}

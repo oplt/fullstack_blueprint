@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -7,6 +8,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
 const isStorybook = process.env.STORYBOOK === '1' || process.argv.some((argument) => argument.includes('storybook'))
+
+function readCssToken(name: string) {
+  const css = readFileSync(path.join(rootDir, 'src/index.css'), 'utf8')
+  const value = css.match(new RegExp(`--${name}:\\s*(#[\\da-fA-F]{6});`))?.[1]
+  if (!value) throw new Error(`Missing hexadecimal CSS token: --${name}`)
+  return value
+}
 
 function manualChunk(id: string) {
   const normalizedId = id.replaceAll('\\\\', '/')
@@ -45,8 +53,8 @@ export default defineConfig({
         name: 'Fullstack Blueprint',
         short_name: 'Blueprint',
         description: 'Fullstack application workspace',
-        theme_color: '#2563EB',
-        background_color: '#F8FAFC',
+        theme_color: readCssToken('primary'),
+        background_color: readCssToken('background'),
         display: 'standalone',
         start_url: '/?source=pwa',
         scope: '/',

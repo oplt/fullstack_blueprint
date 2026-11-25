@@ -19,9 +19,10 @@ function AuthProbe() {
 describe("AuthProvider", () => {
     afterEach(() => vi.clearAllMocks());
 
-    it("clears identity-scoped queries when logout fails", async () => {
+    it.each(["succeeds", "fails"])("clears identity-scoped queries when logout %s", async outcome => {
         vi.mocked(me).mockResolvedValue({ id: "user-1", email: "user@example.com", full_name: "User", is_verified: true });
-        vi.mocked(logout).mockRejectedValue(new Error("network unavailable"));
+        if (outcome === "fails") vi.mocked(logout).mockRejectedValue(new Error("network unavailable"));
+        else vi.mocked(logout).mockResolvedValue(undefined);
         const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
         queryClient.setQueryData(["projects", "private"], { secret: true });
 

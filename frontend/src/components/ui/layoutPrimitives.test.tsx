@@ -37,8 +37,11 @@ describe("PageHeader", () => {
         expect(screen.getByText("Ready")).toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Primary" }));
         expect(onPrimary).toHaveBeenCalled();
-        await user.click(screen.getByRole("button", { name: "More actions" }));
-        await user.click(screen.getByRole("menuitem", { name: "Export" }));
+        const trigger = screen.getByRole("button", { name: "More actions" });
+        trigger.focus();
+        await user.keyboard("{ArrowDown}");
+        expect(await screen.findByRole("menuitem", { name: "Export" })).toHaveFocus();
+        await user.keyboard("{Enter}");
         expect(onOverflow).toHaveBeenCalled();
     });
 });

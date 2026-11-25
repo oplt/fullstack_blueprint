@@ -1,4 +1,4 @@
-import { emptyAiWorkspaceState, type AiStreamEvent, type AiWorkspaceState } from "./types";
+import type { AiStreamEvent, AiWorkspaceState } from "./types";
 
 export function reduceAiWorkspaceEvent(state: AiWorkspaceState, event: AiStreamEvent): AiWorkspaceState {
     if (event.eventId && state.seenEventIds.includes(event.eventId)) return state;
@@ -19,8 +19,4 @@ export function reduceAiWorkspaceEvent(state: AiWorkspaceState, event: AiStreamE
         case "run_cancelled": return { ...base, status: "cancelled", messages: base.messages.map((message) => ({ ...message, streaming: false })) };
         case "run_failed": return { ...base, status: "failed", error: event.message, messages: base.messages.map((message) => ({ ...message, streaming: false })) };
     }
-}
-
-export function resetAiWorkspaceState(): AiWorkspaceState {
-    return { ...emptyAiWorkspaceState, messages: [], toolCalls: [], approvals: [], artifacts: [], seenEventIds: [] };
 }

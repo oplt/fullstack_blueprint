@@ -23,7 +23,7 @@ export function TaskBoardCard({ task, selected, isDragging, onSelect, onDragStar
             border: `1px solid ${selected ? "var(--primary)" : "var(--border)"}`,
             backgroundColor: selected ? colorMix("var(--primary)", 0.12) : "var(--card)"
         })}>
-            <div className="flex gap-[10px]"><div className="flex flex-row gap-[8px] justify-between"><p>{task.title}</p><DragIcon fontSize="small" color="action" /></div><p className="text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
+            <div className="flex gap-2.5"><div className="flex flex-row gap-2 justify-between"><p>{task.title}</p><DragIcon fontSize="small" color="action" /></div><p className="text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
                 <FormField
                     as="select"
                     label="Move to"
@@ -43,6 +43,6 @@ export function TaskListCard({ task, selected, onSelect }: { task: ProjectTask; 
             cursor: "pointer",
             border: `1px solid ${selected ? "var(--primary)" : "var(--border)"}`,
             backgroundColor: selected ? colorMix("var(--primary)", (0.18 + 0.06) / 2) : "var(--card)"
-        })}><div className="flex gap-[10px]"><div className="flex flex-col md:flex-row gap-[8px] justify-between"><div><p>{task.title}</p><p className="text-muted-foreground">{task.description || "No task notes yet."}</p></div><span className="text-muted-foreground">Updated {formatDateTime(task.updated_at)}</span></div><Meta task={task} /></div></div>
+        })}><div className="flex gap-2.5"><div className="flex flex-col md:flex-row gap-2 justify-between"><div><p>{task.title}</p><p className="text-muted-foreground">{task.description || "No task notes yet."}</p></div><span className="text-muted-foreground">Updated {formatDateTime(task.updated_at)}</span></div><Meta task={task} /></div></div>
     );
 }

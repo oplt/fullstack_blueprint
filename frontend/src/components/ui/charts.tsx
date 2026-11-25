@@ -65,5 +65,5 @@ export function DonutChartCard({ title, description, data, nameKey, valueKey, co
 
 export function TrendIndicator({ value, label, positiveIsGood = true }: { value: number; label?: string; positiveIsGood?: boolean }) {
     const positive = positiveIsGood ? value >= 0 : value <= 0;
-    return <span className={positive ? "text-emerald-600" : "text-destructive"}>{value >= 0 ? "↑" : "↓"} {Math.abs(value).toFixed(1)}%{label ? ` ${label}` : ""}</span>;
+    return <span className={positive ? "text-success" : "text-destructive"}>{value >= 0 ? "↑" : "↓"} {Math.abs(value).toFixed(1)}%{label ? ` ${label}` : ""}</span>;
 }

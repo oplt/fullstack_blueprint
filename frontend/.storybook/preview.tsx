@@ -1,16 +1,27 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { Decorator, Preview } from "@storybook/react-vite";
-import { useEffect, type PropsWithChildren } from "react";
+import { useEffect, useLayoutEffect, type PropsWithChildren } from "react";
 import { I18nextProvider } from "react-i18next";
 import { MemoryRouter } from "react-router-dom";
 import { mswLoader } from "msw-storybook-addon/csf3";
 import "../src/index.css";
-import { applyTheme, type ThemePreset, type ThemePreferences } from "../src/app/theme";
+import { applyTheme } from "../src/app/theme";
 import { i18nInstance, setLanguage } from "../src/i18n/config";
 import { handlers } from "../src/mocks/handlers";
 
 function StoryEnvironment({ children, theme, language }: PropsWithChildren<{ theme: "light" | "dark"; language: "en" | "nl" | "fr" }>) {
-    useEffect(() => { const preferences: ThemePreferences = { colorMode: theme, preset: "minimal-saas" as ThemePreset, density: "comfortable", radius: "md" }; applyTheme(preferences, theme); void setLanguage(language); }, [language, theme]);
+    useLayoutEffect(() => {
+        const root = document.documentElement;
+        const previousTheme = root.dataset.theme;
+        const previousDark = root.classList.contains("dark");
+        applyTheme(theme);
+        return () => {
+            if (previousTheme === undefined) delete root.dataset.theme;
+            else root.dataset.theme = previousTheme;
+            root.classList.toggle("dark", previousDark);
+        };
+    }, [theme]);
+    useEffect(() => { void setLanguage(language); }, [language]);
     return <I18nextProvider i18n={i18nInstance}><MemoryRouter>{children}</MemoryRouter></I18nextProvider>;
 }
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { runStatusAriaLabel } from "../../app/a11y";
+import { runStatusAriaLabel } from "@/utils/a11y";
 import { SkipToContentLink } from "./SkipToContentLink";
 import { RunStatusBadge } from "./RunStatusBadge";
 import { RunStatusPanel } from "./RunStatusPanel";

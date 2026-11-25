@@ -19,7 +19,7 @@
     "typecheck": "tsc -b",
     "audit": "npm audit --audit-level=high",
     "api:export": "cd .. && ${BACKEND_PYTHON:-backend/.venv/bin/python} backend/scripts/export_openapi.py --output frontend/src/api/generated/openapi.json",
-    "api:generate": "node scripts/generate-api-types.mjs && npx --no-install openapi-ts -i \"$PWD/src/api/generated/openapi.json\" -o \"$PWD/src/api/generated/hey\" --client @hey-api/client-fetch --silent",
+    "api:generate": "node scripts/generate-api-types.mjs",
     "api:generate:all": "npm run api:export && npm run api:generate",
     "api:check": "node scripts/check-api-contract.mjs",
     "preview": "vite preview",
@@ -57,12 +57,12 @@
     "react-router-dom": "^7.18.3",
     "recharts": "^3.11.1",
     "sonner": "^2.0.8",
+    "tailwindcss": "^4.3.5",
     "tailwind-merge": "^3.7.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@hey-api/openapi-ts": "^0.99.0",
     "@playwright/test": "^1.65.1",
     "@storybook/addon-a11y": "^10.6.8",
     "@storybook/react-vite": "^10.6.8",

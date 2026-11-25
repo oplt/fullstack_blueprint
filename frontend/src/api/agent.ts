@@ -1,36 +1,11 @@
 import { apiFetch, type ApiRequestOptions, type Paginated } from "./client";
+import type { AiRun } from "./ai/runs";
 
 const BASE = "/agent";
 
-export type AgentRun = {
-    id: string;
-    prompt_template_id: string | null;
-    prompt_version_id: string | null;
+export type AgentRun = AiRun & {
     agent_id: string | null;
     agent_run_id: string | null;
-    provider_key: string;
-    model_name: string;
-    status: string;
-    response_format: string;
-    variables: Record<string, unknown>;
-    retrieval_query: string | null;
-    retrieved_chunk_ids: string[];
-    retrieval_degraded: boolean;
-    memory_degraded: boolean;
-    degradation_reason: string | null;
-    injection_chunks_filtered: number;
-    input_messages: Array<{ role: string; content: string }>;
-    output_text: string | null;
-    output_json: Record<string, unknown> | null;
-    latency_ms: number | null;
-    input_tokens: number;
-    output_tokens: number;
-    total_tokens: number;
-    estimated_cost_micros: number;
-    error_message: string | null;
-    review_status: string;
-    created_at: string;
-    completed_at: string | null;
     memory_run_id: string;
 };
 

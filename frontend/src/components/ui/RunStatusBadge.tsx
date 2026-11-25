@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "./badge";
-import { runStatusAriaLabel } from "../../app/a11y";
+import { runStatusAriaLabel } from "@/utils/a11y";
 import { runStatusLabel, runStatusTone } from "./runStatusModel";
 
 type RunStatusBadgeProps = { status: string | null | undefined; size?: "sm" | "default"; showRaw?: boolean };

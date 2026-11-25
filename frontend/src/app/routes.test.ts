@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ADMIN_ROUTES, FEATURE_ROUTES, ROUTES, projectPath } from "./routes";
+import { ADMIN_ROUTES, FEATURE_ROUTES, ROUTES, projectPath } from "@/config/routes";
 import { parseEnumParam, parsePositiveIntParam, parseRequiredParam } from "./searchParams";
 
 describe("route contract", () => {
