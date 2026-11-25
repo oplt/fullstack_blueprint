@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Switch } from "@/components/ui/switch";
 import type { FeatureFlag } from "../../../api/platform/featureFlags";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { PlatformAdminModel } from "../hooks/usePlatformAdminContent";
@@ -15,11 +15,11 @@ export function FlagsSection({ flags, model }: { flags: FeatureFlag[]; model: Pl
                                     <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr" }}>
                                         <FormField label="Key" value={n.key} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, key: e.target.value }))} /><FormField label="Name" value={n.name} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, name: e.target.value }))} />
                                         <FormField label="Module key" value={n.module_key} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, module_key: e.target.value }))} /><FormField label="Rollout %" value={n.rollout_percentage} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, rollout_percentage: e.target.value }))} />
-                                    </div><FormField label="Description" value={n.description} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, description: e.target.value }))} /><label><input
+                                    </div><FormField label="Description" value={n.description} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, description: e.target.value }))} /><Switch
+                                        aria-label="Enable new feature flag"
                                         checked={n.is_enabled}
-                                        onChange={(e: any) => model.setNewFlag((v) => ({ ...v, is_enabled: e.target.checked }))}
-                                        type="checkbox"
-                                        role="switch" /></label>
+                                        onCheckedChange={(checked) => model.setNewFlag((v) => ({ ...v, is_enabled: checked }))}
+                                    />
                                     <Button
                                         variant="default"
                                         disabled={model.createFlagMutation.isPending || n.key.trim().length < 2}
@@ -33,11 +33,11 @@ export function FlagsSection({ flags, model }: { flags: FeatureFlag[]; model: Pl
                                         border: `1px solid ${"var(--border)"}`
                                     })}><div className="flex gap-3"><p>{flag.key}</p>
                                                             <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr" }}><FormField label="Name" value={d.name} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, name: e.target.value } }))} /><FormField label="Module key" value={d.module_key} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, module_key: e.target.value } }))} /><FormField label="Rollout %" value={d.rollout_percentage} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, rollout_percentage: e.target.value } }))} /></div>
-                                                            <FormField label="Description" value={d.description} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, description: e.target.value } }))} /><label><input
+                                                            <FormField label="Description" value={d.description} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, description: e.target.value } }))} /><Switch
+                                                                aria-label={`Enable feature flag ${flag.key}`}
                                                                 checked={d.is_enabled}
-                                                                onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, is_enabled: e.target.checked } }))}
-                                                                type="checkbox"
-                                                                role="switch" /></label><Button
+                                                                onCheckedChange={(checked) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, is_enabled: checked } }))}
+                                                            /><Button
                                                             variant="outline"
                                                             disabled={saving}
                                                             onClick={() => model.updateFlagMutation.mutate({ id: flag.id, draft: d })}

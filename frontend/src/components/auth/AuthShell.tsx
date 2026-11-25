@@ -1,2 +1,30 @@
-type AuthShellProps = { sideContent: React.ReactNode; children: React.ReactNode };
-export function AuthShell({ sideContent, children }: AuthShellProps) { return <main className="flex min-h-screen items-center bg-background px-4 py-6 sm:px-6 sm:py-8"><div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-stretch gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)]"><section className="overflow-hidden rounded-xl border border-border bg-muted/40 p-6 shadow-none md:p-10">{sideContent}</section><section className="flex min-h-[600px] items-center justify-center rounded-xl border border-border bg-card p-6 shadow-none md:p-8"><div className="w-full max-w-[440px]">{children}</div></section></div></main>; }
+
+import type { ReactNode } from "react";
+
+type AuthShellProps = {
+    sideContent: ReactNode;
+    children: ReactNode;
+};
+
+export function AuthShell({
+    sideContent,
+    children,
+}: AuthShellProps) {
+    return (
+        <main className="flex min-h-dvh w-full items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
+
+                <section className="hidden min-w-0 overflow-hidden rounded-2xl border border-border bg-muted/40 p-8 lg:block xl:p-12">
+                    {sideContent}
+                </section>
+
+                <section className="flex min-w-0 items-center justify-center rounded-2xl border border-border bg-card px-5 py-10 sm:px-8 sm:py-12 lg:min-h-[640px] xl:px-12">
+                    <div className="mx-auto w-full min-w-0 max-w-md">
+                        {children}
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    );
+}

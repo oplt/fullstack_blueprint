@@ -21,6 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import { EmptyState } from "./EmptyState";
 import { Input } from "./input";
+import { Checkbox } from "./checkbox";
+import { NativeSelect } from "./native-select";
 
 export type AdvancedDataTableProps<T> = {
     columns: ColumnDef<T, unknown>[];
@@ -203,7 +205,7 @@ export function AdvancedDataTable<T>({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {toolbarEnd}
-                    {enableColumnVisibility ? <Popover><PopoverTrigger className="flex size-8 items-center justify-center rounded-md border border-border hover:bg-muted" aria-label="Column visibility"><SlidersHorizontal className="size-4" /></PopoverTrigger><PopoverContent align="end" className="w-52 p-2">{table.getAllLeafColumns().map((column) => <label key={column.id} className="flex items-center gap-2 p-1 text-sm"><input type="checkbox" checked={column.getIsVisible()} disabled={!column.getCanHide()} onChange={column.getToggleVisibilityHandler()} />{column.id}</label>)}</PopoverContent></Popover> : null}
+                    {enableColumnVisibility ? <Popover><PopoverTrigger className="flex size-8 items-center justify-center rounded-md border border-border hover:bg-muted" aria-label="Column visibility"><SlidersHorizontal className="size-4" /></PopoverTrigger><PopoverContent align="end" className="w-52 p-2">{table.getAllLeafColumns().map((column) => <label key={column.id} className="flex items-center gap-2 p-1 text-sm"><Checkbox checked={column.getIsVisible()} disabled={!column.getCanHide()} onCheckedChange={(checked) => column.toggleVisibility(checked)} />{column.id}</label>)}</PopoverContent></Popover> : null}
                     {csvFileName || onExport ? <Button variant="outline" onClick={exportRows} type="button"><Download className="mr-2 size-4" />Export CSV</Button> : null}
                 </div>
             </div>
@@ -212,13 +214,13 @@ export function AdvancedDataTable<T>({
                 <table className={`w-full border-collapse text-sm ${density === "compact" ? "[&_td]:py-0.5 [&_th]:py-1" : "[&_td]:py-1.5 [&_th]:py-1.5"}`} aria-label={ariaLabel} aria-busy={loading}>
                     <thead className={stickyHeader ? "sticky top-0 z-10 bg-muted/95" : "bg-muted/60"}><tr>
                         {enableExpanding ? <th scope="col" className="w-10 p-2" /> : null}
-                        {enableRowSelection ? <th scope="col" className="w-10 p-2"><input type="checkbox" aria-label="Select all rows" checked={table.getIsAllRowsSelected()} ref={(element) => { if (element) element.indeterminate = table.getIsSomeRowsSelected(); }} onChange={table.getToggleAllRowsSelectedHandler()} /></th> : null}
+                        {enableRowSelection ? <th scope="col" className="w-10 p-2"><Checkbox aria-label="Select all rows" checked={table.getIsAllRowsSelected()} indeterminate={table.getIsSomeRowsSelected()} onCheckedChange={(checked) => table.toggleAllRowsSelected(checked)} /></th> : null}
                         {table.getHeaderGroups().map((group) => group.headers.map((header) => <th key={header.id} scope="col" className={`relative whitespace-nowrap border-b border-border px-3 text-left font-semibold ${stickyFirstColumn && header.column.getIndex() === 0 ? "sticky left-0 z-10 bg-muted" : ""}`} style={{ width: header.getSize() }}>{header.isPlaceholder ? null : <div className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined} onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === "asc" ? " ↑" : header.column.getIsSorted() === "desc" ? " ↓" : null}</div>}{enableColumnResizing && header.column.getCanResize() ? <span onMouseDown={header.getResizeHandler()} onTouchStart={header.getResizeHandler()} className="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary" aria-hidden="true" /> : null}</th>))}
                     </tr></thead>
                     <tbody>{table.getRowModel().rows.map((row) => <>
                         <tr key={row.id} onClick={(event) => { if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea, label")) return; onRowClick?.(row.original); }} className={selectedRowId === row.id ? "border-b border-border bg-primary/10" : "border-b border-border hover:bg-muted/30"} aria-selected={selectedRowId === row.id || row.getIsSelected()}>
-                            {enableExpanding ? <td className="p-2"><button type="button" aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"} onClick={row.getToggleExpandedHandler()}>{row.getIsExpanded() ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}</button></td> : null}
-                            {enableRowSelection ? <td className="p-2"><input type="checkbox" aria-label={`Select row ${row.id}`} checked={row.getIsSelected()} disabled={!row.getCanSelect()} onChange={row.getToggleSelectedHandler()} /></td> : null}
+                            {enableExpanding ? <td className="p-2"><Button variant="ghost" size="icon-sm" aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"} onClick={row.getToggleExpandedHandler()} type="button">{row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}</Button></td> : null}
+                            {enableRowSelection ? <td className="p-2"><Checkbox aria-label={`Select row ${row.id}`} checked={row.getIsSelected()} disabled={!row.getCanSelect()} onCheckedChange={(checked) => row.toggleSelected(checked)} /></td> : null}
                             {row.getVisibleCells().map((cell) => <td key={cell.id} className={`px-3 align-top ${stickyFirstColumn && cell.column.getIndex() === 0 ? "sticky left-0 bg-card" : ""}`}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}
                         </tr>
                         {row.getIsExpanded() ? <tr key={`${row.id}-expanded`}><td colSpan={colSpan} className="bg-muted/20 p-3">{renderSubComponent?.(row.original)}</td></tr> : null}
@@ -227,7 +229,7 @@ export function AdvancedDataTable<T>({
             </div>}
             <div className="flex flex-col justify-between gap-2 text-sm sm:flex-row sm:items-center">
                 <span className="text-muted-foreground">{table.getFilteredRowModel().rows.length} result{table.getFilteredRowModel().rows.length === 1 ? "" : "s"}</span>
-                <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows <select value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="rounded border border-input bg-background px-1 py-1">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</select></label><Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()} type="button">Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} type="button">Next</Button></div>
+                <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows <NativeSelect value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="min-h-8 px-1 py-1">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</NativeSelect></label><Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()} type="button">Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} type="button">Next</Button></div>
             </div>
         </section>
     );

@@ -44,6 +44,7 @@
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cn": "^0.5.2",
     "date-fns": "^4.4.0",
     "dayjs": "^1.11.20",
     "i18next": "^27.2.7",
@@ -57,8 +58,8 @@
     "react-router-dom": "^7.18.3",
     "recharts": "^3.11.1",
     "sonner": "^2.0.8",
-    "tailwindcss": "^4.3.5",
     "tailwind-merge": "^3.7.1",
+    "tailwindcss": "^4.3.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {

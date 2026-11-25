@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Switch } from "@/components/ui/switch";
 import type { PlatformConfig } from "../../../api/platform/config";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { getQueryErrorMessage } from "../../../utils/queryErrors";
@@ -49,11 +49,10 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                     border: `1px solid ${"var(--border)"}`
                 })}>
                     <div className="flex flex-row gap-3 justify-between"><div><p>MFA authentication</p><p className="text-muted-foreground">Show the authenticator code field on the login page.</p></div>
-                        <input
+                        <Switch
+                            aria-label="Enable multi-factor authentication"
                             checked={draft.mfa_enabled}
-                            onChange={(e: any) => set((v) => ({ ...v, mfa_enabled: e.target.checked }))}
-                            type="checkbox"
-                            role="switch" /></div>
+                            onCheckedChange={(checked) => set((v) => ({ ...v, mfa_enabled: checked }))} /></div>
                 </div>
                 <div><p style={{ marginBottom: 10 }}>Module access</p>
                     <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr" }}>
@@ -63,11 +62,10 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                             border: `1px solid ${"var(--border)"}`
                         })}>
                             <div className="flex flex-row gap-3 justify-between"><div><p>{item.label}</p><p className="text-muted-foreground">{item.description}</p></div>
-                                <input
+                                <Switch
+                                    aria-label={`Enable ${item.label}`}
                                     checked={draft.module_states[item.key] ?? false}
-                                    onChange={(e: any) => set((v) => ({ ...v, module_states: { ...v.module_states, [item.key]: e.target.checked } }))}
-                                    type="checkbox"
-                                    role="switch" /></div>
+                                    onCheckedChange={(checked) => set((v) => ({ ...v, module_states: { ...v.module_states, [item.key]: checked } }))} /></div>
                         </div>)}
                     </div>
                 </div>

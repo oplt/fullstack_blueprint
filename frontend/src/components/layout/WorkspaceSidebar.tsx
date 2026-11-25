@@ -9,6 +9,7 @@ import type { Project } from "../../api/projects";
 import { getInitials } from "../../utils/formatters";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
 
 type Page = { label: string; path: string; icon: LucideIcon };
 type SidebarProps = {
@@ -85,7 +86,7 @@ export function WorkspaceSidebar(props: SidebarProps) {
                     {branding.logo && <img src={branding.logo} alt={branding.logoAlt ?? name} className="h-7 w-7 shrink-0 rounded object-contain" />}
                     {collapsed ? name.slice(0, 1) : name}
                 </Link>
-                <button className="rounded-md p-2 hover:bg-muted md:hidden" aria-label={t("navigation.closeNavigation")} onClick={close}><X size={18} /></button>
+                <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("navigation.closeNavigation")} onClick={close} type="button"><X size={18} aria-hidden="true" /></Button>
             </div>
             {props.projectsEnabled && !collapsed && <ProjectSelector projects={props.projects} project={props.project} select={props.select} />}
         </div>

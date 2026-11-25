@@ -4,6 +4,7 @@ import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "./popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 import { getHelpTerm } from "../../config/helpText";
+import { Button } from "./button";
 
 type HelpTooltipProps = {
     termId?: string;
@@ -40,10 +41,9 @@ function HelpPopup({ heading, summary, details, variant, forcePopover }: Pick<He
 }) {
     const Icon = variant === "info" ? Info : CircleHelp;
     const trigger = (
-        <button type="button" aria-label={heading ? `About ${heading}` : "About this term"}
-            className="inline-flex items-center p-0.5 text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="icon-xs" aria-label={heading ? `About ${heading}` : "About this term"} type="button">
             <Icon aria-hidden="true" className="size-3.5" />
-        </button>
+        </Button>
     );
     if (!details && !forcePopover) return <ShortHelp trigger={trigger}>{summary}</ShortHelp>;
     return (

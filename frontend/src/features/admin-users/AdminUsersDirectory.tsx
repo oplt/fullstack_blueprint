@@ -1,4 +1,6 @@
 import type { AdminUser } from "../../api/admin";
+import { Badge } from "../../components/ui/badge";
+import { Switch } from "../../components/ui/switch";
 import { formatDate } from "../../utils/formatters";
 
 type AdminUsersDirectoryProps = {
@@ -20,12 +22,10 @@ function UserStatusSwitch({
 }) {
     const action = user.is_active ? "Deactivate" : "Activate";
     return (
-        <input
+        <Switch
             checked={user.is_active}
             disabled={disabled}
-            onChange={(event) => onChange(event.target.checked)}
-            type="checkbox"
-            role="switch"
+            onCheckedChange={onChange}
             aria-label={`${action} ${user.full_name ?? user.email}`}
         />
     );
@@ -35,16 +35,11 @@ function UserBadges({ user }: { user: AdminUser }) {
     return (
         <div className="flex flex-wrap gap-2">
             {user.roles.map((role) => (
-                <span
-                    key={role}
-                    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs"
-                >
-                    {role}
-                </span>
+                <Badge key={role} variant="outline">{role}</Badge>
             ))}
-            <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs">
+            <Badge variant={user.is_verified ? "success" : "secondary"}>
                 {user.is_verified ? "Verified" : "Unverified"}
-            </span>
+            </Badge>
         </div>
     );
 }

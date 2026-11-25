@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Switch } from "@/components/ui/switch";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { AiStudioModel } from "../hooks/useAiStudioView";
@@ -70,11 +70,11 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                         label="Rollout %"
                         value={versionForm.rollout_percentage}
                         onChange={(event: any) => setVersionForm((current) => ({ ...current, rollout_percentage: event.target.value }))} />
-                    <label><input
-                            checked={versionForm.is_published}
-                            onChange={(event: any) => setVersionForm((current) => ({ ...current, is_published: event.target.checked }))}
-                            type="checkbox"
-                            role="switch" /></label>
+                    <Switch
+                        aria-label="Publish prompt version"
+                        checked={versionForm.is_published}
+                        onCheckedChange={(checked) => setVersionForm((current) => ({ ...current, is_published: checked }))}
+                    />
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <FormField

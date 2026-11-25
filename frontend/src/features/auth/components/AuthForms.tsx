@@ -1,14 +1,26 @@
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
+
 import { useId, useState, type ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/config/routes";
-import { forgotPassword, signIn, signUp } from "../../../api/auth";
+import { cn } from "@/lib/utils";
+
+import {
+    forgotPassword,
+    signIn,
+    signUp,
+} from "../../../api/auth";
+
 import { useAuth } from "../../../hooks/useAuth";
+import { getQueryErrorMessage } from "../../../utils/queryErrors";
+
 import {
     emailSchema,
     signInSchema,
@@ -17,24 +29,135 @@ import {
     type SignInValues,
     type SignUpValues,
 } from "../schemas";
-import { getQueryErrorMessage } from "../../../utils/queryErrors";
 
-function PasswordField(props: Extract<ComponentProps<typeof FormField>, { as?: "input" }>) {
+type PasswordFieldProps = Extract<
+    ComponentProps<typeof FormField>,
+    { as?: "input" }
+>;
+
+function PasswordField(props: PasswordFieldProps) {
     const [showPassword, setShowPassword] = useState(false);
     const generatedId = useId();
-    const { label, description, error, id, className, ...inputProps } = props;
-    const controlId = id ?? `password-${generatedId.replaceAll(":", "")}`;
+
+    const {
+        label,
+        description,
+        error,
+        id,
+        className,
+        disabled,
+        as: _as,
+        ...inputProps
+    } = props;
+
+    const controlId = id ?? generatedId;
+    const descriptionId = `${controlId}-description`;
+
+    const describedBy =
+        [
+            inputProps["aria-describedby"],
+            description ? descriptionId : undefined,
+        ]
+            .filter(Boolean)
+            .join(" ") || undefined;
 
     return (
-        <div className="grid w-full gap-1.5 text-sm">
-            {label ? <label htmlFor={controlId} className="font-medium">{label}</label> : null}
-            <div className="flex items-center gap-1 rounded-md border border-input bg-background px-2 focus-within:ring-2 focus-within:ring-ring/40">
-                <Input {...inputProps} id={controlId} className={className} type={showPassword ? "text" : "password"} aria-invalid={error || undefined} />
-                <Button size="icon" variant="ghost" aria-label={showPassword ? "Hide password" : "Show password"} type="button" onClick={() => setShowPassword((value) => !value)} onMouseDown={(event) => event.preventDefault()}>
-                    {showPassword ? <EyeOff /> : <Eye />}
+        <div className="flex w-full min-w-0 flex-col gap-2">
+            {label && (
+                <Label htmlFor={controlId}>
+                    {label}
+                </Label>
+            )}
+
+            <div className="relative w-full min-w-0">
+                <Input
+                    {...inputProps}
+                    id={controlId}
+                    type={showPassword ? "text" : "password"}
+                    disabled={disabled}
+                    aria-invalid={
+                        error || inputProps["aria-invalid"]
+                    }
+                    aria-describedby={describedBy}
+                    className={cn("w-full pr-12", className)}
+                />
+
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    disabled={disabled}
+                    aria-label={
+                        showPassword
+                            ? "Hide password"
+                            : "Show password"
+                    }
+                    aria-controls={controlId}
+                    onClick={() =>
+                        setShowPassword((current) => !current)
+                    }
+                    onMouseDown={(event) =>
+                        event.preventDefault()
+                    }
+                    className="absolute right-1 top-1/2 size-8 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                    {showPassword ? (
+                        <EyeOff
+                            className="size-4"
+                            aria-hidden="true"
+                        />
+                    ) : (
+                        <Eye
+                            className="size-4"
+                            aria-hidden="true"
+                        />
+                    )}
                 </Button>
             </div>
-            {description ? <span className={error ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>{description}</span> : null}
+
+            {description && (
+                <p
+                    id={descriptionId}
+                    className={cn(
+                        "text-xs leading-relaxed",
+                        error
+                            ? "text-destructive"
+                            : "text-muted-foreground",
+                    )}
+                >
+                    {description}
+                </p>
+            )}
+        </div>
+    );
+}
+
+function AuthError({ message }: { message: string }) {
+    if (!message) {
+        return null;
+    }
+
+    return (
+        <div
+            role="alert"
+            className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm leading-relaxed text-destructive"
+        >
+            {message}
+        </div>
+    );
+}
+
+function AuthSuccess({ message }: { message: string }) {
+    if (!message) {
+        return null;
+    }
+
+    return (
+        <div
+            role="status"
+            className="rounded-lg border border-success/30 bg-success/10 p-3 text-sm leading-relaxed text-success"
+        >
+            {message}
         </div>
     );
 }
@@ -42,12 +165,20 @@ function PasswordField(props: Extract<ComponentProps<typeof FormField>, { as?: "
 export function SignInForm() {
     const navigate = useNavigate();
     const { setAuthenticated } = useAuth();
+    const forgotPanelId = useId();
+
     const {
         register,
         handleSubmit,
         getValues,
-        formState: { errors, isSubmitting },
-    } = useForm<SignInValues>({ resolver: zodResolver(signInSchema) });
+        formState: {
+            errors,
+            isSubmitting,
+        },
+    } = useForm<SignInValues>({
+        resolver: zodResolver(signInSchema),
+    });
+
     const {
         register: registerForgot,
         handleSubmit: handleForgotSubmit,
@@ -56,7 +187,9 @@ export function SignInForm() {
             errors: forgotErrors,
             isSubmitting: isSubmittingForgot,
         },
-    } = useForm<ForgotPasswordValues>({ resolver: zodResolver(emailSchema) });
+    } = useForm<ForgotPasswordValues>({
+        resolver: zodResolver(emailSchema),
+    });
 
     const [serverError, setServerError] = useState("");
     const [forgotOpen, setForgotOpen] = useState(false);
@@ -65,154 +198,317 @@ export function SignInForm() {
 
     async function onSubmit(values: SignInValues) {
         setServerError("");
+
         try {
             const mfaCode = values.mfa_code?.trim();
+
             const data = await signIn({
                 ...values,
                 mfa_code: mfaCode || undefined,
             });
+
             setAuthenticated(data.user);
+
             navigate(ROUTES.dashboard);
         } catch (error) {
-            setServerError(getQueryErrorMessage(error, "Sign in failed."));
+            setServerError(
+                getQueryErrorMessage(error, "Sign in failed."),
+            );
         }
     }
 
-    async function onForgotPasswordSubmit(values: ForgotPasswordValues) {
+    async function onForgotPasswordSubmit(
+        values: ForgotPasswordValues,
+    ) {
         setForgotError("");
+        setForgotDone(false);
+
         try {
             await forgotPassword(values);
             setForgotDone(true);
         } catch (error) {
-            setForgotError(getQueryErrorMessage(error, "Request failed."));
+            setForgotError(
+                getQueryErrorMessage(error, "Request failed."),
+            );
         }
     }
 
     function toggleForgotPassword() {
         const nextVisible = !forgotOpen;
+
         setForgotOpen(nextVisible);
         setForgotError("");
         setForgotDone(false);
+
         if (nextVisible) {
-            resetForgot({ email: getValues("email") });
+            resetForgot({
+                email: getValues("email") ?? "",
+            });
         }
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-                    <FormField
-                        label="Email"
-                        type="email"
-                        autoComplete="email"
-                        {...register("email")}
-                        error={!!errors.email}
-                        description={errors.email?.message} />
-                    <PasswordField
-                        label="Password"
-                        autoComplete="current-password"
-                        {...register("password")}
-                        error={!!errors.password}
-                        description={errors.password?.message}
-                    />
-                    <FormField
-                        label="Authenticator code"
-                        autoComplete="one-time-code"
-                        {...register("mfa_code")}
-                        error={!!errors.mfa_code}
-                        description={errors.mfa_code?.message || "Required for accounts with MFA enabled."} />
-                    <Button type="submit" variant="default" disabled={isSubmitting}>
-                        {isSubmitting ? "Signing in..." : "Sign in"}
-                    </Button>
-            </form>
-            <Button variant="ghost" onClick={toggleForgotPassword} type="button" aria-expanded={forgotOpen}>
-                {forgotOpen ? "Hide password reset" : "Forgot password?"}
-            </Button>
-            {forgotOpen && <div className="flex flex-col gap-4">
-                    <p className="text-muted-foreground">
-                        Enter your email and we will send a reset link if an account exists.
-                    </p>
-                    {forgotDone && (
-                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">
-                            If that email exists, a reset link has been sent. Check your inbox.
-                        </div>
+        <div className="flex w-full min-w-0 flex-col gap-4">
+            <AuthError message={serverError} />
+
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="flex w-full min-w-0 flex-col gap-4"
+                aria-busy={isSubmitting}
+                noValidate
+            >
+                <FormField
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="name@example.com"
+                    disabled={isSubmitting}
+                    {...register("email")}
+                    error={!!errors.email}
+                    description={errors.email?.message}
+                />
+
+                <PasswordField
+                    label="Password"
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    disabled={isSubmitting}
+                    {...register("password")}
+                    error={!!errors.password}
+                    description={errors.password?.message}
+                />
+
+                <FormField
+                    label="Authenticator code"
+                    type="text"
+                    autoComplete="one-time-code"
+                    placeholder="Enter your authenticator code"
+                    disabled={isSubmitting}
+                    {...register("mfa_code")}
+                    error={!!errors.mfa_code}
+                    description={
+                        errors.mfa_code?.message ||
+                        "Required for accounts with MFA enabled."
+                    }
+                />
+
+                <Button
+                    type="submit"
+                    variant="default"
+                    disabled={isSubmitting}
+                    className="mt-2 w-full"
+                >
+                    {isSubmitting && (
+                        <LoaderCircle
+                            className="size-4 animate-spin"
+                            aria-hidden="true"
+                        />
                     )}
-                    {forgotError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{forgotError}</div>}
-                    <form onSubmit={handleForgotSubmit(onForgotPasswordSubmit)} className="flex flex-col gap-4">
-                            <FormField
-                                label="Email"
-                                type="email"
-                                {...registerForgot("email")}
-                                error={!!forgotErrors.email}
-                                description={forgotErrors.email?.message} />
-                            <Button type="submit" variant="outline" disabled={isSubmittingForgot}>
-                                {isSubmittingForgot ? "Sending..." : "Send reset link"}
-                            </Button>
+
+                    {isSubmitting
+                        ? "Signing in..."
+                        : "Sign in"}
+                </Button>
+            </form>
+
+            <Button
+                type="button"
+                variant="ghost"
+                disabled={isSubmitting || isSubmittingForgot}
+                onClick={toggleForgotPassword}
+                aria-expanded={forgotOpen}
+                aria-controls={forgotPanelId}
+                className="w-full text-sm"
+            >
+                {forgotOpen
+                    ? "Hide password reset"
+                    : "Forgot password?"}
+            </Button>
+
+            {forgotOpen && (
+                <section
+                    id={forgotPanelId}
+                    aria-label="Password recovery"
+                    className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-border bg-muted/30 p-4"
+                >
+                    <div className="flex flex-col gap-1">
+                        <h3 className="text-base font-semibold">
+                            Reset your password
+                        </h3>
+
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                            Enter your email address and we will
+                            send a reset link if an account exists.
+                        </p>
+                    </div>
+
+                    {forgotDone && (
+                        <AuthSuccess
+                            message="If that email exists, a reset link has been sent. Check your inbox."
+                        />
+                    )}
+
+                    <AuthError message={forgotError} />
+
+                    <form
+                        onSubmit={handleForgotSubmit(
+                            onForgotPasswordSubmit,
+                        )}
+                        className="flex w-full flex-col gap-4"
+                        aria-busy={isSubmittingForgot}
+                        noValidate
+                    >
+                        <FormField
+                            label="Email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="name@example.com"
+                            disabled={isSubmittingForgot}
+                            {...registerForgot("email")}
+                            error={!!forgotErrors.email}
+                            description={
+                                forgotErrors.email?.message
+                            }
+                        />
+
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            disabled={isSubmittingForgot}
+                            className="w-full"
+                        >
+                            {isSubmittingForgot && (
+                                <LoaderCircle
+                                    className="size-4 animate-spin"
+                                    aria-hidden="true"
+                                />
+                            )}
+
+                            {isSubmittingForgot
+                                ? "Sending..."
+                                : "Send reset link"}
+                        </Button>
                     </form>
-                </div>}
+                </section>
+            )}
         </div>
     );
 }
 
-export function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
+type SignUpFormProps = {
+    onSuccess: (message: string) => void;
+};
+
+export function SignUpForm({
+    onSuccess,
+}: SignUpFormProps) {
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting },
-    } = useForm<SignUpValues>({ resolver: zodResolver(signUpSchema) });
+        formState: {
+            errors,
+            isSubmitting,
+        },
+    } = useForm<SignUpValues>({
+        resolver: zodResolver(signUpSchema),
+    });
+
     const [serverError, setServerError] = useState("");
 
     async function onSubmit(values: SignUpValues) {
         setServerError("");
+
         try {
-            const adminInviteCode = values.admin_invite_code?.trim();
+            const adminInviteCode =
+                values.admin_invite_code?.trim();
+
             const result = await signUp({
                 ...values,
-                admin_invite_code: adminInviteCode || undefined,
+                admin_invite_code:
+                    adminInviteCode || undefined,
             });
+
             onSuccess(result.detail);
         } catch (error) {
-            setServerError(getQueryErrorMessage(error, "Sign up failed."));
+            setServerError(
+                getQueryErrorMessage(error, "Sign up failed."),
+            );
         }
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-                    <FormField
-                        label="Full name"
-                        autoComplete="name"
-                        {...register("full_name")}
-                        error={!!errors.full_name}
-                        description={errors.full_name?.message} />
-                    <FormField
-                        label="Email"
-                        type="email"
-                        autoComplete="email"
-                        {...register("email")}
-                        error={!!errors.email}
-                        description={errors.email?.message} />
-                    <PasswordField
-                        label="Password"
-                        autoComplete="new-password"
-                        {...register("password")}
-                        error={!!errors.password}
-                        description={errors.password?.message}
-                    />
-                    <PasswordField
-                        label="Admin invite code"
-                        autoComplete="one-time-code"
-                        {...register("admin_invite_code")}
-                        error={!!errors.admin_invite_code}
-                        description={errors.admin_invite_code?.message || "Optional. Required only for admin registrations."}
-                    />
-                    <Button type="submit" variant="default" disabled={isSubmitting}>
-                        {isSubmitting ? "Creating account..." : "Create account"}
-                    </Button>
+        <div className="flex w-full min-w-0 flex-col gap-4">
+            <AuthError message={serverError} />
+
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="flex w-full min-w-0 flex-col gap-4"
+                aria-busy={isSubmitting}
+                noValidate
+            >
+                <FormField
+                    label="Full name"
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Enter your full name"
+                    disabled={isSubmitting}
+                    {...register("full_name")}
+                    error={!!errors.full_name}
+                    description={errors.full_name?.message}
+                />
+
+                <FormField
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="name@example.com"
+                    disabled={isSubmitting}
+                    {...register("email")}
+                    error={!!errors.email}
+                    description={errors.email?.message}
+                />
+
+                <PasswordField
+                    label="Password"
+                    autoComplete="new-password"
+                    placeholder="Create a password"
+                    disabled={isSubmitting}
+                    {...register("password")}
+                    error={!!errors.password}
+                    description={errors.password?.message}
+                />
+
+                <PasswordField
+                    label="Admin invite code"
+                    autoComplete="one-time-code"
+                    placeholder="Enter invite code (optional)"
+                    disabled={isSubmitting}
+                    {...register("admin_invite_code")}
+                    error={!!errors.admin_invite_code}
+                    description={
+                        errors.admin_invite_code?.message ||
+                        "Optional. Required only for admin registrations."
+                    }
+                />
+
+                <Button
+                    type="submit"
+                    variant="default"
+                    disabled={isSubmitting}
+                    className="mt-2 w-full"
+                >
+                    {isSubmitting && (
+                        <LoaderCircle
+                            className="size-4 animate-spin"
+                            aria-hidden="true"
+                        />
+                    )}
+
+                    {isSubmitting
+                        ? "Creating account..."
+                        : "Create account"}
+                </Button>
             </form>
         </div>
     );
 }
-

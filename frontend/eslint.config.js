@@ -32,6 +32,12 @@ export default defineConfig([
             // Existing feature adapters still expose a few structurally dynamic API
             // payloads while their screens are incrementally typed.
             '@typescript-eslint/no-explicit-any': 'off',
+            'no-restricted-imports': ['error', {
+                patterns: [{
+                    group: ['@mui/*', '@material-ui/*', '@emotion/*', '**/muiCompat', '**/styleCompat', '**/iconsCompat'],
+                    message: 'Use existing shadcn/ui Base UI components, Tailwind CSS and named lucide-react imports.',
+                }],
+            }],
             "max-lines": [
                 "warn",
                 {

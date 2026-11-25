@@ -1,82 +1,869 @@
-CODEX TASK — FRONTEND: SIMPLIFY AND REPAIR FULLSTACK BLUEPRINT
-Repository: https://github.com/oplt/fullstack_blueprint
-Audit baseline: main @ 266223f18173e2d7f559abd5afeff62db2bd1d25 (2026-11-25 15:23:24 UTC, "design conflict2")
+# **MUI → shadcn/ui and Lucide migration audit**
 
-OBJECTIVE
-Implement a minimal, accessible, reusable frontend foundation for arbitrary applications. Finish the MUI-to-shadcn migration, eliminate duplicate design systems and dead code, repair regressions, consolidate functionality, and improve measured performance. Work in frontend/ and root DESIGN.md / related frontend docs or CI only. Coordinate API-contract changes with the backend task. Do not push or commit without explicit permission. Do not introduce another design framework, a new state manager, or speculative abstractions.
+**Repository:** [oplt/fullstack_blueprint](https://github.com/oplt/fullstack_blueprint?utm_source=chatgpt.com)\
+**Branch:** `main`\
+**Objective:** Eliminate remaining Material UI dependencies, component remnants, legacy UI patterns and Material icons before production.
 
-WORKING RULES
-- Read root AGENTS.md, frontend/AGENTS.md, DESIGN.md, frontend/README.md, components.json, package.json and current git diff before editing. Recheck the current HEAD; audit line numbers below refer to the pinned commit, not necessarily your working copy. Preserve unrelated changes.
-- Use existing shadcn/ui Base UI (base-nova) primitives, Tailwind CSS v4, named lucide-react imports, TanStack Query, TanStack Table where needed, React Router, RHF + Zod, Sonner and Recharts. Prefer native HTML for simple semantic layout. Do not migrate to Radix just to match example code.
-- DESIGN.md is the human-readable design contract. frontend/src/index.css is the only executable application design-token and shared recipe source. Static palette, typography, spacing, radius, breakpoint, layering, motion, shadows, control sizing, layout widths and density belong there; TSX can keep local structural utilities and runtime geometry. Do not move all layout markup to CSS or remove necessary font/third-party CSS imports. Keep light/dark/system mode and legitimate branding/language support. Do not blindly overwrite local primitives with registry output.
-- Fix and test P0 defects first. Separate refactors from behavior changes. For each deletion, establish that no runtime, tests, Storybook, lazy/dynamic entry, route, build script, generator or documentation contract depends on it. No blanket knip --fix, no weakening tests to pass, no suppressing errors with any/ts-ignore, no deleting generated files without regeneration plan. Avoid an unrelated package upgrade.
-- Start with a baseline: git status --short; git rev-parse HEAD; cd frontend; npm ci; npm run typecheck; npm run lint; npm test; npm run build; npm run storybook:build; npm run knip:report; npm run knip:production. Record errors and measurements rather than assuming success. Use the repository Node version and lockfile. If dependencies or services are unavailable, report blocked commands.
+## **1. Current migration status**
 
-1. P0 — CONFIRMED STATIC REGRESSIONS
-1.1 frontend/.storybook/preview.tsx:8,13 imports ThemePreset (no longer exported), builds ThemePreferences with obsolete preset/density/radius, and calls applyTheme(preferences, theme). frontend/src/app/theme.ts:1-10,27-30 now exports only ColorMode, ThemePreferences {colorMode}, and applyTheme(mode, root?). Replace line 8 with import { applyTheme } and call applyTheme(theme) in the decorator. Do not reintroduce removed TS tokens. Share font imports and actual CSS with production. Validate both modes, all stories, and restore prior document mode on unmount if necessary. Update frontend/README.md:7 (nonexistent src/app/designTokens.ts), frontend/AGENTS.md:32-38 (outdated preset/density/radius and legacy token instructions) to reflect actual intended preferences. Preserve data migration for old saved preferences if necessary; theme.test.ts:5-6 intentionally tests normalization of obsolete keys, so keep that regression test.
-1.2 frontend/src/components/ui/DataTable.tsx:33 refers to dataTableDefaults.truncateChars; no declaration/import exists in the file (lines 1-34). Restore a single sensible shared truncation default (e.g. 80 characters after checking tests/previous behavior) or use TruncatedCell's own default, not a new design-token map. Remove empty statements at 12-13. Run typecheck and test truncation true/numeric/false, null, long strings, numeric values and server pagination. Format the compressed 35-line/12.5 KB file immediately to make review possible.
-1.3 DataTable.tsx:18-21 defaults pageSizeProp to 25 then calculates pageSize = pageSizeProp ?? internalPageSize, making uncontrolled internal page size ineffective. :33 disables size selector when no external callback and updates internal state even if controlled. Make controlled/uncontrolled semantics explicit (defaultPageSize independent of pageSize), enable the selector for supported uncontrolled mode, reset/clamp page correctly when filters or count change, and test. :24 filters with String(column.render(row)); JSX elements become [object Object]. Use typed primitive accessor/filterValue. :25 sortable columns without accessors silently compare undefined; require accessor or disable sorting. Do not client-sort/filter one server page unless explicitly intended. :33 use aria-sort on headers; use stable row ids, meaningful buttons/links for selectable rows, accessible selection/expansion, proper native table semantics instead of role=grid without grid keyboard behavior.
-1.4 frontend/src/features/ai/workspace/streaming.ts:20-46 normalizes CR at the end of each incoming chunk before seeing a potential next LF, so split CRLF becomes false blank line; also emits unterminated buffered event on EOF. Implement incremental SSE framing that handles CR/LF/CRLF split at arbitrary byte boundaries, multiline data, comments, valid retry/id, UTF-8, final event semantics per SSE protocol. Cancel reader when consumer stops early, bound buffering, propagate abort; use an abortable reconnect delay (:62-79). POST retry/reconnect must not duplicate side effects unless server provides replay/idempotency; do not assume Last-Event-ID works on POST. Test split CRLF, JSON multiline, incomplete EOF, abort and duplicate IDs. Align CORS header requirements with backend.
-1.5 frontend/src/components/ui/VirtualizedList.tsx:8-15 assumes item stride estimatedItemHeight but adds space-y-4 and minHeight; actual rows may be taller. Result: wrong offsets/overlap/jumps. If retained, use exact fixed row height including gap, or measured variable heights; clamp on shrinking list, ensure stable keys, validate values, test scrolling to last element. Prefer ordinary pagination for most blueprint lists and delete this custom virtualizer if production has no genuine need (including tests/story consumers).
-1.6 frontend/src/components/ui/HelpTooltip.tsx:16-19 shows a short tooltip only via sr-only span on mouse hover; sighted users see no visible tooltip, keyboard focus does not trigger, and manually toggled click can conflict with PopoverTrigger. Replace with existing TooltipProvider/Tooltip/TooltipTrigger/TooltipContent for short help, and Popover for long help. Let Base UI own state, use aria-describedby or accessible label, correct popup accessible name, Escape, touch/click support and focus return. Rewrite tests to assert visible text and keyboard, not merely role presence. frontend/src/components/ui/PageHeader.tsx:10-16 similarly uses hand-managed overflow menu; replace with a shadcn/Base UI DropdownMenu (or appropriate existing Popover with actual buttons) and supported keyboard navigation, not pretend menu roles.
-1.7 frontend/src/components/layout/AppLayout.tsx:60-65 localStorage reads/writes unguarded (unlike theme.ts), global slash hotkey ignores only INPUT/TEXTAREA and intercepts editable/select targets; storage blocked or contenteditable can break UX. Safe optional storage helper; skip editable elements, composition and repeated key events; close/clear on navigation. :91 hand-coded dialog only autofocus/Escape/backdrop, no focus trap or focus restoration. Replace with existing Dialog + searchable list/Command only if justified, support keyboard Up/Down/Enter, Escape, focus restore; no duplicate document event handlers. :84 Sheet should have accessible title and description (visually hidden if appropriate); :78 collapsed sign-out button needs aria-label when visible text is absent; :76-77 label nav icons (aria-hidden for decoration), use router match/NavLink, avoid simultaneous active ancestor links. :88 display platform-appropriate Ctrl+K or Cmd+K. :89 theme toggle loses system preference; provide explicit light/dark/system selector, display resolved mode.
-1.8 frontend/src/app/providers.tsx:33-43 initially sets system preference to false and later updates with effect; :62-64 updates theme after render. frontend/src/components/ui/sonner.tsx:4-9 reads document.dataset.theme during render (not a reactive source), so may render previous mode. Resolve initial system mode synchronously when browser available, apply minimal validated theme initialization before first paint (CSP compatible), pass resolved mode to Toaster or a shared reactive context. Keep CSS palette out of JS. Test stored system/dark/light, live OS change, invalid storage, SSR-safe behavior, and story mode. Keep applyTheme helper; do not delete theme.ts as if it were a competing palette.
-1.9 frontend/src/api/client.ts:88-156 has duplicate header/CSRF/credentials/refresh logic. Share request preparation, fetch+single retry and typed ApiError parsing. On failed refresh preserve a consistent 401 error rather than generic Error (:121), do not refresh sign-in/register or refresh endpoint itself, propagate AbortSignal and avoid replay of non-replayable streams. Use the configured CSRF cookie/header contract and test concurrent 401s, second 401, auth routes, 204, multipart, stream errors and abort. Preserve cookie auth and no credential leakage. Coordinate with backend CORS Last-Event-ID/CSRF requirements. Check cross-tab refresh rotation without weakening backend token safety. Verify query cache and auth state reset on logout, not just navigation.
-1.10 frontend/src/components/ui/form-field.tsx:30-35 replaces caller-provided aria-describedby and aria-invalid; merge valid caller IDs with generated message ID and error state; :40 native select lacks unified control styling. Use existing shadcn Field/Label/Input/Textarea and accessible native select or Base UI Select with form semantics. Preserve refs/register compatibility. Add accessible field error and help tests.
+The repository has already undergone a substantial migration to shadcn/ui, Tailwind CSS and Lucide. The remaining work should focus on identifying legacy implementations, inconsistent UI primitives and opportunities for component consolidation rather than performing another complete UI migration.
 
-2. MUI / EMOTION REMNANTS — AUDIT AND MIGRATE
-No actual @mui/@emotion/material-ui imports were found in the inspected source files; frontend/package.json:38-62 and the complete package-lock.json (14,401 lines) have no such package references. The tree has no iconsCompat.ts or designTokens.ts. Do not falsely report a live MUI dependency. The GitHub code-search endpoint returned no matches even for known names; full checkout search is REQUIRED. Confirm the following using git grep/ripgrep (include hidden config/docs/tests; exclude node_modules, dist and generated artifacts from source search):
-  git grep -nEi '(@mui|@material-ui|@emotion|muiicons|icons-material|iconsCompat|\bMui[A-Z]|\bSxProps\b|\bcreateTheme\b|\bCssBaseline\b|\bThemeProvider\b|\buseTheme\b|\buseMediaQuery\b|\bThemePreset\b|\bdesignTokens\b|\bcontentSx\b|\bsx[[:space:]]*=)' -- frontend DESIGN.md
-  rg -n --glob '*.{ts,tsx,css}' 'style=\{\{|#[0-9a-fA-F]{3,8}\b|(?:bg|text|border|ring|fill|stroke)-\[|\b(?:cellPy|headerPy|responsiveColumns|scrollContainerStyle|denseCardColumns)\b' frontend/src
-  cd frontend && npm ls @mui/material @mui/icons-material @emotion/react @emotion/styled --all
-Classify each hit as active legacy code, obsolete documentation, migration regression test, false positive, or legitimate dynamic geometry. Produce path:line + old -> new. Never delete based solely on name; e.g. CalendarItemDrawer can be a domain composition using Sheet; Typography.stories.tsx is a legitimate design-system story.
-Confirmed legacy-style remnants / actions:
-- frontend/src/app/SnackbarProvider.tsx:1-16 and snackbarContext.ts:2-18 retain MUI-style Snackbar/AlertColor naming but already delegate to Sonner. Delete provider/context after migrating consumers of useSnackbar to direct Sonner calls or a single small typed notify helper (prefer toast.success/error/warning/info directly). Remove provider import and nesting in providers.tsx:11,81-84, update tests and mutation toast helpers. Do not add a competing toast system.
-- frontend/src/components/ui/responsiveQa.ts:5,15-59,63-67 keeps old MUI-like responsive objects (xs/sm/md/lg) and 600/900/1200/1536 scale. Move only actual production CSS recipes into index.css; replace scrollContainerStyle with ScrollRegion or overflow-x-auto min-w-0. Delete obsolete responsiveColumns, denseCardColumns, scrollContainerStyle, responsiveQaBand once no refs. Keep QA viewport data in tests and replace responsiveQa.test.tsx:33-45 (tests old maps rather than actual layout) with browser assertions. Delete responsiveQa.ts entirely if only tests remain after moving test constants.
-- frontend/src/components/ui/DataTable.tsx:7-8,29,33 hardcoded legacy spacing multipliers. Replace with CSS table density tokens/data-density. Consolidate table engines (section 4).
-- frontend/src/features/agent/AgentView.tsx:175,280,470,608,677,732; frontend/src/features/rag/RagView.tsx:270,459,612,689,718,824,860,878; frontend/src/features/memory/MemoryView.tsx:213,230,232,293,327. Remove static inline margin/overflow/cursor/whitespace/maxWidth, arbitrary gap-[16px], use shared spacing classes, ScrollRegion, semantic table and tokenized width utilities. Keep actual dynamic positioning only.
-- frontend/src/features/calendar/components/CalendarDayView.tsx:41,83,86,94,105,116,140,164,189,206,209,237,242; CalendarWeekView.tsx:40,51,81,116,141,152,185,217,233,236. Separate computed event coordinates from static presentation. Remove hardcoded fontWeight, 3.2px margin, padding, overflow, color etc. Keep computed top/height/column only; shared CSS event/grid recipe. Use current Calendar/DatePicker, Sheet, Badge and Button.
-- frontend/src/pages/AuthHomePage.tsx:242,245,248; AdminUsersPage.tsx:75,83,126,157,235; NotificationsPage.tsx:53,161,174,206,258; frontend/src/features/ai/components/ReviewsEvaluationsPanel.tsx:34,220,271; frontend/src/app/router.tsx:67,80. Remove static style objects and fixed borderRadius 8/12/16; use tokens and primitives.
-- frontend/src/app/theme.test.ts:6 legacy preset and primaryColor are deliberate untrusted-input fixture, not active theme implementation. Keep or update equivalent test.
-Replacement map for any additionally discovered real MUI imports (only use if present, not a list of confirmed components):
-  Box/Stack/Grid/Container -> semantic div/section, flex/grid, PageShell, FormGrid, ResponsiveCardGrid.
-  Typography -> h1-h6/p/span + semantic typography classes; Card/Paper -> Card/SectionCard; Divider -> Separator.
-  Button/IconButton/Fab -> existing Button variants/icon sizes; TextField -> Field+Input/Textarea; Select/Autocomplete -> native select or Base UI Select/Combobox; Checkbox/Switch/RadioGroup -> existing accessible shadcn equivalents as needed; FormControl/HelperText -> Field/FieldError/FieldDescription.
-  Dialog/Drawer -> existing Dialog/Sheet; Menu/Popover/Tooltip -> Base UI shadcn equivalents; Snackbar/Alert -> Sonner or inline alert; Chip -> Badge; Tabs -> accessible Tabs; Table/DataGrid -> semantic Table/TanStack Table; CircularProgress/LinearProgress -> LoaderCircle/Progress; Skeleton -> Skeleton.
-  MenuIcon -> Menu; Close -> X; Add -> Plus; Edit -> Pencil; Delete -> Trash2; Search -> Search; Settings -> Settings; MoreVert -> EllipsisVertical/MoreVertical; ArrowBack -> ArrowLeft; ExpandMore -> ChevronDown; CheckCircle -> CircleCheck; ErrorOutline -> CircleAlert; InfoOutlined -> Info; HelpOutline -> CircleHelp; Visibility/VisibilityOff -> Eye/EyeOff; Notifications -> Bell; AccountCircle -> CircleUserRound; Logout -> LogOut; Dashboard -> LayoutDashboard; CalendarToday -> CalendarDays; DarkMode/LightMode -> Moon/Sun; file/download/upload -> FileText/Download/Upload. Verify icon exports in installed lucide-react version. Named direct imports only, accessible labels on icon-only controls, consistent sizes, no wrapper alias layer.
+| Technology                    | Verified status                       |
+| ----------------------------- | ------------------------------------- |
+| Material UI (`@mui/material`) | Absent from frontend package manifest |
+| Material UI icons             | Absent from frontend package manifest |
+| Emotion                       | Absent from frontend package manifest |
+| shadcn/ui                     | Configured                            |
+| Base UI                       | Installed                             |
+| Lucide React                  | Installed                             |
+| Tailwind CSS                  | Installed                             |
+| Sonner                        | Installed                             |
+| TanStack Table                | Installed                             |
 
-3. ONE DESIGN SYSTEM — EXACT FILES TO FIX
-- frontend/src/index.css:12-109 and 112-203: duplicate literal radius declarations (:103-107 and :182-187, pill 100px vs 9999px), shadow mappings :108-109 self-reference same variable name, duplicated semantic palette aliases (:121-174). Establish one raw token per value/meaning (e.g. --ui-radius-*, --ui-shadow-*) and @theme inline aliases. Avoid self-reference and remove unused alias variables after checking consumers; preserve independent meaningful surface/status/chart roles. Confirm --spacing-* classes resolve correctly. Do not keep hard-coded values in CSS aliases and JS maps simultaneously. :67-69,175-176 fonts: DESIGN.md:56 says Geist preferred, Inter/JetBrains Mono/IBM Plex Mono fallback; main.tsx:3-4 imports only IBM Plex Mono. Choose lightweight actual fonts (use existing IBM Plex Mono + system/Inter if no self-hosted Inter/Geist); align documented choice, font CSS, Storybook; no new font dependency unless measurable/design requirement. :206-239 dark overrides incomplete (e.g. --body-strong, --muted-soft, --surface-cream-strong remain light); audit every semantic role and contrast. Do not globally overwrite intentional invariant chart/brand colors. :135-145 status contrast check, make success vs information distinguishable with text/icon, avoid status-only color. Test WCAG AA, especially red/blue backgrounds, faint text, disabled and focus.
-- index.css:114-119 z-index tokens 1300-1800 exist but dialog.tsx:34,56, popover.tsx:32,37, tooltip.tsx:47,52,58 use z-50 and AppLayout.tsx:83,85,91 use z-40/z-30/z-[60]. Replace with a modest coherent CSS stack for sticky header/sidebar/popover/dialog/tooltip/toast (including portal nesting). Add backdrop token rather than bg-black literal. Keep a single focus recipe instead of conflicting base outline/index.css:571-574 and per-control rings; ensure focus visible and no double rings. Test Popover within Dialog, Sheet, tooltips and toast stacking. Move static Sonner vars from sonner.tsx:28-35 into index.css if possible via .toaster CSS; preserve necessary library-specific runtime properties.
-- index.css:412,429,439,449,497,503,511 uses 600/900/1024/1280/640 and container breakpoints; Tailwind default sm/md/lg/xl differs. responsiveQa.ts:5 documents still another set, hooks/use-mobile.ts:3-13 uses 768. Choose one documented viewport scale (recommend Tailwind v4 default 640/768/1024/1280/1536 and separately justified content container thresholds); set in @theme as appropriate, update CSS recipes/media, tests and docs. Prefer CSS/container queries to JS; delete use-mobile.ts only if unused or replace with CSS-driven single source if still needed. Do not keep inconsistent tests checking numeric TS maps. Verify 390, 768, 1024, 1280, 1440, 1920 and breakpoint edges in real browser.
-- index.css:294-336 PageShell max width/padding; frontend/src/components/layout/layoutVariants.ts:26-31 duplicates wrapper widths/padding and identical branches; AppLayout.tsx:90 consumes those plus feature PageShell wrappers. Keep route variant metadata only if functionally necessary, centralize widths/padding in CSS, choose one outer shell per route so no double padding. PageShell.tsx:3-9 emits wide/compact/readable/default/full; CSS also accepts xs/sm/md/lg and has implicit wide at 1440. Normalize canonical names, remove dead alias selectors only after consumer search. Use explicit wide CSS mapping. Move generic CSS (.stack/.inline, layout recipes, page-content) to shared layer in same index.css. Remove feature-specific dead selectors after rg; don't add one selector for every page.
-- frontend/src/components/ui/button.tsx:7,23-33, input.tsx:11, textarea.tsx:9, calendar.tsx:57-124, date-picker.tsx:51: component heights/radii/paddings diverge from CSS --control-height:44px and --control-padding-x:14px (:198-199). Standardize semantic sizes and variants from DESIGN.md:164-184 (pill marketing vs square compact product controls), using tokens. Use actual button link/focus/disabled behavior. No blanket coarse pointer rule that distorts intentionally tiny calendar cells; preserve accessible target area. Keep runtime calendar positioning only.
-- frontend/src/components/ui/card.tsx:14,27,40,86 and SectionCard.tsx:6-8 implement two independent card padding/radius/typography systems. Rebuild SectionCard as composition of Card/Header/Title/Content, preserve legitimate flat/subtle variants and semantic section/heading. StatCard, PageHeader, chart cards reuse shared typography and card spacing. Delete duplicate local static presentation, not necessary domain-specific components.
-- frontend/src/components/ui/charts.tsx:47-63 uses four CSS chart colors despite five declared; :68 hardcoded text-emerald-600 and Unicode arrows. Use all applicable chart tokens, shared CSS tooltip surface/ticks/grid, semantic status token + Lucide ArrowUp/ArrowDown if useful. Chart caller colors must be token references or validated dynamic data. Reuse ChartFrame for donut and accessibility table where possible. Avoid a generic chart factory for two lines of JSX.
-- frontend/vite.config.ts:48-49 hardcoded old blue/light PWA manifest theme/background colors (#2563EB/#F8FAFC) conflict with current #171717/#fafafa. PWA metadata is build-time, cannot read CSS vars at runtime in manifest. Use a tiny build-time extraction/validation of canonical CSS tokens (or explicitly documented tested sync), not a second palette module. Update relevant index.html meta if present, validate PWA install and browser chrome in light/dark. Check README/AGENTS/Storybook for stale design assumptions.
+### **Verified configuration**
 
-4. CONSOLIDATE DUPLICATION AND DEAD CODE
-- DataTable.tsx and AdvancedDataTable.tsx: one TanStack Table engine with a typed column accessor model, manual vs client sorting/filtering/pagination, stable ids, selection, visibility, expansion, sticky columns, loading/empty/error and CSV only when a consumer needs it. Migrate all usages incrementally. Keep simple native table for truly simple content. Remove legacy table implementation and duplicate tests only after equivalent regressions covered. Do not keep adapter forever; if required for staged migration, remove at end. Use existing pagination.tsx rather than two pagination controls. AdvancedDataTable.tsx:65-80 CSV export: verify formula injection prevention for values starting =,+,-,@, tabs/CR, CSV escaping and object URL revocation; ensure export scope explicit (current page vs all, especially server pagination). :125 useMemo(() => columns,[columns]) no-op, remove. Use stable column/data identities where profiler shows benefit; don't memo every component.
-- FormField vs field.tsx: retain one form composition API based on shadcn field primitives. Verify RHF registration and typed native/select/textarea props; remove obsolete wrapper only after all callsites migrated. SectionCard/Card, PageShell/layoutContentClass, ScrollRegion/scrollContainerStyle, Snackbar/Sonner as above.
-- NotificationNavBadge.tsx:3 and AppLayout.tsx:58,89 both subscribe to same notification query and both compute unread count. TanStack Query deduplicates network in many cases; still remove duplicate derivation/observer and pass count as prop. Fetch lightweight unread count or paginated list when backend supports, poll only where visible and enabled; disable optional capability queries/nav in minimal profile. :62 AppLayout project query duplicates per-feature project queries by key (reuse shared hook/options; don't create separate keys). Avoid a global provider fetching every optional feature.
-- frontend/src/api/generated/client.ts:3-8, generated/types.ts, generated/hey/*, scripts/generate-api-types.mjs, package.json:21-24: two generated type/client systems plus handwritten wrappers. Choose one OpenAPI generator/client contract after inspecting consumers and supporting cookie/CSRF/SSE semantics. Prefer one shared handwritten transport plus generated types/typed SDK where beneficial. Remove only redundant generator/output after migrating imports and updating API generation/check workflow. Never hand-edit generated files. Verify API contract, including minimal and full profiles.
-- date-fns vs dayjs (package.json:47-48): use Knip+rg to identify date library usage. Prefer one unless react-day-picker needs date-fns; date-fns likely canonical if used. Preserve locale, date-only/tz semantics, tests for DST and week start. Remove unused dependency from package+lock only once proven. Check other one-off dependencies, unused story/test-only exports, tiny page re-export wrappers: keep a wrapper only if it defines a real route/lazy boundary; otherwise route directly to feature view. Do not delete test-only helpers merely because production Knip flags them.
-- Delete candidates: frontend/dependencies.svg (0 bytes), root prompt.txt (0 bytes), frontend/dependency-graph.svg (~824KB generated report), tracked .pnpm-store/v11/index.db and projects/... metadata. First check docs/scripts and git references; regenerate graph on demand and ignore it, remove tracked store (do not remove local developer caches), add appropriate .gitignore patterns. Coordinate root cleanup once with backend. Root package.json/package-lock.json: inspect whether intentionally repo-wide scripts/tooling or accidental duplication; remove only if no consumers. Keep PWA images if manifest uses them and public/mockServiceWorker.js if Storybook uses MSW. Keep tests/stories/AGENTS. Use npm run knip:files, knip:deps, knip:exports and review JSON; config frontend/knip.json:3-12 includes scripts and generated exclusions; ensure Vite, Storybook, e2e, route, tests, dynamic imports all recognized. Report each removed path and why. Add no new blanket excludes.
+| File and lines                                                                                                                                              | Finding                                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| [frontend/package.json:38–63](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/package.json?utm_source=chatgpt.com#L38-L63)                   | Modern UI dependencies                                  |
+| [frontend/package.json:50](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/package.json?utm_source=chatgpt.com#L50)                          | `lucide-react`                                          |
+| [frontend/components.json:2–3](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/components.json?utm_source=chatgpt.com#L2-L3)                 | shadcn/ui `base-nova` style                             |
+| [frontend/components.json:13](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/components.json?utm_source=chatgpt.com#L13)                    | Lucide configured as icon library                       |
+| [frontend/src/app/theme.ts:27–30](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/app/theme.ts?utm_source=chatgpt.com#L27-L30)           | CSS-based theme switching replaces MUI theme management |
+| [frontend/src/app/providers.tsx:54–66](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/app/providers.tsx?utm_source=chatgpt.com#L54-L66) | Application providers no longer use MUI ThemeProvider   |
 
-5. SPLIT LARGE AND COMPRESSED FILES BY RESPONSIBILITY
-Measured source lines at baseline: RagView 906, AgentView 766, MemoryView 355, AuthHomePage 306, ReviewsEvaluationsPanel 297, NotificationsPage 296, CalendarDayView 280, AdminUsersPage 268, CalendarWeekView 249, AdvancedDataTable 214; AppLayout 95 lines but 15.2 KB, DataTable 35 lines but 12.5 KB, both artificially compressed. Reformat changed files into normal JSX first. Aim for readable single-responsibility units (~150-250 lines as a guideline, not hard rule). No splitting by arbitrary line count. Keep feature code within feature, no shared dumping ground.
-- features/rag/RagView.tsx:84-254 state/queries/mutations -> hooks/useRagWorkspace (or document/query-specific hooks), components/DocumentsPanel, IngestionStatus, ChunksPanel, RetrievalPanel, AskPanel, HistoryPanel, EvaluationSummary. Keep route as composition. Consolidate query key builders, selection and offset resets; avoid one mega hook if separate concerns can own state. Reuse QueryBoundary and RunStatusPanel; load history only when opened.
-- features/agent/AgentView.tsx:46-161 -> hooks/useAgentWorkspace; split RunForm, ToolSelection, DocumentSelection, RunHistory, RunTrace, ResultPanel; use existing agentTraceModel/runStatusModel, no duplicate status logic.
-- features/memory/MemoryView.tsx:32-111 -> hooks/useMemoryWorkspace, MemoryList, SearchForm, AuditPanel, Detail (existing MemoryDetail); isolate selected-id state and lazy-load audit.
-- components/layout/AppLayout.tsx:46-94 -> AppShell, SidebarNavigation, ProjectSelector (already present), TopBar, CommandDialog, NotificationMenu, ProfileMenu; route config and accessibility behavior shared. Remove duplicate nav/command labels where possible. Keep route metadata single source, not two independent path rules.
-- AuthHomePage.tsx:24-43 PasswordField, :44-159 SignInForm, :160-220 SignUpForm -> separate feature components; shared validation/API hooks and AuthShell; remove duplicate auth errors and static inline styling. Preserve MFA, email verification, password reset.
-- NotificationsPage.tsx:27-149 -> useNotificationMutations and PreferenceForm/List; AdminUsersPage.tsx:20-64 -> useAdminUsers, UserTable, UserDetails; ReviewsEvaluationsPanel -> reviews, datasets and evaluations components; calendar day/week -> shared EventBlock, time grid and layout computation; don't merge differing semantics into giant conditional component. Split handwritten api/ai.ts (11 KB) and api/platform.ts (8.8 KB) by domain only if generation consolidation doesn't already remove duplication.
+**Important architectural decision:** The project uses the Base UI implementation of shadcn/ui. New components should follow that configuration instead of introducing a second set of Radix-based primitives unnecessarily.
 
-6. UI/UX AND PERFORMANCE
-- Minimal profile should display only enabled essentials, not AI/RAG/agent/memory/calendars by default; existing capability manifests/configuration are already present. Reuse capabilityAvailability for route/nav/query gates. No hardcoded project selector/notifications/settings links if capability is absent. Avoid adding default dashboard cards with no real data. Keep one meaningful primary action, contextual empty/loading/error states, consistent titles (AppLayout h1 plus PageHeader h1 -> one primary h1 or header label), no redundant nested cards. Use genuine action affordances and clear disabled reasons. Long technical forms: progressive disclosure, sensible defaults, inline validation and clear destructive confirmation. Keep i18n for all user-visible labels; existing i18n uses en/nl/fr, no arbitrary hard-coded strings in shell. Use language-aware date/number formatting.
-- Keep existing route lazy loading (app/router.tsx:15-40) and LazyChart. Do not eagerly import optional AI/RAG/charts/Storybook in core entry. Check vite.config.ts manualChunk policy, actual dist graph and perf budget; don't over-fragment vendor chunks. Compare npm run perf:check and npm run perf:measure baseline/final, compressed initial JS, route chunks, Lighthouse/real browser cold & warm navigation, LCP/INP/CLS. No claimed speed gains without measurement.
-- TanStack Query: gated RAG history (:141-148), memory audit (:78-81) and agent runs (:90-98), use queryKeys/timing consistently, replace broad invalidation when precise keys suffice, preserve AbortSignal, avoid duplicate calls on mount. Stop job polling once terminal, pause when hidden, use bounded backoff; keep accurate UI state. Debounce user search only where needed. Paginate server data; use virtualizer only when measured and correct. Avoid String(render(row)) in data filtering, use accessors. Profile large tables, calendar layout and stream rendering; batch high-frequency stream deltas where needed without making output laggy.
-- Design QA: responsive shell and cards (390/768/1024/1280/1440/1920), dark/light/system, keyboard only, screen reader labels, focus restore, no overflow at zoom, reduced motion, errors/loading/empty, touch targets and color contrast. Test auth, dashboard, optional workspaces, table interactions, command palette and PWA. Preserve all existing supported behavior unless explicitly removed as unused.
+## **2. Remaining MUI-style components and migration regressions**
 
-7. ACCEPTANCE / DELIVERABLES
-Run npm run typecheck, lint, test, build, storybook:build, api:check, pwa:check, relevant pwa:browser and test:e2e with services, perf:check and perf:measure. Run Knip production+full and duplication tool if configured. Add tests for each confirmed defect; report commands, exact failures and blockers, no false success. Validate both minimal and enterprise/AI-enabled profile; check no MUI imports or package refs and no stale theme API except legitimate migration tests/docs. No static visual palettes outside DESIGN.md/index.css except explicitly documented build metadata or dynamic geometry. Produce a concise final report: severity, path:line, problem, fix, deleted files/deps, remaining candidates and why retained, before/after LOC/bundle metrics, tests and follow-up. Keep the blueprint simpler; final diff should reduce duplicate logic and unnecessary dependencies rather than add abstractions.
+These are verified findings in the current `main` branch. Some are remnants of the old compatibility layer, while others are custom HTML implementations that should be consolidated into shadcn/ui.
+
+P0 indicates a functional or accessibility issue, P1 a component consolidation priority, and P2 a maintainability improvement.
+
+### **2.1. Switches and checkboxes**
+
+The file tree contains neither `switch.tsx` nor `checkbox.tsx` under `components/ui`. Multiple features implement these controls independently.
+
+| File and lines                                                                                                                                                                                                               | Current implementation                           | Recommended replacement                  | Priority |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---------------------------------------- | -------- |
+| [features/ai/components/RunPlaygroundPanel.tsx:49–53](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/ai/components/RunPlaygroundPanel.tsx?utm_source=chatgpt.com#L49-L53)                       | Native checkbox with switch role and empty label | `Switch` + `FieldLabel`                  | P0       |
+| [features/platform/components/PlatformSections.tsx:52–57](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform/components/PlatformSections.tsx?utm_source=chatgpt.com#L52-L57)               | Webhook activation switch                        | `Switch` + accessible label              | P0       |
+| [features/platform-admin/components/FlagsSection.tsx:21–22](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/FlagsSection.tsx?utm_source=chatgpt.com#L21-L22)           | Feature flag switch                              | `Switch`                                 | P1       |
+| [features/platform-admin/components/FlagsSection.tsx:39–40](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/FlagsSection.tsx?utm_source=chatgpt.com#L39-L40)           | Flag editing switch                              | `Switch`                                 | P1       |
+| [features/platform-admin/components/PlansSection.tsx:27–28](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/PlansSection.tsx?utm_source=chatgpt.com#L27-L28)           | Plan creation switch                             | `Switch`                                 | P1       |
+| [features/platform-admin/components/PlansSection.tsx:53–58](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/PlansSection.tsx?utm_source=chatgpt.com#L53-L58)           | Plan editing switches                            | `Switch`                                 | P1       |
+| [components/notifications/NotificationPreferencesForm.tsx:60–61](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/notifications/NotificationPreferencesForm.tsx?utm_source=chatgpt.com#L60-L61) | Notification preference switch                   | `Switch`                                 | P1       |
+| [components/ui/AdvancedDataTable.tsx:206](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L206)                                                | Column visibility checkboxes                     | `Checkbox` or `DropdownMenuCheckboxItem` | P1       |
+| [components/ui/AdvancedDataTable.tsx:215](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L215)                                                | Select-all checkbox                              | Tri-state `Checkbox`                     | P1       |
+| [components/ui/AdvancedDataTable.tsx:221](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L221)                                                | Row selection checkbox                           | `Checkbox`                               | P1       |
+
+Install the missing primitives using the existing Base UI configuration:
+
+```
+cd frontend
+npx shadcn@latest add switch checkbox
+```
+
+**Previously used pattern:**
+
+```
+<label>
+  <input
+    checked={runForm.review_required}
+    onChange={(event: any) =>
+      setRunForm(current => ({
+        ...current,
+        review_required: event.target.checked,
+      }))
+    }
+    type="checkbox"
+    role="switch"
+  />
+</label>
+```
+
+**Recommended implementation:**
+
+```
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+
+<div className="flex items-center gap-3">
+  <Switch
+    id="review-required"
+    checked={runForm.review_required}
+    onCheckedChange={(checked) =>
+      setRunForm(current => ({
+        ...current,
+        review_required: checked,
+      }))
+    }
+  />
+
+  <Label htmlFor="review-required">
+    Require human review
+  </Label>
+</div>
+```
+
+This also removes unnecessary `any` typing and provides an accessible name.
+
+### **2.2. MUI Chip remnants — potentially serious functional regressions**
+
+Several components contain manually styled pill-shaped elements resembling replacements for the former MUI `Chip` component.
+
+In some locations, these are empty, self-closing `div` elements. This may result in missing status labels, invisible document selections or empty event badges.
+
+| File and lines                                                                                                                                                                                                         | Finding                                     | Replacement                                   | Priority |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------- | -------- |
+| [features/ai/components/RunPlaygroundPanel.tsx:45–46](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/ai/components/RunPlaygroundPanel.tsx?utm_source=chatgpt.com#L45-L46)                 | Clickable empty pill for document selection | `Toggle`, or selectable `Button`              | P0       |
+| [features/platform/components/PlatformSections.tsx:57–59](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform/components/PlatformSections.tsx?utm_source=chatgpt.com#L57-L59)         | Empty webhook event pills                   | `Badge` with event name                       | P0       |
+| [features/settings-admin/components/SettingEditors.tsx:21–25](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/settings-admin/components/SettingEditors.tsx?utm_source=chatgpt.com#L21-L25) | Empty status pills                          | `Badge` with explicit children                | P0       |
+| [features/platform-admin/components/PlansSection.tsx:42](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/PlansSection.tsx?utm_source=chatgpt.com#L42)            | Empty plan status pill                      | `Badge`                                       | P0       |
+| [features/agent/components/AgentConfigurationPanel.tsx:149](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/agent/components/AgentConfigurationPanel.tsx?utm_source=chatgpt.com#L149)      | Custom pill styling                         | `Badge` or `Toggle`, depending on interaction | P1       |
+| [features/agent/components/AgentRetrievalSettings.tsx:65](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/agent/components/AgentRetrievalSettings.tsx?utm_source=chatgpt.com#L65)          | Custom pill styling                         | `Badge`                                       | P1       |
+
+Example of the current webhook event problem:
+
+```
+{webhook.events.map((e: any) => (
+  <div
+    key={e}
+    className="inline-flex items-center rounded-full
+               border border-border px-2 py-0.5 text-xs"
+  />
+))}
+```
+
+Replace with:
+
+```
+import { Badge } from "@/components/ui/badge";
+
+{webhook.events.map(event => (
+  <Badge key={event} variant="outline">
+    {event}
+  </Badge>
+))}
+```
+
+This is more than a visual consistency issue: the original label information needs to be restored.
+
+### **2.3. Tabs, accordion and collapsible components**
+
+[Shadcn UI Tabs Component for dark mode - Horizon AI Boilerplate | Tabs](https://images.openai.com/static-rsc-4/yBK1spdbqCkxRFIYU8oyz11EXJCYcNzgFWi85SEc97gDjlaF3GQMQyGXzLND4jc11ONFy9T-OOfjLLYDzzXYUF0izRnQn9FsST6E3I8n4DtAeQXqG8z_YPqrYgdvQH02K2aDL6ZGiMA9X2FZm_yF3LLcFqzFFbnXXmHDZM6g54g?purpose=inline)
+
+**Tabs**
+
+[components/ui/PageTabs.tsx:5](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/PageTabs.tsx?utm_source=chatgpt.com#L5)
+
+Manually implemented tablist with buttons and `aria-selected`. Replace its internals with shadcn `Tabs`, `TabsList` and `TabsTrigger` to improve keyboard navigation and focus management.
+
+[Accordion Component/Shadcn UI Kit by Sayani Banerjee on Dribbble](https://images.openai.com/static-rsc-4/eTauK1XaqkrbSBXHL2myUji-ljKRhlJKDQnR6dA51m3Ous4ttJoN4lgHXuoLxT2ijBuuPOAoMmLtrHeA1Zx0oJozBy5QVVtt1DVe4KUdEq1Ej6tz4eibMA_FzQjCn27bjnG9uQ1UlotciHIAT5xGEep9ZdcDXijxKDD6Y5Vpb6c?purpose=inline)
+
+**Collapsible**
+
+[components/ui/AdvancedSettings.tsx:5](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedSettings.tsx?utm_source=chatgpt.com#L5)
+
+Manually manages expanded state, hidden content and ARIA attributes. Replace its internal implementation with `Collapsible`, `CollapsibleTrigger` and `CollapsibleContent`.
+
+[Component Not Found | 21st](https://images.openai.com/static-rsc-4/_qtt-C9fb_bewjevxBJ4FqjcfqJb17m0Hb1cty4JPHhbnYKIHEaMazUkMPsyC1vIcvGIH2LvQdKoRBQ9lMeQWMJvrS7aXV3ZCk9DB_W93iSnVj_qlOoF0rzRMO1GgLeBROmRHWIrYLVaGxo7qkpC_r3d-Jj6ORUOWo-kcsZi-T4?purpose=inline)
+
+**Select**
+
+[components/ui/LanguageSelector.tsx:12–13](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/LanguageSelector.tsx?utm_source=chatgpt.com#L12-L13)
+
+[components/layout/ThemeSelector.tsx:7–15](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/layout/ThemeSelector.tsx?utm_source=chatgpt.com#L7-L15)
+
+Independently styled native selects. Consolidate using `NativeSelect` or `Select`.
+
+[Shadcn Components - Extra components for Shadcn UI](https://images.openai.com/static-rsc-4/icEiQfHNn1giXArXJDcDwXGsNqECIgDa1evqd5CSP5CUDNv_DD7e-hA-LJdLQciH5QT6i4iyPNG42zaOxQqSAYWxgH0hrI-s-p9gxZD8BdFV67xoW2dYQNkbnsqwqbtoYyytybb-PzaqhzU3yV_6oImDGceraXYphBDVQkKrRd4?purpose=inline)
+
+**Dropdown menu**
+
+[components/layout/WorkspaceMenus.tsx:9,42](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/layout/WorkspaceMenus.tsx?utm_source=chatgpt.com#L9)
+
+[components/layout/WorkspaceSidebar.tsx:11,37,61](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/layout/WorkspaceSidebar.tsx?utm_source=chatgpt.com#L11)
+
+Account actions and project selection are implemented using popovers and manually styled buttons. Consider `DropdownMenu` for action menus and `Combobox` for searchable project selection.
+
+Recommended component additions:
+
+```
+npx shadcn@latest add tabs collapsible native-select dropdown-menu
+```
+
+Retain `PageTabs` and `AdvancedSettings` as domain-neutral compositions if they provide meaningful shared functionality. Replace their internals instead of changing every consumer unnecessarily.
+
+### **2.4. Data table remnants**
+
+The former MUI table implementation has been consolidated into `AdvancedDataTable`, but further improvements remain.
+
+| File and lines                                                                                                                                                           | Current implementation                     | Recommendation                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ | -------------------------------------------------------- |
+| [AdvancedDataTable.tsx:212–221](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L212-L221) | Manually styled table structure            | shadcn `Table` primitives while retaining TanStack Table |
+| [AdvancedDataTable.tsx:206](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L206)          | Custom column visibility popover           | `DropdownMenuCheckboxItem`                               |
+| [AdvancedDataTable.tsx:220](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L220)          | Native row expansion button                | `Button variant="ghost" size="icon-sm"`                  |
+| [AdvancedDataTable.tsx:230](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L230)          | Custom pagination and rows-per-page select | Existing `pagination.tsx` + `NativeSelect`               |
+| [charts.tsx:39](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/charts.tsx?utm_source=chatgpt.com#L39)                                  | Manually styled chart data table           | Shared `Table` primitives where beneficial               |
+
+```
+npx shadcn@latest add table
+```
+
+Do **not** introduce a second table engine. shadcn Table provides the presentation layer; TanStack Table should continue to manage sorting, filtering, pagination and selection.
+
+### **2.5. Card, Paper and Skeleton remnants**
+
+| File and lines                                                                                                                                                                                                   | Finding                              | Recommendation                                                                       |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
+| [components/ui/SectionCard.tsx:6–8](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/SectionCard.tsx?utm_source=chatgpt.com#L6-L8)                                               | Independent Card presentation system | Compose existing `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent` |
+| [components/ui/StatCard.tsx:21–37](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/StatCard.tsx?utm_source=chatgpt.com#L21-L37)                                                 | Independently styled metric card     | `Card` composition                                                                   |
+| [components/ui/StatCard.tsx:27–29](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/StatCard.tsx?utm_source=chatgpt.com#L27-L29)                                                 | Custom animated loading blocks       | Existing `Skeleton`                                                                  |
+| [components/ui/StatCardSkeletonGrid.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/StatCardSkeletonGrid.tsx?utm_source=chatgpt.com#L2)                                  | Manually implemented skeleton        | Existing `Skeleton`                                                                  |
+| [features/platform/components/PlatformSections.tsx:48–52](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform/components/PlatformSections.tsx?utm_source=chatgpt.com#L48-L52)   | Inline Paper-like styles             | `Card`                                                                               |
+| [features/platform/components/PlatformSections.tsx:63–66](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform/components/PlatformSections.tsx?utm_source=chatgpt.com#L63-L66)   | Custom skeleton and layout           | `Skeleton` + Tailwind grid                                                           |
+| [features/platform-admin/components/FlagsSection.tsx:10,30](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/FlagsSection.tsx?utm_source=chatgpt.com#L10)   | Inline card styling                  | `Card`                                                                               |
+| [features/platform-admin/components/PlansSection.tsx:10,36](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/PlansSection.tsx?utm_source=chatgpt.com#L10)   | Inline card styling                  | `Card`                                                                               |
+| [features/settings-admin/components/SettingEditors.tsx:7,50](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/settings-admin/components/SettingEditors.tsx?utm_source=chatgpt.com#L7) | Inline container styling             | `Card` or `FieldGroup`                                                               |
+
+There is no need to install Card or Skeleton again. Both already exist.
+
+### **2.6. IconButton remnants**
+
+| File and lines                                                                                                                                                                    | Current implementation     | Replacement                             |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | --------------------------------------- |
+| [components/layout/WorkspaceSidebar.tsx:88](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/layout/WorkspaceSidebar.tsx?utm_source=chatgpt.com#L88) | Custom close button        | `Button` + `X`                          |
+| [components/ui/AdvancedDataTable.tsx:220](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/AdvancedDataTable.tsx?utm_source=chatgpt.com#L220)     | Row expand/collapse button | `Button` + `ChevronDown`/`ChevronRight` |
+| [components/ui/HelpTooltip.tsx:43–46](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/HelpTooltip.tsx?utm_source=chatgpt.com#L43-L46)            | Custom help icon button    | `Button` + `CircleHelp` or `Info`       |
+
+The existing [button.tsx:28–33](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/button.tsx?utm_source=chatgpt.com#L28-L33) already supports icon sizes.
+
+```
+<Button
+  variant="ghost"
+  size="icon"
+  aria-label="Close navigation"
+  onClick={close}
+>
+  <X className="size-4" aria-hidden="true" />
+</Button>
+```
+
+## **3. Previously used MUI components found in Git history**
+
+I identified the following historical migration commits:
+
+| Commit                                                                                                                        | Description          |
+| ----------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| [5eedabc](https://github.com/oplt/fullstack_blueprint/commit/5eedabc26e73620e756c8e7237971f2e57e202e1?utm_source=chatgpt.com) | Frontend issues      |
+| [d24b311](https://github.com/oplt/fullstack_blueprint/commit/d24b311ea146289759fd510117945266f718b0a9?utm_source=chatgpt.com) | Frontend migration   |
+| [3358268](https://github.com/oplt/fullstack_blueprint/commit/33582680a5446baaaf4c9b3dcacd5b02ebb388bf?utm_source=chatgpt.com) | Frontend migration 2 |
+| [b43756b](https://github.com/oplt/fullstack_blueprint/commit/b43756bfe6ed9514e6c6f301437923b3729aa4cb?utm_source=chatgpt.com) | Frontend cleaning    |
+
+The historical file [frontend/src/components/ui/muiCompat.tsx](https://github.com/oplt/fullstack_blueprint/blob/5eedabc26e73620e756c8e7237971f2e57e202e1/frontend/src/components/ui/muiCompat.tsx?utm_source=chatgpt.com) implemented a fake MUI compatibility layer.
+
+It has been removed from the current file tree. However, it explains many of the current architectural remnants.
+
+### **Complete replacement map for the historical compatibility layer**
+
+The following line numbers refer to the historical file, not `main`.
+
+| Old line | Former MUI component/API          | Correct replacement                      |
+| -------- | --------------------------------- | ---------------------------------------- |
+| 8        | `Box`                             | Semantic HTML + Tailwind                 |
+| 9        | `Stack`                           | `flex`, `flex-col`, `gap-*`              |
+| 10       | `Typography`                      | Semantic headings and typography classes |
+| 11       | `Button`                          | shadcn `Button`                          |
+| 12       | `IconButton`                      | `Button size="icon"`                     |
+| 13       | `Alert`                           | shadcn `Alert`                           |
+| 14       | `Chip`                            | `Badge`, `Toggle` or removable badge     |
+| 15       | `Skeleton`                        | shadcn `Skeleton`                        |
+| 16       | `CircularProgress`                | `Spinner` or Lucide `LoaderCircle`       |
+| 17       | `Paper`                           | `Card`                                   |
+| 18       | `Container`                       | `PageShell` or Tailwind container        |
+| 19       | `Divider`                         | `Separator`                              |
+| 20       | `Collapse`                        | `Collapsible`                            |
+| 21       | `InputAdornment`                  | `InputGroup` / `InputGroupAddon`         |
+| 22       | `MenuItem`                        | `DropdownMenuItem` or `SelectItem`       |
+| 23       | `Switch`                          | shadcn `Switch`                          |
+| 24       | `FormControlLabel`                | `Field` + `FieldLabel`                   |
+| 25       | `Avatar`                          | shadcn `Avatar`                          |
+| 26       | `Link`                            | Native anchor or React Router `Link`     |
+| 27       | `TextField`                       | `Field` + `Input`/`Textarea`             |
+| 28       | `Drawer`                          | `Sheet`                                  |
+| 29       | `Tooltip`                         | shadcn `Tooltip`                         |
+| 30       | `Badge`                           | Badge composition or positioned counter  |
+| 31–32    | `Tabs`, `Tab`                     | `Tabs`, `TabsList`, `TabsTrigger`        |
+| 33–38    | Table components                  | shadcn `Table` primitives                |
+| 39       | `TablePagination`                 | `Pagination` + `NativeSelect`            |
+| 40       | `Checkbox`                        | shadcn `Checkbox`                        |
+| 41       | `useMediaQuery`                   | Tailwind responsive/container queries    |
+| 42       | `useTheme`                        | CSS semantic tokens and `useColorMode`   |
+| 43       | `alpha`                           | CSS `color-mix()` or Tailwind opacity    |
+| 44–46    | `PaletteMode`, `Theme`, `SxProps` | Local theme types and `className`        |
+| 47       | `ThemeProvider`                   | Existing application providers           |
+| 48       | `CssBaseline`                     | Tailwind Preflight                       |
+| 49       | `Snackbar`                        | Sonner                                   |
+| 50       | `createTheme`                     | CSS variables                            |
+| 51       | `AlertColor`                      | Typed notification severity              |
+| 52       | `TextFieldProps`                  | Native control types                     |
+| 53–56    | Dialog components                 | shadcn `Dialog` primitives               |
+
+### **Historical MUI-specific calendar styling**
+
+The historical [calendarDisplay.ts:24](https://github.com/oplt/fullstack_blueprint/blob/5eedabc26e73620e756c8e7237971f2e57e202e1/frontend/src/features/calendar/calendarDisplay.ts?utm_source=chatgpt.com#L24) contained MUI selectors such as:
+
+```
+"& .MuiPickersCalendarHeader-root"
+"& .MuiPickersCalendarHeader-switchViewButton"
+"& .MuiPickersCalendarHeader-label"
+"& .MuiDayCalendar-header"
+```
+
+These have been replaced by the current calendar architecture.
+
+Current [MonthDateCalendar.tsx:2,32–44](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/calendar/components/MonthDateCalendar.tsx?utm_source=chatgpt.com#L32-L44) correctly uses the existing shadcn `Calendar` based on React DayPicker.
+
+**Recommendation:** Keep this implementation. Preserve runtime-computed calendar dimensions; do not indiscriminately remove dynamic styles.
+
+## **4. Previously used Material icons**
+
+A particularly problematic historical implementation was [iconsCompat.tsx:1–5](https://github.com/oplt/fullstack_blueprint/blob/5eedabc26e73620e756c8e7237971f2e57e202e1/frontend/src/components/ui/iconsCompat.tsx?utm_source=chatgpt.com#L1-L5).
+
+At that revision, every exported Material-style icon was rendered using the same Lucide `Circle` icon.
+
+```
+import { Circle } from "lucide-react";
+
+const Icon = (props: Props) => <Circle {...props} />;
+
+export const Visibility = Icon;
+export const VisibilityOff = Icon;
+export const Search = Icon;
+export const PeopleAlt = Icon;
+```
+
+This compatibility file is absent from the current tree. The migration commit `b43756b` replaced numerous consumers with actual Lucide icons.
+
+### **4.1. Verified current icon naming remnants**
+
+These are not MUI dependencies. They are legacy aliases attached to valid Lucide imports.
+
+| Current file and lines                                                                                                                                                                                                            | Current alias                                 | Recommended direct name                           |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------- |
+| [pages/ProjectsPage.tsx:8](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/pages/ProjectsPage.tsx?utm_source=chatgpt.com#L8)                                                                                   | `Plus as AddIcon`                             | `Plus`                                            |
+| ProjectsPage.tsx:9                                                                                                                                                                                                                | `CirclePlus as AddCircleOutlineIcon`          | `CirclePlus`                                      |
+| ProjectsPage.tsx:12                                                                                                                                                                                                               | `X as CloseIcon`                              | `X`                                               |
+| [pages/NotificationsPage.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/pages/NotificationsPage.tsx?utm_source=chatgpt.com#L2)                                                                         | `Mail as MailOutlineIcon`                     | `Mail`                                            |
+| NotificationsPage.tsx:3                                                                                                                                                                                                           | `BellRing as NotificationsActiveIcon`         | `BellRing`                                        |
+| NotificationsPage.tsx:4                                                                                                                                                                                                           | `Megaphone as CampaignIcon`                   | `Megaphone`                                       |
+| [features/profile/components/ProfileSections.tsx:1](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/profile/components/ProfileSections.tsx?utm_source=chatgpt.com#L1)                                 | `Trash2 as DeleteIcon`                        | `Trash2`                                          |
+| ProfileSections.tsx:1                                                                                                                                                                                                             | `Laptop as DevicesIcon`                       | `Laptop`                                          |
+| ProfileSections.tsx:1                                                                                                                                                                                                             | `LockKeyhole as LockIcon`                     | `LockKeyhole`                                     |
+| ProfileSections.tsx:1                                                                                                                                                                                                             | `MapPin as PlaceIcon`                         | `MapPin`                                          |
+| ProfileSections.tsx:1                                                                                                                                                                                                             | `Globe as PublicIcon`                         | `Globe`                                           |
+| ProfileSections.tsx:1                                                                                                                                                                                                             | `Upload as UploadIcon`                        | `Upload`                                          |
+| [features/projects/components/ProjectTaskCards.tsx:3](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/projects/components/ProjectTaskCards.tsx?utm_source=chatgpt.com#L3)                             | `GripVertical as DragIcon`                    | `GripVertical`                                    |
+| [features/projects/components/TaskEditorSection.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/projects/components/TaskEditorSection.tsx?utm_source=chatgpt.com#L2)                           | `Trash2 as DeleteIcon`                        | `Trash2`                                          |
+| [features/settings-admin/components/AdminSettingsContent.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/settings-admin/components/AdminSettingsContent.tsx?utm_source=chatgpt.com#L2)         | `RotateCcw as RestartIcon`                    | `RotateCcw`                                       |
+| AdminSettingsContent.tsx:2                                                                                                                                                                                                        | `Settings2 as SettingsIcon`                   | `Settings2`                                       |
+| AdminSettingsContent.tsx:2                                                                                                                                                                                                        | `HardDrive as StorageIcon`                    | `HardDrive`                                       |
+| [features/settings-admin/components/SettingEditors.tsx:1](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/settings-admin/components/SettingEditors.tsx?utm_source=chatgpt.com#L1)                     | `Trash2 as DeleteIcon`                        | `Trash2`                                          |
+| [features/settings-admin/components/DatabaseSettingsSections.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/settings-admin/components/DatabaseSettingsSections.tsx?utm_source=chatgpt.com#L2) | `HardDrive as StorageIcon`                    | `HardDrive`                                       |
+| [features/ai/components/PromptLibraryPanel.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/ai/components/PromptLibraryPanel.tsx?utm_source=chatgpt.com#L2)                                     | `Sparkles as PromptIcon`                      | `Sparkles`                                        |
+| [features/ai/components/RetrievalDocumentsPanel.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/ai/components/RetrievalDocumentsPanel.tsx?utm_source=chatgpt.com#L2)                           | `FileText as DocumentIcon`                    | `FileText`                                        |
+| [features/ai/components/RunPlaygroundPanel.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/ai/components/RunPlaygroundPanel.tsx?utm_source=chatgpt.com#L2)                                     | `Sparkles as AiIcon`, `PlayCircle as RunIcon` | `Sparkles`, `PlayCircle`                          |
+| [features/ai/views/AiStudioView.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/ai/views/AiStudioView.tsx?utm_source=chatgpt.com#L2)                                                           | Review, Dataset, Document and Prompt aliases  | `CircleCheck`, `Database`, `FileText`, `Sparkles` |
+| [features/rag/components/RagIndexingConfiguration.tsx:2](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/rag/components/RagIndexingConfiguration.tsx?utm_source=chatgpt.com#L2)                       | `RefreshCw as RetryIcon`                      | `RefreshCw`                                       |
+
+Also inspect these verified alias-heavy imports:
+
+| File                                                                                                                                                                                                                            | Lines |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| [features/observability/components/ObservabilityHealthGrid.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/observability/components/ObservabilityHealthGrid.tsx?utm_source=chatgpt.com#L2-L15) | 2–15  |
+| [features/observability/components/ObservabilityShortcuts.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/observability/components/ObservabilityShortcuts.tsx?utm_source=chatgpt.com#L2-L14)   | 2–14  |
+| [features/projects/views/ProjectDetailView.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/projects/views/ProjectDetailView.tsx?utm_source=chatgpt.com#L3-L10)                                 | 3–10  |
+| [features/platform/components/PlatformSections.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform/components/PlatformSections.tsx?utm_source=chatgpt.com#L1)                             | 1     |
+
+Renaming aliases is P2 work. Meaningful domain aliases are valid TypeScript and need not be removed unless they obscure the actual icon or perpetuate unnecessary compatibility conventions.
+
+### **4.2. Material-to-Lucide icon reference**
+
+Navigation and actions
+
+Menu
+
+Menu
+
+Close
+
+X
+
+Add
+
+Plus
+
+AddCircleOutline
+
+CirclePlus
+
+Edit
+
+Pencil
+
+DeleteOutline
+
+Trash2
+
+Search
+
+Search
+
+MoreVert
+
+EllipsisVertical
+
+ArrowBack
+
+ArrowLeft
+
+ArrowForward
+
+ArrowRight
+
+ExpandMore
+
+ChevronDown
+
+OpenInNew
+
+ExternalLink
+
+Authentication, notifications and status
+
+Visibility
+
+Eye
+
+VisibilityOff
+
+EyeOff
+
+LockOutlined
+
+LockKeyhole
+
+PeopleAlt
+
+Users
+
+Notifications
+
+Bell
+
+NotificationsActive
+
+BellRing
+
+MailOutline
+
+Mail
+
+VerifiedUser
+
+ShieldCheck
+
+CheckCircle
+
+CircleCheck
+
+ErrorOutline
+
+CircleAlert
+
+HelpOutline
+
+CircleHelp
+
+DoneAll
+
+CheckCheck
+
+AI, infrastructure and project management
+
+SmartToy
+
+Bot
+
+AutoAwesome
+
+Sparkles
+
+PsychologyAlt
+
+Brain
+
+PlayArrow
+
+Play
+
+Description
+
+FileText
+
+Dataset
+
+Database
+
+Storage
+
+HardDrive
+
+BugReport
+
+Bug
+
+Hub
+
+Network
+
+Speed
+
+Gauge
+
+Timeline
+
+Activity
+
+RestartAlt
+
+RotateCcw
+
+ViewKanban
+
+Kanban
+
+DragIndicator
+
+GripVertical
+
+EventAvailable
+
+CalendarCheck
+
+TaskAlt
+
+ListChecks
+
+### **4.3. Unicode icons still present**
+
+[frontend/src/components/ui/charts.tsx:68](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/components/ui/charts.tsx?utm_source=chatgpt.com#L68) uses Unicode arrows:
+
+```
+{value >= 0 ? "↑" : "↓"}
+```
+
+Replace them with Lucide icons for consistency:
+
+```
+import { ArrowUp, ArrowDown } from "lucide-react";
+
+const TrendIcon = value >= 0 ? ArrowUp : ArrowDown;
+
+return (
+  <span
+    className={cn(
+      "inline-flex items-center gap-1",
+      positive ? "text-success" : "text-destructive"
+    )}
+  >
+    <TrendIcon className="size-4" aria-hidden="true" />
+    <span className="sr-only">
+      {value >= 0 ? "Increase" : "Decrease"}
+    </span>
+    {Math.abs(value).toFixed(1)}%
+    {label && ` ${label}`}
+  </span>
+);
+```
+
+## **5. Remaining MUI styling patterns**
+
+Some components still use static inline styling that resembles the output of an automated MUI `sx` conversion.
+
+| File                                                                                                                                                                                                                             | Lines          | Recommendation                          |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------------- |
+| [features/profile/components/ProfileSections.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/profile/components/ProfileSections.tsx?utm_source=chatgpt.com#L10)                                 | 10, 32         | Tailwind grid, shared layout primitives |
+| [features/platform/components/PlatformSections.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform/components/PlatformSections.tsx?utm_source=chatgpt.com#L48)                             | 48–52, 63–66   | `Card`, spacing tokens, `Skeleton`      |
+| [features/settings-admin/components/DatabaseSettingsSections.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/settings-admin/components/DatabaseSettingsSections.tsx?utm_source=chatgpt.com#L13) | 13, 44         | `grid gap-4`, `FormGrid`                |
+| [features/platform-admin/components/FlagsSection.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/FlagsSection.tsx?utm_source=chatgpt.com#L10)                         | 10, 15, 30, 35 | `Card`, `FormGrid`                      |
+| [features/platform-admin/components/PlansSection.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/platform-admin/components/PlansSection.tsx?utm_source=chatgpt.com#L10)                         | 10, 16, 36, 43 | `Card`, `FormGrid`                      |
+| [features/settings-admin/components/SettingEditors.tsx](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/src/features/settings-admin/components/SettingEditors.tsx?utm_source=chatgpt.com#L7)                      | 7, 50          | Semantic Tailwind classes               |
+
+For example:
+
+```
+// Legacy-style implementation
+<div
+  style={{
+    display: "grid",
+    gap: 16,
+    gridTemplateColumns: "1fr",
+    alignItems: "start",
+  }}
+>
+```
+
+Replace with:
+
+```
+<div className="grid grid-cols-1 items-start gap-4">
+```
+
+Where the same layout is used repeatedly, prefer the existing `FormGrid`, `ResponsiveCardGrid`, `WorkspaceSplit` or `PageShell` components.
+
+## **6. Obsolete files, documentation and false positives**
+
+| File/reference                                                                                                                      | Status                                           | Recommended action                          |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------- |
+| `muiCompat.tsx`                                                                                                                     | Removed from current tree                        | Do not recreate                             |
+| `styleCompat.ts`                                                                                                                    | Removed from current tree                        | Do not recreate                             |
+| `iconsCompat.tsx`                                                                                                                   | Removed from current tree                        | Do not recreate                             |
+| `SnackbarProvider.tsx`                                                                                                              | Removed from current tree                        | Continue using Sonner                       |
+| `snackbarContext.ts`                                                                                                                | Removed from current tree                        | No action                                   |
+| `responsiveQa.ts`                                                                                                                   | Removed from current tree                        | Preserve actual responsive tests            |
+| `DataTable.tsx`                                                                                                                     | Removed from current tree                        | Continue using AdvancedDataTable            |
+| [frontend_promt.txt:27–46](https://github.com/oplt/fullstack_blueprint/blob/main/frontend_promt.txt?utm_source=chatgpt.com#L27-L46) | Historical MUI migration instructions            | Update obsolete findings and line numbers   |
+| [frontend/AGENTS.md:29,46,66](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/AGENTS.md?utm_source=chatgpt.com#L29)  | MUI migration rules and compatibility references | Retain prohibitions; update completed tasks |
+
+One interesting false positive occurs in [frontend/package-lock.json:1646](https://github.com/oplt/fullstack_blueprint/blob/main/frontend/package-lock.json?utm_source=chatgpt.com#L1646):
+
+```
+"url": "https://opencollective.com/mui-org"
+```
+
+This is dependency funding metadata, not evidence of a runtime Material UI dependency. **Do not manually remove it.**
+
+Neither the inspected frontend npm lockfile nor pnpm lockfile contained the legacy `@mui`, `@material-ui` or `@emotion` package names.
+
+## **7. Recommended shadcn components to add**
+
+The current file tree does not contain the following primitives.
+
+## **Component installation selector**
+
+8 selected
+
+**switch**
+
+Feature flags, preferences, webhook activation
+
+P0
+
+**checkbox**
+
+Data table selection and form controls
+
+P1
+
+**toggle**
+
+Selectable document chips
+
+P0
+
+**tabs**
+
+Replace manually implemented tabs
+
+P1
+
+**collapsible**
+
+Advanced settings panels
+
+P1
+
+**native-select**
+
+Language, theme and page size selectors
+
+P1
+
+**dropdown-menu**
+
+Account actions and column visibility
+
+P1
+
+**table**
+
+Shared semantic table presentation
+
+P1
+
+**alert**
+
+Consistent inline status and error messages
+
+P2
+
+**input-group**
+
+Input adornment patterns
+
+P2
+
+**alert-dialog**
+
+Destructive action confirmation
+
+P2
+
+**spinner**
+
+Loading indicators
+
+P2
+
+**combobox**
+
+Searchable project or option selection
+
+P2
+
+cd frontend\
+npx shadcn\@latest add switch checkbox toggle tabs collapsible native-select dropdown-menu table
+
+&#x20;Copy installation command
+
+Official references: [shadcn/ui components](https://ui.shadcn.com/docs/components?utm_source=chatgpt.com), [Base UI](https://base-ui.com/?utm_source=chatgpt.com), and [Lucide icon catalogue](https://lucide.dev/icons/?utm_source=chatgpt.com).
+
+Review the generated code before committing. Keep existing customizations and avoid overwriting already installed primitives.
+
+## **8. Preventing MUI from returning**
+
+The current ESLint configuration should be extended with restricted import rules.
+
+Add the following to the TypeScript/TSX configuration block in `frontend/eslint.config.js`:
+
+```
+"no-restricted-imports": [
+  "error",
+  {
+    patterns: [
+      {
+        group: [
+          "@mui/*",
+          "@material-ui/*",
+          "@emotion/*",
+          "**/muiCompat",
+          "**/styleCompat",
+          "**/iconsCompat",
+        ],
+        message:
+          "Use existing shadcn/ui Base UI components, " +
+          "Tailwind CSS and named lucide-react imports.",
+      },
+    ],
+  },
+],
+```
+
+Run a complete repository-level verification:
+
+```
+git grep -nEi \
+'(@mui|@material-ui|@emotion|muiCompat|styleCompat|iconsCompat|Mui[A-Z]|SxProps|contentSx|CssBaseline|createTheme|makeStyles)' \
+-- frontend/src frontend/.storybook frontend/e2e
+```
+
+Search for additional remnants of MUI styling:
+
+```
+rg -n \
+  'sx\s*=|style=\{\{|theme\.palette|theme\.spacing|theme\.breakpoints|startIcon=|endIcon=|labelPlacement=|helperText=' \
+  frontend/src
+```
+
+Search for custom component implementations:
+
+```
+rg -n \
+  'role="switch"|type="checkbox"|role="tablist"|role="tab"|<select|<svg|animate-pulse' \
+  frontend/src
+```
+
+Verify the installed dependency tree:
+
+```
+cd frontend
+
+npm ls \
+  @mui/material \
+  @mui/icons-material \
+  @mui/x-data-grid \
+  @mui/x-date-pickers \
+  @emotion/react \
+  @emotion/styled \
+  --all
+```
+
+Run validation after making the changes:
+
+```
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+npm run storybook:build
+npm run knip
+```
+
+## **9. Recommended implementation order**
+
+**Phase 1 — Fix migration regressions**
+
+P0 · Functional correctness
+
+Restore missing Chip labels, replace inaccessible switches, repair document selection controls and add regression tests.
+
+**Phase 2 — Consolidate UI primitives**
+
+P1 · Architecture
+
+Introduce shared Switch, Checkbox, Tabs, Collapsible and NativeSelect. Refactor existing wrappers internally.
+
+**Phase 3 — Consolidate the design system**
+
+P1 · Maintainability
+
+Unify Card, SectionCard, StatCard, Skeleton and table presentation. Remove static inline styles.
+
+**Phase 4 — Icon standardization**
+
+P2 · Consistency
+
+Remove obsolete Material naming conventions where useful, replace Unicode icons and standardize icon sizing and accessible labels.
+
+**Phase 5 — Production enforcement**
+
+Quality gate
+
+Add ESLint restrictions, migration regression tests, accessibility checks and CI verification.
+
+## **10. Final assessment**
+
+The main problem is no longer Material UI itself. It is the **architectural and functional residue of the previous MUI migration**.
+
+The highest-value improvements are:
+
+- Restore missing content in former Chip implementations.
+- Replace inaccessible or inconsistent switches and checkboxes.
+- Consolidate custom components around existing shadcn primitives.
+- Remove obsolete static styling patterns.
+- Prevent the compatibility layer from returning.
+
+Renaming Lucide aliases is considerably less important than fixing functionality and accessibility.
+
+**Audit limitations:** I retrieved the complete repository file tree, inspected selected source files directly, checked the frontend lockfiles and analyzed historical migration commits. GitHub code search returned unreliable empty results, the bulk retrieval exceeded tool limits, and a full local clone was blocked by network restrictions. Consequently, this is a verified targeted audit, not an exhaustive line-by-line inspection of every source file. No files were modified, and build or runtime tests were not executed. The full-checkout verification commands above should be mandatory before declaring the migration complete.

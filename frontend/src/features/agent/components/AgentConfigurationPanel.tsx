@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { HelpTooltip } from "../../../components/ui/HelpTooltip";
+import { Badge } from "../../../components/ui/badge";
 import { KeyValueList } from "../../../components/ui/KeyValueList";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { useAgentWorkspace } from "../hooks/useAgentWorkspace";
@@ -144,12 +145,9 @@ export function AgentConfigurationPanel(props: Props) {
                                 </p>
                                 <div className="flex flex-row gap-2 flex-wrap">
                                     {enabledTools.map((tool) => (
-                                        <span
-                                            key={tool.id}
-                                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs"
-                                        >
+                                        <Badge key={tool.id} variant="outline">
                                             {tool.label}: {tool.enabled ? "enabled" : "disabled"}
-                                        </span>
+                                        </Badge>
                                     ))}
                                 </div>
                                 <span className="mt-1 text-muted-foreground">

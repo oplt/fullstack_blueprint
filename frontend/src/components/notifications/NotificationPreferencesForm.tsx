@@ -1,6 +1,7 @@
 import type { NotificationPreferences } from "../../api/notifications";
 import { QueryBoundary } from "../ui/QueryBoundary";
 import { SectionCard } from "../ui/SectionCard";
+import { Switch } from "../ui/switch";
 import type { useNotificationPreferences } from "../../hooks/useNotificationPreferences";
 import type { useNotificationMutations } from "../../hooks/useNotificationMutations";
 
@@ -55,14 +56,12 @@ export function NotificationPreferencesForm({ query, mutation }: Props) {
                             htmlFor={option.id}
                             className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
                         >
-                            <input
+                            <Switch
                                 id={option.id}
-                                type="checkbox"
-                                role="switch"
                                 checked={query.data?.[option.key] ?? false}
                                 disabled={mutation.isPending}
                                 aria-describedby={`${option.id}-description`}
-                                onChange={(event) => mutation.mutate({ [option.key]: event.target.checked })}
+                                onCheckedChange={(checked) => mutation.mutate({ [option.key]: checked })}
                             />
                             <span className="grid gap-1">
                                 <span className="font-medium">{option.label}</span>

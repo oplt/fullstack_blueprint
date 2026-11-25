@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { colorMix } from "@/lib/color";import { Trash2 as DeleteIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { colorMix } from "@/lib/color";import { Trash2 as DeleteIcon } from "lucide-react";
 import type { ConfigEntry, DatabaseSetting } from "../../../api/settings";
 import { formatDateTime } from "../../../utils/formatters";
 
@@ -17,12 +17,9 @@ export function ConfigEntryEditor({ item, value, onChange }: { item: ConfigEntry
                         {item.description && <p className="text-muted-foreground">{item.description}</p>}
                     </div>
                     <div className="flex flex-row gap-2 flex-wrap">
-                        <div
-                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
-                        {item.is_custom && <div
-                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}
-                        {item.requires_restart && <div
-                            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}
+                        <Badge variant={item.is_secret ? "warning" : "outline"}>{item.is_secret ? "Secret" : item.value_type}</Badge>
+                        {item.is_custom && <Badge variant="secondary">Custom</Badge>}
+                        {item.requires_restart && <Badge variant="warning">Restart required</Badge>}
                     </div>
                 </div>
                 <FormField

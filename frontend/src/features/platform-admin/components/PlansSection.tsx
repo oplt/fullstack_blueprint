@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { Switch } from "@/components/ui/switch";
 import type { SubscriptionPlan } from "../../../api/platform/billing";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { PlatformAdminModel } from "../hooks/usePlatformAdminContent";
@@ -21,11 +21,11 @@ export function PlansSection({ plans, model }: { plans: SubscriptionPlan[]; mode
                                     </div>
                                     <FormField label="Description" value={create.description} onChange={(e: any) => model.setNewPlan((v) => ({ ...v, description: e.target.value }))} />
                                     <FormField label="Features" value={create.features} onChange={(e: any) => model.setNewPlan((v) => ({ ...v, features: e.target.value }))} description="Comma-separated feature labels" />
-                                    <label><input
-                                            checked={create.is_default}
-                                            onChange={(e: any) => model.setNewPlan((v) => ({ ...v, is_default: e.target.checked }))}
-                                            type="checkbox"
-                                            role="switch" /></label>
+                                    <Switch
+                                        aria-label="Make new plan the default"
+                                        checked={create.is_default}
+                                        onCheckedChange={(checked) => model.setNewPlan((v) => ({ ...v, is_default: checked }))}
+                                    />
                                     <Button
                                         variant="default"
                                         disabled={model.createPlanMutation.isPending || create.code.trim().length < 2}
@@ -38,8 +38,7 @@ export function PlansSection({ plans, model }: { plans: SubscriptionPlan[]; mode
                                         borderRadius: 16,
                                         border: `1px solid ${"var(--border)"}`
                                     })}><div className="flex gap-3">
-                                                            <div className="flex flex-row gap-2 items-center"><p>{plan.code}</p>{plan.is_default && <div
-                                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}</div>
+                                                            <div className="flex flex-row gap-2 items-center"><p>{plan.code}</p>{plan.is_default && <Badge variant="secondary">Default</Badge>}</div>
                                                             <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr" }}>
                                                                 <FormField label="Name" value={d.name} onChange={(e: any) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, name: e.target.value } }))} />
                                                                 <FormField label="Price (cents)" value={d.price_cents} onChange={(e: any) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, price_cents: e.target.value } }))} />
@@ -47,15 +46,15 @@ export function PlansSection({ plans, model }: { plans: SubscriptionPlan[]; mode
                                                                 <FormField label="Features" value={d.features} onChange={(e: any) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, features: e.target.value } }))} />
                                                             </div>
                                                             <FormField label="Description" value={d.description} onChange={(e: any) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, description: e.target.value } }))} />
-                                                            <div className="flex flex-col sm:flex-row gap-2"><label><input
+                                                            <div className="flex flex-col sm:flex-row gap-2"><Switch
+                                                                    aria-label={`Activate plan ${plan.code}`}
                                                                     checked={d.is_active}
-                                                                    onChange={(e: any) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, is_active: e.target.checked } }))}
-                                                                    type="checkbox"
-                                                                    role="switch" /></label><label><input
+                                                                    onCheckedChange={(checked) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, is_active: checked } }))}
+                                                                /><Switch
+                                                                    aria-label={`Make plan ${plan.code} the default`}
                                                                     checked={d.is_default}
-                                                                    onChange={(e: any) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, is_default: e.target.checked } }))}
-                                                                    type="checkbox"
-                                                                    role="switch" /></label></div>
+                                                                    onCheckedChange={(checked) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, is_default: checked } }))}
+                                                                /></div>
                                                             <Button
                                                                 variant="outline"
                                                                 disabled={saving}
