@@ -20,7 +20,7 @@ export function PlansSection({ plans, model }: { plans: SubscriptionPlan[]; mode
                                         <FormField label="Interval" value={create.interval} onChange={(e: any) => model.setNewPlan((v) => ({ ...v, interval: e.target.value }))} />
                                     </div>
                                     <FormField label="Description" value={create.description} onChange={(e: any) => model.setNewPlan((v) => ({ ...v, description: e.target.value }))} />
-                                    <FormField label="Features" value={create.features} onChange={(e: any) => model.setNewPlan((v) => ({ ...v, features: e.target.value }))} helperText="Comma-separated feature labels" />
+                                    <FormField label="Features" value={create.features} onChange={(e: any) => model.setNewPlan((v) => ({ ...v, features: e.target.value }))} description="Comma-separated feature labels" />
                                     <label><input
                                             checked={create.is_default}
                                             onChange={(e: any) => model.setNewPlan((v) => ({ ...v, is_default: e.target.checked }))}

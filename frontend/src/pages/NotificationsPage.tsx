@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-    DoneAll as DoneAllIcon,
-    MailOutline as MailOutlineIcon,
-    NotificationsActive as NotificationsActiveIcon,
-    Campaign as CampaignIcon,
-} from "@/components/ui/iconsCompat";
+    CheckCheck as DoneAllIcon,
+    Mail as MailOutlineIcon,
+    BellRing as NotificationsActiveIcon,
+    Megaphone as CampaignIcon,
+} from "lucide-react";
 import {
     markAllRead,
     markRead,

@@ -14,4 +14,3 @@ describe("AI SSE boundary", () => {
         expect(events).toEqual([{ type: "run_started", runId: "r", eventId: "e-1" }]);
     });
 });
-

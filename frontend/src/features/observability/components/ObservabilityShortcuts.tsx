@@ -1,17 +1,17 @@
 import type { ReactNode } from "react";
 import {
-    Api as ApiIcon,
-    Assessment as OverviewIcon,
-    BugReport as ErrorIcon,
-    Cached as CacheIcon,
-    Dns as DatabaseIcon,
+    Server as ApiIcon,
+    BarChart3 as OverviewIcon,
+    Bug as ErrorIcon,
+    RotateCw as CacheIcon,
+    HardDrive as DatabaseIcon,
     Route as RouteIcon,
-    Schedule as ScheduleIcon,
-    Storage as PrometheusIcon,
-    Timeline as TracesIcon,
-    Web as FrontendIcon,
-    WorkHistory as WorkerIcon,
-} from "@/components/ui/iconsCompat";
+    Clock3 as ScheduleIcon,
+    HardDrive as PrometheusIcon,
+    Activity as TracesIcon,
+    Globe2 as FrontendIcon,
+    History as WorkerIcon,
+} from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { ObservabilityToolLink } from "../types";

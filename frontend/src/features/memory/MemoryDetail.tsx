@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { DeleteOutline as DeleteIcon } from "@/components/ui/iconsCompat";
+import { Button } from "@/components/ui/button";import { Trash2 as DeleteIcon } from "lucide-react";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
 import { SectionCard } from "../../components/ui/SectionCard";
 import type { MemoryItem } from "../../api/memory";

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { PsychologyAlt as PromptIcon } from "@/components/ui/iconsCompat";
+import { Sparkles as PromptIcon } from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { AiStudioModel } from "../hooks/useAiStudioView";
@@ -81,4 +81,3 @@ export function PromptLibraryPanel({ m }: { m: AiStudioModel }) {
         </SectionCard>
     );
 }
-

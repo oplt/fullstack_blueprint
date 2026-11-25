@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ export function useProjectDetail() {
     const projectQuery = useQuery({ queryKey: queryKeys.projects.detail(projectId), queryFn: ({ signal }) => getProject(projectId, { signal }), enabled: Boolean(projectId) });
     const tasksQuery = useQuery({ queryKey: queryKeys.projects.tasks(projectId), queryFn: ({ signal }) => listProjectTasks(projectId, { signal }), enabled: Boolean(projectId) });
     const usersQuery = useQuery({ queryKey: queryKeys.users.directory, queryFn: ({ signal }) => listUserDirectory({ signal }), staleTime: QUERY_STALE_TIMES.userDirectory });
-    const orderedTasks = sortTasks(tasksQuery.data ?? []); const selectedTask = orderedTasks.find((task) => task.id === selectedTaskId) ?? null;
+    const orderedTasks = useMemo(() => sortTasks(tasksQuery.data ?? []), [tasksQuery.data]); const selectedTask = orderedTasks.find((task) => task.id === selectedTaskId) ?? null;
     const reset = () => { setSelectedTaskId(null); taskForm.reset(EMPTY_TASK_DRAFT); setTaskError(""); };
     const select = (task: ProjectTask) => { setSelectedTaskId(task.id); taskForm.reset(taskToDraft(task)); setTaskError(""); };
     const saveCache = (task: ProjectTask) => client.setQueryData<ProjectTask[]>(queryKeys.projects.tasks(projectId), (current) => sortTasks((current ?? []).filter((item) => item.id !== task.id).concat(task)));

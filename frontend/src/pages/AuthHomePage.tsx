@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useState, type ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Visibility, VisibilityOff } from "@/components/ui/iconsCompat";
+import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../app/routes";
 import { forgotPassword, signIn, signUp } from "../api/auth";
@@ -28,8 +28,7 @@ function PasswordField(props: ComponentProps<typeof FormField>) {
         <FormField
             {...props}
             type={showPassword ? "text" : "password"}
-            InputProps={{
-                endAdornment: (
+            endAdornment={
                     <span>
                         <Button size="icon"
 
@@ -37,11 +36,10 @@ function PasswordField(props: ComponentProps<typeof FormField>) {
                             onClick={() => setShowPassword((value) => !value)}
                             onMouseDown={(event: any) => event.preventDefault()}
                         >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ? <EyeOff /> : <Eye />}
                         </Button>
                     </span>
-                ),
-            }}
+                }
         />
     );
 }
@@ -116,13 +114,13 @@ function SignInForm() {
                         autoComplete="email"
                         {...register("email")}
                         error={!!errors.email}
-                        helperText={errors.email?.message} />
+                        description={errors.email?.message} />
                     <PasswordField
                         label="Password"
                         autoComplete="current-password"
                         {...register("password")}
                         error={!!errors.password}
-                        helperText={errors.password?.message}
+                        description={errors.password?.message}
                         fullWidth
                     />
                     <FormField
@@ -130,7 +128,7 @@ function SignInForm() {
                         autoComplete="one-time-code"
                         {...register("mfa_code")}
                         error={!!errors.mfa_code}
-                        helperText={errors.mfa_code?.message || "Required for accounts with MFA enabled."} />
+                        description={errors.mfa_code?.message || "Required for accounts with MFA enabled."} />
                     <Button type="submit" variant="default" disabled={isSubmitting}>
                         {isSubmitting ? "Signing in..." : "Sign in"}
                     </Button>
@@ -157,7 +155,7 @@ function SignInForm() {
                                 type="email"
                                 {...registerForgot("email")}
                                 error={!!forgotErrors.email}
-                                helperText={forgotErrors.email?.message} />
+                                description={forgotErrors.email?.message} />
                             <Button type="submit" variant="outline" disabled={isSubmittingForgot}>
                                 {isSubmittingForgot ? "Sending..." : "Send reset link"}
                             </Button>
@@ -201,20 +199,20 @@ function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
                         autoComplete="name"
                         {...register("full_name")}
                         error={!!errors.full_name}
-                        helperText={errors.full_name?.message} />
+                        description={errors.full_name?.message} />
                     <FormField
                         label="Email"
                         type="email"
                         autoComplete="email"
                         {...register("email")}
                         error={!!errors.email}
-                        helperText={errors.email?.message} />
+                        description={errors.email?.message} />
                     <PasswordField
                         label="Password"
                         autoComplete="new-password"
                         {...register("password")}
                         error={!!errors.password}
-                        helperText={errors.password?.message}
+                        description={errors.password?.message}
                         fullWidth
                     />
                     <PasswordField
@@ -222,7 +220,7 @@ function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
                         autoComplete="one-time-code"
                         {...register("admin_invite_code")}
                         error={!!errors.admin_invite_code}
-                        helperText={errors.admin_invite_code?.message || "Optional. Required only for admin registrations."}
+                        description={errors.admin_invite_code?.message || "Optional. Required only for admin registrations."}
                         fullWidth
                     />
                     <Button type="submit" variant="default" disabled={isSubmitting}>

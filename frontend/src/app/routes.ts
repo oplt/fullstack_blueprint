@@ -53,4 +53,3 @@ export const ADMIN_ROUTES = [
     ROUTES.adminPlatform,
     ROUTES.adminSettings,
 ] as const;
-

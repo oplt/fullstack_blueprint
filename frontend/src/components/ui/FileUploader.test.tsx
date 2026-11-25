@@ -14,4 +14,3 @@ describe("FileUploader", () => {
         expect(onFilesChange).not.toHaveBeenCalled();
     });
 });
-

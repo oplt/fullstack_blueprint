@@ -4,12 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-    Add as AddIcon,
-    AddCircleOutline as AddCircleOutlineIcon,
+    Plus as AddIcon,
+    CirclePlus as AddCircleOutlineIcon,
     FolderOpen as FolderOpenIcon,
-    ArrowForward as ArrowForwardIcon,
-    Close as CloseIcon,
-} from "@/components/ui/iconsCompat";
+    ArrowRight as ArrowForwardIcon,
+    X as CloseIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { projectPath } from "../app/routes";
 import { createProject, listProjects } from "../api/projects";
@@ -79,13 +79,13 @@ export default function ProjectsPage() {
                     placeholder={`Acme ${coreDomainSingular}`}
                     {...register("name")}
                     error={!!errors.name}
-                    helperText={errors.name?.message} />
+                    description={errors.name?.message} />
                 <FormField
                     label="Description"
                     placeholder={`What is this ${coreDomainSingular.toLowerCase()} for?`}
                     {...register("description")}
                     error={!!errors.description}
-                    helperText={errors.description?.message}
+                    description={errors.description?.message}
                     multiline
                     rows={4} />
                 {mutation.isError && (

@@ -16,4 +16,3 @@ describe("AI workspace event contract", () => {
         expect(() => parseAiStreamEvent({ type: "unknown", runId: "run-1" })).toThrow("invalid AI stream event");
     });
 });
-

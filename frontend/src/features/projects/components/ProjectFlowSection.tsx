@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";import { colorMix } from "@/lib/color";import {
-    Add as AddIcon,
-    PlaylistAddCheck as TaskIcon,
-} from "@/components/ui/iconsCompat";
+    Plus as AddIcon,
+    ListChecks as TaskIcon,
+} from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { ProjectTask } from "../../../api/projects";

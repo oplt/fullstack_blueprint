@@ -10,4 +10,3 @@ export function CodeViewer({ code, language = "text", onCopy }: { code: string; 
             onClick={() => { if (onCopy) onCopy(code); else void navigator.clipboard?.writeText(code); }}><Copy className="size-3.5" /></Button></div><pre className="m-0 max-h-[32rem] overflow-auto bg-muted/20 p-4 font-mono text-xs leading-relaxed"><code>{code}</code></pre></div>
     );
 }
-

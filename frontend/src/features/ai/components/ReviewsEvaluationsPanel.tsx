@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { Approval as ReviewIcon } from "@/components/ui/iconsCompat";
+import { CircleCheck as ReviewIcon } from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { KeyValueList } from "../../../components/ui/KeyValueList";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
@@ -104,7 +104,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                         {createDatasetMutation.isPending ? "Creating..." : "Create evaluation dataset"}
                     </Button>
                     <FormField
-                        select
+                        as="select"
                         label="Selected dataset"
                         value={selectedDatasetId}
                         onChange={(event: any) => setSelectedDatasetId(event.target.value)}>
@@ -126,7 +126,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                         onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, retrieval_query: event.target.value }))} />
                     <FormField
                         label="Expected chunk IDs"
-                        helperText="Comma-separated chunk IDs used to calculate citation hit rate."
+                        description="Comma-separated chunk IDs used to calculate citation hit rate."
                         value={datasetCaseForm.expected_chunk_ids}
                         onChange={(event: any) => setDatasetCaseForm((current) => ({ ...current, expected_chunk_ids: event.target.value }))} />
                     <div className="flex flex-row gap-[8px] flex-wrap">
@@ -188,7 +188,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                         {createDatasetCaseMutation.isPending ? "Saving..." : "Add dataset case"}
                     </Button>
                     <FormField
-                        select
+                        as="select"
                         label="Prompt version for evaluation"
                         value={runForm.prompt_version_id}
                         onChange={(event: any) => setRunForm((current) => ({ ...current, prompt_version_id: event.target.value }))}>

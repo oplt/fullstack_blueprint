@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useEffect, useMemo, useState } from "react";
-import { SmartToy as AgentIcon, PlayArrow as RunIcon } from "@/components/ui/iconsCompat";
+import { Bot as AgentIcon, Play as RunIcon } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "../../app/snackbarContext";
 import { createAgentRun, getAgentRun, listAgentRuns, formatAgentCostMicros } from "../../api/agent";
@@ -165,7 +165,7 @@ export default function AgentView() {
     }
 
     return (
-        <PageShell maxWidth="xl">
+        <PageShell width="wide">
             <PageHeader
                 title="AI Agent"
                 description="Transparent agent runs: configure tools and retrieval, watch progress, inspect structured trace and sources, then read the final output separately."
@@ -236,7 +236,7 @@ export default function AgentView() {
                                     value={agentId}
                                     onChange={(e: any) => setAgentId(e.target.value)} />
                                 <FormField
-                                    select
+                                    as="select"
                                     label="Project"
                                     value={projectId}
                                     onChange={(e: any) => {
@@ -251,7 +251,7 @@ export default function AgentView() {
                                     ))}
                                 </FormField>
                                 <FormField
-                                    select
+                                    as="select"
                                     label="Prompt template"
                                     value={promptTemplateKey}
                                     onChange={(e: any) => setPromptTemplateKey(e.target.value)}>
@@ -303,12 +303,12 @@ export default function AgentView() {
                                     }
                                     value={topK}
                                     onChange={(e: any) => setTopK(Number(e.target.value) || 4)}
-                                    inputProps={{ min: 1, max: 20 }} />
+                                    inputAttributes={{ min: 1, max: 20 }} />
                                 <FormField
                                     label="Retrieval query (optional)"
                                     value={retrievalQuery}
                                     onChange={(e: any) => setRetrievalQuery(e.target.value)}
-                                    helperText="Defaults to the user message when empty." />
+                                    description="Defaults to the user message when empty." />
                             </div>
 
                             <div>

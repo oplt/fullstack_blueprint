@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { Storage as StorageIcon } from "@/components/ui/iconsCompat";
+import { HardDrive as StorageIcon } from "lucide-react";
 import type { DatabaseSetting } from "../../../api/settings";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";

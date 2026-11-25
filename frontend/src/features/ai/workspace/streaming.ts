@@ -79,4 +79,3 @@ export async function* connectAiStream(path: string, { body, signal, transport =
         }
     }
 }
-

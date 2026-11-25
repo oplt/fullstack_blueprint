@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowForward as ArrowForwardIcon } from "@/components/ui/iconsCompat";
+import { ArrowRight as ArrowForwardIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../app/routes";
 import { listProjects } from "../api/projects";
@@ -27,7 +27,7 @@ export default function CalendarPage() {
     const coreDomainPlural = platformMetadata?.core_domain_plural ?? "Projects";
 
     return (
-        <PageShell maxWidth="xl">
+        <PageShell width="wide">
             <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
                 <Button
                     variant="outline"

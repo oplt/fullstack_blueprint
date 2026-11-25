@@ -9,4 +9,3 @@ describe("AI workspace rendering trust boundary", () => {
         expect(screen.queryByRole("link", { name: /Unsafe/ })).not.toBeInTheDocument();
     });
 });
-

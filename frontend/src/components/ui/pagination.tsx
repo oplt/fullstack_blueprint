@@ -128,12 +128,12 @@ function PaginationControls({ count, page, rowsPerPage, onPageChange }: { count:
 }
 
 export {
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
   PaginationControls,
 }

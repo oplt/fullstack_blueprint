@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Approval as ReviewIcon, Dataset as DatasetIcon, Description as DocumentIcon, PsychologyAlt as PromptIcon } from "@/components/ui/iconsCompat";
+import { CircleCheck as ReviewIcon, Database as DatasetIcon, FileText as DocumentIcon, Sparkles as PromptIcon } from "lucide-react";
 import { usePlatformMetadata } from "../../../hooks/usePlatformMetadata";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
@@ -18,13 +18,13 @@ export default function AiStudioPage() {
     const { data: platform } = usePlatformMetadata();
     const ragEnabled = platform?.available_features?.includes("rag") ?? false;
     if (m.isLoading) return (
-        <PageShell maxWidth="xl"><SettingsTabs /><StatCardSkeletonGrid /><div className="flex gap-[16px]" style={{ marginTop: 16 }}><div className="animate-pulse rounded-md bg-muted" style={{
+        <PageShell width="wide"><SettingsTabs /><StatCardSkeletonGrid /><div className="flex gap-[16px]" style={{ marginTop: 16 }}><div className="animate-pulse rounded-md bg-muted" style={{
             height: 320
         }} /><div className="animate-pulse rounded-md bg-muted" style={{
             height: 280
         }} /></div></PageShell>
     );
-    if (m.isError || !m.overview) return <PageShell maxWidth="xl"><SettingsTabs /><QueryErrorAlert error={m.error ?? new Error("Failed to load AI studio overview.")} fallback="Failed to load AI studio overview." onRetry={() => void m.refetch()} /></PageShell>;
+    if (m.isError || !m.overview) return <PageShell width="wide"><SettingsTabs /><QueryErrorAlert error={m.error ?? new Error("Failed to load AI studio overview.")} fallback="Failed to load AI studio overview." onRetry={() => void m.refetch()} /></PageShell>;
     const sections = [
         ["ai-prompts", "Prompts"],
         ["ai-runs", "Run"],
@@ -33,7 +33,7 @@ export default function AiStudioPage() {
         ["ai-evaluations", "Evaluations"],
     ] as const;
     return (
-        <PageShell maxWidth="xl"><SettingsTabs />
+        <PageShell width="wide"><SettingsTabs />
             <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
                 <StatCard label="Prompt templates" value={m.promptTemplates.length} description="Reusable prompts with version history" icon={<PromptIcon />} />
                 {ragEnabled && <StatCard label="Documents" value={m.documents.length} description="Indexed retrieval sources" icon={<DocumentIcon />} color="secondary" />}

@@ -16,6 +16,7 @@ import {
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight, Download, Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 import { Button } from "./button";
 import { EmptyState } from "./EmptyState";
@@ -181,12 +182,7 @@ export function AdvancedDataTable<T>({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {toolbarEnd}
-                    {enableColumnVisibility ? <details className="relative">
-                        <summary className="flex size-8 cursor-pointer list-none items-center justify-center rounded-md border border-border hover:bg-muted" aria-label="Column visibility"><SlidersHorizontal className="size-4" /></summary>
-                        <div className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-border bg-popover p-2 shadow-lg">
-                            {table.getAllLeafColumns().map((column) => <label key={column.id} className="flex items-center gap-2 p-1 text-sm"><input type="checkbox" checked={column.getIsVisible()} disabled={!column.getCanHide()} onChange={column.getToggleVisibilityHandler()} />{column.id}</label>)}
-                        </div>
-                    </details> : null}
+                    {enableColumnVisibility ? <Popover><PopoverTrigger className="flex size-8 items-center justify-center rounded-md border border-border hover:bg-muted" aria-label="Column visibility"><SlidersHorizontal className="size-4" /></PopoverTrigger><PopoverContent align="end" className="w-52 p-2">{table.getAllLeafColumns().map((column) => <label key={column.id} className="flex items-center gap-2 p-1 text-sm"><input type="checkbox" checked={column.getIsVisible()} disabled={!column.getCanHide()} onChange={column.getToggleVisibilityHandler()} />{column.id}</label>)}</PopoverContent></Popover> : null}
                     {csvFileName || onExport ? <Button variant="outline" onClick={exportRows} type="button"><Download className="mr-2 size-4" />Export CSV</Button> : null}
                 </div>
             </div>
@@ -215,4 +211,3 @@ export function AdvancedDataTable<T>({
         </section>
     );
 }
-

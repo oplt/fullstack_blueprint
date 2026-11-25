@@ -1,4 +1,4 @@
-import { colorMix } from "@/lib/color";import { Event as EventIcon, EventAvailable as AppointmentIcon, TaskAlt as TaskIcon } from "@/components/ui/iconsCompat";
+import { colorMix } from "@/lib/color";import { CalendarDays as EventIcon, CalendarCheck as AppointmentIcon, ListChecks as TaskIcon } from "lucide-react";
 import type { CalendarItem, CalendarItemType } from "../../../api/calendar";
 import { EmptyState } from "../../../components/ui/EmptyState";
 function getItemIcon(type: CalendarItemType) { if (type === "task") return <TaskIcon fontSize="small" />; if (type === "appointment") return <AppointmentIcon fontSize="small" />; return <EventIcon fontSize="small" />; }
@@ -15,4 +15,3 @@ export function DayItems({ items, emptyTitle, emptyDescription }: { items: Calen
     className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}{item.priority && <div
     className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}</div>{item.description && <p className="text-muted-foreground">{item.description}</p>}</div></div>)}</div>
 ); }
-

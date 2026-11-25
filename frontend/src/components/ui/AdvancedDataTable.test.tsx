@@ -30,4 +30,3 @@ describe("AdvancedDataTable", () => {
         expect(screen.getByRole("alert")).toHaveTextContent("Unable to load rows");
     });
 });
-

@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";import { useQuery } from "@tanstack/react-query";
 import {
     FolderOpen as ProjectsIcon,
-    Notifications as NotificationsIcon,
-    Security as SecurityIcon,
-    VerifiedUser as VerifiedUserIcon,
-} from "@/components/ui/iconsCompat";
+    Bell as NotificationsIcon,
+    Shield as SecurityIcon,
+    BadgeCheck as VerifiedUserIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { projectPath, ROUTES } from "../app/routes";
 import { listProjects } from "../api/projects";

@@ -10,4 +10,3 @@ describe("dashboard chart primitives", () => {
         expect(screen.getByText(/8.0% vs previous/)).toBeInTheDocument();
     });
 });
-

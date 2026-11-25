@@ -52,4 +52,3 @@ export function parseAiStreamEvent(input: unknown): AiStreamEvent {
     if (!result.success) throw new Error("Unsupported or invalid AI stream event.");
     return result.data;
 }
-

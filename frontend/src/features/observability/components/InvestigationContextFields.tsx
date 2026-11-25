@@ -16,13 +16,13 @@ export function InvestigationContextFields({ filters, setters }: Props) {
                 gap: 16,
                 gridTemplateColumns: "1fr",
             }}>
-                <FormField select label="Service" value={filters.service} onChange={(event: any) => setters.setService(event.target.value)}>
+                <FormField as="select" label="Service" value={filters.service} onChange={(event: any) => setters.setService(event.target.value)}>
                     {SERVICES.map((item) => <option key={item}>{item}</option>)}
                 </FormField>
-                <FormField select label="Environment" value={filters.environment} onChange={(event: any) => setters.setEnvironment(event.target.value)}>
+                <FormField as="select" label="Environment" value={filters.environment} onChange={(event: any) => setters.setEnvironment(event.target.value)}>
                     {ENVIRONMENTS.map((item) => <option key={item}>{item}</option>)}
                 </FormField>
-                <FormField select label="Time range" value={filters.timeRangeIndex} onChange={(event: any) => setters.setTimeRangeIndex(Number(event.target.value))}>
+                <FormField as="select" label="Time range" value={filters.timeRangeIndex} onChange={(event: any) => setters.setTimeRangeIndex(Number(event.target.value))}>
                     {TIME_RANGES.map((item) => <option key={item.from}>{item.label}</option>)}
                 </FormField>
                 <FormField label="Route" value={filters.route} onChange={(event: any) => setters.setRoute(event.target.value)} placeholder="/api/v1/users" />

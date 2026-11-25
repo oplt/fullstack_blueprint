@@ -13,7 +13,7 @@ import type {
 } from "./types";
 
 const ALL_CAPABILITIES = [...CAPABILITY_IDS];
-const CORE_CAPABILITIES: CapabilityId[] = ["dashboard", "projects", "profile", "notifications", "platform"];
+const CORE_CAPABILITIES: CapabilityId[] = ["dashboard", "profile"];
 
 export const PRESET_CAPABILITIES: Readonly<Record<ApplicationPreset, readonly CapabilityId[]>> = {
     minimal: CORE_CAPABILITIES,
@@ -80,16 +80,16 @@ function deploymentConfigurationFor(
 }
 
 const DEFAULT_APPLICATION_CONFIGURATION: ApplicationConfiguration = {
-    preset: "enterprise",
+    preset: "minimal",
     appName: "Fullstack Blueprint",
     branding: {},
-    themePreset: PRESET_THEME.enterprise,
+    themePreset: PRESET_THEME.minimal,
     defaultLanguage: "en",
     navigation: defaultNavigation,
-    enabledCapabilities: ALL_CAPABILITIES,
+    enabledCapabilities: CORE_CAPABILITIES,
     layoutVariants: DEFAULT_LAYOUT_VARIANTS,
-    build: { enabledCapabilities: ALL_CAPABILITIES, source: "default" },
-    deployment: deploymentConfigurationFor(ALL_CAPABILITIES, "custom", "default"),
+    build: { enabledCapabilities: CORE_CAPABILITIES, source: "default" },
+    deployment: deploymentConfigurationFor(CORE_CAPABILITIES, "custom", "default"),
 };
 
 export function createApplicationConfiguration(input: ApplicationConfigurationInput = {}): ApplicationConfiguration {

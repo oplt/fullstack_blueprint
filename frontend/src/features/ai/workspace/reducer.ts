@@ -24,4 +24,3 @@ export function reduceAiWorkspaceEvent(state: AiWorkspaceState, event: AiStreamE
 export function resetAiWorkspaceState(): AiWorkspaceState {
     return { ...emptyAiWorkspaceState, messages: [], toolCalls: [], approvals: [], artifacts: [], seenEventIds: [] };
 }
-

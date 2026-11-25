@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import {
-    ArrowBack as BackIcon,
-    AssignmentTurnedIn as DoneIcon,
-    CalendarMonth as CalendarIcon,
-    Close as CloseIcon,
-    PlaylistAddCheck as TaskIcon,
-    ViewKanban as BoardIcon,
-} from "@/components/ui/iconsCompat";
+    ArrowLeft as BackIcon,
+    ClipboardCheck as DoneIcon,
+    Calendar as CalendarIcon,
+    X as CloseIcon,
+    ListChecks as TaskIcon,
+    Kanban as BoardIcon,
+} from "lucide-react";
 import type { ProjectTask } from "../../../api/projects";
 import { ROUTES } from "../../../app/routes";
 import { PageShell } from "../../../components/ui/PageShell";
@@ -25,7 +25,7 @@ export default function ProjectDetailPage() {
 
     if (m.projectQuery.isLoading) {
         return (
-            <PageShell maxWidth="xl">
+            <PageShell width="wide">
                 <div className="flex gap-[16px]">
                     <div
                         className="animate-pulse rounded-md bg-muted"
@@ -50,7 +50,7 @@ export default function ProjectDetailPage() {
 
     if (!m.projectQuery.data) {
         return (
-            <PageShell maxWidth="xl">
+            <PageShell width="wide">
                 <div role="alert" className="rounded-lg border border-border p-3 text-sm">
                     {getQueryErrorMessage(m.projectQuery.error, "Project not found.")}
                 </div>
@@ -88,7 +88,7 @@ export default function ProjectDetailPage() {
     }
 
     return (
-        <PageShell maxWidth="xl">
+        <PageShell width="wide">
             <div className="flex flex-row gap-[8px]" style={{ marginBottom: 16 }}>
                 <Button
                     variant="outline"

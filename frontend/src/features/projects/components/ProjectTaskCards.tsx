@@ -1,6 +1,6 @@
 import { FormField } from "@/components/ui/form-field";
 import { colorMix } from "@/lib/color";
-import { DragIndicator as DragIcon } from "@/components/ui/iconsCompat";
+import { GripVertical as DragIcon } from "lucide-react";
 import type { ProjectTask, ProjectTaskStatus } from "../../../api/projects";
 import { formatDateTime } from "../../../utils/formatters";
 import { TASK_STATUS_OPTIONS } from "../projectTaskModel";
@@ -25,13 +25,13 @@ export function TaskBoardCard({ task, selected, isDragging, onSelect, onDragStar
         })}>
             <div className="flex gap-[10px]"><div className="flex flex-row gap-[8px] justify-between"><p>{task.title}</p><DragIcon fontSize="small" color="action" /></div><p className="text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
                 <FormField
-                    select
+                    as="select"
                     label="Move to"
                     value=""
                     onClick={(e: any) => e.stopPropagation()}
                     onChange={(e: any) => { e.stopPropagation(); onMove(e.target.value as ProjectTaskStatus); }}
-                    SelectProps={{}}
-                    inputProps={{ "aria-label": `Move ${task.title} to another column` }}>{TASK_STATUS_OPTIONS.filter((o) => o.value !== task.status).map((o) => <option key={o.value}>{o.label}</option>)}</FormField>
+
+                    inputAttributes={{ "aria-label": `Move ${task.title} to another column` }}>{TASK_STATUS_OPTIONS.filter((o) => o.value !== task.status).map((o) => <option key={o.value}>{o.label}</option>)}</FormField>
             </div></div>
     );
 }

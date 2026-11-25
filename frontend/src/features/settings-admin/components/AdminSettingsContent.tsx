@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { colorMix } from "@/lib/color";import { RestartAlt as RestartIcon, SettingsSuggest as SettingsIcon, Storage as StorageIcon } from "@/components/ui/iconsCompat";
+import { colorMix } from "@/lib/color";import { RotateCcw as RestartIcon, Settings2 as SettingsIcon, HardDrive as StorageIcon } from "lucide-react";
 import type { ConfigSettingsResponse, DatabaseSetting } from "../../../api/settings";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
@@ -19,7 +19,7 @@ type Props = {
 export function AdminSettingsContent(props: Props) {
     const model = useAdminSettingsContent(props.configData, props.databaseSettings, props.activeTab);
     return (
-        <PageShell maxWidth="xl">
+        <PageShell width="wide">
             <SettingsTabs />
             <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
                 <StatCard label="Config variables" value={props.configData.items.length} description="Environment-backed values available in the settings file" icon={<SettingsIcon />} />

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { DeleteOutline as DeleteIcon } from "@/components/ui/iconsCompat";
+import { Trash2 as DeleteIcon } from "lucide-react";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { formatDateTime } from "../../../utils/formatters";
@@ -21,17 +21,17 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                 label="Title"
                 {...m.taskForm.register("title")}
                 error={Boolean(m.taskForm.formState.errors.title)}
-                helperText={m.taskForm.formState.errors.title?.message}
+                description={m.taskForm.formState.errors.title?.message}
             />
             <FormField
                 label="Description"
                 {...m.taskForm.register("description")}
                 error={Boolean(m.taskForm.formState.errors.description)}
-                helperText={m.taskForm.formState.errors.description?.message}
+                description={m.taskForm.formState.errors.description?.message}
                 multiline
                 rows={4}
             />
-            <FormField label="Status" select value={d.status} {...m.taskForm.register("status")}>
+            <FormField label="Status" as="select" value={d.status} {...m.taskForm.register("status")}>
                 {TASK_STATUS_OPTIONS.map((o) => (
                     <option key={o.value}>
                         {o.label}
@@ -40,7 +40,7 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
             </FormField>
             <FormField
                 label="Priority"
-                select
+                as="select"
                 value={d.priority}
                 {...m.taskForm.register("priority")}
             >
@@ -58,11 +58,11 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
             />
             <FormField
                 label="Assignee"
-                select
+                as="select"
                 value={d.assignee_id}
                 {...m.taskForm.register("assignee_id")}
                 error={m.usersQuery.isError}
-                helperText={
+                description={
                     m.usersQuery.isError
                         ? getQueryErrorMessage(m.usersQuery.error, "Failed to load user directory.")
                         : undefined

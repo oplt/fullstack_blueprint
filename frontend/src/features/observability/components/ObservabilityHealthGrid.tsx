@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
 import {
-    Api as ApiIcon,
-    BugReport as ErrorIcon,
-    Cached as CacheIcon,
-    Dns as DatabaseIcon,
-    Hub as ObservabilityIcon,
-    QueryStats as MetricsIcon,
-    Schedule as ScheduleIcon,
-    Speed as LatencyIcon,
-    Storage as PrometheusIcon,
-    Timeline as TracesIcon,
-    Web as FrontendIcon,
-    WorkHistory as WorkerIcon,
-} from "@/components/ui/iconsCompat";
+    Server as ApiIcon,
+    Bug as ErrorIcon,
+    RotateCw as CacheIcon,
+    HardDrive as DatabaseIcon,
+    Network as ObservabilityIcon,
+    ChartNoAxesCombined as MetricsIcon,
+    Clock3 as ScheduleIcon,
+    Gauge as LatencyIcon,
+    HardDrive as PrometheusIcon,
+    Activity as TracesIcon,
+    Globe2 as FrontendIcon,
+    History as WorkerIcon,
+} from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { fallbackItem, metricFor, type HealthKey } from "../observabilityModel";

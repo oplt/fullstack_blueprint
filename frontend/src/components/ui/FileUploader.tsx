@@ -30,4 +30,3 @@ export function FilePreview({ file, className }: { file: File; className?: strin
     if (file.type.startsWith("image/")) return <img src={url} alt={file.name} className={className ?? "max-h-48 rounded-lg object-contain"} />;
     return <div className={className ?? "rounded-lg border border-border p-3 text-sm"}>{file.name} · {Math.ceil(file.size / 1024)} KB</div>;
 }
-

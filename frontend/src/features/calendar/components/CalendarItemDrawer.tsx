@@ -41,7 +41,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                     <p>Add new item</p>
                     <FormField
                         label="Type"
-                        select
+                        as="select"
                         value={draft.type}
                         onChange={(event: any) => {
                             const nextType = event.target.value as CalendarItemType;
@@ -68,7 +68,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                             setFieldErrors((current) => ({ ...current, title: undefined }));
                         }}
                         error={Boolean(fieldErrors.title)}
-                        helperText={fieldErrors.title} />
+                        description={fieldErrors.title} />
                     <FormField
                         label="Description"
                         value={draft.description}
@@ -82,7 +82,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                         <>
                             <FormField
                                 label="Project"
-                                select
+                                as="select"
                                 value={draft.project_id}
                                 onChange={(event: any) => {
                                     setDraft((current) => ({ ...current, project_id: event.target.value }));
@@ -90,7 +90,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                                 }}
                                 disabled={projectsLoading}
                                 error={Boolean(fieldErrors.project_id)}
-                                helperText={
+                                description={
                                     fieldErrors.project_id ??
                                     (projects.length > 0
                                         ? "Task will be created in Todo with this date as its due date."
@@ -104,7 +104,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                             </FormField>
                             <FormField
                                 label="Priority"
-                                select
+                                as="select"
                                 value={draft.priority}
                                 onChange={(event: any) =>
                                     setDraft((current) => ({
@@ -139,7 +139,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                                     }));
                                 }}
                                 error={Boolean(fieldErrors.start_time)}
-                                helperText={fieldErrors.start_time}
+                                description={fieldErrors.start_time}
                                 InputLabelProps={{ shrink: true }} />
                             <FormField
                                 label="End time"
@@ -150,7 +150,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                                     setFieldErrors((current) => ({ ...current, end_time: undefined }));
                                 }}
                                 error={Boolean(fieldErrors.end_time)}
-                                helperText={fieldErrors.end_time}
+                                description={fieldErrors.end_time}
                                 InputLabelProps={{ shrink: true }} />
                         </div>
                     )}

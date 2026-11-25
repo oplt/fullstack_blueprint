@@ -120,7 +120,7 @@ export default function VerifyEmailPage() {
                                 setResendError("");
                             }}
                             error={Boolean(resendError) && !resendDone}
-                            helperText={
+                            description={
                                 resendError && !resendDone ? resendError : "Use the same address you registered with."
                             } />
                         {resendDone && <div role="alert" className="rounded-lg border border-border p-3 text-sm">A new verification email has been sent.</div>}

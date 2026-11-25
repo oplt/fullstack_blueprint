@@ -10,7 +10,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
         <SectionCard title="Version builder" description="Attach deployable versions to a prompt template with model selection, rollout state, and provider pricing.">
             <div className="flex gap-[16px]">
                 <FormField
-                    select
+                    as="select"
                     label="Selected template"
                     value={selectedTemplateId}
                     onChange={(event: any) => setSelectedTemplateId(event.target.value)}>
@@ -21,7 +21,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     ))}
                 </FormField>
                 <FormField
-                    select
+                    as="select"
                     label="Provider"
                     value={versionForm.provider_key}
                     onChange={(event: any) => setVersionForm((current) => ({ ...current, provider_key: event.target.value }))}>
@@ -53,7 +53,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     onChange={(event: any) => setVersionForm((current) => ({ ...current, variable_names: event.target.value }))} />
                 <div className="flex flex-col sm:flex-row gap-[12px]">
                     <FormField
-                        select
+                        as="select"
                         label="Response format"
                         value={versionForm.response_format}
                         onChange={(event: any) => setVersionForm((current) => ({ ...current, response_format: event.target.value as "text" | "json" }))}>

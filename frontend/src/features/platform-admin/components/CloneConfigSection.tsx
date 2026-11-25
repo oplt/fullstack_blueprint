@@ -35,7 +35,7 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                 </div>
                 <FormField
                     label="Module pack"
-                    select
+                    as="select"
                     value={draft.module_pack}
                     onChange={(e: any) => {
                         const module_pack = e.target.value;

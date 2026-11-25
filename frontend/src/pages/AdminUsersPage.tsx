@@ -1,7 +1,7 @@
 import { FormField } from "@/components/ui/form-field";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search as SearchIcon, PeopleAlt as PeopleAltIcon } from "@/components/ui/iconsCompat";
+import { Search, Users } from "lucide-react";
 import { listAdminUsers, updateUserStatus, type AdminUserListResponse } from "../api/admin";
 import { SettingsTabs } from "../components/layout/SettingsTabs";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -79,13 +79,11 @@ export default function AdminUsersPage() {
                         setSearch(event.target.value);
                         setPage(0);
                     }}
-                    InputProps={{
-                        startAdornment: (
+                    startAdornment={
                             <span>
-                                <SearchIcon fontSize="small" />
+                                <Search fontSize="small" />
                             </span>
-                        ),
-                    }} />
+                        } />
             </div>
 
             <div
@@ -99,14 +97,14 @@ export default function AdminUsersPage() {
                     label="Total users"
                     value={data?.total ?? 0}
                     description="Accounts matching the current search and pagination scope"
-                    icon={<PeopleAltIcon />}
+                    icon={<Users />}
                     loading={isLoading}
                 />
                 <StatCard
                     label="Active on page"
                     value={activeCount}
                     description="Users currently allowed to access the product"
-                    icon={<PeopleAltIcon />}
+                    icon={<Users />}
                     loading={isLoading}
                     color="success"
                 />
@@ -114,7 +112,7 @@ export default function AdminUsersPage() {
                     label="Verified on page"
                     value={verifiedCount}
                     description="Accounts with confirmed email identity"
-                    icon={<PeopleAltIcon />}
+                    icon={<Users />}
                     loading={isLoading}
                     color="secondary"
                 />
@@ -140,7 +138,7 @@ export default function AdminUsersPage() {
                     isEmpty={users.length === 0}
                     emptyFallback={
                         <EmptyState
-                            icon={<PeopleAltIcon />}
+                            icon={<Users />}
                             title="No users found"
                             description="Try broadening the search or check if the current filters are too narrow."
                         />

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { colorMix } from "@/lib/color";import { DeleteOutline as DeleteIcon } from "@/components/ui/iconsCompat";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { colorMix } from "@/lib/color";import { Trash2 as DeleteIcon } from "lucide-react";
 import type { ConfigEntry, DatabaseSetting } from "../../../api/settings";
 import { formatDateTime } from "../../../utils/formatters";
 
@@ -29,7 +29,7 @@ export function ConfigEntryEditor({ item, value, onChange }: { item: ConfigEntry
                     type={item.is_secret ? "password" : "text"}
                     value={value}
                     onChange={(event: any) => onChange(event.target.value)}
-                    helperText={item.is_secret ? "Stored value is masked. Enter a new value to replace it." : undefined} />
+                    description={item.is_secret ? "Stored value is masked. Enter a new value to replace it." : undefined} />
             </div>
         </div>
     );

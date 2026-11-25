@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { OpenInNew as OpenInNewIcon } from "@/components/ui/iconsCompat";
+import { ExternalLink as OpenInNewIcon } from "lucide-react";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
 import { InvestigationContextFields } from "../components/InvestigationContextFields";
@@ -13,7 +13,7 @@ export default function ObservabilityPage() {
     const links = model.linksQuery.data;
 
     return (
-        <PageShell maxWidth="xl">
+        <PageShell width="wide">
             <SettingsTabs />
             <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
                 <Button

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { AutoAwesome as AiIcon, PlayCircleOutline as RunIcon } from "@/components/ui/iconsCompat";
+import { Sparkles as AiIcon, PlayCircle as RunIcon } from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { AdvancedSettings } from "../../../components/ui/AdvancedSettings";
 import { JsonBlock } from "../../../components/ui/JsonBlock";
@@ -14,7 +14,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
         <SectionCard title="Run playground" description="Execute prompt versions with structured variables, retrieval context, and human-review routing.">
             <div className="flex gap-[16px]">
                 <FormField
-                    select
+                    as="select"
                     label="Prompt template"
                     value={runForm.prompt_template_key}
                     onChange={(event: any) => setRunForm((current) => ({ ...current, prompt_template_key: event.target.value }))}>

@@ -22,4 +22,3 @@ export function formatItemTime(item: CalendarItem) { if (!item.start_time) retur
 export function getMinutesFromTimeString(value: string) { const [hours = "0", minutes = "0"] = value.split(":"); return Number(hours) * 60 + Number(minutes); }
 export function getWeekItemColor(item: CalendarItem) { const color = item.type === "task" ? "var(--success)" : item.type === "appointment" ? "var(--warning)" : "var(--primary)"; return { bg: colorMix(color, .14), border: colorMix(color, .4), text: color }; }
 export function getDateCalendarStyle(daySize: number) { return { width: "100%", maxWidth: "none", margin: 0, "--calendar-day-size": `${daySize}px` } as const; }
-

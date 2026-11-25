@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useMemo, useState } from "react";
 import {
-    DeleteOutline as DeleteIcon,
-    Memory as MemoryIcon,
+    Trash2 as DeleteIcon,
+    Brain as MemoryIcon,
     Search as SearchIcon,
-} from "@/components/ui/iconsCompat";
+} from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "../../app/snackbarContext";
 import { listProjects } from "../../api/projects";
@@ -122,7 +122,7 @@ export default function MemoryView() {
     const projects = projectsQuery.data ?? [];
 
     return (
-        <PageShell maxWidth="xl">
+        <PageShell width="wide">
             <SettingsTabs />
 
             <div className="flex gap-[16px]">
@@ -130,7 +130,7 @@ export default function MemoryView() {
                     <div className="flex gap-[16px]">
                         <div className="flex flex-col sm:flex-row gap-[16px] flex-wrap">
                             <FormField
-                                select
+                                as="select"
                                 label="Memory level"
                                 value={memoryLevel}
                                 onChange={(e: any) => {
@@ -146,7 +146,7 @@ export default function MemoryView() {
                                 ))}
                             </FormField>
                             <FormField
-                                select
+                                as="select"
                                 label="Project"
                                 value={projectId}
                                 onChange={(e: any) => {
@@ -335,7 +335,7 @@ export default function MemoryView() {
                             value={forgetReason}
                             onChange={(e: any) => setForgetReason(e.target.value)}
                             required
-                            helperText="Required for forget audit trail" />
+                            description="Required for forget audit trail" />
                     </div>
                 </div>
                 <div>

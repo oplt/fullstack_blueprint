@@ -67,5 +67,3 @@ export function TrendIndicator({ value, label, positiveIsGood = true }: { value:
     const positive = positiveIsGood ? value >= 0 : value <= 0;
     return <span className={positive ? "text-emerald-600" : "text-destructive"}>{value >= 0 ? "↑" : "↓"} {Math.abs(value).toFixed(1)}%{label ? ` ${label}` : ""}</span>;
 }
-
-

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { Description as DocumentIcon } from "@/components/ui/iconsCompat";
+import { FileText as DocumentIcon } from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { formatDateTime } from "../../../utils/formatters";
@@ -76,4 +76,3 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
         </SectionCard>
     );
 }
-

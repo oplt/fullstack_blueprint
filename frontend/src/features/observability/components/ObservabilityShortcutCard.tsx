@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { OpenInNew as OpenInNewIcon } from "@/components/ui/iconsCompat";
+import { ExternalLink as OpenInNewIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 type ObservabilityShortcutCardProps = {

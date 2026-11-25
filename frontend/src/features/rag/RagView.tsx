@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useEffect, useMemo, useRef, useState } from "react";
 import {
     CloudUpload as UploadIcon,
-    Refresh as RetryIcon,
+    RefreshCw as RetryIcon,
     Search as RetrieveIcon,
-    QuestionAnswer as AskIcon,
-} from "@/components/ui/iconsCompat";
+    MessageCircleQuestion as AskIcon,
+} from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "../../app/snackbarContext";
 import { listProjects } from "../../api/projects";
@@ -260,7 +260,7 @@ export default function RagView() {
     }, [projectsQuery.data]);
 
     return (
-        <PageShell maxWidth="xl">
+        <PageShell width="wide">
             <PageHeader
                 title="RAG workspace"
                 description="Manage documents and inspect indexing, retrieval, and evaluation."
@@ -274,7 +274,7 @@ export default function RagView() {
                         Optionally limit documents and retrieval to one project.
                     </p>
                     <FormField
-                        select
+                        as="select"
                         label="Project / index scope"
                         value={projectId}
                         onChange={(e: any) => {
@@ -655,7 +655,7 @@ export default function RagView() {
                                     onChange={(e: any) =>
                                         setTopK(Math.max(1, Math.min(50, Number(e.target.value) || 1)))
                                     }
-                                    inputProps={{ min: 1, max: 50, step: 1 }} />
+                                    inputAttributes={{ min: 1, max: 50, step: 1 }} />
                             </div>
                             {selectedDocumentId ? (
                                 <span className="text-muted-foreground">

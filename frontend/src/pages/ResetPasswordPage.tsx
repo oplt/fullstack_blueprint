@@ -104,13 +104,13 @@ export default function ResetPasswordPage() {
                                 type="password"
                                 {...register("password")}
                                 error={!!errors.password}
-                                helperText={errors.password?.message} />
+                                description={errors.password?.message} />
                             <FormField
                                 label="Confirm new password"
                                 type="password"
                                 {...register("confirm_password")}
                                 error={!!errors.confirm_password}
-                                helperText={errors.confirm_password?.message} />
+                                description={errors.confirm_password?.message} />
                             <Button type="submit" variant="default" disabled={isSubmitting || !token}>
                                 {isSubmitting ? "Resetting..." : "Reset password"}
                             </Button>

@@ -29,4 +29,3 @@ describe("search parameter parsing", () => {
         expect(parseRequiredParam(" ")).toBeNull();
     });
 });
-

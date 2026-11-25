@@ -1,4 +1,4 @@
-import { Extension as ExtensionIcon, Flag as FlagIcon, MailOutline as MailIcon, Sell as SellIcon } from "@/components/ui/iconsCompat";
+import { Puzzle as ExtensionIcon, Flag as FlagIcon, Mail as MailIcon, Tag as SellIcon } from "lucide-react";
 import type { EmailTemplate, FeatureFlag, SubscriptionPlan } from "../../../api/platform";
 import { StatCard } from "../../../components/ui/StatCard";
 import type { ConfigDraft } from "../platformAdminModel";
