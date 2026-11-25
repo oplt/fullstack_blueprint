@@ -91,8 +91,7 @@ export default function ResetPasswordPage() {
                         </Button>
                     </div>
                 ) : (
-                    <div onSubmit={handleSubmit(onSubmit)}>
-                        <div className="flex gap-[16px]">
+                    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                             {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
                             {!token && (
                                 <div role="alert" className="rounded-lg border border-border p-3 text-sm">
@@ -114,8 +113,7 @@ export default function ResetPasswordPage() {
                             <Button type="submit" variant="default" disabled={isSubmitting || !token}>
                                 {isSubmitting ? "Resetting..." : "Reset password"}
                             </Button>
-                        </div>
-                    </div>
+                    </form>
                 )}
             </div>
         </AuthShell>

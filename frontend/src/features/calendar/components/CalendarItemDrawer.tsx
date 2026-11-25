@@ -140,7 +140,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                                 }}
                                 error={Boolean(fieldErrors.start_time)}
                                 description={fieldErrors.start_time}
-                                InputLabelProps={{ shrink: true }} />
+                                />
                             <FormField
                                 label="End time"
                                 type="time"
@@ -151,7 +151,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                                 }}
                                 error={Boolean(fieldErrors.end_time)}
                                 description={fieldErrors.end_time}
-                                InputLabelProps={{ shrink: true }} />
+                                />
                         </div>
                     )}
 

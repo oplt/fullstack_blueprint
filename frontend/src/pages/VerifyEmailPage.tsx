@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { resendVerification, verifyEmail } from "../api/auth";
 import { AuthMarketingPanel } from "../components/auth/AuthMarketingPanel";
@@ -18,6 +18,7 @@ export default function VerifyEmailPage() {
     const [resendDone, setResendDone] = useState(false);
     const [resending, setResending] = useState(false);
     const [resendError, setResendError] = useState("");
+    const verificationToken = useRef<string | null>(null);
     const { data: platformMetadata } = usePlatformMetadata();
     const appName = platformMetadata?.app_name ?? "Fullstack Blueprint";
 
@@ -25,6 +26,8 @@ export default function VerifyEmailPage() {
         if (!token) {
             return;
         }
+        if (verificationToken.current === token) return;
+        verificationToken.current = token;
         verifyEmail({ token })
             .then(() => setStatus("success"))
             .catch(() => setStatus("error"));

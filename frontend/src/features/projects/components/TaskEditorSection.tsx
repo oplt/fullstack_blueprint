@@ -54,7 +54,6 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                 label="Due date"
                 type="date"
                 {...m.taskForm.register("due_date")}
-                InputLabelProps={{ shrink: true }}
             />
             <FormField
                 label="Assignee"

@@ -72,8 +72,7 @@ export default function ProjectsPage() {
     }
 
     const createForm = (
-        <div onSubmit={handleSubmit((values) => mutation.mutate(values))}>
-            <div className="flex gap-[16px]">
+        <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="flex flex-col gap-4">
                 <FormField
                     label={`${coreDomainSingular} name`}
                     placeholder={`Acme ${coreDomainSingular}`}
@@ -95,21 +94,8 @@ export default function ProjectsPage() {
                             : `Failed to create ${coreDomainSingular.toLowerCase()}.`}
                     </div>
                 )}
-                <Button type="submit" variant="default" disabled={mutation.isPending}>mutation.isPending ? (
-                        <span
-                            className="inline-block animate-spin rounded-full border-2 border-primary border-t-transparent"
-                            role="progressbar"
-                            style={{
-                                width: 16,
-                                height: 16
-                            }} />
-                    ) : (
-                        <AddCircleOutlineIcon />
-                    )
-                    {mutation.isPending ? "Creating..." : `Create ${coreDomainSingular}`}
-                </Button>
-            </div>
-        </div>
+                <Button type="submit" variant="default" disabled={mutation.isPending}><AddCircleOutlineIcon />{mutation.isPending ? "Creating..." : `Create ${coreDomainSingular}`}</Button>
+        </form>
     );
 
     return (

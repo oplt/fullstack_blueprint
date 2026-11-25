@@ -33,8 +33,9 @@ function PasswordField(props: ComponentProps<typeof FormField>) {
                         <Button size="icon"
 
                             aria-label={showPassword ? "Hide password" : "Show password"}
+                            type="button"
                             onClick={() => setShowPassword((value) => !value)}
-                            onMouseDown={(event: any) => event.preventDefault()}
+                            onMouseDown={(event) => event.preventDefault()}
                         >
                             {showPassword ? <EyeOff /> : <Eye />}
                         </Button>
@@ -104,10 +105,9 @@ function SignInForm() {
     }
 
     return (
-        <div className="flex gap-[16px]">
+        <div className="flex flex-col gap-4">
             {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
-            <div onSubmit={handleSubmit(onSubmit)}>
-                <div className="flex gap-[16px]">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                     <FormField
                         label="Email"
                         type="email"
@@ -121,7 +121,6 @@ function SignInForm() {
                         {...register("password")}
                         error={!!errors.password}
                         description={errors.password?.message}
-                        fullWidth
                     />
                     <FormField
                         label="Authenticator code"
@@ -132,13 +131,11 @@ function SignInForm() {
                     <Button type="submit" variant="default" disabled={isSubmitting}>
                         {isSubmitting ? "Signing in..." : "Sign in"}
                     </Button>
-                </div>
-            </div>
-            <Button variant="ghost" onClick={toggleForgotPassword} type="button">
+            </form>
+            <Button variant="ghost" onClick={toggleForgotPassword} type="button" aria-expanded={forgotOpen}>
                 {forgotOpen ? "Hide password reset" : "Forgot password?"}
             </Button>
-            <div>
-                <div className="flex gap-[16px]">
+            {forgotOpen && <div className="flex flex-col gap-4">
                     <p className="text-muted-foreground">
                         Enter your email and we will send a reset link if an account exists.
                     </p>
@@ -148,8 +145,7 @@ function SignInForm() {
                         </div>
                     )}
                     {forgotError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{forgotError}</div>}
-                    <div onSubmit={handleForgotSubmit(onForgotPasswordSubmit)}>
-                        <div className="flex gap-[16px]">
+                    <form onSubmit={handleForgotSubmit(onForgotPasswordSubmit)} className="flex flex-col gap-4">
                             <FormField
                                 label="Email"
                                 type="email"
@@ -159,10 +155,8 @@ function SignInForm() {
                             <Button type="submit" variant="outline" disabled={isSubmittingForgot}>
                                 {isSubmittingForgot ? "Sending..." : "Send reset link"}
                             </Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    </form>
+                </div>}
         </div>
     );
 }
@@ -190,10 +184,9 @@ function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
     }
 
     return (
-        <div className="flex gap-[16px]">
+        <div className="flex flex-col gap-4">
             {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
-            <div onSubmit={handleSubmit(onSubmit)}>
-                <div className="flex gap-[16px]">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                     <FormField
                         label="Full name"
                         autoComplete="name"
@@ -213,7 +206,6 @@ function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
                         {...register("password")}
                         error={!!errors.password}
                         description={errors.password?.message}
-                        fullWidth
                     />
                     <PasswordField
                         label="Admin invite code"
@@ -221,13 +213,11 @@ function SignUpForm({ onSuccess }: { onSuccess: (message: string) => void }) {
                         {...register("admin_invite_code")}
                         error={!!errors.admin_invite_code}
                         description={errors.admin_invite_code?.message || "Optional. Required only for admin registrations."}
-                        fullWidth
                     />
                     <Button type="submit" variant="default" disabled={isSubmitting}>
                         {isSubmitting ? "Creating account..." : "Create account"}
                     </Button>
-                </div>
-            </div>
+            </form>
         </div>
     );
 }
