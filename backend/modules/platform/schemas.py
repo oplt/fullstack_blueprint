@@ -22,6 +22,26 @@ class ModulePackResponse(BaseModel):
     modules: list[str]
 
 
+class CapabilityManifestResponse(BaseModel):
+    """Deployment metadata; this is not an authorization decision."""
+
+    identifier: str
+    label: str
+    description: str
+    dependencies: list[str]
+    configuration_requirements: list[str]
+    required_permissions: list[str]
+    background_workers: list[str]
+    database_dependencies: list[str]
+    optional_integrations: list[str]
+    health_checks: list[str]
+    default_feature_flags: list[str]
+    build_included: bool
+    deployment_enabled: bool
+    runtime_enabled: bool
+    user_visible: bool
+
+
 class PlatformMetadataResponse(BaseModel):
     app_name: str
     core_domain_singular: str
@@ -30,6 +50,7 @@ class PlatformMetadataResponse(BaseModel):
     enabled_modules: list[str]
     module_catalog: list[ModuleCatalogItem]
     available_module_packs: list[ModulePackResponse]
+    capabilities: list[CapabilityManifestResponse] = Field(default_factory=list)
     mfa_enabled: bool = False
     available_features: list[str] = Field(default_factory=list)
 
@@ -94,12 +115,20 @@ class UserSubscriptionResponse(BaseModel):
     plan: SubscriptionPlanResponse
 
 
+class EntitlementResponse(BaseModel):
+    key: str
+    enabled: bool
+
+
 class SubscriptionSelectionRequest(RequestModel):
     plan_code: str = Field(min_length=2, max_length=64, pattern=MODULE_KEY_PATTERN)
 
 
 class ApiKeyCreateRequest(RequestModel):
     name: str = Field(min_length=2, max_length=255)
+    scopes: list[str] = Field(default_factory=list, max_length=32)
+    expires_at: datetime | None = None
+    rate_limit_per_minute: int = Field(default=60, ge=1, le=100_000)
 
 
 class ApiKeyResponse(BaseModel):
@@ -110,11 +139,19 @@ class ApiKeyResponse(BaseModel):
     key_prefix: str
     last_used_at: datetime | None
     revoked_at: datetime | None
+    scopes: list[str]
+    expires_at: datetime | None
+    rate_limit_per_minute: int
     created_at: datetime
 
 
 class ApiKeyCreateResponse(ApiKeyResponse):
     plaintext_key: str
+
+
+class ApiKeyRotateRequest(RequestModel):
+    expires_at: datetime | None = None
+    rate_limit_per_minute: int = Field(default=60, ge=1, le=100_000)
 
 
 class WebhookEndpointCreate(RequestModel):

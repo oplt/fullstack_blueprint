@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.db.base import Base
@@ -63,6 +63,11 @@ class ApiKey(Base):
     name: Mapped[str] = mapped_column(String(255))
     key_prefix: Mapped[str] = mapped_column(String(24), index=True)
     key_hash: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    tenant_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    scopes_json: Mapped[list[str]] = mapped_column(JSON, default=list)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    rotated_from_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    rate_limit_per_minute: Mapped[int] = mapped_column(Integer, default=60)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -89,6 +94,28 @@ class WebhookEndpoint(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
+    )
+
+
+class WebhookDelivery(Base):
+    __tablename__ = "webhook_deliveries"
+    __table_args__ = (UniqueConstraint("webhook_id", "event_id", name="uq_webhook_delivery_event"),)
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
+    webhook_id: Mapped[str] = mapped_column(
+        ForeignKey("webhook_endpoints.id", ondelete="CASCADE"), index=True
+    )
+    event_id: Mapped[str] = mapped_column(String(255), index=True)
+    event_version: Mapped[str] = mapped_column(String(32), default="v1")
+    payload_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    response_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 

@@ -72,6 +72,16 @@ class MemoryMetadata:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MemoryMetadata:
+        def _datetime(value: Any) -> datetime | None:
+            if not value:
+                return None
+            if isinstance(value, datetime):
+                return value
+            try:
+                return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            except ValueError:
+                return None
+
         return cls(
             memory_level=MemoryLevel(data.get("memory_level", MemoryLevel.USER.value)),
             memory_type=MemoryType(data.get("memory_type", MemoryType.FACT.value)),
@@ -86,6 +96,11 @@ class MemoryMetadata:
             version=int(data.get("version", 1)),
             scope=AgentScope(data["scope"]) if data.get("scope") else None,
             event_type=data.get("event_type"),
+            created_at=_datetime(data.get("created_at")),
+            last_seen_at=_datetime(data.get("last_seen_at")),
+            last_confirmed_at=_datetime(data.get("last_confirmed_at")),
+            occurred_at=_datetime(data.get("occurred_at")),
+            expires_at=_datetime(data.get("expires_at")),
         )
 
 

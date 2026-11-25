@@ -22,6 +22,9 @@ class UsersService:
         self.repo = UsersRepository(db)
         self.identity_repo = IdentityRepository(db)
 
+    async def save(self) -> None:
+        await self.db.commit()
+
     async def update_profile(self, user: User, full_name: str | None) -> User:
         updated = await self.repo.update_profile(user, full_name)
         await self.db.commit()

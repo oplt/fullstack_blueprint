@@ -18,4 +18,4 @@ def normalized_language(language: str | None) -> str | None:
 
 def text_search_config_for_language(language: str | None) -> str:
     """Use a language stemmer only where PostgreSQL has a supported config."""
-    return POSTGRES_TEXT_SEARCH_CONFIGS.get(normalized_language(language), "simple")
+    return POSTGRES_TEXT_SEARCH_CONFIGS.get(normalized_language(language) or "", "simple")

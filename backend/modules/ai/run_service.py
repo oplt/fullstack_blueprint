@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from hashlib import sha256
 from time import perf_counter
 from types import SimpleNamespace
 from typing import Any
@@ -11,6 +12,7 @@ from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.modules.ai import metrics
 from backend.modules.ai.application.rag_answer_prompt import resolve_rag_answer_prompt
 from backend.modules.ai.document_service import AiDocumentService
+from backend.modules.ai.errors import AiErrorKind, AiProviderError
 from backend.modules.ai.models import AiPromptVersion, AiRun
 from backend.modules.ai.prompt_service import AiPromptService, _render_template
 from backend.modules.ai.providers import ProviderGenerateRequest
@@ -116,6 +118,10 @@ class AiRunService(AiPromptService, AiDocumentService):
                 {"role": "system", "content": rendered_system_prompt},
                 {"role": "user", "content": rendered_user_prompt},
             ],
+            tenant_id=user.id,
+            data_region=None,
+            input_hash=sha256(rendered_user_prompt.encode()).hexdigest(),
+            routing_policy_json={"source": "prompt_version", "deterministic": True},
             review_status="pending" if review_required else "not_requested",
         )
 
@@ -178,6 +184,10 @@ class AiRunService(AiPromptService, AiDocumentService):
                 {"role": "system", "content": rendered_system_prompt},
                 {"role": "user", "content": rendered_user_prompt},
             ],
+            tenant_id=user.id,
+            data_region=None,
+            input_hash=sha256(rendered_user_prompt.encode()).hexdigest(),
+            routing_policy_json={"source": "rag_prompt", "deterministic": True},
             review_status="pending" if review_required else "not_requested",
         )
         await self.db.flush()
@@ -202,9 +212,9 @@ class AiRunService(AiPromptService, AiDocumentService):
         review_required: bool,
         commit: bool,
     ) -> AiRun:
-        provider = self.providers.get(run.provider_key)
         started = perf_counter()
         try:
+            provider = self.providers.get(run.provider_key)
             result = await provider.generate(
                 ProviderGenerateRequest(
                     model=version.model_name,
@@ -223,10 +233,47 @@ class AiRunService(AiPromptService, AiDocumentService):
             run.input_tokens = result.input_tokens
             run.output_tokens = result.output_tokens
             run.total_tokens = result.total_tokens
-            run.estimated_cost_micros = (result.input_tokens * version.input_cost_per_million) + (
-                result.output_tokens * version.output_cost_per_million
+            run.provider_request_id = getattr(result, "provider_request_id", None)
+            run.estimated_cost_micros = round(
+                (
+                    result.input_tokens * version.input_cost_per_million
+                    + result.output_tokens * version.output_cost_per_million
+                )
+                / 1_000_000
             )
+            metrics.ai_cost_micros_total.inc(run.estimated_cost_micros)
             run.completed_at = datetime.now(UTC)
+            await self.repo.create_usage_record(
+                run_id=run.id,
+                user_id=user.id,
+                tenant_id=getattr(run, "tenant_id", None) or user.id,
+                provider_key=run.provider_key,
+                model_name=run.model_name,
+                input_tokens=result.input_tokens,
+                output_tokens=result.output_tokens,
+                cost_micros=run.estimated_cost_micros,
+            )
+        except AiProviderError as exc:
+            metrics.ai_run_failed_total.inc()
+            run.status = "cancelled" if exc.kind == AiErrorKind.CANCELLED else "failed"
+            run.error_message = str(exc)
+            run.provider_request_id = exc.provider_request_id
+            run.retry_count = exc.attempt
+            run.completed_at = datetime.now(UTC)
+            if commit:
+                await self.db.commit()
+            status_code = {
+                AiErrorKind.CONFIGURATION: 422,
+                AiErrorKind.AUTHENTICATION: 502,
+                AiErrorKind.INVALID_REQUEST: 422,
+                AiErrorKind.STRUCTURED_OUTPUT: 502,
+                AiErrorKind.RATE_LIMIT: 429,
+                AiErrorKind.TIMEOUT: 504,
+                AiErrorKind.CANCELLED: 499,
+                AiErrorKind.CIRCUIT_OPEN: 503,
+                AiErrorKind.BUDGET_EXCEEDED: 429,
+            }.get(exc.kind, 502)
+            raise HTTPException(status_code=status_code, detail=str(exc)) from exc
         except HTTPException as exc:
             metrics.ai_run_failed_total.inc()
             run.status = "failed"
@@ -238,7 +285,7 @@ class AiRunService(AiPromptService, AiDocumentService):
         except Exception as exc:
             metrics.ai_run_failed_total.inc()
             run.status = "failed"
-            run.error_message = str(exc)
+            run.error_message = "AI provider execution failed"
             run.completed_at = datetime.now(UTC)
             if commit:
                 await self.db.commit()

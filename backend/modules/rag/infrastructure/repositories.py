@@ -4,6 +4,9 @@ import json
 import logging
 from datetime import UTC, datetime
 
+from sqlalchemy import delete, or_, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
 from backend.lib.vector_search import (
     DenseFallbackScopeTooLarge,
@@ -30,8 +33,6 @@ from backend.modules.rag.infrastructure.models import (
     RagQueryRecord,
     RagRetrievalTrace,
 )
-from sqlalchemy import delete, or_, select, text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +262,7 @@ class RagRepository:
         embedding_model_version: str | None,
         embedding_dimensions: int | None,
         embedding_preprocessing_version: str | None,
+        embedding_model_id: str | None = None,
     ) -> RagDocumentRevision:
         revision = RagDocumentRevision(
             document_id=document.id,
@@ -273,6 +275,7 @@ class RagRepository:
             embedding_model_version=embedding_model_version,
             embedding_dimensions=embedding_dimensions,
             embedding_preprocessing_version=embedding_preprocessing_version,
+            embedding_model_id=embedding_model_id,
         )
         self.db.add(revision)
         await self.db.flush()
@@ -412,7 +415,11 @@ class RagRepository:
                 RagDocument.current_revision_id.is_not(None),
             )
         )
-        return list(dict.fromkeys(result.scalars().all()))
+        return list(
+            dict.fromkeys(
+                revision_id for revision_id in result.scalars().all() if revision_id is not None
+            )
+        )
 
     async def list_chunks_for_document(
         self,
@@ -768,13 +775,19 @@ class RagRepository:
         return retrieved
 
     async def create_ingestion_job(
-        self, *, document_id: str, user_id: str, project_id: str | None
+        self,
+        *,
+        document_id: str,
+        user_id: str,
+        project_id: str | None,
+        idempotency_key: str | None = None,
     ) -> RagIngestionJob:
         job = RagIngestionJob(
             document_id=document_id,
             user_id=user_id,
             project_id=project_id,
             status=IngestionJobStatus.PENDING.value,
+            idempotency_key=idempotency_key,
         )
         self.db.add(job)
         await self.db.flush()
@@ -805,6 +818,10 @@ class RagRepository:
         error_message: str | None = None,
         started: bool = False,
         finished: bool = False,
+        progress_percent: int | None = None,
+        retry_count: int | None = None,
+        error_code: str | None = None,
+        malware_scan_status: str | None = None,
     ) -> RagIngestionJob:
         job.status = status.value
         if error_message is not None:
@@ -813,6 +830,15 @@ class RagRepository:
             job.started_at = datetime.now(UTC)
         if finished:
             job.finished_at = datetime.now(UTC)
+        if progress_percent is not None:
+            job.progress_percent = max(0, min(100, progress_percent))
+        if retry_count is not None:
+            job.retry_count = max(0, retry_count)
+        if error_code is not None:
+            job.error_code = error_code
+        if malware_scan_status is not None:
+            job.malware_scan_status = malware_scan_status
+        job.last_heartbeat_at = datetime.now(UTC)
         await self.db.flush()
         return job
 

@@ -43,7 +43,7 @@ class SettingsRepository:
             return 0
         statement = insert(AppSetting).values(rows).on_conflict_do_nothing(index_elements=["key"])
         result = await self.db.execute(statement)
-        return int(result.rowcount or 0)
+        return int(getattr(result, "rowcount", 0) or 0)
 
     async def delete(self, setting: AppSetting) -> None:
         await self.db.delete(setting)

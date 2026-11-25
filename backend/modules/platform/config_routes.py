@@ -46,5 +46,5 @@ async def update_platform_config(
         actor_user_id=admin.id,
         resource_type="platform_config",
     )
-    await db.commit()
+    await service.save()
     return response

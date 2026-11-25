@@ -86,3 +86,17 @@ worker_tasks_total = Counter(
     "Celery tasks completed",
     ["task", "state"],
 )
+worker_task_retries_total = Counter(
+    "worker_task_retries_total",
+    "Celery task retries",
+    ["task"],
+)
+worker_queue_depth = Gauge(
+    "worker_queue_depth",
+    "Approximate messages waiting in a Celery queue",
+    ["queue"],
+)
+webhook_delivery_failures_total = Counter(
+    "webhook_delivery_failures_total",
+    "Webhook delivery attempts that did not succeed",
+)

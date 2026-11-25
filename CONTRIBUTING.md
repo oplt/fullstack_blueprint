@@ -1,8 +1,12 @@
 # Contributing
 
-Use the setup commands in [README.md](README.md). Run `make check`, `make test`, and the frontend validation commands below before opening a pull request. Run relevant Playwright coverage against a disposable instance for changes involving the browser.
+Use the setup commands in [README.md](README.md). Run `make check`, `make test`, `make coverage`, and `make security-audit` plus the frontend validation commands below before opening a pull request. Run relevant Playwright coverage against a disposable instance for changes involving the browser. The pre-push hook set is the local fast-forward gate for Ruff, Pyright, and import boundaries.
 
-Follow the projects module for feature structure. Route handlers call services, services use repositories and ports, and infrastructure owns external adapters. Add migrations for schema changes, and review generated migrations for custom constraints and indexes. Keep independent changes reviewable and update environment examples when settings change.
+Follow the projects module for feature structure. Route handlers call services, services use repositories and ports, and infrastructure owns external adapters. Run `backend/scripts/check_architecture.py` when changing routes. Add migrations for schema changes, and review generated migrations for custom constraints and indexes. Keep independent changes reviewable and update environment examples when settings change.
+
+For new business events, persist a versioned event in the transactional outbox using the
+same session and transaction as the business change. Consumers must deduplicate by event ID;
+do not publish directly to an external broker from a request transaction.
 
 ## Frontend workflow
 

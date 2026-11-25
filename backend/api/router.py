@@ -7,9 +7,11 @@ from backend.modules.admin.router import router as admin_router
 from backend.modules.ai.agent_router import router as agent_router
 from backend.modules.ai.router import router as ai_router
 from backend.modules.calendar.router import router as calendar_router
+from backend.modules.capabilities import CAPABILITY_REGISTRY
 from backend.modules.identity_access.router import router as auth_router
 from backend.modules.memory.api.routes import router as memory_router
 from backend.modules.notifications.router import router as notifications_router
+from backend.modules.organizations.router import router as organizations_router
 from backend.modules.platform.config_service import PlatformConfigService
 from backend.modules.platform.router import router as platform_router
 from backend.modules.profile.router import router as profile_router
@@ -27,24 +29,25 @@ async def require_ai_module(db: AsyncSession = Depends(get_db)) -> None:
 api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
-if settings.AI_ENABLED:
+if CAPABILITY_REGISTRY.deployment_enabled("ai", settings):
     api_router.include_router(
         ai_router, prefix="/ai", tags=["ai"], dependencies=[Depends(require_ai_module)]
     )
     api_router.include_router(
         agent_router, prefix="/agent", tags=["agent"], dependencies=[Depends(require_ai_module)]
     )
-if settings.MEMORY_ENABLED:
+if CAPABILITY_REGISTRY.deployment_enabled("memory", settings):
     api_router.include_router(memory_router, prefix="/memory", tags=["memory"])
-if settings.RAG_ENABLED:
+if CAPABILITY_REGISTRY.deployment_enabled("rag", settings):
     api_router.include_router(rag_router, prefix="/rag", tags=["rag"])
-if settings.CALENDAR_ENABLED:
+if CAPABILITY_REGISTRY.deployment_enabled("calendar", settings):
     api_router.include_router(calendar_router, prefix="/calendar", tags=["calendar"])
 api_router.include_router(users_router, prefix="/users", tags=["users"])
+api_router.include_router(organizations_router, prefix="/organizations", tags=["organizations"])
 api_router.include_router(profile_router, prefix="/profile", tags=["profile"])
 api_router.include_router(projects_router, prefix="/projects", tags=["projects"])
 api_router.include_router(notifications_router, prefix="/notifications", tags=["notifications"])
-if settings.OBSERVABILITY_ENABLED:
+if CAPABILITY_REGISTRY.deployment_enabled("observability", settings):
     api_router.include_router(observability_router, prefix="/observability", tags=["observability"])
 api_router.include_router(platform_router, prefix="/platform", tags=["platform"])
 api_router.include_router(settings_router, prefix="/settings", tags=["settings"])

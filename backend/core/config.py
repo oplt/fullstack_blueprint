@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     LOG_FILE_PATH: str = "logs/logs.txt"
     LOG_RETENTION_DAYS: int = 1
     LOG_FORMAT: str = "text"
+    MAX_REQUEST_BODY_BYTES: int = 10 * 1024 * 1024
     SLOW_REQUEST_MS: int = 1000
     SLOW_JOB_MS: int = 5000
     SLOW_EXTERNAL_CALL_MS: int = 3000
@@ -72,6 +73,13 @@ class Settings(BaseSettings):
     CELERY_EMAIL_QUEUE: str = "email"
     CELERY_CONCURRENCY: int = Field(default=2, ge=1)
     CELERY_RESULT_EXPIRES_SECONDS: int = 3600
+    # Worker delivery safeguards. Late acknowledgements plus a single-message
+    # prefetch make crashes recoverable without allowing one worker to hoard a
+    # large batch of work. Individual tasks still own their retry policy.
+    CELERY_TASK_TIME_LIMIT_SECONDS: int = Field(default=1800, ge=1)
+    CELERY_TASK_SOFT_TIME_LIMIT_SECONDS: int = Field(default=1740, ge=1)
+    CELERY_BROKER_VISIBILITY_TIMEOUT_SECONDS: int = Field(default=3600, ge=1)
+    CELERY_OUTBOX_PUBLISH_INTERVAL_SECONDS: int = Field(default=10, ge=1)
     EAGER_BACKGROUND_MAX_WORKERS: int = 4
     EAGER_BACKGROUND_MAX_PENDING: int = 16
 
@@ -100,8 +108,10 @@ class Settings(BaseSettings):
     # Playwright/CI only: raise rate-limit ceilings without disabling them.
     # Ignored when APP_ENV=production even if set.
     E2E_RELAX_RATE_LIMITS: bool = False
+    RATE_LIMIT_FAIL_OPEN: bool = True
     HEALTH_READY_PUBLIC: bool = False
     HEALTH_VERSION_PUBLIC: bool = False
+    WORKER_HEALTH_REQUIRED: bool = False
     REQUIRE_EMAIL_VERIFICATION: bool = False  # disabled for local dev; re-enable in production
     # Only these reverse proxies may supply X-Forwarded-* headers.  Leave empty
     # when the application receives client traffic directly.
@@ -157,8 +167,19 @@ class Settings(BaseSettings):
     STORAGE_AUTO_CREATE_BUCKET: bool = True
     STORAGE_PUBLIC_READ: bool = False
     STORAGE_AVATAR_MAX_BYTES: int = 5 * 1024 * 1024
+    STORAGE_MAX_OBJECT_BYTES: int = 100 * 1024 * 1024
+    STORAGE_PROVIDER: str = "s3"
+    STORAGE_LOCAL_ROOT: str = "var/storage"
+    STORAGE_QUOTA_BYTES_PER_USER: int = 1 * 1024 * 1024 * 1024
+    STORAGE_SIGNED_URL_TTL_SECONDS: int = 300
 
     WEBHOOK_ALLOWED_HOSTS: str = ""  # comma-separated exact hostnames
+    INTEGRATIONS_ENABLED: bool = True
+    INTEGRATION_ALLOWED_HOSTS: str = ""
+    ANALYTICS_ENABLED: bool = False
+    ANALYTICS_POSTHOG_ENABLED: bool = False
+    ANALYTICS_POSTHOG_HOST: str = ""
+    ANALYTICS_POSTHOG_API_KEY: str = ""
 
     AI_ENABLED: bool = False
     CALENDAR_ENABLED: bool = True
@@ -170,6 +191,30 @@ class Settings(BaseSettings):
     AI_RATE_LIMIT_REQUESTS: int = 30
     AI_RATE_LIMIT_WINDOW_SECONDS: int = 60
     AI_REQUEST_TIMEOUT_SECONDS: float = 60.0
+    AI_RETRY_MAX_ATTEMPTS: int = Field(default=3, ge=1, le=6)
+    AI_MAX_CONCURRENT_REQUESTS: int = Field(default=16, ge=1, le=256)
+    AI_CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=5, ge=1, le=100)
+    AI_CIRCUIT_BREAKER_COOLDOWN_SECONDS: float = Field(default=30.0, ge=0)
+    AI_STREAM_HEARTBEAT_SECONDS: float = Field(default=15.0, gt=0)
+    AI_MAX_TOOL_CALLS: int = Field(default=8, ge=0, le=64)
+    AI_OPENAI_API_MODE: str = "responses"
+    AI_MODEL_REGISTRY_JSON: str = ""
+    AI_DEFAULT_REGION: str = ""
+    AI_ALLOWED_REGIONS: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    AI_TENANT_MAX_COST_MICROS: int | None = Field(default=None, ge=0)
+    AI_ORCHESTRATOR: str = "pydantic_ai"
+    AI_AGENT_MAX_STEPS: int = Field(default=8, ge=1, le=64)
+    AI_AGENT_MAX_TOOL_CALLS: int = Field(default=8, ge=0, le=64)
+    AI_AGENT_MAX_TOKENS: int = Field(default=16_000, ge=1)
+    AI_AGENT_TIMEOUT_SECONDS: float = Field(default=60.0, gt=0, le=3600)
+    AI_APPROVAL_TTL_SECONDS: int = Field(default=900, ge=30, le=86_400)
+    AI_MCP_ENABLED: bool = False
+    AI_MCP_SERVERS_JSON: str = ""
+    AI_MCP_ALLOWED_HOSTS: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    AI_WORKFLOW_BACKEND: str = "database"
+    AI_COMPATIBLE_BASE_URL: str = ""
+    AI_COMPATIBLE_API_KEY: str = ""
+    AI_COMPATIBLE_DEFAULT_MODEL: str = "local-compatible"
     OPENAI_API_KEY: str = ""
     OPENAI_BASE_URL: str = "https://api.openai.com/v1"
     OPENAI_DEFAULT_MODEL: str = "gpt-4.1-mini"
@@ -190,6 +235,9 @@ class Settings(BaseSettings):
     MEMORY_DEFAULT_LIMIT: int = 10
     MEMORY_MIN_CONFIDENCE: float = 0.65
     MEMORY_SESSION_TTL_DAYS: int = 30
+    MEMORY_DEFAULT_RETENTION_DAYS: int = 365
+    MEMORY_CONSENT_REQUIRED: bool = False
+    MEMORY_SENSITIVE_FILTER_ENABLED: bool = True
 
     # RAG
     RAG_ENABLED: bool = False
@@ -199,6 +247,8 @@ class Settings(BaseSettings):
     RAG_EMBEDDING_MODEL_VERSION: str = ""
     RAG_EMBEDDING_DIMENSIONS: int = 1536
     RAG_EMBEDDING_PREPROCESSING_VERSION: str = "unicode-nfc-v1"
+    RAG_EMBEDDING_REGISTRY_JSON: str = ""
+    RAG_EMBEDDING_INDEX_LIFECYCLE: str = "database"
     RAG_CHUNK_SIZE: int = 1000
     RAG_CHUNK_OVERLAP: int = 150
     RAG_CHUNK_POLICY_VERSION: str = "structure-v1"
@@ -215,6 +265,10 @@ class Settings(BaseSettings):
     RAG_MAX_CONTEXT_TOKENS: int = 6000
     RAG_ALLOWED_FILE_TYPES: str = "pdf,txt,md,docx,csv"
     RAG_MAX_FILE_BYTES: int = 10 * 1024 * 1024
+    RAG_MALWARE_SCAN_ENABLED: bool = False
+    RAG_MALWARE_SCAN_REQUIRED: bool = False
+    RAG_MALWARE_SCANNER: str = "none"
+    RAG_DOCLING_ENABLED: bool = False
     RAG_UPLOAD_CHUNK_SIZE: int = 256 * 1024
     RAG_EMBEDDING_BATCH_SIZE: int = 32
     RAG_EMBEDDING_BATCH_CONCURRENCY: int = 2
@@ -251,6 +305,7 @@ class Settings(BaseSettings):
     RAG_INDEX_VERSION: str = "pgvector-fts-v1"
 
     CORS_ALLOWED_ORIGINS: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    ALLOWED_HOSTS: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
     @property
     def celery_broker_url(self) -> str:
@@ -321,6 +376,21 @@ class Settings(BaseSettings):
         if normalized not in allowed:
             return "INFO"
         return normalized
+
+    @field_validator("LOG_FORMAT")
+    @classmethod
+    def validate_log_format(cls, value: str) -> str:
+        normalized = value.lower()
+        if normalized not in {"text", "json"}:
+            raise ValueError("LOG_FORMAT must be text or json")
+        return normalized
+
+    @field_validator("MAX_REQUEST_BODY_BYTES")
+    @classmethod
+    def validate_request_body_limit(cls, value: int) -> int:
+        if value < 1 or value > 1024 * 1024 * 1024:
+            raise ValueError("MAX_REQUEST_BODY_BYTES must be between 1 byte and 1 GiB")
+        return value
 
     @field_validator("LOG_RETENTION_DAYS")
     @classmethod
@@ -394,6 +464,33 @@ class Settings(BaseSettings):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
+    @field_validator("ALLOWED_HOSTS", mode="before")
+    @classmethod
+    def parse_allowed_hosts(cls, value):
+        if value in (None, ""):
+            return []
+        if isinstance(value, str):
+            return [item.strip().lower() for item in value.split(",") if item.strip()]
+        return value
+
+    @field_validator("AI_ALLOWED_REGIONS", mode="before")
+    @classmethod
+    def parse_ai_allowed_regions(cls, value):
+        if value in (None, ""):
+            return []
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return value
+
+    @field_validator("AI_MCP_ALLOWED_HOSTS", mode="before")
+    @classmethod
+    def parse_ai_mcp_allowed_hosts(cls, value):
+        if value in (None, ""):
+            return []
+        if isinstance(value, str):
+            return [item.strip().lower() for item in value.split(",") if item.strip()]
+        return value
+
     @model_validator(mode="after")
     def validate_security_posture(self):
         if self.COOKIE_SAMESITE == "none" and not self.COOKIE_SECURE:
@@ -407,6 +504,16 @@ class Settings(BaseSettings):
             raise ValueError("Configure SMTP before requiring email verification")
         if self.is_production and not self.COOKIE_SECURE:
             raise ValueError("COOKIE_SECURE must be enabled in production")
+        if self.is_production and not self.CORS_ALLOWED_ORIGINS:
+            raise ValueError("CORS_ALLOWED_ORIGINS must be explicit in production")
+        if "*" in self.CORS_ALLOWED_ORIGINS:
+            raise ValueError("Wildcard CORS origins are not allowed with cookie credentials")
+        if self.is_production and not self.ALLOWED_HOSTS:
+            raise ValueError("ALLOWED_HOSTS must be explicit in production")
+        if self.is_production and self.RATE_LIMIT_FAIL_OPEN:
+            raise ValueError("RATE_LIMIT_FAIL_OPEN must be false in production")
+        if self.is_production and self.LOG_FORMAT != "json":
+            raise ValueError("LOG_FORMAT must be json in production")
         if self.is_production and any(
             not origin.startswith("https://")
             for origin in [self.FRONTEND_URL, *self.allowed_origins]
@@ -415,4 +522,4 @@ class Settings(BaseSettings):
         return self
 
 
-settings = Settings()
+settings = Settings.model_validate({})

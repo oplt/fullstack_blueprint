@@ -10,9 +10,11 @@ from uuid import uuid4
 
 from celery.signals import (
     before_task_publish,
+    heartbeat_sent,
     task_failure,
     task_postrun,
     task_prerun,
+    task_retry,
     worker_process_shutdown,
     worker_ready,
     worker_shutdown,
@@ -51,12 +53,28 @@ def close_worker_runtime(**_kwargs) -> None:
     from backend.workers.async_dispatch import shutdown_background_runtime
 
     shutdown_background_runtime()
+    with contextlib.suppress(Exception):
+        from backend.workers.health import mark_worker_stopped
+
+        mark_worker_stopped()
 
 
 @worker_ready.connect
 def configure_worker_logging(**_kwargs) -> None:
     setup_logging()
+    with contextlib.suppress(Exception):
+        from backend.workers.health import mark_worker_ready
+
+        mark_worker_ready()
     logger.info("Celery worker ready")
+
+
+@heartbeat_sent.connect
+def refresh_worker_health(**_kwargs) -> None:
+    with contextlib.suppress(Exception):
+        from backend.workers.health import mark_worker_ready
+
+        mark_worker_ready()
 
 
 @before_task_publish.connect
@@ -170,3 +188,13 @@ def log_task_failure(task_id=None, task=None, exception=None, **_kwargs) -> None
         str(exception)[:300] if exception else "",
         exc_info=True,
     )
+
+
+@task_retry.connect
+def log_task_retry(request=None, **_kwargs) -> None:
+    metrics = _safe_worker_metrics()
+    if metrics is not None:
+        with contextlib.suppress(Exception):
+            metrics.worker_task_retries_total.labels(
+                task=str(getattr(request, "task", "unknown"))[-80:]
+            ).inc()

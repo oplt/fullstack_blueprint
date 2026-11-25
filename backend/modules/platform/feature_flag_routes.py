@@ -66,7 +66,7 @@ async def create_feature_flag(
         resource_id=flag.id,
         metadata={"key": flag.key},
     )
-    await db.commit()
+    await service.save()
     return _feature_flag_to_response(flag)
 
 
@@ -90,5 +90,5 @@ async def update_feature_flag(
         resource_type="feature_flag",
         resource_id=flag.id,
     )
-    await db.commit()
+    await service.save()
     return _feature_flag_to_response(flag)

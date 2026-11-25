@@ -6,4 +6,12 @@ Enable the service with `RAG_ENABLED=true` and install `uv sync --locked --extra
 
 The authenticated user owns ingested documents. Request filters may restrict access by project, document, or index revision. Maintain explicit allow-lists for scoped retrieval and validate citations against the supplied evidence. Avoid putting raw document content in logs.
 
+Phase 07 adds optional Docling and clamd adapter ports, archive resource
+validation, ingestion progress/heartbeat/retry metadata, and versioned embedding
+contracts. Additional embedding dimensions are stored in additive
+`rag_chunk_embeddings` index generations; the default 1536-dimensional pgvector
+index remains unchanged. Index generations can be activated or rolled back
+without deleting previous vectors. Qdrant, BGE-M3, GraphRAG, and visual
+retrieval remain evaluation-only until benchmark evidence justifies them.
+
 Run `backend/.venv/bin/python -m pytest backend/modules/rag/tests` from the repository root. Benchmark fixtures under `eval/fixtures` are synthetic document collections. Install `--extra rag-eval` for the multilingual benchmark.

@@ -4,6 +4,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.core.schemas import RequestModel
+from backend.modules.ai.contracts import AiToolDefinition
 
 AI_KEY_PATTERN = r"^[a-z0-9_][a-z0-9_\-\.]{1,127}$"
 
@@ -13,6 +14,9 @@ class AiProviderDescriptor(BaseModel):
     label: str
     supports_generation: bool
     supports_embeddings: bool
+    capabilities: list[str] = Field(default_factory=list)
+    default_model: str | None = None
+    available: bool = True
 
 
 class AiVariableDefinition(BaseModel):
@@ -141,6 +145,84 @@ class AiRunRequest(RequestModel):
     document_ids: list[str] = Field(default_factory=list)
     top_k: int = Field(default=4, ge=1, le=20)
     review_required: bool = False
+
+
+class AiStreamRequest(RequestModel):
+    provider_key: str | None = Field(default=None, min_length=2, max_length=64)
+    model: str | None = Field(default=None, min_length=2, max_length=128)
+    system_prompt: str = Field(default="", max_length=32_000)
+    user_prompt: str = Field(min_length=1, max_length=32_000)
+    response_format: Literal["text", "json"] = "text"
+    temperature: float = Field(default=0.2, ge=0, le=2)
+    max_output_tokens: int | None = Field(default=None, ge=1, le=32_000)
+    tools: list[AiToolDefinition] = Field(default_factory=list, max_length=32)
+
+
+class AiAgentDefinitionCreate(RequestModel):
+    key: str = Field(min_length=1, max_length=128, pattern=AI_KEY_PATTERN)
+    name: str = Field(min_length=1, max_length=255)
+    instructions: str = Field(default="", max_length=32_000)
+    provider_key: str = Field(default="local", min_length=2, max_length=64)
+    model_name: str = Field(min_length=2, max_length=128)
+    tool_ids: list[str] = Field(default_factory=list, max_length=64)
+    configuration: dict[str, Any] = Field(default_factory=dict)
+    max_steps: int = Field(default=8, ge=1, le=64)
+    max_tool_calls: int = Field(default=8, ge=0, le=64)
+    max_tokens: int = Field(default=16_000, ge=1)
+    max_cost_micros: int | None = Field(default=None, ge=0)
+    timeout_seconds: float = Field(default=60.0, gt=0, le=3600)
+
+
+class AiAgentDefinitionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    key: str
+    name: str
+    version: int
+    instructions: str
+    provider_key: str
+    model_name: str
+    tool_ids: list[str]
+    max_steps: int
+    max_tool_calls: int
+    max_tokens: int
+    max_cost_micros: int | None
+    timeout_seconds: float
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class AiWorkflowRunCreate(RequestModel):
+    definition_id: str
+    user_message: str = Field(min_length=1, max_length=32_000)
+    idempotency_key: str = Field(min_length=8, max_length=255)
+
+
+class AiWorkflowApprovalRequest(RequestModel):
+    approval_id: str
+
+
+class AiWorkflowRunResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    user_id: str
+    tenant_id: str
+    agent_definition_id: str
+    status: str
+    current_step: int
+    state: dict[str, Any]
+    checkpoint: dict[str, Any]
+    input_tokens: int
+    output_tokens: int
+    estimated_cost_micros: int
+    cancellation_requested: bool
+    last_error: str | None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None
 
 
 class AiRunResponse(BaseModel):

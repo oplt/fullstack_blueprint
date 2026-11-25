@@ -12,6 +12,25 @@ export const RESPONSIVE_QA_VIEWPORTS = [390, 768, 1024, 1280, 1440, 1920] as con
 
 export type ResponsiveQaViewport = (typeof RESPONSIVE_QA_VIEWPORTS)[number];
 
+export const responsiveColumns = {
+    kpi: {
+        xs: "minmax(0, 1fr)",
+        sm: "repeat(2, minmax(0, 1fr))",
+        md: "repeat(2, minmax(0, 1fr))",
+        lg: "repeat(4, minmax(0, 1fr))",
+    },
+    twoUp: {
+        xs: "minmax(0, 1fr)",
+        md: "repeat(2, minmax(0, 1fr))",
+    },
+    threeUp: {
+        xs: "minmax(0, 1fr)",
+        sm: "repeat(2, minmax(0, 1fr))",
+        md: "repeat(2, minmax(0, 1fr))",
+        lg: "repeat(3, minmax(0, 1fr))",
+    },
+} as const;
+
 /** Horizontal scroll wrapper for tables, charts, and dense toolbars. */
 export const scrollContainerStyle = {
     width: "100%",

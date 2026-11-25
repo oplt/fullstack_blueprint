@@ -55,7 +55,7 @@ async def create_email_template(
         resource_id=template.id,
         metadata={"key": template.key},
     )
-    await db.commit()
+    await service.save()
     return _email_template_to_response(template)
 
 
@@ -79,5 +79,5 @@ async def update_email_template(
         resource_type="email_template",
         resource_id=template.id,
     )
-    await db.commit()
+    await service.save()
     return _email_template_to_response(template)

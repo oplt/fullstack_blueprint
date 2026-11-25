@@ -1,11 +1,24 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from backend.db.base import Base
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Boolean, Computed, DateTime, ForeignKey, Index, Integer, String, Text, text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Computed,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
+
+from backend.db.base import Base
 
 
 class RagDocumentRevision(Base):
@@ -26,6 +39,9 @@ class RagDocumentRevision(Base):
     embedding_model_version: Mapped[str | None] = mapped_column(String(128), nullable=True)
     embedding_dimensions: Mapped[int | None] = mapped_column(Integer, nullable=True)
     embedding_preprocessing_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    embedding_model_id: Mapped[str | None] = mapped_column(
+        ForeignKey("rag_embedding_models.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), index=True
     )
@@ -116,6 +132,88 @@ class RagChunk(Base):
     )
 
 
+class RagEmbeddingModel(Base):
+    """A versioned embedding contract; rows are never mutated in place."""
+
+    __tablename__ = "rag_embedding_models"
+    __table_args__ = (
+        UniqueConstraint("provider", "model", "model_version", name="uq_rag_embedding_model"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
+    key: Mapped[str] = mapped_column(String(160), unique=True, index=True)
+    provider: Mapped[str] = mapped_column(String(128))
+    model: Mapped[str] = mapped_column(String(255))
+    model_version: Mapped[str] = mapped_column(String(128), default="default")
+    dimensions: Mapped[int] = mapped_column(Integer)
+    distance_metric: Mapped[str] = mapped_column(String(32), default="cosine")
+    normalized: Mapped[bool] = mapped_column(Boolean, default=False)
+    chunking_config_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    index_version: Mapped[str] = mapped_column(String(128))
+    cost_per_million_tokens_micros: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(32), default="registered", index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+
+
+class RagIndexVersion(Base):
+    """Lifecycle state for a non-destructive vector index generation."""
+
+    __tablename__ = "rag_index_versions"
+    __table_args__ = (
+        UniqueConstraint("key", "generation", name="uq_rag_index_version_generation"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
+    key: Mapped[str] = mapped_column(String(160), index=True)
+    generation: Mapped[int] = mapped_column(Integer)
+    embedding_model_id: Mapped[str] = mapped_column(
+        ForeignKey("rag_embedding_models.id", ondelete="RESTRICT"), index=True
+    )
+    parent_index_id: Mapped[str | None] = mapped_column(
+        ForeignKey("rag_index_versions.id", ondelete="SET NULL"), nullable=True
+    )
+    status: Mapped[str] = mapped_column(String(32), default="building", index=True)
+    switched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    rolled_back_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    document_count: Mapped[int] = mapped_column(Integer, default=0)
+    vector_count: Mapped[int] = mapped_column(Integer, default=0)
+    estimated_cost_micros: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+
+
+class RagChunkEmbedding(Base):
+    """Variable-dimension pgvector storage for alternate embedding models."""
+
+    __tablename__ = "rag_chunk_embeddings"
+    __table_args__ = (
+        UniqueConstraint(
+            "chunk_id", "embedding_model_id", "index_version_id", name="uq_rag_chunk_embedding"
+        ),
+        Index("ix_rag_chunk_embeddings_model_index", "embedding_model_id", "index_version_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
+    chunk_id: Mapped[str] = mapped_column(
+        ForeignKey("rag_chunks.id", ondelete="CASCADE"), index=True
+    )
+    embedding_model_id: Mapped[str] = mapped_column(
+        ForeignKey("rag_embedding_models.id", ondelete="RESTRICT"), index=True
+    )
+    index_version_id: Mapped[str] = mapped_column(
+        ForeignKey("rag_index_versions.id", ondelete="CASCADE"), index=True
+    )
+    dimensions: Mapped[int] = mapped_column(Integer)
+    embedding: Mapped[list[float]] = mapped_column(Vector(), deferred=True)
+    content_hash: Mapped[str] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+
+
 class RagQueryRecord(Base):
     __tablename__ = "rag_queries"
 
@@ -155,6 +253,16 @@ class RagIngestionJob(Base):
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    progress_percent: Mapped[int] = mapped_column(Integer, default=0)
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    max_retries: Mapped[int] = mapped_column(Integer, default=3)
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    parser_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    malware_scan_status: Mapped[str] = mapped_column(String(32), default="pending")
+    last_heartbeat_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

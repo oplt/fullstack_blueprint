@@ -1,0 +1,89 @@
+name: Security validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-dependencies:
+    name: Python dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.10.0"
+      - name: Install locked audit tooling
+        run: uv sync --locked --all-extras
+        working-directory: backend
+      - name: Export the locked dependency graph
+        run: uv export --locked --all-extras --no-emit-project --output-file /tmp/blueprint-requirements.txt >/dev/null
+        working-directory: backend
+      - name: Audit Python dependencies
+        run: uv run pip-audit --strict --cache-dir /tmp/blueprint-pip-audit-cache --requirement /tmp/blueprint-requirements.txt
+        working-directory: backend
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - name: Scan repository history for secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  filesystem:
+    name: Filesystem vulnerability scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Scan application dependencies and images metadata
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          format: sarif
+          output: trivy-results.sarif
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@e0e3dcbcfb87d699a50135fa81515a2f98d6cb3a # v3.39.5
+        with:
+          sarif_file: trivy-results.sarif
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript-typescript]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@e0e3dcbcfb87d699a50135fa81515a2f98d6cb3a # v3.39.5
+        with:
+          languages: ${{ matrix.language }}
+      - name: Analyze with CodeQL
+        uses: github/codeql-action/analyze@e0e3dcbcfb87d699a50135fa81515a2f98d6cb3a # v3.39.5
+        with:
+          category: /language:${{ matrix.language }}

@@ -6,6 +6,9 @@ ai_run_latency_ms = Histogram(
     buckets=(50, 100, 250, 500, 1000, 2500, 5000, 10000, 30000),
 )
 ai_run_failed_total = Counter("ai_run_failed_total", "AI provider generation failures")
+ai_cost_micros_total = Counter(
+    "ai_cost_micros_total", "Estimated AI spend in micros, without tenant/user labels"
+)
 agent_run_latency_ms = Histogram(
     "agent_run_latency_ms",
     "End-to-end agent run latency in milliseconds",

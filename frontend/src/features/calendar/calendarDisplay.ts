@@ -1,5 +1,4 @@
 import { colorMix } from "@/lib/color";
-import type { CSSProperties } from "react";
 import type { CalendarItem, CalendarItemType } from "../../api/calendar";
 import type { Project, ProjectTaskPriority } from "../../api/projects";
 import type { CalendarViewMode } from "./calendarRange";
@@ -10,8 +9,8 @@ export type DashboardCalendarProps = {
     onOpenProjects: () => void;
     allowedViews?: CalendarViewMode[];
     initialView?: CalendarViewMode;
-    sx?: CSSProperties;
-    contentSx?: CSSProperties;
+    className?: string;
+    contentClassName?: string;
 };
 export type CalendarDraft = { type: CalendarItemType; title: string; description: string; start_time: string; end_time: string; project_id: string; priority: ProjectTaskPriority };
 export type CalendarFieldErrors = { title?: string; project_id?: string; start_time?: string; end_time?: string; general?: string };

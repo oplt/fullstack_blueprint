@@ -60,7 +60,7 @@ class AiPromptService(AiBaseService):
         template = await self.repo.get_prompt_template_for_user(user.id, template_id)
         if not template:
             raise HTTPException(status_code=404, detail="Prompt template not found")
-        if "active_version_id" in updates and updates["active_version_id"]:
+        if updates.get("active_version_id"):
             version = await self.repo.get_prompt_version(updates["active_version_id"])
             if not version or version.prompt_template_id != template.id:
                 raise HTTPException(

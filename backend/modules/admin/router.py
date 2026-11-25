@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.deps.admin import get_admin_user
@@ -11,10 +10,8 @@ from backend.modules.admin.schemas import (
     AuditLogResponse,
     MetricsResponse,
 )
-from backend.modules.audit.repository import AuditRepository
+from backend.modules.admin.service import AdminService
 from backend.modules.identity_access.models import User
-from backend.modules.identity_access.repository import IdentityRepository
-from backend.modules.notifications.models import Notification
 
 router = APIRouter()
 
@@ -45,29 +42,15 @@ async def list_users(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_admin_user),
 ):
-    filters = []
-    if search:
-        search_term = f"%{search.strip()}%"
-        filters.append(
-            or_(
-                User.email.ilike(search_term),
-                User.full_name.ilike(search_term),
-            )
-        )
-
-    total_query = select(func.count()).select_from(User)
-    data_query = select(User).order_by(User.created_at.desc())
-
-    if filters:
-        total_query = total_query.where(*filters)
-        data_query = data_query.where(*filters)
-
-    total = await db.scalar(total_query)
-    result = await db.execute(data_query.offset((page - 1) * page_size).limit(page_size))
+    users, total = await AdminService(db).list_users(
+        page=page,
+        page_size=page_size,
+        search=search,
+    )
 
     return AdminUserListResponse(
-        items=[_user_to_response(user) for user in result.scalars().all()],
-        total=total or 0,
+        items=[_user_to_response(user) for user in users],
+        total=total,
         page=page,
         page_size=page_size,
     )
@@ -79,8 +62,7 @@ async def get_user(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_admin_user),
 ):
-    repo = IdentityRepository(db)
-    user = await repo.get_user_by_id(user_id)
+    user = await AdminService(db).get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return _user_to_response(user)
@@ -95,20 +77,13 @@ async def update_user_status(
 ):
     if user_id == admin.id:
         raise HTTPException(status_code=400, detail="Cannot change your own status")
-    repo = IdentityRepository(db)
-    user = await repo.get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.is_active = payload.is_active
-    audit_repo = AuditRepository(db)
-    await audit_repo.log(
-        action="admin.update_user_status",
-        user_id=admin.id,
-        resource_type="user",
-        resource_id=user.id,
-        metadata={"is_active": payload.is_active},
+    user = await AdminService(db).update_user_status(
+        user_id=user_id,
+        admin_id=admin.id,
+        is_active=payload.is_active,
     )
-    await db.commit()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
     return _user_to_response(user)
 
 
@@ -117,8 +92,7 @@ async def list_audit_logs(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_admin_user),
 ):
-    repo = AuditRepository(db)
-    logs = await repo.list_recent(limit=100)
+    logs = await AdminService(db).list_audit_logs()
     return [
         AuditLogResponse(
             id=log.id,
@@ -138,19 +112,11 @@ async def get_metrics(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_admin_user),
 ):
-    result = await db.execute(
-        select(
-            func.count(),
-            func.count().filter(User.is_verified.is_(True)),
-            func.count().filter(User.is_active.is_(True)),
-        ).select_from(User)
-    )
-    total, verified, active = result.one()
-    notifs = await db.scalar(select(func.count()).select_from(Notification))
+    total, verified, active, notifs = await AdminService(db).metrics()
 
     return MetricsResponse(
-        total_users=total or 0,
-        verified_users=verified or 0,
-        active_users=active or 0,
-        total_notifications=notifs or 0,
+        total_users=total,
+        verified_users=verified,
+        active_users=active,
+        total_notifications=notifs,
     )

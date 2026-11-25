@@ -1,3 +1,6 @@
+from collections.abc import Mapping, Sequence
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,15 +44,16 @@ class PlatformRepository:
         await self.db.flush()
         return plan
 
-    def add_plans(self, rows: list[dict]) -> None:
-        self.db.add_all([SubscriptionPlan(**row) for row in rows])
+    def add_plans(self, rows: Sequence[Mapping[str, Any]]) -> None:
+        self.db.add_all([SubscriptionPlan(**dict(row)) for row in rows])
 
-    async def upsert_default_plans(self, rows: list[dict]) -> int:
+    async def upsert_default_plans(self, rows: Sequence[Mapping[str, Any]]) -> int:
+        values = [dict(row) for row in rows]
         statement = (
-            insert(SubscriptionPlan).values(rows).on_conflict_do_nothing(index_elements=["code"])
+            insert(SubscriptionPlan).values(values).on_conflict_do_nothing(index_elements=["code"])
         )
         result = await self.db.execute(statement)
-        return int(result.rowcount or 0)
+        return int(getattr(result, "rowcount", 0) or 0)
 
     async def list_subscriptions(self) -> list[UserSubscription]:
         result = await self.db.execute(
@@ -141,13 +145,16 @@ class PlatformRepository:
         await self.db.flush()
         return flag
 
-    def add_feature_flags(self, rows: list[dict]) -> None:
-        self.db.add_all([FeatureFlag(**row) for row in rows])
+    def add_feature_flags(self, rows: Sequence[Mapping[str, Any]]) -> None:
+        self.db.add_all([FeatureFlag(**dict(row)) for row in rows])
 
-    async def upsert_default_feature_flags(self, rows: list[dict]) -> int:
-        statement = insert(FeatureFlag).values(rows).on_conflict_do_nothing(index_elements=["key"])
+    async def upsert_default_feature_flags(self, rows: Sequence[Mapping[str, Any]]) -> int:
+        values = [dict(row) for row in rows]
+        statement = (
+            insert(FeatureFlag).values(values).on_conflict_do_nothing(index_elements=["key"])
+        )
         result = await self.db.execute(statement)
-        return int(result.rowcount or 0)
+        return int(getattr(result, "rowcount", 0) or 0)
 
     async def list_email_templates(self) -> list[EmailTemplate]:
         result = await self.db.execute(select(EmailTemplate).order_by(EmailTemplate.key.asc()))
@@ -167,12 +174,13 @@ class PlatformRepository:
         await self.db.flush()
         return template
 
-    def add_email_templates(self, rows: list[dict]) -> None:
-        self.db.add_all([EmailTemplate(**row) for row in rows])
+    def add_email_templates(self, rows: Sequence[Mapping[str, Any]]) -> None:
+        self.db.add_all([EmailTemplate(**dict(row)) for row in rows])
 
-    async def upsert_default_email_templates(self, rows: list[dict]) -> int:
+    async def upsert_default_email_templates(self, rows: Sequence[Mapping[str, Any]]) -> int:
+        values = [dict(row) for row in rows]
         statement = (
-            insert(EmailTemplate).values(rows).on_conflict_do_nothing(index_elements=["key"])
+            insert(EmailTemplate).values(values).on_conflict_do_nothing(index_elements=["key"])
         )
         result = await self.db.execute(statement)
-        return int(result.rowcount or 0)
+        return int(getattr(result, "rowcount", 0) or 0)

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+from typing import Protocol
+
 from backend.lib.memory_ranking import memory_recency_weight
 from backend.modules.memory.application.memory_consolidator import MemoryConsolidator
 from backend.modules.memory.domain.enums import MemoryLevel
@@ -61,7 +64,7 @@ class MemoryContextBuilder:
             query=request.query,
             run_id=request.run_id,
             project_id=request.project_id,
-            memory_levels=[level.value for level in ordered_levels],
+            memory_levels=ordered_levels,
             limit=request.limit,
         )
 
@@ -78,7 +81,7 @@ class MemoryContextBuilder:
         return (level_weight * 0.4) + (relevance * 0.35) + (confidence * 0.15) + (recency * 0.1)
 
 
-class MemoryServiceProtocol:
+class MemoryServiceProtocol(Protocol):
     async def recall(
         self,
         *,
@@ -87,6 +90,6 @@ class MemoryServiceProtocol:
         query: str,
         run_id: str | None = None,
         project_id: str | None = None,
-        memory_levels: list[MemoryLevel] | None = None,
-        limit: int = 10,
+        memory_levels: Sequence[str | MemoryLevel] | None = None,
+        limit: int | None = None,
     ) -> list[MemoryItem]: ...

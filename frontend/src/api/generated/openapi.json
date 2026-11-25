@@ -457,6 +457,202 @@
         "title": "AgentRunResponse",
         "type": "object"
       },
+      "AiAgentDefinitionCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration": {
+            "additionalProperties": true,
+            "title": "Configuration",
+            "type": "object"
+          },
+          "instructions": {
+            "default": "",
+            "maxLength": 32000,
+            "title": "Instructions",
+            "type": "string"
+          },
+          "key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9_][a-z0-9_\\-\\.]{1,127}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "max_cost_micros": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Cost Micros"
+          },
+          "max_steps": {
+            "default": 8,
+            "maximum": 64.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "max_tokens": {
+            "default": 16000,
+            "minimum": 1.0,
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "max_tool_calls": {
+            "default": 8,
+            "maximum": 64.0,
+            "minimum": 0.0,
+            "title": "Max Tool Calls",
+            "type": "integer"
+          },
+          "model_name": {
+            "maxLength": 128,
+            "minLength": 2,
+            "title": "Model Name",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "provider_key": {
+            "default": "local",
+            "maxLength": 64,
+            "minLength": 2,
+            "title": "Provider Key",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 60.0,
+            "exclusiveMinimum": 0.0,
+            "maximum": 3600.0,
+            "title": "Timeout Seconds",
+            "type": "number"
+          },
+          "tool_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "title": "Tool Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "model_name"
+        ],
+        "title": "AiAgentDefinitionCreate",
+        "type": "object"
+      },
+      "AiAgentDefinitionResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "instructions": {
+            "title": "Instructions",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "max_cost_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Cost Micros"
+          },
+          "max_steps": {
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "max_tokens": {
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "max_tool_calls": {
+            "title": "Max Tool Calls",
+            "type": "integer"
+          },
+          "model_name": {
+            "title": "Model Name",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provider_key": {
+            "title": "Provider Key",
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "title": "Timeout Seconds",
+            "type": "number"
+          },
+          "tool_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tool Ids",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "version",
+          "instructions",
+          "provider_key",
+          "model_name",
+          "tool_ids",
+          "max_steps",
+          "max_tool_calls",
+          "max_tokens",
+          "max_cost_micros",
+          "timeout_seconds",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiAgentDefinitionResponse",
+        "type": "object"
+      },
       "AiChunkMatchResponse": {
         "properties": {
           "chunk_id": {
@@ -1611,6 +1807,29 @@
       },
       "AiProviderDescriptor": {
         "properties": {
+          "available": {
+            "default": true,
+            "title": "Available",
+            "type": "boolean"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "default_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Model"
+          },
           "key": {
             "title": "Key",
             "type": "string"
@@ -2112,6 +2331,117 @@
         "title": "AiRunResponse",
         "type": "object"
       },
+      "AiStreamRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "max_output_tokens": {
+            "anyOf": [
+              {
+                "maximum": 32000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Output Tokens"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "provider_key": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Key"
+          },
+          "response_format": {
+            "default": "text",
+            "enum": [
+              "text",
+              "json"
+            ],
+            "title": "Response Format",
+            "type": "string"
+          },
+          "system_prompt": {
+            "default": "",
+            "maxLength": 32000,
+            "title": "System Prompt",
+            "type": "string"
+          },
+          "temperature": {
+            "default": 0.2,
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Temperature",
+            "type": "number"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/AiToolDefinition"
+            },
+            "maxItems": 32,
+            "title": "Tools",
+            "type": "array"
+          },
+          "user_prompt": {
+            "maxLength": 32000,
+            "minLength": 1,
+            "title": "User Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_prompt"
+        ],
+        "title": "AiStreamRequest",
+        "type": "object"
+      },
+      "AiToolDefinition": {
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_.-]+$",
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": true,
+            "title": "Parameters",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "AiToolDefinition",
+        "type": "object"
+      },
       "AiVariableDefinition": {
         "properties": {
           "description": {
@@ -2144,14 +2474,176 @@
         "title": "AiVariableDefinition",
         "type": "object"
       },
+      "AiWorkflowRunCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 255,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "user_message": {
+            "maxLength": 32000,
+            "minLength": 1,
+            "title": "User Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "definition_id",
+          "user_message",
+          "idempotency_key"
+        ],
+        "title": "AiWorkflowRunCreate",
+        "type": "object"
+      },
+      "AiWorkflowRunResponse": {
+        "properties": {
+          "agent_definition_id": {
+            "title": "Agent Definition Id",
+            "type": "string"
+          },
+          "cancellation_requested": {
+            "title": "Cancellation Requested",
+            "type": "boolean"
+          },
+          "checkpoint": {
+            "additionalProperties": true,
+            "title": "Checkpoint",
+            "type": "object"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_step": {
+            "title": "Current Step",
+            "type": "integer"
+          },
+          "estimated_cost_micros": {
+            "title": "Estimated Cost Micros",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "state": {
+            "additionalProperties": true,
+            "title": "State",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "tenant_id",
+          "agent_definition_id",
+          "status",
+          "current_step",
+          "state",
+          "checkpoint",
+          "input_tokens",
+          "output_tokens",
+          "estimated_cost_micros",
+          "cancellation_requested",
+          "last_error",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "title": "AiWorkflowRunResponse",
+        "type": "object"
+      },
       "ApiKeyCreateRequest": {
         "additionalProperties": false,
         "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
           "name": {
             "maxLength": 255,
             "minLength": 2,
             "title": "Name",
             "type": "string"
+          },
+          "rate_limit_per_minute": {
+            "default": 60,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Rate Limit Per Minute",
+            "type": "integer"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Scopes",
+            "type": "array"
           }
         },
         "required": [
@@ -2166,6 +2658,18 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
           },
           "id": {
             "title": "Id",
@@ -2195,6 +2699,10 @@
             "title": "Plaintext Key",
             "type": "string"
           },
+          "rate_limit_per_minute": {
+            "title": "Rate Limit Per Minute",
+            "type": "integer"
+          },
           "revoked_at": {
             "anyOf": [
               {
@@ -2206,6 +2714,13 @@
               }
             ],
             "title": "Revoked At"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
           }
         },
         "required": [
@@ -2214,6 +2729,9 @@
           "key_prefix",
           "last_used_at",
           "revoked_at",
+          "scopes",
+          "expires_at",
+          "rate_limit_per_minute",
           "created_at",
           "plaintext_key"
         ],
@@ -2226,6 +2744,18 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
           },
           "id": {
             "title": "Id",
@@ -2251,6 +2781,10 @@
             "title": "Name",
             "type": "string"
           },
+          "rate_limit_per_minute": {
+            "title": "Rate Limit Per Minute",
+            "type": "integer"
+          },
           "revoked_at": {
             "anyOf": [
               {
@@ -2262,6 +2796,13 @@
               }
             ],
             "title": "Revoked At"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
           }
         },
         "required": [
@@ -2270,9 +2811,38 @@
           "key_prefix",
           "last_used_at",
           "revoked_at",
+          "scopes",
+          "expires_at",
+          "rate_limit_per_minute",
           "created_at"
         ],
         "title": "ApiKeyResponse",
+        "type": "object"
+      },
+      "ApiKeyRotateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "rate_limit_per_minute": {
+            "default": 60,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Rate Limit Per Minute",
+            "type": "integer"
+          }
+        },
+        "title": "ApiKeyRotateRequest",
         "type": "object"
       },
       "AuditLogResponse": {
@@ -2717,6 +3287,114 @@
           "created_at"
         ],
         "title": "CalendarItemResponse",
+        "type": "object"
+      },
+      "CapabilityManifestResponse": {
+        "description": "Deployment metadata; this is not an authorization decision.",
+        "properties": {
+          "background_workers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Background Workers",
+            "type": "array"
+          },
+          "build_included": {
+            "title": "Build Included",
+            "type": "boolean"
+          },
+          "configuration_requirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Configuration Requirements",
+            "type": "array"
+          },
+          "database_dependencies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Database Dependencies",
+            "type": "array"
+          },
+          "default_feature_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Default Feature Flags",
+            "type": "array"
+          },
+          "dependencies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "deployment_enabled": {
+            "title": "Deployment Enabled",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "health_checks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Health Checks",
+            "type": "array"
+          },
+          "identifier": {
+            "title": "Identifier",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "optional_integrations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Optional Integrations",
+            "type": "array"
+          },
+          "required_permissions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Required Permissions",
+            "type": "array"
+          },
+          "runtime_enabled": {
+            "title": "Runtime Enabled",
+            "type": "boolean"
+          },
+          "user_visible": {
+            "title": "User Visible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "identifier",
+          "label",
+          "description",
+          "dependencies",
+          "configuration_requirements",
+          "required_permissions",
+          "background_workers",
+          "database_dependencies",
+          "optional_integrations",
+          "health_checks",
+          "default_feature_flags",
+          "build_included",
+          "deployment_enabled",
+          "runtime_enabled",
+          "user_visible"
+        ],
+        "title": "CapabilityManifestResponse",
         "type": "object"
       },
       "ConfigEntryResponse": {
@@ -3175,6 +3853,24 @@
         "title": "EmailTemplateUpdate",
         "type": "object"
       },
+      "EntitlementResponse": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "enabled"
+        ],
+        "title": "EntitlementResponse",
+        "type": "object"
+      },
       "FeatureFlagCreate": {
         "additionalProperties": false,
         "properties": {
@@ -3525,6 +4221,29 @@
         "title": "MemoryAuditLogResponse",
         "type": "object"
       },
+      "MemoryCorrectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 4000,
+            "minLength": 3,
+            "title": "Content",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "reason"
+        ],
+        "title": "MemoryCorrectionRequest",
+        "type": "object"
+      },
       "MemoryForgetRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3609,6 +4328,17 @@
             "title": "Confidence",
             "type": "number"
           },
+          "consent_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Status"
+          },
           "created_at": {
             "anyOf": [
               {
@@ -3620,6 +4350,18 @@
               }
             ],
             "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
           },
           "last_confirmed_at": {
             "anyOf": [
@@ -3669,6 +4411,11 @@
             ],
             "title": "Project Id"
           },
+          "provenance": {
+            "additionalProperties": true,
+            "title": "Provenance",
+            "type": "object"
+          },
           "run_id": {
             "anyOf": [
               {
@@ -3679,6 +4426,17 @@
               }
             ],
             "title": "Run Id"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
           },
           "source": {
             "title": "Source",
@@ -3794,6 +4552,12 @@
             "title": "Confidence",
             "type": "number"
           },
+          "consent_status": {
+            "default": "implicit",
+            "pattern": "^(implicit|explicit|withdrawn)$",
+            "title": "Consent Status",
+            "type": "string"
+          },
           "content": {
             "maxLength": 4000,
             "minLength": 3,
@@ -3835,6 +4599,19 @@
               }
             ],
             "title": "Project Id"
+          },
+          "retention_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retention Days"
           },
           "run_id": {
             "anyOf": [
@@ -4058,6 +4835,10 @@
             "title": "Email Enabled",
             "type": "boolean"
           },
+          "locale": {
+            "title": "Locale",
+            "type": "string"
+          },
           "marketing_enabled": {
             "title": "Marketing Enabled",
             "type": "boolean"
@@ -4070,7 +4851,8 @@
         "required": [
           "email_enabled",
           "push_enabled",
-          "marketing_enabled"
+          "marketing_enabled",
+          "locale"
         ],
         "title": "NotificationPreferenceResponse",
         "type": "object"
@@ -4088,6 +4870,17 @@
               }
             ],
             "title": "Email Enabled"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
           },
           "marketing_enabled": {
             "anyOf": [
@@ -4374,6 +5167,127 @@
           "allowed"
         ],
         "title": "ObservabilityToolLink",
+        "type": "object"
+      },
+      "OrganizationCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "maxLength": 64,
+            "minLength": 2,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ],
+        "title": "OrganizationCreate",
+        "type": "object"
+      },
+      "OrganizationMemberCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "default": "member",
+            "enum": [
+              "admin",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "OrganizationMemberCreate",
+        "type": "object"
+      },
+      "OrganizationMemberResponse": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "full_name",
+          "role"
+        ],
+        "title": "OrganizationMemberResponse",
+        "type": "object"
+      },
+      "OrganizationResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner_id": {
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "owner_id",
+          "name",
+          "slug",
+          "created_at"
+        ],
+        "title": "OrganizationResponse",
         "type": "object"
       },
       "PaginatedResponse_AgentRunResponse_": {
@@ -5067,6 +5981,13 @@
             "title": "Available Module Packs",
             "type": "array"
           },
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityManifestResponse"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
           "core_domain_plural": {
             "title": "Core Domain Plural",
             "type": "string"
@@ -5221,6 +6142,13 @@
             "title": "Available Module Packs",
             "type": "array"
           },
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityManifestResponse"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
           "core_domain_plural": {
             "title": "Core Domain Plural",
             "type": "string"
@@ -5263,6 +6191,45 @@
           "available_module_packs"
         ],
         "title": "PlatformMetadataResponse",
+        "type": "object"
+      },
+      "ProblemDetails": {
+        "properties": {
+          "correlation_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "errors": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "instance": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "format": "uri-reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail"
+        ],
         "type": "object"
       },
       "ProfileResponse": {
@@ -6421,6 +7388,17 @@
             "title": "Document Id",
             "type": "string"
           },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
           "error_message": {
             "anyOf": [
               {
@@ -6448,6 +7426,55 @@
             "title": "Id",
             "type": "string"
           },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "last_heartbeat_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Heartbeat At"
+          },
+          "malware_scan_status": {
+            "default": "pending",
+            "title": "Malware Scan Status",
+            "type": "string"
+          },
+          "max_retries": {
+            "default": 3,
+            "title": "Max Retries",
+            "type": "integer"
+          },
+          "parser_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parser Version"
+          },
+          "progress_percent": {
+            "default": 0,
+            "title": "Progress Percent",
+            "type": "integer"
+          },
           "project_id": {
             "anyOf": [
               {
@@ -6458,6 +7485,11 @@
               }
             ],
             "title": "Project Id"
+          },
+          "retry_count": {
+            "default": 0,
+            "title": "Retry Count",
+            "type": "integer"
           },
           "started_at": {
             "anyOf": [
@@ -7745,11 +8777,26 @@
         "title": "WebhookTestResponse",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "accessCookie": {
+        "description": "HttpOnly access cookie for the configured deployment.",
+        "in": "cookie",
+        "name": "blueprint_access",
+        "type": "apiKey"
+      },
+      "csrfToken": {
+        "description": "Required for cookie-authenticated state-changing requests.",
+        "in": "header",
+        "name": "X-CSRF-Token",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
+    "description": "Versioned modular-monolith API. Authentication uses the configured access cookie and state-changing cookie requests require the CSRF header.",
     "title": "Fullstack Blueprint",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -8070,6 +9117,116 @@
         ]
       }
     },
+    "/api/v1/agent/definitions": {
+      "get": {
+        "operationId": "list_agent_definitions_api_v1_agent_definitions_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AiAgentDefinitionResponse"
+                  },
+                  "title": "Response List Agent Definitions Api V1 Agent Definitions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Agent Definitions",
+        "tags": [
+          "agent"
+        ]
+      },
+      "post": {
+        "operationId": "create_agent_definition_api_v1_agent_definitions_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiAgentDefinitionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiAgentDefinitionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Agent Definition",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
     "/api/v1/agent/runs": {
       "get": {
         "operationId": "list_agent_runs_api_v1_agent_runs_get",
@@ -8252,6 +9409,306 @@
           }
         },
         "summary": "Get Agent Run",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
+    "/api/v1/agent/workflow-runs": {
+      "post": {
+        "operationId": "start_agent_workflow_api_v1_agent_workflow_runs_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiWorkflowRunCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Agent Workflow",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
+    "/api/v1/agent/workflow-runs/{workflow_id}": {
+      "get": {
+        "operationId": "get_agent_workflow_api_v1_agent_workflow_runs__workflow_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workflow_id",
+            "required": true,
+            "schema": {
+              "title": "Workflow Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Agent Workflow",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
+    "/api/v1/agent/workflow-runs/{workflow_id}/approvals/{approval_id}": {
+      "post": {
+        "operationId": "approve_agent_workflow_api_v1_agent_workflow_runs__workflow_id__approvals__approval_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workflow_id",
+            "required": true,
+            "schema": {
+              "title": "Workflow Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "approval_id",
+            "required": true,
+            "schema": {
+              "title": "Approval Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Agent Workflow",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
+    "/api/v1/agent/workflow-runs/{workflow_id}/cancel": {
+      "post": {
+        "operationId": "cancel_agent_workflow_api_v1_agent_workflow_runs__workflow_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workflow_id",
+            "required": true,
+            "schema": {
+              "title": "Workflow Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Agent Workflow",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
+    "/api/v1/agent/workflow-runs/{workflow_id}/resume": {
+      "post": {
+        "operationId": "resume_agent_workflow_api_v1_agent_workflow_runs__workflow_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workflow_id",
+            "required": true,
+            "schema": {
+              "title": "Workflow Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiWorkflowRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume Agent Workflow",
         "tags": [
           "agent"
         ]
@@ -10029,6 +11486,63 @@
         ]
       }
     },
+    "/api/v1/ai/stream": {
+      "post": {
+        "operationId": "stream_ai_run_api_v1_ai_stream_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiStreamRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stream Ai Run",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
     "/api/v1/auth/forgot-password": {
       "post": {
         "operationId": "forgot_password_api_v1_auth_forgot_password_post",
@@ -10913,6 +12427,69 @@
         ]
       }
     },
+    "/api/v1/memory/export": {
+      "get": {
+        "operationId": "export_memories_api_v1_memory_export_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "agent_id",
+            "required": false,
+            "schema": {
+              "default": "default",
+              "title": "Agent Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MemoryItemResponse"
+                  },
+                  "title": "Response Export Memories Api V1 Memory Export Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Memories",
+        "tags": [
+          "memory"
+        ]
+      }
+    },
     "/api/v1/memory/forget/{memory_id}": {
       "post": {
         "operationId": "forget_memory_api_v1_memory_forget__memory_id__post",
@@ -11139,6 +12716,74 @@
           }
         },
         "summary": "Get Memory",
+        "tags": [
+          "memory"
+        ]
+      }
+    },
+    "/api/v1/memory/{memory_id}/correct": {
+      "post": {
+        "operationId": "correct_memory_api_v1_memory__memory_id__correct_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "title": "Memory Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemoryCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryWriteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Memory",
         "tags": [
           "memory"
         ]
@@ -11510,6 +13155,302 @@
         "summary": "Get Observability Status",
         "tags": [
           "observability"
+        ]
+      }
+    },
+    "/api/v1/organizations": {
+      "get": {
+        "operationId": "list_organizations_api_v1_organizations_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationResponse"
+                  },
+                  "title": "Response List Organizations Api V1 Organizations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Organizations",
+        "tags": [
+          "organizations"
+        ]
+      },
+      "post": {
+        "operationId": "create_organization_api_v1_organizations_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Organization",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organization_id}": {
+      "get": {
+        "operationId": "get_organization_api_v1_organizations__organization_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Organization",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/members": {
+      "get": {
+        "operationId": "list_members_api_v1_organizations__organization_id__members_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationMemberResponse"
+                  },
+                  "title": "Response List Members Api V1 Organizations  Organization Id  Members Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Members",
+        "tags": [
+          "organizations"
+        ]
+      },
+      "post": {
+        "operationId": "add_member_api_v1_organizations__organization_id__members_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationMemberCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationMemberResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Member",
+        "tags": [
+          "organizations"
         ]
       }
     },
@@ -12340,6 +14281,74 @@
         ]
       }
     },
+    "/api/v1/platform/api-keys/{api_key_id}/rotate": {
+      "post": {
+        "operationId": "rotate_api_key_api_v1_platform_api_keys__api_key_id__rotate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "api_key_id",
+            "required": true,
+            "schema": {
+              "title": "Api Key Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyRotateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyCreateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rotate Api Key",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/api/v1/platform/billing/plans": {
       "get": {
         "operationId": "list_subscription_plans_api_v1_platform_billing_plans_get",
@@ -12502,6 +14511,64 @@
           }
         },
         "summary": "Select Subscription Plan",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/platform/entitlements/{entitlement_key}": {
+      "get": {
+        "operationId": "get_entitlement_api_v1_platform_entitlements__entitlement_key__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entitlement_key",
+            "required": true,
+            "schema": {
+              "title": "Entitlement Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitlementResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Entitlement",
         "tags": [
           "platform"
         ]
@@ -15205,6 +17272,27 @@
           "health"
         ]
       }
+    },
+    "/health/workers": {
+      "get": {
+        "operationId": "workers_health_workers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Workers",
+        "tags": [
+          "health"
+        ]
+      }
     }
-  }
+  },
+  "x-blueprint-api-version": "v1",
+  "x-blueprint-contract-version": "v1"
 }

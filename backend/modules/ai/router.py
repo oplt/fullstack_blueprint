@@ -7,6 +7,7 @@ from backend.modules.ai.overview_routes import router as overview_router
 from backend.modules.ai.prompt_routes import router as prompt_router
 from backend.modules.ai.review_routes import router as review_router
 from backend.modules.ai.run_routes import router as run_router
+from backend.modules.ai.stream_routes import router as stream_router
 
 router = APIRouter()
 router.include_router(overview_router)
@@ -14,5 +15,6 @@ router.include_router(prompt_router)
 if settings.RAG_ENABLED:
     router.include_router(document_router)
 router.include_router(run_router)
+router.include_router(stream_router)
 router.include_router(review_router)
 router.include_router(evaluation_router)

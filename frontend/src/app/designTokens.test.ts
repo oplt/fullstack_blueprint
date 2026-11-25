@@ -9,7 +9,6 @@ import {
     saveThemePreferences,
     themePresets,
 } from "./designTokens";
-import { createDesignPalette } from "./designPalette";
 
 describe("canonical design tokens", () => {
     it("provides every supported preset with semantic light and dark tokens", () => {
@@ -42,13 +41,6 @@ describe("canonical design tokens", () => {
         expect(tokens.typography.text).toBe("Test Sans, sans-serif");
         expect(tokens.radius.active).toBe("12px");
         expect(tokens.density.controlHeight).toBe("36px");
-    });
-
-    it("projects semantic tokens into the CSS palette used by shared components", () => {
-        const palette = createDesignPalette("dark");
-        expect(palette.mode).toBe("dark");
-        expect(palette.primary.main).toBe("#CC785C");
-        expect(palette.background.paper).toBeTruthy();
     });
 
     it("serializes semantic tokens as CSS custom properties and applies them", () => {

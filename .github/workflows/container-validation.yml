@@ -1,0 +1,27 @@
+name: Container validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: container-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build production images and validate Compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Validate Compose configuration
+        run: docker compose --project-directory . -f infra/docker-compose.yml config --quiet
+      - name: Build backend image
+        run: docker build --file infra/backend.Dockerfile --tag fullstack-blueprint-backend:ci .
+      - name: Build MinIO image
+        run: docker build --file infra/minio.Dockerfile --tag fullstack-blueprint-minio:ci infra

@@ -1,0 +1,31 @@
+minimum_pre_commit_version: "3.7.0"
+default_language_version:
+  python: python3.12
+fail_fast: false
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff check
+        entry: uv run --directory backend ruff check .
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
+      - id: ruff-format
+        name: Ruff format check
+        entry: uv run --directory backend ruff format --check .
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
+      - id: pyright
+        name: Pyright
+        entry: uv run --directory backend --locked --all-extras pyright -p pyproject.toml
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: import-linter
+        name: Import architecture
+        entry: uv run --directory backend lint-imports ../.importlinter --no-cache
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

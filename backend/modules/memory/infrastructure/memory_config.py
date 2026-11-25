@@ -13,6 +13,9 @@ class MemoryConfig:
     default_limit: int
     min_confidence: float
     session_ttl_days: int
+    default_retention_days: int
+    consent_required: bool
+    sensitive_filter_enabled: bool
     mem0_mode: str
     mem0_api_key: str
     mem0_org_id: str
@@ -29,6 +32,9 @@ class MemoryConfig:
             default_limit=settings.MEMORY_DEFAULT_LIMIT,
             min_confidence=settings.MEMORY_MIN_CONFIDENCE,
             session_ttl_days=settings.MEMORY_SESSION_TTL_DAYS,
+            default_retention_days=settings.MEMORY_DEFAULT_RETENTION_DAYS,
+            consent_required=settings.MEMORY_CONSENT_REQUIRED,
+            sensitive_filter_enabled=settings.MEMORY_SENSITIVE_FILTER_ENABLED,
             mem0_mode=settings.MEM0_MODE,
             mem0_api_key=settings.MEM0_API_KEY,
             mem0_org_id=settings.MEM0_ORG_ID,

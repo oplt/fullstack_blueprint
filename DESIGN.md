@@ -222,6 +222,12 @@ When photography is used (rare — mostly testimonials), avatars crop to perfect
 
 ## Do's and Don'ts
 
+### Frontend ownership contract
+
+The frontend implementation keeps static tokens and shared layout recipes in `frontend/src/index.css`, using Tailwind v4 `@theme inline`, CSS custom properties, cascade layers, and responsive/container-aware selectors. `frontend/src/app/designTokens.ts` owns only validated runtime preferences, preset selection, and the CSS-variable projection needed for branding and light/dark/system modes. Components consume semantic classes and named recipes; runtime inline styles are limited to values that cannot be known statically, such as chart dimensions or calendar geometry.
+
+Responsive primitives expose `data-columns` or `data-side-from` attributes and let CSS own their grid templates. This keeps responsive behavior consistent across viewport sizes and avoids dynamic Tailwind class construction.
+
 ### Do
 - Anchor every page on the cream canvas. Pure white reads as "any other AI tool"; the warm tint is the brand differentiator.
 - Use Copernicus serif for every display headline. Pair with StyreneB sans body. Negative letter-spacing on display sizes is non-negotiable.

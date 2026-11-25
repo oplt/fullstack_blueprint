@@ -1,3 +1,6 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.api.deps.auth import get_current_user
 from backend.api.deps.db import get_db
 from backend.core.pagination import (
@@ -9,6 +12,7 @@ from backend.core.pagination import (
 from backend.modules.identity_access.models import User
 from backend.modules.memory.api.schemas import (
     MemoryAuditLogResponse,
+    MemoryCorrectionRequest,
     MemoryForgetRequest,
     MemoryItemResponse,
     MemoryMetadataResponse,
@@ -19,8 +23,6 @@ from backend.modules.memory.api.schemas import (
 from backend.modules.memory.application.memory_service import MemoryService
 from backend.modules.memory.domain.models import MemoryItem
 from backend.modules.memory.infrastructure.memory_config import MemoryConfig
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
@@ -41,6 +43,10 @@ def _memory_to_response(item: MemoryItem) -> MemoryItemResponse:
             source_ref=meta.source_ref,
             confidence=meta.confidence,
             privacy=meta.privacy.value,
+            scope=meta.scope.value if meta.scope else None,
+            expires_at=meta.expires_at,
+            consent_status=None,
+            provenance={},
             version=meta.version,
             created_at=meta.created_at,
             last_seen_at=meta.last_seen_at,
@@ -148,6 +154,8 @@ async def create_memory(
         source_ref=payload.source_ref,
         confidence=payload.confidence,
         privacy=payload.privacy,
+        consent_status=payload.consent_status,
+        retention_days=payload.retention_days,
     )
     if not result.accepted and result.rejection_reason == "mem0_unavailable":
         raise HTTPException(status_code=503, detail="Memory engine unavailable")
@@ -158,6 +166,45 @@ async def create_memory(
         accepted=result.accepted,
         rejection_reason=result.rejection_reason,
     )
+
+
+@router.post("/{memory_id}/correct", response_model=MemoryWriteResponse)
+async def correct_memory(
+    memory_id: str,
+    payload: MemoryCorrectionRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    _require_memory_enabled()
+    service = MemoryService(db)
+    result = await service.correct(
+        user_id=current_user.id,
+        memory_id=memory_id,
+        content=payload.content,
+        reason=payload.reason,
+        is_admin=current_user.is_admin,
+    )
+    if not result.accepted and result.rejection_reason == "mem0_unavailable":
+        raise HTTPException(status_code=503, detail="Memory engine unavailable")
+    return MemoryWriteResponse(
+        memory_id=result.memory_id,
+        memory_level=result.memory_level.value,
+        memory_type=result.memory_type.value,
+        accepted=result.accepted,
+        rejection_reason=result.rejection_reason,
+    )
+
+
+@router.get("/export", response_model=list[MemoryItemResponse])
+async def export_memories(
+    agent_id: str = "default",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    _require_memory_enabled()
+    service = MemoryService(db)
+    items = await service.export_user_memories(user_id=current_user.id, agent_id=agent_id)
+    return [_memory_to_response(item) for item in items]
 
 
 @router.post("/forget/{memory_id}", status_code=204)

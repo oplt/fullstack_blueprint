@@ -20,12 +20,31 @@ export type ApiPaths = {
   "/api/v1/admin/users/{user_id}/status": {
     patch: {"operationId":"update_user_status_api_v1_admin_users__user_id__status_patch","tags":["admin"]};
   };
+  "/api/v1/agent/definitions": {
+    get: {"operationId":"list_agent_definitions_api_v1_agent_definitions_get","tags":["agent"]};
+    post: {"operationId":"create_agent_definition_api_v1_agent_definitions_post","tags":["agent"]};
+  };
   "/api/v1/agent/runs": {
     get: {"operationId":"list_agent_runs_api_v1_agent_runs_get","tags":["agent"]};
     post: {"operationId":"create_agent_run_api_v1_agent_runs_post","tags":["agent"]};
   };
   "/api/v1/agent/runs/{run_id}": {
     get: {"operationId":"get_agent_run_api_v1_agent_runs__run_id__get","tags":["agent"]};
+  };
+  "/api/v1/agent/workflow-runs": {
+    post: {"operationId":"start_agent_workflow_api_v1_agent_workflow_runs_post","tags":["agent"]};
+  };
+  "/api/v1/agent/workflow-runs/{workflow_id}": {
+    get: {"operationId":"get_agent_workflow_api_v1_agent_workflow_runs__workflow_id__get","tags":["agent"]};
+  };
+  "/api/v1/agent/workflow-runs/{workflow_id}/approvals/{approval_id}": {
+    post: {"operationId":"approve_agent_workflow_api_v1_agent_workflow_runs__workflow_id__approvals__approval_id__post","tags":["agent"]};
+  };
+  "/api/v1/agent/workflow-runs/{workflow_id}/cancel": {
+    post: {"operationId":"cancel_agent_workflow_api_v1_agent_workflow_runs__workflow_id__cancel_post","tags":["agent"]};
+  };
+  "/api/v1/agent/workflow-runs/{workflow_id}/resume": {
+    post: {"operationId":"resume_agent_workflow_api_v1_agent_workflow_runs__workflow_id__resume_post","tags":["agent"]};
   };
   "/api/v1/ai/documents": {
     get: {"operationId":"list_documents_api_v1_ai_documents_get","tags":["ai"]};
@@ -94,6 +113,9 @@ export type ApiPaths = {
   "/api/v1/ai/runs/{run_id}/reviews": {
     post: {"operationId":"create_review_api_v1_ai_runs__run_id__reviews_post","tags":["ai"]};
   };
+  "/api/v1/ai/stream": {
+    post: {"operationId":"stream_ai_run_api_v1_ai_stream_post","tags":["ai"]};
+  };
   "/api/v1/auth/forgot-password": {
     post: {"operationId":"forgot_password_api_v1_auth_forgot_password_post","tags":["auth"]};
   };
@@ -142,8 +164,14 @@ export type ApiPaths = {
     delete: {"operationId":"delete_memory_api_v1_memory__memory_id__delete","tags":["memory"]};
     get: {"operationId":"get_memory_api_v1_memory__memory_id__get","tags":["memory"]};
   };
+  "/api/v1/memory/{memory_id}/correct": {
+    post: {"operationId":"correct_memory_api_v1_memory__memory_id__correct_post","tags":["memory"]};
+  };
   "/api/v1/memory/audit": {
     get: {"operationId":"list_audit_logs_api_v1_memory_audit_get","tags":["memory"]};
+  };
+  "/api/v1/memory/export": {
+    get: {"operationId":"export_memories_api_v1_memory_export_get","tags":["memory"]};
   };
   "/api/v1/memory/forget/{memory_id}": {
     post: {"operationId":"forget_memory_api_v1_memory_forget__memory_id__post","tags":["memory"]};
@@ -169,6 +197,17 @@ export type ApiPaths = {
   };
   "/api/v1/observability/status": {
     get: {"operationId":"get_observability_status_api_v1_observability_status_get","tags":["observability"]};
+  };
+  "/api/v1/organizations": {
+    get: {"operationId":"list_organizations_api_v1_organizations_get","tags":["organizations"]};
+    post: {"operationId":"create_organization_api_v1_organizations_post","tags":["organizations"]};
+  };
+  "/api/v1/organizations/{organization_id}": {
+    get: {"operationId":"get_organization_api_v1_organizations__organization_id__get","tags":["organizations"]};
+  };
+  "/api/v1/organizations/{organization_id}/members": {
+    get: {"operationId":"list_members_api_v1_organizations__organization_id__members_get","tags":["organizations"]};
+    post: {"operationId":"add_member_api_v1_organizations__organization_id__members_post","tags":["organizations"]};
   };
   "/api/v1/platform/admin/config": {
     get: {"operationId":"get_platform_config_api_v1_platform_admin_config_get","tags":["platform"]};
@@ -202,12 +241,18 @@ export type ApiPaths = {
   "/api/v1/platform/api-keys/{api_key_id}": {
     delete: {"operationId":"revoke_api_key_api_v1_platform_api_keys__api_key_id__delete","tags":["platform"]};
   };
+  "/api/v1/platform/api-keys/{api_key_id}/rotate": {
+    post: {"operationId":"rotate_api_key_api_v1_platform_api_keys__api_key_id__rotate_post","tags":["platform"]};
+  };
   "/api/v1/platform/billing/plans": {
     get: {"operationId":"list_subscription_plans_api_v1_platform_billing_plans_get","tags":["platform"]};
   };
   "/api/v1/platform/billing/subscription": {
     get: {"operationId":"get_subscription_api_v1_platform_billing_subscription_get","tags":["platform"]};
     put: {"operationId":"select_subscription_plan_api_v1_platform_billing_subscription_put","tags":["platform"]};
+  };
+  "/api/v1/platform/entitlements/{entitlement_key}": {
+    get: {"operationId":"get_entitlement_api_v1_platform_entitlements__entitlement_key__get","tags":["platform"]};
   };
   "/api/v1/platform/feature-flags": {
     get: {"operationId":"list_effective_feature_flags_api_v1_platform_feature_flags_get","tags":["platform"]};
@@ -324,6 +369,9 @@ export type ApiPaths = {
   "/health/version": {
     get: {"operationId":"version_health_version_get","tags":["health"]};
   };
+  "/health/workers": {
+    get: {"operationId":"workers_health_workers_get","tags":["health"]};
+  };
 };
 
 export type AdminUserListResponse = {
@@ -393,6 +441,40 @@ export type AgentRunResponse = {
     "status": string;
     "total_tokens": number;
     "variables": Record<string, unknown>;
+  };
+
+export type AiAgentDefinitionCreate = {
+    "configuration"?: Record<string, unknown>;
+    "instructions"?: string;
+    "key": string;
+    "max_cost_micros"?: number | null;
+    "max_steps"?: number;
+    "max_tokens"?: number;
+    "max_tool_calls"?: number;
+    "model_name": string;
+    "name": string;
+    "provider_key"?: string;
+    "timeout_seconds"?: number;
+    "tool_ids"?: Array<string>;
+  };
+
+export type AiAgentDefinitionResponse = {
+    "created_at": string;
+    "id": string;
+    "instructions": string;
+    "is_active": boolean;
+    "key": string;
+    "max_cost_micros": number | null;
+    "max_steps": number;
+    "max_tokens": number;
+    "max_tool_calls": number;
+    "model_name": string;
+    "name": string;
+    "provider_key": string;
+    "timeout_seconds": number;
+    "tool_ids": Array<string>;
+    "updated_at": string;
+    "version": number;
   };
 
 export type AiChunkMatchResponse = {
@@ -586,6 +668,9 @@ export type AiPromptVersionUpdate = {
   };
 
 export type AiProviderDescriptor = {
+    "available"?: boolean;
+    "capabilities"?: Array<string>;
+    "default_model"?: string | null;
     "key": string;
     "label": string;
     "supports_embeddings": boolean;
@@ -662,33 +747,89 @@ export type AiRunResponse = {
     "variables": Record<string, unknown>;
   };
 
+export type AiStreamRequest = {
+    "max_output_tokens"?: number | null;
+    "model"?: string | null;
+    "provider_key"?: string | null;
+    "response_format"?: "text" | "json";
+    "system_prompt"?: string;
+    "temperature"?: number;
+    "tools"?: Array<AiToolDefinition>;
+    "user_prompt": string;
+  };
+
+export type AiToolDefinition = {
+    "description"?: string;
+    "name": string;
+    "parameters"?: Record<string, unknown>;
+  };
+
 export type AiVariableDefinition = {
     "description"?: string | null;
     "name": string;
     "required"?: boolean;
   };
 
+export type AiWorkflowRunCreate = {
+    "definition_id": string;
+    "idempotency_key": string;
+    "user_message": string;
+  };
+
+export type AiWorkflowRunResponse = {
+    "agent_definition_id": string;
+    "cancellation_requested": boolean;
+    "checkpoint": Record<string, unknown>;
+    "completed_at": string | null;
+    "created_at": string;
+    "current_step": number;
+    "estimated_cost_micros": number;
+    "id": string;
+    "input_tokens": number;
+    "last_error": string | null;
+    "output_tokens": number;
+    "state": Record<string, unknown>;
+    "status": string;
+    "tenant_id": string;
+    "updated_at": string;
+    "user_id": string;
+  };
+
 export type ApiKeyCreateRequest = {
+    "expires_at"?: string | null;
     "name": string;
+    "rate_limit_per_minute"?: number;
+    "scopes"?: Array<string>;
   };
 
 export type ApiKeyCreateResponse = {
     "created_at": string;
+    "expires_at": string | null;
     "id": string;
     "key_prefix": string;
     "last_used_at": string | null;
     "name": string;
     "plaintext_key": string;
+    "rate_limit_per_minute": number;
     "revoked_at": string | null;
+    "scopes": Array<string>;
   };
 
 export type ApiKeyResponse = {
     "created_at": string;
+    "expires_at": string | null;
     "id": string;
     "key_prefix": string;
     "last_used_at": string | null;
     "name": string;
+    "rate_limit_per_minute": number;
     "revoked_at": string | null;
+    "scopes": Array<string>;
+  };
+
+export type ApiKeyRotateRequest = {
+    "expires_at"?: string | null;
+    "rate_limit_per_minute"?: number;
   };
 
 export type AuditLogResponse = {
@@ -754,6 +895,24 @@ export type CalendarItemResponse = {
     "status"?: "backlog" | "todo" | "in_progress" | "review" | "done" | null;
     "title": string;
     "type": "event" | "appointment" | "task";
+  };
+
+export type CapabilityManifestResponse = {
+    "background_workers": Array<string>;
+    "build_included": boolean;
+    "configuration_requirements": Array<string>;
+    "database_dependencies": Array<string>;
+    "default_feature_flags": Array<string>;
+    "dependencies": Array<string>;
+    "deployment_enabled": boolean;
+    "description": string;
+    "health_checks": Array<string>;
+    "identifier": string;
+    "label": string;
+    "optional_integrations": Array<string>;
+    "required_permissions": Array<string>;
+    "runtime_enabled": boolean;
+    "user_visible": boolean;
   };
 
 export type ConfigEntryResponse = {
@@ -839,6 +998,11 @@ export type EmailTemplateUpdate = {
     "text_template"?: string | null;
   };
 
+export type EntitlementResponse = {
+    "enabled": boolean;
+    "key": string;
+  };
+
 export type FeatureFlagCreate = {
     "description"?: string | null;
     "is_enabled"?: boolean;
@@ -893,6 +1057,11 @@ export type MemoryAuditLogResponse = {
     "user_id": string | null;
   };
 
+export type MemoryCorrectionRequest = {
+    "content": string;
+    "reason": string;
+  };
+
 export type MemoryForgetRequest = {
     "reason": string;
   };
@@ -909,14 +1078,18 @@ export type MemoryItemResponse = {
 export type MemoryMetadataResponse = {
     "agent_id": string;
     "confidence"?: number;
+    "consent_status"?: string | null;
     "created_at"?: string | null;
+    "expires_at"?: string | null;
     "last_confirmed_at"?: string | null;
     "last_seen_at"?: string | null;
     "memory_level": string;
     "memory_type": string;
     "privacy"?: string;
     "project_id"?: string | null;
+    "provenance"?: Record<string, unknown>;
     "run_id"?: string | null;
+    "scope"?: string | null;
     "source": string;
     "source_ref"?: string | null;
     "user_id": string;
@@ -935,12 +1108,14 @@ export type MemorySearchRequestBody = {
 export type MemoryWriteRequest = {
     "agent_id"?: string;
     "confidence"?: number;
+    "consent_status"?: string;
     "content": string;
     "memory_level": string;
     "memory_type"?: string | null;
     "metadata"?: Record<string, unknown>;
     "privacy"?: string;
     "project_id"?: string | null;
+    "retention_days"?: number | null;
     "run_id"?: string | null;
     "source"?: string;
     "source_ref"?: string | null;
@@ -991,12 +1166,14 @@ export type ModulePackResponse = {
 
 export type NotificationPreferenceResponse = {
     "email_enabled": boolean;
+    "locale": string;
     "marketing_enabled": boolean;
     "push_enabled": boolean;
   };
 
 export type NotificationPreferenceUpdate = {
     "email_enabled"?: boolean | null;
+    "locale"?: string | null;
     "marketing_enabled"?: boolean | null;
     "push_enabled"?: boolean | null;
   };
@@ -1055,6 +1232,31 @@ export type ObservabilityToolLink = {
     "allowed": boolean;
     "configured": boolean;
     "url": string | null;
+  };
+
+export type OrganizationCreate = {
+    "name": string;
+    "slug": string;
+  };
+
+export type OrganizationMemberCreate = {
+    "role"?: "admin" | "member";
+    "user_id": string;
+  };
+
+export type OrganizationMemberResponse = {
+    "email": string;
+    "full_name": string | null;
+    "role": "owner" | "admin" | "member";
+    "user_id": string;
+  };
+
+export type OrganizationResponse = {
+    "created_at": string;
+    "id": string;
+    "name": string;
+    "owner_id": string;
+    "slug": string;
   };
 
 export type PaginatedResponse_AgentRunResponse_ = {
@@ -1213,6 +1415,7 @@ export type PlatformConfigResponse = {
     "app_name": string;
     "available_features"?: Array<string>;
     "available_module_packs": Array<ModulePackResponse>;
+    "capabilities"?: Array<CapabilityManifestResponse>;
     "core_domain_plural": string;
     "core_domain_singular": string;
     "enabled_modules": Array<string>;
@@ -1235,12 +1438,23 @@ export type PlatformMetadataResponse = {
     "app_name": string;
     "available_features"?: Array<string>;
     "available_module_packs": Array<ModulePackResponse>;
+    "capabilities"?: Array<CapabilityManifestResponse>;
     "core_domain_plural": string;
     "core_domain_singular": string;
     "enabled_modules": Array<string>;
     "mfa_enabled"?: boolean;
     "module_catalog": Array<ModuleCatalogItem>;
     "module_pack": string;
+  };
+
+export type ProblemDetails = {
+    "correlation_id"?: string;
+    "detail": string;
+    "errors"?: Array<Record<string, unknown>>;
+    "instance"?: string;
+    "status": number;
+    "title": string;
+    "type": string;
   };
 
 export type ProfileResponse = {
@@ -1420,10 +1634,18 @@ export type RagDocumentUploadResponse = {
 export type RagIngestionJobResponse = {
     "created_at": string;
     "document_id": string;
+    "error_code"?: string | null;
     "error_message": string | null;
     "finished_at": string | null;
     "id": string;
+    "idempotency_key"?: string | null;
+    "last_heartbeat_at"?: string | null;
+    "malware_scan_status"?: string;
+    "max_retries"?: number;
+    "parser_version"?: string | null;
+    "progress_percent"?: number;
     "project_id": string | null;
+    "retry_count"?: number;
     "started_at": string | null;
     "status": string;
     "user_id": string;

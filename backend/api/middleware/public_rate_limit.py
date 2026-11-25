@@ -33,7 +33,13 @@ class PublicRateLimitMiddleware(BaseHTTPMiddleware):
                     headers={"Retry-After": str(ttl)},
                 )
         except Exception:
-            # Fail open so Redis outages do not take down auth/platform routes.
-            logger.warning("public rate limit skipped (redis unavailable)", exc_info=True)
+            if not settings.RATE_LIMIT_FAIL_OPEN:
+                logger.error("public rate limit unavailable; rejecting request")
+                return JSONResponse(
+                    status_code=503,
+                    content={"detail": "Rate limiting is temporarily unavailable"},
+                    headers={"Retry-After": "5"},
+                )
+            logger.warning("public rate limit skipped (redis unavailable)")
 
         return await call_next(request)

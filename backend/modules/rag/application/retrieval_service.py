@@ -7,6 +7,9 @@ import logging
 from contextlib import asynccontextmanager
 from time import perf_counter
 
+from opentelemetry import trace
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.lib.retrieval_cache import get_cached_retrieval, set_cached_retrieval
 from backend.lib.vectors import can_index_embedding
 from backend.modules.rag.application.document_scope import document_ids_is_empty_allow_list
@@ -39,8 +42,6 @@ from backend.modules.rag.infrastructure.pgvector_adapter import _parse_scope
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
 from backend.modules.rag.infrastructure.vector_store_adapter import build_vector_store
-from opentelemetry import trace
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -477,10 +478,10 @@ class RetrievalService:
                 async with branch_semaphore:
                     return await branch
 
-            embedding_tasks: dict[str, asyncio.Task] = {}
+            embedding_tasks: dict[str, asyncio.Task[list[list[float]]]] = {}
             embedding_guard = asyncio.Lock()
 
-            async def shared_embedding_task(text: str) -> asyncio.Task:
+            async def shared_embedding_task(text: str) -> asyncio.Task[list[list[float]]]:
                 async with embedding_guard:
                     task = embedding_tasks.get(text)
                     if task is None:
@@ -800,7 +801,7 @@ class RetrievalService:
         top_k: int,
         exclude_parents: bool,
         query_embedding: list[float] | None = None,
-        embedding_task: asyncio.Task | None = None,
+        embedding_task: asyncio.Task[list[list[float]]] | None = None,
     ) -> tuple[list[RetrievedChunk], bool, str | None]:
         if top_k <= 0:
             return [], True, None

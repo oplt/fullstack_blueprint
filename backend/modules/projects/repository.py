@@ -92,7 +92,7 @@ class ProjectsRepository:
             .where(ProjectMember.project_id == project_id)
             .order_by(ProjectMember.created_at.asc())
         )
-        return list(result.all())
+        return list(result.tuples().all())
 
     async def add_member(self, project_id: str, user_id: str, role: str) -> ProjectMember:
         member = ProjectMember(project_id=project_id, user_id=user_id, role=role)
@@ -146,7 +146,7 @@ class ProjectsRepository:
         if limit is not None:
             stmt = stmt.offset(offset).limit(limit)
         result = await self.db.execute(stmt)
-        return list(result.all()), total
+        return list(result.tuples().all()), total
 
     async def get_task_with_assignee(
         self,
@@ -162,7 +162,7 @@ class ProjectsRepository:
                 ProjectTask.id == task_id,
             )
         )
-        return result.first()
+        return result.tuples().first()
 
     async def get_next_task_position(self, project_id: str, status: str) -> int:
         max_position = await self.db.scalar(
@@ -225,4 +225,4 @@ class ProjectsRepository:
                 ProjectTask.created_at.asc(),
             )
         )
-        return list(result.all())
+        return list(result.tuples().all())

@@ -41,6 +41,7 @@ def test_worker_registration():
         "cleanup_rag_document_task",
         "run_ai_evaluation_task",
         "extract_turn_memories_task",
+        "publish_outbox_events_task",
     }
 
 

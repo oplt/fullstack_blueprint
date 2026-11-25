@@ -1,6 +1,4 @@
 import asyncio
-import hashlib
-import hmac
 import ipaddress
 import json
 import logging
@@ -17,6 +15,7 @@ from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.modules.identity_access.models import User
 from backend.modules.platform.config_service import PlatformConfigService
 from backend.modules.platform.models import WebhookEndpoint
+from backend.modules.platform.webhook_delivery import sign_webhook_payload
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +101,13 @@ class WebhookService(PlatformConfigService):
             "core_domain_plural": metadata.core_domain_plural,
             "target_user_id": user.id,
         }
-        raw_body = json.dumps(payload).encode("utf-8")
-        signature = hmac.new(webhook.secret.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
+        raw_body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+        signature_timestamp = int(datetime.now(UTC).timestamp())
+        signature = sign_webhook_payload(
+            webhook.secret,
+            payload,
+            timestamp=signature_timestamp,
+        )
 
         try:
             await self._validate_webhook_target(webhook.target_url)
@@ -119,6 +123,7 @@ class WebhookService(PlatformConfigService):
                         "Content-Type": "application/json",
                         "X-Generic-App-Event": payload["event"],
                         "X-Generic-App-Signature": signature,
+                        "X-Generic-App-Signature-Timestamp": str(signature_timestamp),
                     },
                 )
             webhook.last_tested_at = datetime.now(UTC)
@@ -190,7 +195,7 @@ class WebhookService(PlatformConfigService):
                     status_code=422,
                     detail="Webhook target host could not be resolved",
                 ) from exc
-            resolved_ips = {result[4][0] for result in addresses}
+            resolved_ips = {str(result[4][0]) for result in addresses}
             if not resolved_ips:
                 raise HTTPException(
                     status_code=422,

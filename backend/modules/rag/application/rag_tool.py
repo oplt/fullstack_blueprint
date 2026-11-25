@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import logging
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.modules.rag.application.rag_context_builder import RagContextBuilder
 from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.domain.models import RetrievedChunk
 from backend.modules.rag.infrastructure.rag_config import RagConfig
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

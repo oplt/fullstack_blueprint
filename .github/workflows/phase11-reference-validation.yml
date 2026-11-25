@@ -1,0 +1,97 @@
+name: Phase 11 reference validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase11-reference-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generated-projects:
+    name: Generate, install, and build reference applications
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      REFERENCE_ROOT: /tmp/fullstack-blueprint-phase11-reference-apps
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.10.0"
+      - name: Install blueprint dependencies
+        run: uv sync --locked --all-extras
+        working-directory: backend
+      - name: Generate isolated reference applications
+        run: |
+          cd backend
+          uv run --locked --all-extras python -m backend.blueprint.cli reference-apps \
+            --output "$REFERENCE_ROOT"
+      - name: Install and validate each generated backend
+        run: |
+          for app in traditional-saas ai-knowledge-platform agent-automation-platform; do
+            uv lock --check --project "$REFERENCE_ROOT/$app/backend"
+            uv sync --locked --all-extras --project "$REFERENCE_ROOT/$app/backend"
+            (cd "$REFERENCE_ROOT/$app/backend" && uv run --locked --all-extras pytest . -q)
+            (cd "$REFERENCE_ROOT/$app/backend" && uv run --locked --all-extras \
+              python scripts/export_openapi.py --profile runtime --output "/tmp/$app-openapi.json")
+            (cd "$REFERENCE_ROOT/$app/backend" && uv run --locked --all-extras \
+              python scripts/validate_openapi.py --input "/tmp/$app-openapi.json")
+            docker compose -f "$REFERENCE_ROOT/$app/deployment/docker-compose.yml" config --quiet
+          done
+      - name: Build generated API and worker images
+        run: |
+          for app in traditional-saas ai-knowledge-platform agent-automation-platform; do
+            docker compose -f "$REFERENCE_ROOT/$app/deployment/docker-compose.yml" --profile app build api worker
+          done
+      - name: Run disposable migrations, health, auth, and project smoke tests
+        run: |
+          set -euo pipefail
+          for app in traditional-saas ai-knowledge-platform agent-automation-platform; do
+            project="phase11-${app//-/_}"
+            compose=(docker compose -p "$project" -f "$REFERENCE_ROOT/$app/deployment/docker-compose.yml")
+            "${compose[@]}" up -d postgres redis
+            "${compose[@]}" --profile ops run --rm migrate
+            "${compose[@]}" --profile app up -d api worker
+            curl --fail --silent --show-error --retry 30 --retry-delay 2 \
+              http://127.0.0.1:8000/health/ready
+            cookie_file="$(mktemp)"
+            email="phase11-${app}@example.test"
+            curl --fail --silent --show-error -X POST \
+              -H 'Content-Type: application/json' \
+              -d "{\"email\":\"$email\",\"password\":\"Phase11-test-password!\",\"full_name\":\"Phase 11\"}" \
+              http://127.0.0.1:8000/api/v1/auth/sign-up
+            curl --fail --silent --show-error -c "$cookie_file" -b "$cookie_file" \
+              -H 'Content-Type: application/json' \
+              -d "{\"email\":\"$email\",\"password\":\"Phase11-test-password!\"}" \
+              http://127.0.0.1:8000/api/v1/auth/sign-in
+            csrf="$(awk '$6 == "blueprint_csrf" {print $7}' "$cookie_file")"
+            organization="$(curl --fail --silent --show-error -b "$cookie_file" \
+              -H 'Content-Type: application/json' -H "X-CSRF-Token: $csrf" \
+              -d "{\"name\":\"Phase 11 organization\",\"slug\":\"phase11-${app}\"}" \
+              http://127.0.0.1:8000/api/v1/organizations)"
+            printf '%s' "$organization" | jq -e '.id and .slug' >/dev/null
+            curl --fail --silent --show-error -b "$cookie_file" \
+              http://127.0.0.1:8000/api/v1/organizations
+            curl --fail --silent --show-error -b "$cookie_file" \
+              -H 'Content-Type: application/json' -H "X-CSRF-Token: $csrf" \
+              -X PUT -d '{"plan_code":"free"}' \
+              http://127.0.0.1:8000/api/v1/platform/billing/subscription
+            curl --fail --silent --show-error -b "$cookie_file" \
+              http://127.0.0.1:8000/api/v1/platform/entitlements/core_access \
+              | jq -e '.enabled == true' >/dev/null
+            curl --fail --silent --show-error -b "$cookie_file" \
+              -H 'Content-Type: application/json' -H "X-CSRF-Token: $csrf" \
+              -d '{"name":"Phase 11 project","description":"disposable smoke test"}' \
+              http://127.0.0.1:8000/api/v1/projects
+            curl --fail --silent --show-error -b "$cookie_file" \
+              http://127.0.0.1:8000/api/v1/projects
+            rm -f "$cookie_file"
+            "${compose[@]}" down -v --remove-orphans
+          done

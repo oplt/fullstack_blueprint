@@ -48,11 +48,12 @@ export default function DashboardPage() {
     const coreDomainPlural = platformMetadata?.core_domain_plural ?? "Projects";
     const unreadCount = notifications?.filter((item) => !item.is_read).length ?? 0;
     const recentNotifications = notifications?.slice(0, 5) ?? [];
-    const accountChecks = [
+    const statusTextClasses = { success: "text-success", warning: "text-warning" } as const;
+    const accountChecks: Array<{ label: string; value: string; tone: keyof typeof statusTextClasses; description: string }> = [
         {
             label: "Email verification",
             value: user?.is_verified ? "Verified" : "Action needed",
-            color: user?.is_verified ? "success.main" : "warning.main",
+            tone: user?.is_verified ? "success" : "warning",
             description: user?.is_verified
                 ? "Your sign-in identity is confirmed."
                 : "Verify your email to improve recovery and trust.",
@@ -60,7 +61,7 @@ export default function DashboardPage() {
         {
             label: "Multi-factor authentication",
             value: user?.mfa_enabled ? "Enabled" : "Recommended",
-            color: user?.mfa_enabled ? "success.main" : "warning.main",
+            tone: user?.mfa_enabled ? "success" : "warning",
             description: user?.mfa_enabled
                 ? "An extra layer of account protection is active."
                 : "Turn on MFA to reduce account risk.",
@@ -101,15 +102,8 @@ export default function DashboardPage() {
                 />
             </MetricGrid>
 
-            <div style={{ display: "grid", gap: 16 }}>
-                <div
-                    style={{
-                        display: "grid",
-                        gap: 16,
-                        gridTemplateColumns: "1fr",
-                        alignItems: "stretch",
-                    }}
-                >
+            <div className="stack dashboard-sections">
+                <div className="dashboard-grid">
                     <SectionCard
                         title={`${coreDomainPlural} snapshot`}
                         description={`A quick look at the current ${coreDomainPlural.toLowerCase()} in your workspace.`}
@@ -134,28 +128,15 @@ export default function DashboardPage() {
                                 />
                             }
                         >
-                            <div
-                                style={{
-                                    display: "grid",
-                                    gap: 10,
-                                    gridTemplateColumns: "1fr",
-                                }}
-                            >
+                            <div className="stack dashboard-project-list">
                                 {projects?.slice(0, 6).map((project) => (
                                     <div
                                         key={project.id}
                                         onClick={() => navigate(projectPath(project.id))}
-                                        style={({
-                                            padding: 16,
-                                            borderRadius: 4,
-                                            backgroundColor: "var(--card)",
-                                            border: 1,
-                                            borderColor: "divider",
-                                            cursor: "pointer"
-                                        })}
+                                        className="dashboard-project"
                                     >
                                         <p>{project.name}</p>
-                                        <p style={{ marginTop: 4 }} className="text-muted-foreground">
+                                        <p className="mt-1 text-muted-foreground">
                                             {project.description ||
                                                 `No description added for this ${platformMetadata?.core_domain_singular?.toLowerCase() ?? "project"} yet.`}
                                         </p>
@@ -169,26 +150,17 @@ export default function DashboardPage() {
                         title="Account health"
                         description="Settings that affect trust and security."
                         compact
-                        contentSx={{ display: "flex", flexDirection: "column" }}
+                        contentClassName="flex flex-col"
                     >
-                        <div className="flex gap-[12px]" style={{ flex: 1 }}>
+                        <div className="dashboard-health">
                             {accountChecks.map((item) => (
                                 <div
                                     key={item.label}
-                                    style={({
-                                        padding: 12,
-                                        borderRadius: 4,
-                                        flex: 1,
-                                        backgroundColor: "var(--card)",
-                                        border: 1,
-                                        borderColor: "divider"
-                                    })}
+                                    className="dashboard-health__item"
                                 >
-                                    <div
-                                        className="flex flex-row gap-[8px] justify-between"
-                                        style={{ marginBottom: 4 }}>
+                                    <div className="mb-1 flex flex-row justify-between gap-2">
                                         <p>{item.label}</p>
-                                        <p style={{ color: item.color, fontWeight: 500 }}>
+                                        <p className={`font-medium ${statusTextClasses[item.tone]}`}>
                                             {item.value}
                                         </p>
                                     </div>
@@ -201,14 +173,7 @@ export default function DashboardPage() {
                     </SectionCard>
                 </div>
 
-                <div
-                    style={{
-                        display: "grid",
-                        gap: 16,
-                        gridTemplateColumns: "1fr",
-                        alignItems: "stretch",
-                    }}
-                >
+                <div className="dashboard-grid">
                     {platformMetadata?.available_features?.includes("calendar") && <DashboardCalendar
                         projects={projects ?? []}
                         projectsLoading={projectsLoading}
@@ -220,7 +185,7 @@ export default function DashboardPage() {
                     <SectionCard
                         title="Recent activity"
                         description="The latest notifications and alerts across your account."
-                        contentSx={{ display: "flex", flexDirection: "column", minHeight: 0 }}
+                        contentClassName="flex min-h-0 flex-col"
                         action={
                                             <Button
                                                 variant="ghost"
@@ -250,10 +215,7 @@ export default function DashboardPage() {
                                 />
                             }
                         >
-                            <div
-                                className="flex gap-[12px]"
-                                style={{ flex: 1, minHeight: 0, maxHeight: "100%", overflow: "auto" }}
-                            >
+                            <div className="flex min-h-0 max-h-full flex-1 flex-col gap-3 overflow-auto">
                                 {recentNotifications.map((notification) => (
                                     <NotificationListItem
                                         key={notification.id}

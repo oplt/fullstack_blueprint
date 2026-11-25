@@ -67,7 +67,7 @@ export function AgentRunDetail({ run }: AgentRunDetailProps) {
                         </p>
                     )}
                     {run.output_json ? (
-                        <AdvancedSettings title="Raw JSON" sx={{ marginTop: 1 }}>
+                        <AdvancedSettings title="Raw JSON" className="mt-1">
                             <JsonBlock data={run.output_json} />
                         </AdvancedSettings>
                     ) : null}

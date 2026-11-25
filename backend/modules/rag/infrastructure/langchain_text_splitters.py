@@ -226,15 +226,19 @@ def split_documents(
             ]
             if piece_span is not None and source_idxs:
                 unit_start = unit_spans[source_idxs[0]][0]
-                char_start = unit_start + piece_span[0]
-                char_end = unit_start + piece_span[1]
+                chunk_start = unit_start + piece_span[0]
+                chunk_end = unit_start + piece_span[1]
             else:
-                char_start = unit_spans[source_idxs[0]][0] if source_idxs else None
-                char_end = unit_spans[source_idxs[-1]][1] if source_idxs else None
+                chunk_start = unit_spans[source_idxs[0]][0] if source_idxs else None
+                chunk_end = unit_spans[source_idxs[-1]][1] if source_idxs else None
+            char_start = chunk_start
+            char_end = chunk_end
             source_spans = []
             for unit_position, source_index in enumerate(source_idxs):
                 start, end = unit_spans[source_index]
                 if piece_span is not None and unit_position == 0:
+                    if char_start is None or char_end is None:
+                        raise ValueError("Chunk span is missing for a split source unit")
                     start, end = char_start, char_end
                 source_spans.append(
                     SourceCoordinate(

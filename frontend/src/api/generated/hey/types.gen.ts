@@ -259,6 +259,132 @@ export type AgentRunResponse = {
 };
 
 /**
+ * AiAgentDefinitionCreate
+ */
+export type AiAgentDefinitionCreate = {
+    /**
+     * Configuration
+     */
+    configuration?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Instructions
+     */
+    instructions?: string;
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Max Cost Micros
+     */
+    max_cost_micros?: number | null;
+    /**
+     * Max Steps
+     */
+    max_steps?: number;
+    /**
+     * Max Tokens
+     */
+    max_tokens?: number;
+    /**
+     * Max Tool Calls
+     */
+    max_tool_calls?: number;
+    /**
+     * Model Name
+     */
+    model_name: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Provider Key
+     */
+    provider_key?: string;
+    /**
+     * Timeout Seconds
+     */
+    timeout_seconds?: number;
+    /**
+     * Tool Ids
+     */
+    tool_ids?: Array<string>;
+};
+
+/**
+ * AiAgentDefinitionResponse
+ */
+export type AiAgentDefinitionResponse = {
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Instructions
+     */
+    instructions: string;
+    /**
+     * Is Active
+     */
+    is_active: boolean;
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Max Cost Micros
+     */
+    max_cost_micros: number | null;
+    /**
+     * Max Steps
+     */
+    max_steps: number;
+    /**
+     * Max Tokens
+     */
+    max_tokens: number;
+    /**
+     * Max Tool Calls
+     */
+    max_tool_calls: number;
+    /**
+     * Model Name
+     */
+    model_name: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Provider Key
+     */
+    provider_key: string;
+    /**
+     * Timeout Seconds
+     */
+    timeout_seconds: number;
+    /**
+     * Tool Ids
+     */
+    tool_ids: Array<string>;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Version
+     */
+    version: number;
+};
+
+/**
  * AiChunkMatchResponse
  */
 export type AiChunkMatchResponse = {
@@ -915,6 +1041,18 @@ export type AiPromptVersionUpdate = {
  */
 export type AiProviderDescriptor = {
     /**
+     * Available
+     */
+    available?: boolean;
+    /**
+     * Capabilities
+     */
+    capabilities?: Array<string>;
+    /**
+     * Default Model
+     */
+    default_model?: string | null;
+    /**
      * Key
      */
     key: string;
@@ -1185,6 +1323,64 @@ export type AiRunResponse = {
 };
 
 /**
+ * AiStreamRequest
+ */
+export type AiStreamRequest = {
+    /**
+     * Max Output Tokens
+     */
+    max_output_tokens?: number | null;
+    /**
+     * Model
+     */
+    model?: string | null;
+    /**
+     * Provider Key
+     */
+    provider_key?: string | null;
+    /**
+     * Response Format
+     */
+    response_format?: 'text' | 'json';
+    /**
+     * System Prompt
+     */
+    system_prompt?: string;
+    /**
+     * Temperature
+     */
+    temperature?: number;
+    /**
+     * Tools
+     */
+    tools?: Array<AiToolDefinition>;
+    /**
+     * User Prompt
+     */
+    user_prompt: string;
+};
+
+/**
+ * AiToolDefinition
+ */
+export type AiToolDefinition = {
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Parameters
+     */
+    parameters?: {
+        [key: string]: unknown;
+    };
+};
+
+/**
  * AiVariableDefinition
  */
 export type AiVariableDefinition = {
@@ -1203,13 +1399,117 @@ export type AiVariableDefinition = {
 };
 
 /**
+ * AiWorkflowRunCreate
+ */
+export type AiWorkflowRunCreate = {
+    /**
+     * Definition Id
+     */
+    definition_id: string;
+    /**
+     * Idempotency Key
+     */
+    idempotency_key: string;
+    /**
+     * User Message
+     */
+    user_message: string;
+};
+
+/**
+ * AiWorkflowRunResponse
+ */
+export type AiWorkflowRunResponse = {
+    /**
+     * Agent Definition Id
+     */
+    agent_definition_id: string;
+    /**
+     * Cancellation Requested
+     */
+    cancellation_requested: boolean;
+    /**
+     * Checkpoint
+     */
+    checkpoint: {
+        [key: string]: unknown;
+    };
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Current Step
+     */
+    current_step: number;
+    /**
+     * Estimated Cost Micros
+     */
+    estimated_cost_micros: number;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Input Tokens
+     */
+    input_tokens: number;
+    /**
+     * Last Error
+     */
+    last_error: string | null;
+    /**
+     * Output Tokens
+     */
+    output_tokens: number;
+    /**
+     * State
+     */
+    state: {
+        [key: string]: unknown;
+    };
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Tenant Id
+     */
+    tenant_id: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * User Id
+     */
+    user_id: string;
+};
+
+/**
  * ApiKeyCreateRequest
  */
 export type ApiKeyCreateRequest = {
     /**
+     * Expires At
+     */
+    expires_at?: string | null;
+    /**
      * Name
      */
     name: string;
+    /**
+     * Rate Limit Per Minute
+     */
+    rate_limit_per_minute?: number;
+    /**
+     * Scopes
+     */
+    scopes?: Array<string>;
 };
 
 /**
@@ -1220,6 +1520,10 @@ export type ApiKeyCreateResponse = {
      * Created At
      */
     created_at: string;
+    /**
+     * Expires At
+     */
+    expires_at: string | null;
     /**
      * Id
      */
@@ -1241,9 +1545,17 @@ export type ApiKeyCreateResponse = {
      */
     plaintext_key: string;
     /**
+     * Rate Limit Per Minute
+     */
+    rate_limit_per_minute: number;
+    /**
      * Revoked At
      */
     revoked_at: string | null;
+    /**
+     * Scopes
+     */
+    scopes: Array<string>;
 };
 
 /**
@@ -1254,6 +1566,10 @@ export type ApiKeyResponse = {
      * Created At
      */
     created_at: string;
+    /**
+     * Expires At
+     */
+    expires_at: string | null;
     /**
      * Id
      */
@@ -1271,9 +1587,31 @@ export type ApiKeyResponse = {
      */
     name: string;
     /**
+     * Rate Limit Per Minute
+     */
+    rate_limit_per_minute: number;
+    /**
      * Revoked At
      */
     revoked_at: string | null;
+    /**
+     * Scopes
+     */
+    scopes: Array<string>;
+};
+
+/**
+ * ApiKeyRotateRequest
+ */
+export type ApiKeyRotateRequest = {
+    /**
+     * Expires At
+     */
+    expires_at?: string | null;
+    /**
+     * Rate Limit Per Minute
+     */
+    rate_limit_per_minute?: number;
 };
 
 /**
@@ -1483,6 +1821,74 @@ export type CalendarItemResponse = {
      * Type
      */
     type: 'event' | 'appointment' | 'task';
+};
+
+/**
+ * CapabilityManifestResponse
+ *
+ * Deployment metadata; this is not an authorization decision.
+ */
+export type CapabilityManifestResponse = {
+    /**
+     * Background Workers
+     */
+    background_workers: Array<string>;
+    /**
+     * Build Included
+     */
+    build_included: boolean;
+    /**
+     * Configuration Requirements
+     */
+    configuration_requirements: Array<string>;
+    /**
+     * Database Dependencies
+     */
+    database_dependencies: Array<string>;
+    /**
+     * Default Feature Flags
+     */
+    default_feature_flags: Array<string>;
+    /**
+     * Dependencies
+     */
+    dependencies: Array<string>;
+    /**
+     * Deployment Enabled
+     */
+    deployment_enabled: boolean;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Health Checks
+     */
+    health_checks: Array<string>;
+    /**
+     * Identifier
+     */
+    identifier: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Optional Integrations
+     */
+    optional_integrations: Array<string>;
+    /**
+     * Required Permissions
+     */
+    required_permissions: Array<string>;
+    /**
+     * Runtime Enabled
+     */
+    runtime_enabled: boolean;
+    /**
+     * User Visible
+     */
+    user_visible: boolean;
 };
 
 /**
@@ -1752,6 +2158,20 @@ export type EmailTemplateUpdate = {
 };
 
 /**
+ * EntitlementResponse
+ */
+export type EntitlementResponse = {
+    /**
+     * Enabled
+     */
+    enabled: boolean;
+    /**
+     * Key
+     */
+    key: string;
+};
+
+/**
  * FeatureFlagCreate
  */
 export type FeatureFlagCreate = {
@@ -1926,6 +2346,20 @@ export type MemoryAuditLogResponse = {
 };
 
 /**
+ * MemoryCorrectionRequest
+ */
+export type MemoryCorrectionRequest = {
+    /**
+     * Content
+     */
+    content: string;
+    /**
+     * Reason
+     */
+    reason: string;
+};
+
+/**
  * MemoryForgetRequest
  */
 export type MemoryForgetRequest = {
@@ -1975,9 +2409,17 @@ export type MemoryMetadataResponse = {
      */
     confidence?: number;
     /**
+     * Consent Status
+     */
+    consent_status?: string | null;
+    /**
      * Created At
      */
     created_at?: string | null;
+    /**
+     * Expires At
+     */
+    expires_at?: string | null;
     /**
      * Last Confirmed At
      */
@@ -2003,9 +2445,19 @@ export type MemoryMetadataResponse = {
      */
     project_id?: string | null;
     /**
+     * Provenance
+     */
+    provenance?: {
+        [key: string]: unknown;
+    };
+    /**
      * Run Id
      */
     run_id?: string | null;
+    /**
+     * Scope
+     */
+    scope?: string | null;
     /**
      * Source
      */
@@ -2067,6 +2519,10 @@ export type MemoryWriteRequest = {
      */
     confidence?: number;
     /**
+     * Consent Status
+     */
+    consent_status?: string;
+    /**
      * Content
      */
     content: string;
@@ -2092,6 +2548,10 @@ export type MemoryWriteRequest = {
      * Project Id
      */
     project_id?: string | null;
+    /**
+     * Retention Days
+     */
+    retention_days?: number | null;
     /**
      * Run Id
      */
@@ -2245,6 +2705,10 @@ export type NotificationPreferenceResponse = {
      */
     email_enabled: boolean;
     /**
+     * Locale
+     */
+    locale: string;
+    /**
      * Marketing Enabled
      */
     marketing_enabled: boolean;
@@ -2262,6 +2726,10 @@ export type NotificationPreferenceUpdate = {
      * Email Enabled
      */
     email_enabled?: boolean | null;
+    /**
+     * Locale
+     */
+    locale?: string | null;
     /**
      * Marketing Enabled
      */
@@ -2389,6 +2857,82 @@ export type ObservabilityToolLink = {
      * Url
      */
     url: string | null;
+};
+
+/**
+ * OrganizationCreate
+ */
+export type OrganizationCreate = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Slug
+     */
+    slug: string;
+};
+
+/**
+ * OrganizationMemberCreate
+ */
+export type OrganizationMemberCreate = {
+    /**
+     * Role
+     */
+    role?: 'admin' | 'member';
+    /**
+     * User Id
+     */
+    user_id: string;
+};
+
+/**
+ * OrganizationMemberResponse
+ */
+export type OrganizationMemberResponse = {
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Full Name
+     */
+    full_name: string | null;
+    /**
+     * Role
+     */
+    role: 'owner' | 'admin' | 'member';
+    /**
+     * User Id
+     */
+    user_id: string;
+};
+
+/**
+ * OrganizationResponse
+ */
+export type OrganizationResponse = {
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Owner Id
+     */
+    owner_id: string;
+    /**
+     * Slug
+     */
+    slug: string;
 };
 
 /**
@@ -2884,6 +3428,10 @@ export type PlatformConfigResponse = {
      */
     available_module_packs: Array<ModulePackResponse>;
     /**
+     * Capabilities
+     */
+    capabilities?: Array<CapabilityManifestResponse>;
+    /**
      * Core Domain Plural
      */
     core_domain_plural: string;
@@ -2964,6 +3512,10 @@ export type PlatformMetadataResponse = {
      */
     available_module_packs: Array<ModulePackResponse>;
     /**
+     * Capabilities
+     */
+    capabilities?: Array<CapabilityManifestResponse>;
+    /**
      * Core Domain Plural
      */
     core_domain_plural: string;
@@ -2987,6 +3539,18 @@ export type PlatformMetadataResponse = {
      * Module Pack
      */
     module_pack: string;
+};
+
+export type ProblemDetails = {
+    correlation_id?: string;
+    detail: string;
+    errors?: Array<{
+        [key: string]: unknown;
+    }>;
+    instance?: string;
+    status: number;
+    title: string;
+    type: string;
 };
 
 /**
@@ -3578,6 +4142,10 @@ export type RagIngestionJobResponse = {
      */
     document_id: string;
     /**
+     * Error Code
+     */
+    error_code?: string | null;
+    /**
      * Error Message
      */
     error_message: string | null;
@@ -3590,9 +4158,37 @@ export type RagIngestionJobResponse = {
      */
     id: string;
     /**
+     * Idempotency Key
+     */
+    idempotency_key?: string | null;
+    /**
+     * Last Heartbeat At
+     */
+    last_heartbeat_at?: string | null;
+    /**
+     * Malware Scan Status
+     */
+    malware_scan_status?: string;
+    /**
+     * Max Retries
+     */
+    max_retries?: number;
+    /**
+     * Parser Version
+     */
+    parser_version?: string | null;
+    /**
+     * Progress Percent
+     */
+    progress_percent?: number;
+    /**
      * Project Id
      */
     project_id: string | null;
+    /**
+     * Retry Count
+     */
+    retry_count?: number;
     /**
      * Started At
      */
@@ -4423,6 +5019,58 @@ export type UpdateUserStatusApiV1AdminUsersUserIdStatusPatchResponses = {
 
 export type UpdateUserStatusApiV1AdminUsersUserIdStatusPatchResponse = UpdateUserStatusApiV1AdminUsersUserIdStatusPatchResponses[keyof UpdateUserStatusApiV1AdminUsersUserIdStatusPatchResponses];
 
+export type ListAgentDefinitionsApiV1AgentDefinitionsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/agent/definitions';
+};
+
+export type ListAgentDefinitionsApiV1AgentDefinitionsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListAgentDefinitionsApiV1AgentDefinitionsGetError = ListAgentDefinitionsApiV1AgentDefinitionsGetErrors[keyof ListAgentDefinitionsApiV1AgentDefinitionsGetErrors];
+
+export type ListAgentDefinitionsApiV1AgentDefinitionsGetResponses = {
+    /**
+     * Response List Agent Definitions Api V1 Agent Definitions Get
+     *
+     * Successful Response
+     */
+    200: Array<AiAgentDefinitionResponse>;
+};
+
+export type ListAgentDefinitionsApiV1AgentDefinitionsGetResponse = ListAgentDefinitionsApiV1AgentDefinitionsGetResponses[keyof ListAgentDefinitionsApiV1AgentDefinitionsGetResponses];
+
+export type CreateAgentDefinitionApiV1AgentDefinitionsPostData = {
+    body: AiAgentDefinitionCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/agent/definitions';
+};
+
+export type CreateAgentDefinitionApiV1AgentDefinitionsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateAgentDefinitionApiV1AgentDefinitionsPostError = CreateAgentDefinitionApiV1AgentDefinitionsPostErrors[keyof CreateAgentDefinitionApiV1AgentDefinitionsPostErrors];
+
+export type CreateAgentDefinitionApiV1AgentDefinitionsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: AiAgentDefinitionResponse;
+};
+
+export type CreateAgentDefinitionApiV1AgentDefinitionsPostResponse = CreateAgentDefinitionApiV1AgentDefinitionsPostResponses[keyof CreateAgentDefinitionApiV1AgentDefinitionsPostResponses];
+
 export type ListAgentRunsApiV1AgentRunsGetData = {
     body?: never;
     path?: never;
@@ -4511,6 +5159,155 @@ export type GetAgentRunApiV1AgentRunsRunIdGetResponses = {
 };
 
 export type GetAgentRunApiV1AgentRunsRunIdGetResponse = GetAgentRunApiV1AgentRunsRunIdGetResponses[keyof GetAgentRunApiV1AgentRunsRunIdGetResponses];
+
+export type StartAgentWorkflowApiV1AgentWorkflowRunsPostData = {
+    body: AiWorkflowRunCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/agent/workflow-runs';
+};
+
+export type StartAgentWorkflowApiV1AgentWorkflowRunsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type StartAgentWorkflowApiV1AgentWorkflowRunsPostError = StartAgentWorkflowApiV1AgentWorkflowRunsPostErrors[keyof StartAgentWorkflowApiV1AgentWorkflowRunsPostErrors];
+
+export type StartAgentWorkflowApiV1AgentWorkflowRunsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: AiWorkflowRunResponse;
+};
+
+export type StartAgentWorkflowApiV1AgentWorkflowRunsPostResponse = StartAgentWorkflowApiV1AgentWorkflowRunsPostResponses[keyof StartAgentWorkflowApiV1AgentWorkflowRunsPostResponses];
+
+export type GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Workflow Id
+         */
+        workflow_id: string;
+    };
+    query?: never;
+    url: '/api/v1/agent/workflow-runs/{workflow_id}';
+};
+
+export type GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetError = GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetErrors[keyof GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetErrors];
+
+export type GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: AiWorkflowRunResponse;
+};
+
+export type GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetResponse = GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetResponses[keyof GetAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdGetResponses];
+
+export type ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostData = {
+    body?: never;
+    path: {
+        /**
+         * Workflow Id
+         */
+        workflow_id: string;
+        /**
+         * Approval Id
+         */
+        approval_id: string;
+    };
+    query?: never;
+    url: '/api/v1/agent/workflow-runs/{workflow_id}/approvals/{approval_id}';
+};
+
+export type ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostError = ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostErrors[keyof ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostErrors];
+
+export type ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: AiWorkflowRunResponse;
+};
+
+export type ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostResponse = ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostResponses[keyof ApproveAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdApprovalsApprovalIdPostResponses];
+
+export type CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostData = {
+    body?: never;
+    path: {
+        /**
+         * Workflow Id
+         */
+        workflow_id: string;
+    };
+    query?: never;
+    url: '/api/v1/agent/workflow-runs/{workflow_id}/cancel';
+};
+
+export type CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostError = CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostErrors[keyof CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostErrors];
+
+export type CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: AiWorkflowRunResponse;
+};
+
+export type CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostResponse = CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostResponses[keyof CancelAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdCancelPostResponses];
+
+export type ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostData = {
+    body?: never;
+    path: {
+        /**
+         * Workflow Id
+         */
+        workflow_id: string;
+    };
+    query?: never;
+    url: '/api/v1/agent/workflow-runs/{workflow_id}/resume';
+};
+
+export type ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostError = ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostErrors[keyof ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostErrors];
+
+export type ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: AiWorkflowRunResponse;
+};
+
+export type ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostResponse = ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostResponses[keyof ResumeAgentWorkflowApiV1AgentWorkflowRunsWorkflowIdResumePostResponses];
 
 export type ListDocumentsApiV1AiDocumentsGetData = {
     body?: never;
@@ -5332,6 +6129,29 @@ export type CreateReviewApiV1AiRunsRunIdReviewsPostResponses = {
 
 export type CreateReviewApiV1AiRunsRunIdReviewsPostResponse = CreateReviewApiV1AiRunsRunIdReviewsPostResponses[keyof CreateReviewApiV1AiRunsRunIdReviewsPostResponses];
 
+export type StreamAiRunApiV1AiStreamPostData = {
+    body: AiStreamRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/ai/stream';
+};
+
+export type StreamAiRunApiV1AiStreamPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type StreamAiRunApiV1AiStreamPostError = StreamAiRunApiV1AiStreamPostErrors[keyof StreamAiRunApiV1AiStreamPostErrors];
+
+export type StreamAiRunApiV1AiStreamPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type ForgotPasswordApiV1AuthForgotPasswordPostData = {
     body: ForgotPasswordRequest;
     path?: never;
@@ -5798,6 +6618,38 @@ export type ListAuditLogsApiV1MemoryAuditGetResponses = {
 
 export type ListAuditLogsApiV1MemoryAuditGetResponse = ListAuditLogsApiV1MemoryAuditGetResponses[keyof ListAuditLogsApiV1MemoryAuditGetResponses];
 
+export type ExportMemoriesApiV1MemoryExportGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Agent Id
+         */
+        agent_id?: string;
+    };
+    url: '/api/v1/memory/export';
+};
+
+export type ExportMemoriesApiV1MemoryExportGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ExportMemoriesApiV1MemoryExportGetError = ExportMemoriesApiV1MemoryExportGetErrors[keyof ExportMemoriesApiV1MemoryExportGetErrors];
+
+export type ExportMemoriesApiV1MemoryExportGetResponses = {
+    /**
+     * Response Export Memories Api V1 Memory Export Get
+     *
+     * Successful Response
+     */
+    200: Array<MemoryItemResponse>;
+};
+
+export type ExportMemoriesApiV1MemoryExportGetResponse = ExportMemoriesApiV1MemoryExportGetResponses[keyof ExportMemoriesApiV1MemoryExportGetResponses];
+
 export type ForgetMemoryApiV1MemoryForgetMemoryIdPostData = {
     body: MemoryForgetRequest;
     path: {
@@ -5914,6 +6766,36 @@ export type GetMemoryApiV1MemoryMemoryIdGetResponses = {
 };
 
 export type GetMemoryApiV1MemoryMemoryIdGetResponse = GetMemoryApiV1MemoryMemoryIdGetResponses[keyof GetMemoryApiV1MemoryMemoryIdGetResponses];
+
+export type CorrectMemoryApiV1MemoryMemoryIdCorrectPostData = {
+    body: MemoryCorrectionRequest;
+    path: {
+        /**
+         * Memory Id
+         */
+        memory_id: string;
+    };
+    query?: never;
+    url: '/api/v1/memory/{memory_id}/correct';
+};
+
+export type CorrectMemoryApiV1MemoryMemoryIdCorrectPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CorrectMemoryApiV1MemoryMemoryIdCorrectPostError = CorrectMemoryApiV1MemoryMemoryIdCorrectPostErrors[keyof CorrectMemoryApiV1MemoryMemoryIdCorrectPostErrors];
+
+export type CorrectMemoryApiV1MemoryMemoryIdCorrectPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: MemoryWriteResponse;
+};
+
+export type CorrectMemoryApiV1MemoryMemoryIdCorrectPostResponse = CorrectMemoryApiV1MemoryMemoryIdCorrectPostResponses[keyof CorrectMemoryApiV1MemoryMemoryIdCorrectPostResponses];
 
 export type ListNotificationsApiV1NotificationsGetData = {
     body?: never;
@@ -6103,6 +6985,150 @@ export type GetObservabilityStatusApiV1ObservabilityStatusGetResponses = {
 };
 
 export type GetObservabilityStatusApiV1ObservabilityStatusGetResponse = GetObservabilityStatusApiV1ObservabilityStatusGetResponses[keyof GetObservabilityStatusApiV1ObservabilityStatusGetResponses];
+
+export type ListOrganizationsApiV1OrganizationsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/organizations';
+};
+
+export type ListOrganizationsApiV1OrganizationsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListOrganizationsApiV1OrganizationsGetError = ListOrganizationsApiV1OrganizationsGetErrors[keyof ListOrganizationsApiV1OrganizationsGetErrors];
+
+export type ListOrganizationsApiV1OrganizationsGetResponses = {
+    /**
+     * Response List Organizations Api V1 Organizations Get
+     *
+     * Successful Response
+     */
+    200: Array<OrganizationResponse>;
+};
+
+export type ListOrganizationsApiV1OrganizationsGetResponse = ListOrganizationsApiV1OrganizationsGetResponses[keyof ListOrganizationsApiV1OrganizationsGetResponses];
+
+export type CreateOrganizationApiV1OrganizationsPostData = {
+    body: OrganizationCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/organizations';
+};
+
+export type CreateOrganizationApiV1OrganizationsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateOrganizationApiV1OrganizationsPostError = CreateOrganizationApiV1OrganizationsPostErrors[keyof CreateOrganizationApiV1OrganizationsPostErrors];
+
+export type CreateOrganizationApiV1OrganizationsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: OrganizationResponse;
+};
+
+export type CreateOrganizationApiV1OrganizationsPostResponse = CreateOrganizationApiV1OrganizationsPostResponses[keyof CreateOrganizationApiV1OrganizationsPostResponses];
+
+export type GetOrganizationApiV1OrganizationsOrganizationIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Organization Id
+         */
+        organization_id: string;
+    };
+    query?: never;
+    url: '/api/v1/organizations/{organization_id}';
+};
+
+export type GetOrganizationApiV1OrganizationsOrganizationIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetOrganizationApiV1OrganizationsOrganizationIdGetError = GetOrganizationApiV1OrganizationsOrganizationIdGetErrors[keyof GetOrganizationApiV1OrganizationsOrganizationIdGetErrors];
+
+export type GetOrganizationApiV1OrganizationsOrganizationIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrganizationResponse;
+};
+
+export type GetOrganizationApiV1OrganizationsOrganizationIdGetResponse = GetOrganizationApiV1OrganizationsOrganizationIdGetResponses[keyof GetOrganizationApiV1OrganizationsOrganizationIdGetResponses];
+
+export type ListMembersApiV1OrganizationsOrganizationIdMembersGetData = {
+    body?: never;
+    path: {
+        /**
+         * Organization Id
+         */
+        organization_id: string;
+    };
+    query?: never;
+    url: '/api/v1/organizations/{organization_id}/members';
+};
+
+export type ListMembersApiV1OrganizationsOrganizationIdMembersGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListMembersApiV1OrganizationsOrganizationIdMembersGetError = ListMembersApiV1OrganizationsOrganizationIdMembersGetErrors[keyof ListMembersApiV1OrganizationsOrganizationIdMembersGetErrors];
+
+export type ListMembersApiV1OrganizationsOrganizationIdMembersGetResponses = {
+    /**
+     * Response List Members Api V1 Organizations  Organization Id  Members Get
+     *
+     * Successful Response
+     */
+    200: Array<OrganizationMemberResponse>;
+};
+
+export type ListMembersApiV1OrganizationsOrganizationIdMembersGetResponse = ListMembersApiV1OrganizationsOrganizationIdMembersGetResponses[keyof ListMembersApiV1OrganizationsOrganizationIdMembersGetResponses];
+
+export type AddMemberApiV1OrganizationsOrganizationIdMembersPostData = {
+    body: OrganizationMemberCreate;
+    path: {
+        /**
+         * Organization Id
+         */
+        organization_id: string;
+    };
+    query?: never;
+    url: '/api/v1/organizations/{organization_id}/members';
+};
+
+export type AddMemberApiV1OrganizationsOrganizationIdMembersPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AddMemberApiV1OrganizationsOrganizationIdMembersPostError = AddMemberApiV1OrganizationsOrganizationIdMembersPostErrors[keyof AddMemberApiV1OrganizationsOrganizationIdMembersPostErrors];
+
+export type AddMemberApiV1OrganizationsOrganizationIdMembersPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: OrganizationMemberResponse;
+};
+
+export type AddMemberApiV1OrganizationsOrganizationIdMembersPostResponse = AddMemberApiV1OrganizationsOrganizationIdMembersPostResponses[keyof AddMemberApiV1OrganizationsOrganizationIdMembersPostResponses];
 
 export type GetPlatformConfigApiV1PlatformAdminConfigGetData = {
     body?: never;
@@ -6489,6 +7515,36 @@ export type RevokeApiKeyApiV1PlatformApiKeysApiKeyIdDeleteResponses = {
 
 export type RevokeApiKeyApiV1PlatformApiKeysApiKeyIdDeleteResponse = RevokeApiKeyApiV1PlatformApiKeysApiKeyIdDeleteResponses[keyof RevokeApiKeyApiV1PlatformApiKeysApiKeyIdDeleteResponses];
 
+export type RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostData = {
+    body: ApiKeyRotateRequest;
+    path: {
+        /**
+         * Api Key Id
+         */
+        api_key_id: string;
+    };
+    query?: never;
+    url: '/api/v1/platform/api-keys/{api_key_id}/rotate';
+};
+
+export type RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostError = RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostErrors[keyof RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostErrors];
+
+export type RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ApiKeyCreateResponse;
+};
+
+export type RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostResponse = RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostResponses[keyof RotateApiKeyApiV1PlatformApiKeysApiKeyIdRotatePostResponses];
+
 export type ListSubscriptionPlansApiV1PlatformBillingPlansGetData = {
     body?: never;
     path?: never;
@@ -6567,6 +7623,36 @@ export type SelectSubscriptionPlanApiV1PlatformBillingSubscriptionPutResponses =
 };
 
 export type SelectSubscriptionPlanApiV1PlatformBillingSubscriptionPutResponse = SelectSubscriptionPlanApiV1PlatformBillingSubscriptionPutResponses[keyof SelectSubscriptionPlanApiV1PlatformBillingSubscriptionPutResponses];
+
+export type GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetData = {
+    body?: never;
+    path: {
+        /**
+         * Entitlement Key
+         */
+        entitlement_key: string;
+    };
+    query?: never;
+    url: '/api/v1/platform/entitlements/{entitlement_key}';
+};
+
+export type GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetError = GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetErrors[keyof GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetErrors];
+
+export type GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EntitlementResponse;
+};
+
+export type GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetResponse = GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetResponses[keyof GetEntitlementApiV1PlatformEntitlementsEntitlementKeyGetResponses];
 
 export type ListEffectiveFeatureFlagsApiV1PlatformFeatureFlagsGetData = {
     body?: never;
@@ -7894,6 +8980,20 @@ export type VersionHealthVersionGetData = {
 };
 
 export type VersionHealthVersionGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type WorkersHealthWorkersGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/health/workers';
+};
+
+export type WorkersHealthWorkersGetResponses = {
     /**
      * Successful Response
      */

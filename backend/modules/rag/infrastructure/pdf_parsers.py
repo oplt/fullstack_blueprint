@@ -7,7 +7,7 @@ import io
 import json
 import logging
 import shutil
-from typing import Protocol
+from typing import Any, Protocol
 
 from backend.core.config import settings
 from backend.modules.rag.domain.models import ParsedDocument
@@ -79,7 +79,7 @@ def _extract_ocr_text(page, fitz) -> tuple[str, dict]:
             "ocr_engine_version": str(pytesseract.get_tesseract_version()),
             "ocr_transformed_extract": bool(text),
         }
-    except Exception as exc:  # noqa: BLE001 - OCR is optional enrichment
+    except Exception as exc:
         logger.info("Optional PDF OCR was unavailable: %s", type(exc).__name__)
         return "", {
             "ocr_enabled": True,
@@ -118,7 +118,7 @@ def _extract_tables(page, *, page_number: int) -> list[dict]:
                 }
             )
         return result
-    except Exception as exc:  # noqa: BLE001 - tables are optional enrichment
+    except Exception as exc:
         logger.info("Optional PDF table extraction failed: %s", type(exc).__name__)
         return []
 
@@ -202,7 +202,9 @@ class EnhancedPdfParser:
         docs: list[ParsedDocument] = []
         page_payloads: list[dict] = []
         with fitz.open(stream=content, filetype="pdf") as document:
-            for index, page in enumerate(document, start=1):
+            for page_index in range(len(document)):
+                index = page_index + 1
+                page: Any = document[page_index]
                 blocks = page.get_text("dict").get("blocks") or []
                 text_blocks: list[dict] = []
                 lines_out: list[str] = []
@@ -408,7 +410,7 @@ def parse_pdf_with_fallback(
 
     try:
         return EnhancedPdfParser().parse(content, configured_parser=configured)
-    except Exception as exc:  # noqa: BLE001 - fallback is the parser contract
+    except Exception as exc:
         logger.info("Enhanced PDF parser unavailable or failed; using pypdf baseline")
         return BasicPypdfParser().parse(
             content,

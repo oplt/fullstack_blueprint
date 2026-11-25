@@ -390,3 +390,5 @@ test-results/
 *.sql.gz
 *.dump
 !.env.example
+
+.codegraph/

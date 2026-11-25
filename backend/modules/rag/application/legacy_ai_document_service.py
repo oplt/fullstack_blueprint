@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+from fastapi import HTTPException, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.modules.rag.application.document_ingestion_service import DocumentIngestionService
 from backend.modules.rag.application.retrieval_service import RetrievalService
@@ -14,8 +17,6 @@ from backend.modules.rag.infrastructure.models import RagDocument
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
 from backend.modules.rag.workers import queue_document_indexing
-from fastapi import HTTPException, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 
 _SAFE_FILENAME = re.compile(r"[^\w.\-]+", re.UNICODE)
 

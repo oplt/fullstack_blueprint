@@ -7,9 +7,10 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
 from backend.modules.rag.domain.citation_validation_context import CitationValidationContext
 from backend.modules.rag.domain.models import Citation, ClaimCitation, RetrievedChunk
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 _JSON_FENCE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)
 

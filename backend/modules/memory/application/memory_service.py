@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from time import perf_counter
 from typing import Any
@@ -20,6 +21,10 @@ from backend.lib.project_access import ProjectAccessPort, SqlAlchemyProjectAcces
 from backend.modules.memory.application.memory_consolidator import MemoryConsolidator
 from backend.modules.memory.application.memory_context_builder import MemoryContextBuilder
 from backend.modules.memory.application.memory_extractor import MemoryExtractor
+from backend.modules.memory.application.memory_governance import (
+    evaluate_memory_governance,
+    provenance_payload,
+)
 from backend.modules.memory.application.memory_policy_service import MemoryPolicyService
 from backend.modules.memory.application.memory_router import MemoryRouter
 from backend.modules.memory.domain.enums import (
@@ -76,6 +81,8 @@ class MemoryService:
         source_ref: str | None = None,
         confidence: float = 0.8,
         privacy: str = MemoryPrivacy.NORMAL.value,
+        consent_status: str = "implicit",
+        retention_days: int | None = None,
         skip_policy: bool = False,
     ) -> MemoryWriteResult:
         if not self.config.enabled:
@@ -99,6 +106,15 @@ class MemoryService:
         level = MemoryLevel(memory_level)
         mtype = MemoryType(memory_type or MemoryType.FACT.value)
         privacy_level = MemoryPrivacy(privacy)
+
+        if self.config.consent_required and consent_status != "explicit":
+            return MemoryWriteResult(
+                memory_id="",
+                memory_level=level,
+                memory_type=mtype,
+                accepted=False,
+                rejection_reason="consent_required",
+            )
 
         await self._authorize_write(
             user_id=user_id,
@@ -126,6 +142,26 @@ class MemoryService:
             confidence = decision.adjusted_confidence or confidence
             privacy_level = decision.privacy
 
+        governance = evaluate_memory_governance(
+            content=content,
+            level=level,
+            confidence=confidence,
+            consent_status=consent_status,
+            retention_days=retention_days
+            if retention_days is not None
+            else self.config.default_retention_days,
+            sensitive_filter_enabled=self.config.sensitive_filter_enabled,
+        )
+        if not governance.allowed:
+            return MemoryWriteResult(
+                memory_id="",
+                memory_level=level,
+                memory_type=mtype,
+                accepted=False,
+                rejection_reason=governance.reason,
+            )
+        content = governance.content
+
         now = datetime.now(UTC)
         meta = MemoryMetadata(
             memory_level=level,
@@ -143,8 +179,22 @@ class MemoryService:
         )
         if level == MemoryLevel.SESSION:
             meta.expires_at = session_expires_at(self.config.session_ttl_days)
+        else:
+            meta.expires_at = governance.expires_at
 
-        merged_meta = {**meta.to_dict(), **(metadata or {})}
+        merged_meta = {
+            **meta.to_dict(),
+            "content_hash": governance.content_hash,
+            "consent_status": consent_status,
+            "retention_policy": "custom" if retention_days is not None else "default",
+            "provenance": provenance_payload(
+                source=source,
+                source_ref=source_ref,
+                run_id=run_id,
+                consent_status=consent_status,
+            ),
+            **(metadata or {}),
+        }
         external_id = ""
         try:
             result = await self.mem0.add(
@@ -178,6 +228,13 @@ class MemoryService:
                 project_id=project_id,
                 memory_level=level.value,
                 memory_type=mtype.value,
+                scope=level.value,
+                confidence=confidence,
+                consent_status=consent_status,
+                retention_policy=merged_meta["retention_policy"],
+                expires_at=meta.expires_at,
+                content_hash=governance.content_hash,
+                provenance=merged_meta["provenance"],
             )
             await invalidate_memory_search_cache(user_id=user_id)
 
@@ -212,7 +269,7 @@ class MemoryService:
         query: str,
         run_id: str | None = None,
         project_id: str | None = None,
-        memory_levels: list[str] | None = None,
+        memory_levels: Sequence[str | MemoryLevel] | None = None,
         limit: int | None = None,
     ) -> list[MemoryItem]:
         if not self.config.enabled:
@@ -355,6 +412,79 @@ class MemoryService:
             await self.db.commit()
         cache_user_id = registry.user_id or user_id
         await invalidate_memory_search_cache(user_id=cache_user_id)
+
+    async def correct(
+        self,
+        *,
+        user_id: str,
+        memory_id: str,
+        content: str,
+        reason: str,
+        is_admin: bool = False,
+    ) -> MemoryWriteResult:
+        registry = await self.registry_repo.get_by_external_id(memory_id)
+        if not registry or registry.status != "active":
+            raise HTTPException(status_code=404, detail="Memory not found")
+        if registry.user_id and registry.user_id != user_id and not is_admin:
+            raise HTTPException(status_code=403, detail="You cannot correct another user's memory")
+        if registry.project_id:
+            await self._ensure_project_access(user_id, registry.project_id)
+
+        result = await self.remember(
+            user_id=user_id,
+            agent_id=registry.agent_id or "default",
+            content=content,
+            memory_level=registry.memory_level,
+            memory_type=registry.memory_type,
+            run_id=registry.run_id,
+            project_id=registry.project_id,
+            source=MemorySource.MANUAL.value,
+            source_ref=memory_id,
+            confidence=registry.confidence,
+            consent_status=registry.consent_status,
+            metadata={"corrects_memory_id": memory_id, "correction_reason": reason},
+        )
+        if not result.accepted:
+            return result
+        await self.mem0.delete(memory_id)
+        await self.registry_repo.mark_corrected(memory_id, result.memory_id)
+        if self.config.audit_enabled:
+            await self.audit_repo.log_operation(
+                user_id=user_id,
+                agent_id=registry.agent_id,
+                run_id=registry.run_id,
+                project_id=registry.project_id,
+                operation=MemoryOperation.UPDATE,
+                external_memory_id=memory_id,
+                memory_level=registry.memory_level,
+                memory_type=registry.memory_type,
+                metadata={"reason": reason, "replacement_id": result.memory_id},
+                source_ref=memory_id,
+            )
+            await self.db.commit()
+        await invalidate_memory_search_cache(user_id=user_id)
+        return result
+
+    async def export_user_memories(
+        self, *, user_id: str, agent_id: str = "default"
+    ) -> list[MemoryItem]:
+        if not self.config.enabled:
+            return []
+        collected: list[MemoryItem] = []
+        for level in MemoryLevel:
+            collected.extend(
+                await self.mem0.get_all(
+                    memory_level=level,
+                    user_id=user_id,
+                    agent_id=agent_id,
+                    run_id=None,
+                    project_id=None,
+                    top_k=MAX_PAGE_LIMIT,
+                )
+            )
+        return self.consolidator.consolidate(
+            await self._filter_authorized_read_items(user_id, collected)
+        )
 
     async def list_user_memories(
         self,
@@ -515,6 +645,7 @@ class MemoryService:
         return [
             item
             for item in items
+            if not item.metadata.expires_at or item.metadata.expires_at > datetime.now(UTC)
             if self._item_authorized_for_read(user_id, item, accessible_project_ids)
         ]
 

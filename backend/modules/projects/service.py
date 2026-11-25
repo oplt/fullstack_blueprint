@@ -1,5 +1,6 @@
 import asyncio
 from datetime import date
+from typing import cast
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +22,7 @@ from backend.modules.projects.schemas import (
     ProjectMemberCreate,
     ProjectMemberResponse,
     ProjectResponse,
+    ProjectRole,
     ProjectTaskCreate,
     ProjectTaskReorderRequest,
     ProjectTaskUpdate,
@@ -84,7 +86,7 @@ class ProjectsService:
                 user_id=user.id,
                 email=user.email,
                 full_name=user.full_name,
-                role=member.role,
+                role=cast(ProjectRole, member.role),
             )
             for member, user in await self.repo.list_members_with_users(project.id)
         ]
@@ -116,7 +118,7 @@ class ProjectsService:
             user_id=member_user.id,
             email=member_user.email,
             full_name=member_user.full_name,
-            role=member.role,
+            role=cast(ProjectRole, member.role),
         )
 
     async def remove_member(self, user_id: str, project_id: str, member_user_id: str) -> None:

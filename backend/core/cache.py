@@ -33,6 +33,14 @@ def get_redis_client() -> redis.Redis:
     return redis_client if override is None else override
 
 
+async def ping_redis(client: redis.Redis | None = None) -> bool:
+    """Ping either redis-py implementation while keeping the call typed."""
+    result = (client or get_redis_client()).ping()
+    if isinstance(result, Awaitable):
+        return bool(await result)
+    return bool(result)
+
+
 CACHE_NAMESPACE = "ga"
 PLATFORM_CONFIG_CACHE_KEY = f"{CACHE_NAMESPACE}:platform:config"
 PLATFORM_FEATURE_FLAGS_CACHE_KEY = f"{CACHE_NAMESPACE}:platform:feature_flags"

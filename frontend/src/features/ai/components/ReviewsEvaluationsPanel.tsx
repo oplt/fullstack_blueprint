@@ -239,7 +239,7 @@ export function ReviewsEvaluationsPanel({ m }: { m: AiStudioModel }) {
                                             No input variables
                                         </p>
                                     )}
-                                    <AdvancedSettings title="Raw input variables" sx={{ marginTop: 1 }}>
+                                    <AdvancedSettings title="Raw input variables" className="mt-1">
                                         <JsonBlock data={item.input_variables} />
                                     </AdvancedSettings>
                                     {item.expected_output_text && (

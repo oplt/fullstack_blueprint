@@ -3,15 +3,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
 from backend.modules.ai.models import (
+    AiAgentDefinition,
+    AiArtifact,
+    AiConversation,
+    AiConversationMessage,
     AiEvaluationCase,
     AiEvaluationDataset,
     AiEvaluationRun,
     AiEvaluationRunItem,
     AiFeedback,
+    AiMessagePart,
     AiPromptTemplate,
     AiPromptVersion,
     AiReviewItem,
     AiRun,
+    AiRunStep,
+    AiToolApproval,
+    AiToolCallRecord,
+    AiToolExecution,
+    AiUsageRecord,
+    AiWorkflowCheckpoint,
+    AiWorkflowRun,
 )
 
 
@@ -92,6 +104,136 @@ class AiRepository:
         self.db.add(run)
         await self.db.flush()
         return run
+
+    async def create_conversation(self, **kwargs) -> AiConversation:
+        conversation = AiConversation(**kwargs)
+        self.db.add(conversation)
+        await self.db.flush()
+        return conversation
+
+    async def get_conversation_for_user(
+        self, user_id: str, conversation_id: str
+    ) -> AiConversation | None:
+        result = await self.db.execute(
+            select(AiConversation).where(
+                AiConversation.user_id == user_id,
+                AiConversation.id == conversation_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def create_message(self, **kwargs) -> AiConversationMessage:
+        message = AiConversationMessage(**kwargs)
+        self.db.add(message)
+        await self.db.flush()
+        return message
+
+    async def create_message_part(self, **kwargs) -> AiMessagePart:
+        part = AiMessagePart(**kwargs)
+        self.db.add(part)
+        await self.db.flush()
+        return part
+
+    async def create_run_step(self, **kwargs) -> AiRunStep:
+        step = AiRunStep(**kwargs)
+        self.db.add(step)
+        await self.db.flush()
+        return step
+
+    async def create_tool_call(self, **kwargs) -> AiToolCallRecord:
+        tool_call = AiToolCallRecord(**kwargs)
+        self.db.add(tool_call)
+        await self.db.flush()
+        return tool_call
+
+    async def create_artifact(self, **kwargs) -> AiArtifact:
+        artifact = AiArtifact(**kwargs)
+        self.db.add(artifact)
+        await self.db.flush()
+        return artifact
+
+    async def create_usage_record(self, **kwargs) -> AiUsageRecord:
+        usage = AiUsageRecord(**kwargs)
+        self.db.add(usage)
+        await self.db.flush()
+        return usage
+
+    async def create_agent_definition(self, **kwargs) -> AiAgentDefinition:
+        definition = AiAgentDefinition(**kwargs)
+        self.db.add(definition)
+        await self.db.flush()
+        return definition
+
+    async def list_agent_definitions_for_user(self, user_id: str) -> list[AiAgentDefinition]:
+        result = await self.db.execute(
+            select(AiAgentDefinition)
+            .where(AiAgentDefinition.user_id == user_id, AiAgentDefinition.is_active.is_(True))
+            .order_by(AiAgentDefinition.updated_at.desc())
+        )
+        return list(result.scalars().all())
+
+    async def get_agent_definition_for_user(
+        self, user_id: str, definition_id: str
+    ) -> AiAgentDefinition | None:
+        result = await self.db.execute(
+            select(AiAgentDefinition).where(
+                AiAgentDefinition.user_id == user_id,
+                AiAgentDefinition.id == definition_id,
+                AiAgentDefinition.is_active.is_(True),
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def get_workflow_by_idempotency_key(self, idempotency_key: str) -> AiWorkflowRun | None:
+        result = await self.db.execute(
+            select(AiWorkflowRun).where(AiWorkflowRun.idempotency_key == idempotency_key)
+        )
+        return result.scalar_one_or_none()
+
+    async def create_workflow_run(self, **kwargs) -> AiWorkflowRun:
+        workflow = AiWorkflowRun(**kwargs)
+        self.db.add(workflow)
+        await self.db.flush()
+        return workflow
+
+    async def get_workflow_for_user(self, user_id: str, workflow_id: str) -> AiWorkflowRun | None:
+        result = await self.db.execute(
+            select(AiWorkflowRun).where(
+                AiWorkflowRun.user_id == user_id,
+                AiWorkflowRun.id == workflow_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def create_workflow_checkpoint(self, **kwargs) -> AiWorkflowCheckpoint:
+        checkpoint = AiWorkflowCheckpoint(**kwargs)
+        self.db.add(checkpoint)
+        await self.db.flush()
+        return checkpoint
+
+    async def create_tool_approval(self, **kwargs) -> AiToolApproval:
+        approval = AiToolApproval(**kwargs)
+        self.db.add(approval)
+        await self.db.flush()
+        return approval
+
+    async def get_tool_approval(self, approval_id: str) -> AiToolApproval | None:
+        result = await self.db.execute(
+            select(AiToolApproval).where(AiToolApproval.id == approval_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def create_tool_execution(self, **kwargs) -> AiToolExecution:
+        execution = AiToolExecution(**kwargs)
+        self.db.add(execution)
+        await self.db.flush()
+        return execution
+
+    async def get_tool_execution_by_key(self, idempotency_key: str) -> AiToolExecution | None:
+        result = await self.db.execute(
+            select(AiToolExecution).where(AiToolExecution.idempotency_key == idempotency_key)
+        )
+        return result.scalar_one_or_none()
 
     async def get_run_for_user(self, user_id: str, run_id: str) -> AiRun | None:
         result = await self.db.execute(

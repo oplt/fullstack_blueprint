@@ -3,6 +3,7 @@ import logging
 from fastapi import HTTPException, Request
 
 from backend.core.cache import redis_client
+from backend.core.config import settings
 
 logger = logging.getLogger("backend.rate_limit")
 
@@ -26,7 +27,13 @@ async def check_rate_limit(key: str, max_attempts: int, window_seconds: int) -> 
     except HTTPException:
         raise
     except Exception:
-        logger.warning("rate limit check skipped for key=%s", key, exc_info=True)
+        if not settings.RATE_LIMIT_FAIL_OPEN:
+            raise HTTPException(
+                status_code=503,
+                detail="Rate limiting is temporarily unavailable",
+                headers={"Retry-After": "5"},
+            ) from None
+        logger.warning("rate limit check skipped (redis unavailable)")
 
 
 async def enforce_rate_limit(key: str, max_attempts: int) -> None:

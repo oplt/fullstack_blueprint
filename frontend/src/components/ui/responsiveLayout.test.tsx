@@ -19,7 +19,8 @@ describe("FormGrid", () => {
         );
         expect(container.textContent).toContain("ABC");
         const grid = container.firstElementChild as HTMLElement;
-        expect(getComputedStyle(grid).display).toBe("grid");
+        expect(grid).toHaveClass("form-grid");
+        expect(grid).toHaveAttribute("data-columns", "4-4-4");
     });
 });
 
@@ -50,5 +51,7 @@ describe("MetricGrid", () => {
             </MetricGrid>
         );
         expect(container.textContent).toBe("1234");
+        expect(container.firstElementChild).toHaveClass("responsive-card-grid");
+        expect(container.firstElementChild).toHaveAttribute("data-columns", "4");
     });
 });

@@ -1,6 +1,9 @@
 import asyncio
 import json
 
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.api.deps.auth import get_current_user
 from backend.api.deps.db import get_db
 from backend.core.config import settings
@@ -33,8 +36,6 @@ from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
 from backend.modules.rag.workers import queue_document_indexing
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

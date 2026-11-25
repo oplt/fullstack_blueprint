@@ -8,7 +8,7 @@ from sqlalchemy import text
 from backend.core.cache import (
     OBSERVABILITY_STATUS_CACHE_KEY,
     cache_get_or_load_model,
-    redis_client,
+    ping_redis,
 )
 from backend.core.config import Settings
 from backend.db.session import engine
@@ -19,6 +19,7 @@ from backend.observability.schemas import (
     ObservabilityStatusItem,
     ObservabilityToolLink,
 )
+from backend.workers.health import healthy_worker_count, queue_depths
 
 TECHNICAL_ACCESS_REQUIRED = True
 
@@ -114,12 +115,13 @@ class ObservabilityService:
         grafana_url = build_public_url(self._settings.GRAFANA_PUBLIC_URL)
         tempo_url = build_public_url(self._settings.TEMPO_PUBLIC_URL)
 
-        database, cache, prometheus, grafana, tempo = await asyncio.gather(
+        database, cache, prometheus, grafana, tempo, workers = await asyncio.gather(
             self._database_status(checked_at),
             self._cache_status(checked_at),
             self._http_status(prometheus_url, "Prometheus", checked_at),
             self._http_status(grafana_url, "Grafana", checked_at),
             self._http_status(tempo_url, "Tempo", checked_at),
+            self._worker_status(checked_at),
         )
 
         return ObservabilityStatus(
@@ -135,12 +137,7 @@ class ObservabilityService:
             ),
             database=database,
             cache=cache,
-            workers=ObservabilityStatusItem(
-                status="unknown",
-                detail="Worker queue depth check is not configured",
-                queue_depth=None,
-                last_checked_at=checked_at,
-            ),
+            workers=workers,
             background_jobs=ObservabilityStatusItem(
                 status="unknown",
                 detail="Background job health check is not configured",
@@ -165,6 +162,31 @@ class ObservabilityService:
             tempo=tempo,
         )
 
+    async def _worker_status(self, checked_at: str) -> ObservabilityStatusItem:
+        try:
+            count, depths = await asyncio.gather(healthy_worker_count(), queue_depths())
+            try:
+                from backend.observability import prometheus_metrics
+
+                for queue, depth in depths.items():
+                    prometheus_metrics.worker_queue_depth.labels(queue=queue).set(depth)
+            except Exception:
+                pass
+            total_depth = sum(depths.values())
+            return ObservabilityStatusItem(
+                status="healthy" if count else "degraded",
+                detail=f"{count} worker(s) reporting healthy",
+                queue_depth=total_depth,
+                last_checked_at=checked_at,
+            )
+        except Exception:
+            return ObservabilityStatusItem(
+                status="unknown",
+                detail="Worker health is unavailable",
+                queue_depth=None,
+                last_checked_at=checked_at,
+            )
+
     async def _database_status(self, checked_at: str) -> ObservabilityStatusItem:
         try:
             async with engine.connect() as conn:
@@ -183,7 +205,7 @@ class ObservabilityService:
 
     async def _cache_status(self, checked_at: str) -> ObservabilityStatusItem:
         try:
-            await redis_client.ping()
+            await ping_redis()
             return ObservabilityStatusItem(
                 status="healthy",
                 detail="Redis connection OK",

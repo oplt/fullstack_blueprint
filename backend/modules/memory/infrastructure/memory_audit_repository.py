@@ -74,6 +74,13 @@ class MemoryRegistryRepository:
         project_id: str | None,
         memory_level: str,
         memory_type: str | None,
+        scope: str | None = None,
+        confidence: float = 0.0,
+        consent_status: str = "implicit",
+        retention_policy: str = "default",
+        expires_at: datetime | None = None,
+        content_hash: str | None = None,
+        provenance: dict | None = None,
     ) -> MemoryRegistry:
         existing = await self.get_by_external_id(external_memory_id)
         if existing:
@@ -83,6 +90,13 @@ class MemoryRegistryRepository:
             existing.project_id = project_id
             existing.memory_level = memory_level
             existing.memory_type = memory_type
+            existing.scope = scope
+            existing.confidence = confidence
+            existing.consent_status = consent_status
+            existing.retention_policy = retention_policy
+            existing.expires_at = expires_at
+            existing.content_hash = content_hash
+            existing.provenance_json = json.dumps(provenance or {}, ensure_ascii=True)
             existing.status = "active"
             existing.updated_at = datetime.now(UTC)
             existing.deleted_at = None
@@ -97,6 +111,13 @@ class MemoryRegistryRepository:
             project_id=project_id,
             memory_level=memory_level,
             memory_type=memory_type,
+            scope=scope,
+            confidence=confidence,
+            consent_status=consent_status,
+            retention_policy=retention_policy,
+            expires_at=expires_at,
+            content_hash=content_hash,
+            provenance_json=json.dumps(provenance or {}, ensure_ascii=True),
             status="active",
         )
         self.db.add(row)
@@ -117,6 +138,18 @@ class MemoryRegistryRepository:
             return None
         row.status = "deleted"
         row.deleted_at = datetime.now(UTC)
+        row.updated_at = datetime.now(UTC)
+        await self.db.flush()
+        return row
+
+    async def mark_corrected(
+        self, external_memory_id: str, corrected_by_external_id: str
+    ) -> MemoryRegistry | None:
+        row = await self.get_by_external_id(external_memory_id)
+        if not row:
+            return None
+        row.status = "corrected"
+        row.corrected_by_external_id = corrected_by_external_id
         row.updated_at = datetime.now(UTC)
         await self.db.flush()
         return row

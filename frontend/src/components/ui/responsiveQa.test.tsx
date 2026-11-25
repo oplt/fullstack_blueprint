@@ -4,10 +4,10 @@ import { FormGrid } from "./FormGrid";
 import { ResponsiveCardGrid } from "./ResponsiveCardGrid";
 import { MetricGrid } from "./MetricGrid";
 import { WorkspaceSplit } from "./WorkspaceSplit";
-import { responsiveColumns } from "./layoutTokens";
 import {
     RESPONSIVE_QA_VIEWPORTS,
     denseCardColumns,
+    responsiveColumns,
     responsiveQaBand,
     scrollContainerStyle,
 } from "./responsiveQa";
@@ -57,7 +57,7 @@ describe("Responsive layout primitives", () => {
             </MetricGrid>
         );
         const grid = container.firstElementChild as HTMLElement;
-        expect(getComputedStyle(grid).display).toBe("grid");
+        expect(grid).toHaveClass("responsive-card-grid");
     });
 
     it("keeps FormGrid fields fluid without fixed min widths", () => {
@@ -70,8 +70,8 @@ describe("Responsive layout primitives", () => {
             </FormGrid>
         );
         const grid = container.firstElementChild as HTMLElement;
-        expect(getComputedStyle(grid).display).toBe("grid");
-        expect(grid).toHaveStyle({ width: "100%" });
+        expect(grid).toHaveClass("form-grid");
+        expect(grid).toHaveAttribute("data-columns", "4");
     });
 
     it("hides the WorkspaceSplit side column below sideFrom (default lg)", () => {

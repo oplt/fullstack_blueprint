@@ -262,6 +262,10 @@ class SettingsService:
         self.db = db
         self.repo = SettingsRepository(db)
 
+    async def save(self) -> None:
+        """Commit the command transaction owned by this application service."""
+        await self.db.commit()
+
     async def list_database_settings(self) -> list[AppSetting]:
         cached = await cache_get_or_load_json(
             SETTINGS_DATABASE_CACHE_KEY,

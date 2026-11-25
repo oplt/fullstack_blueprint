@@ -4,9 +4,10 @@ from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
-from backend.core.cache import redis_client
+from backend.core.cache import ping_redis, redis_client
 from backend.core.config import settings
 from backend.core.error_handler import register_exception_handlers
 from backend.core.log_redaction import redact_url
@@ -30,8 +31,10 @@ from backend.workers.async_dispatch import (
 from .middleware.correlation_id import CorrelationIdMiddleware
 from .middleware.csrf import CSRFMiddleware
 from .middleware.public_rate_limit import PublicRateLimitMiddleware
+from .middleware.request_limits import RequestBodyLimitMiddleware
 from .middleware.request_logging import RequestLoggingMiddleware
 from .middleware.security_headers import SecurityHeadersMiddleware
+from .openapi import build_openapi
 from .router import api_router
 from .v1.health import health_router
 
@@ -59,7 +62,7 @@ async def lifespan(app: FastAPI):
         validate_rag_config()
         validate_memory_config()
         await object_storage.ensure_bucket()
-        await redis_client.ping()
+        await ping_redis()
         logger.info("Redis connection established url=%s", redact_url(settings.REDIS_URL))
         async with SessionLocal() as db:
             await PlatformService(db).ensure_defaults()
@@ -80,6 +83,7 @@ app = FastAPI(
 )
 
 app.add_middleware(CorrelationIdMiddleware)
+app.add_middleware(RequestBodyLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(PublicRateLimitMiddleware)
@@ -91,12 +95,21 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", settings.CSRF_HEADER_NAME],
 )
+if settings.ALLOWED_HOSTS:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 if settings.TRUSTED_PROXY_IPS:
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.TRUSTED_PROXY_IPS)
 
 register_exception_handlers(app)
 app.include_router(api_router)
 app.include_router(health_router)
+
+
+def _openapi() -> dict:
+    return build_openapi(app)
+
+
+app.openapi = _openapi
 
 # Metrics and OTLP instrumentation must register before the ASGI app starts.
 setup_observability(app)

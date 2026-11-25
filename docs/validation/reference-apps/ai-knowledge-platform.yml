@@ -1,0 +1,26 @@
+project:
+  name: AI Knowledge Platform Reference
+  slug: ai-knowledge-reference
+profile: knowledge_base
+backend:
+  database: postgresql
+  cache: redis
+  task_queue: celery
+modules:
+  identity: true
+  organizations: true
+  projects: true
+  ai: true
+  rag: true
+  memory: true
+  storage: true
+  notifications: true
+  analytics: true
+  billing: true
+providers:
+  ai: [mock]
+  storage: local
+deployment:
+  target: docker
+  observability: standard
+generation_mode: reference

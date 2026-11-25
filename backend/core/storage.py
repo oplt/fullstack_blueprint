@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from functools import cached_property
-from typing import Any, BinaryIO
+from typing import IO, Any
 
 from backend.core.config import settings
 
@@ -26,7 +26,7 @@ class ObjectStorage:
         return bool(settings.STORAGE_BUCKET)
 
     @cached_property
-    def _client(self):
+    def _client(self) -> Any:
         try:
             import boto3
             from botocore.client import Config
@@ -36,7 +36,7 @@ class ObjectStorage:
                 "Run `uv sync --extra storage` in `backend/`."
             ) from exc
 
-        session = boto3.session.Session()
+        session = boto3.Session()
         return session.client(
             "s3",
             region_name=settings.STORAGE_REGION,
@@ -61,7 +61,7 @@ class ObjectStorage:
             try:
                 self._client.head_bucket(Bucket=settings.STORAGE_BUCKET)
             except Exception:
-                create_kwargs = {"Bucket": settings.STORAGE_BUCKET}
+                create_kwargs: dict[str, Any] = {"Bucket": settings.STORAGE_BUCKET}
                 if settings.STORAGE_REGION != "us-east-1":
                     create_kwargs["CreateBucketConfiguration"] = {
                         "LocationConstraint": settings.STORAGE_REGION
@@ -87,7 +87,7 @@ class ObjectStorage:
             )
 
         def _upload() -> None:
-            put_kwargs: dict[str, str] = {
+            put_kwargs: dict[str, Any] = {
                 "Bucket": settings.STORAGE_BUCKET,
                 "Key": object_key,
                 "Body": body,
@@ -108,7 +108,7 @@ class ObjectStorage:
         self,
         *,
         object_key: str,
-        fileobj: BinaryIO,
+        fileobj: IO[bytes],
         content_type: str,
         cache_control: str = AVATAR_CACHE_CONTROL,
     ) -> str:
@@ -119,7 +119,7 @@ class ObjectStorage:
             )
 
         def _upload() -> None:
-            extra_args: dict[str, str] = {"ContentType": content_type}
+            extra_args: dict[str, Any] = {"ContentType": content_type}
             if cache_control:
                 extra_args["CacheControl"] = cache_control
             self._client.upload_fileobj(
@@ -168,6 +168,30 @@ class ObjectStorage:
             return await asyncio.to_thread(_presign)
         except Exception as exc:
             raise ObjectStorageError("Failed to authorize object download") from exc
+
+    async def presigned_upload_url(
+        self, object_key: str, *, content_type: str, expires_in: int = 300
+    ) -> str:
+        if not self.is_configured:
+            raise StorageNotConfiguredError(
+                "Object storage is not configured. Set STORAGE_BUCKET and storage credentials."
+            )
+
+        def _presign() -> str:
+            return self._client.generate_presigned_url(
+                "put_object",
+                Params={
+                    "Bucket": settings.STORAGE_BUCKET,
+                    "Key": object_key,
+                    "ContentType": content_type,
+                },
+                ExpiresIn=expires_in,
+            )
+
+        try:
+            return await asyncio.to_thread(_presign)
+        except Exception as exc:
+            raise ObjectStorageError("Failed to authorize object upload") from exc
 
     def download_bytes_sync(self, object_key: str, *, bucket: str | None = None) -> bytes:
         if not self.is_configured and not bucket:

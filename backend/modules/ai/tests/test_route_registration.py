@@ -22,6 +22,7 @@ class AiRouteRegistrationTest(unittest.TestCase):
             ("POST", "/retrieve"),
             ("GET", "/runs"),
             ("POST", "/runs"),
+            ("POST", "/stream"),
             ("GET", "/reviews"),
             ("POST", "/runs/{run_id}/reviews"),
             ("POST", "/reviews/{review_id}/decision"),

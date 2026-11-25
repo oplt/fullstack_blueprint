@@ -167,7 +167,7 @@ const { anchorDate, itemsByDate, openDay } = m;
                                     right: 0,
                                     top: nowTop,
                                     height: 2,
-                                    backgroundColor: "primary.main",
+                                    backgroundColor: "var(--primary)",
                                     zIndex: 2,
                                 }}
                             />

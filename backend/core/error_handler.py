@@ -2,7 +2,8 @@ import logging
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+
+from backend.core.api_contracts import problem_response
 
 logger = logging.getLogger("backend.error")
 
@@ -16,16 +17,15 @@ def register_exception_handlers(app: FastAPI) -> None:
             getattr(request.state, "correlation_id", None),
             len(exc.errors()),
         )
-        return JSONResponse(
-            status_code=422,
-            content={
-                "detail": "Request validation failed",
-                "errors": [
-                    {"loc": error["loc"], "msg": error["msg"], "type": error["type"]}
-                    for error in exc.errors()
-                ],
-                "correlation_id": getattr(request.state, "correlation_id", None),
-            },
+        return problem_response(
+            request,
+            status=422,
+            title="Request validation failed",
+            detail="Request validation failed",
+            errors=[
+                {"loc": error["loc"], "msg": error["msg"], "type": error["type"]}
+                for error in exc.errors()
+            ],
         )
 
     @app.exception_handler(ValueError)
@@ -36,12 +36,11 @@ def register_exception_handlers(app: FastAPI) -> None:
             getattr(request.state, "correlation_id", None),
             str(exc)[:200],
         )
-        return JSONResponse(
-            status_code=400,
-            content={
-                "detail": str(exc),
-                "correlation_id": getattr(request.state, "correlation_id", None),
-            },
+        return problem_response(
+            request,
+            status=400,
+            title="Bad request",
+            detail=str(exc),
         )
 
     @app.exception_handler(HTTPException)
@@ -62,12 +61,11 @@ def register_exception_handlers(app: FastAPI) -> None:
                 getattr(request.state, "correlation_id", None),
                 str(exc.detail)[:200],
             )
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={
-                "detail": exc.detail,
-                "correlation_id": getattr(request.state, "correlation_id", None),
-            },
+        return problem_response(
+            request,
+            status=exc.status_code,
+            title="HTTP error",
+            detail=str(exc.detail),
             headers=exc.headers,
         )
 
@@ -78,10 +76,9 @@ def register_exception_handlers(app: FastAPI) -> None:
             request.url.path,
             getattr(request.state, "correlation_id", None),
         )
-        return JSONResponse(
-            status_code=500,
-            content={
-                "detail": "Internal server error",
-                "correlation_id": getattr(request.state, "correlation_id", None),
-            },
+        return problem_response(
+            request,
+            status=500,
+            title="Internal server error",
+            detail="Internal server error",
         )

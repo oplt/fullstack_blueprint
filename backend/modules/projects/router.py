@@ -1,3 +1,5 @@
+from typing import cast
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +23,8 @@ from backend.modules.projects.schemas import (
     ProjectTaskReorderRequest,
     ProjectTaskResponse,
     ProjectTaskUpdate,
+    TaskPriority,
+    TaskStatus,
 )
 from backend.modules.projects.service import ProjectsService
 
@@ -42,8 +46,8 @@ def _task_to_response(task: ProjectTask, assignee: User | None) -> ProjectTaskRe
         project_id=task.project_id,
         title=task.title,
         description=task.description,
-        status=task.status,
-        priority=task.priority,
+        status=cast(TaskStatus, task.status),
+        priority=cast(TaskPriority, task.priority),
         due_date=task.due_date,
         position=task.position,
         assignee=(

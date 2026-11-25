@@ -18,9 +18,11 @@ class NotificationPreferenceResponse(BaseModel):
     email_enabled: bool
     push_enabled: bool
     marketing_enabled: bool
+    locale: str
 
 
 class NotificationPreferenceUpdate(RequestModel):
     email_enabled: bool | None = None
     push_enabled: bool | None = None
     marketing_enabled: bool | None = None
+    locale: str | None = None

@@ -100,3 +100,16 @@ def extract_turn_memories_task(
         assistant_message=assistant_message,
         source_message_id=source_message_id,
     )
+
+
+@celery_app.task(
+    name="backend.workers.tasks.publish_outbox_events_task",
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_jitter=True,
+    max_retries=8,
+)
+def publish_outbox_events_task(*, limit: int = 100) -> int:
+    from backend.modules.events.workers import publish_outbox_events_sync
+
+    return publish_outbox_events_sync(limit=limit)

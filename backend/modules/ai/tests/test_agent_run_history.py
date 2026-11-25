@@ -50,5 +50,12 @@ class AgentRunHistoryRouteTests(unittest.TestCase):
                 ("GET", "/runs"),
                 ("GET", "/runs/{run_id}"),
                 ("POST", "/runs"),
+                ("GET", "/definitions"),
+                ("POST", "/definitions"),
+                ("POST", "/workflow-runs"),
+                ("GET", "/workflow-runs/{workflow_id}"),
+                ("POST", "/workflow-runs/{workflow_id}/approvals/{approval_id}"),
+                ("POST", "/workflow-runs/{workflow_id}/cancel"),
+                ("POST", "/workflow-runs/{workflow_id}/resume"),
             },
         )

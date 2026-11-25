@@ -1,0 +1,107 @@
+name: Backend quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Ruff, Pyright, and architecture
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.10.0"
+      - name: Install locked backend dependencies
+        run: uv sync --locked --all-extras
+        working-directory: backend
+      - name: Run backend quality gates
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run pyright -p pyproject.toml
+          uv run lint-imports ../.importlinter --no-cache
+          uv run python scripts/check_architecture.py
+      - name: Validate runtime OpenAPI
+        run: |
+          uv run python scripts/export_openapi.py --profile runtime --output /tmp/runtime-openapi.json
+          uv run python scripts/validate_openapi.py --input /tmp/runtime-openapi.json
+        working-directory: backend
+        working-directory: backend
+
+  tests-and-migrations:
+    name: PostgreSQL tests and migration validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: fullstack_blueprint
+          POSTGRES_PASSWORD: fullstack_blueprint
+          POSTGRES_DB: fullstack_blueprint
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fullstack_blueprint -d fullstack_blueprint"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+asyncpg://fullstack_blueprint:fullstack_blueprint@127.0.0.1:5432/fullstack_blueprint
+      REDIS_URL: redis://127.0.0.1:6379/0
+      JWT_SECRET: ci-only-ephemeral-secret-0123456789abcdef
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      LOG_TO_FILE: false
+      HEALTH_READY_PUBLIC: true
+      COOKIE_SECURE: false
+      REQUIRE_EMAIL_VERIFICATION: false
+      CELERY_TASK_ALWAYS_EAGER: true
+      AI_ENABLED: false
+      RAG_ENABLED: false
+      MEMORY_ENABLED: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.10.0"
+      - name: Install locked backend dependencies
+        run: uv sync --locked --all-extras
+        working-directory: backend
+      - name: Check migration graph
+        run: uv run alembic check
+        working-directory: backend
+      - name: Apply migrations to disposable PostgreSQL
+        run: uv run alembic upgrade head
+        working-directory: backend
+      - name: Run backend tests with coverage and JUnit output
+        run: uv run pytest . --cov=backend --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=test-results.xml
+        working-directory: backend
+      - name: Upload backend reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: backend-quality-reports
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            backend/coverage.xml
+            backend/test-results.xml

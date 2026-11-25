@@ -23,6 +23,13 @@ celery_app.conf.update(
             "queue": settings.CELERY_TASK_DEFAULT_QUEUE
         },
     },
+    beat_schedule={
+        "publish-outbox-events": {
+            "task": "backend.workers.tasks.publish_outbox_events_task",
+            "schedule": settings.CELERY_OUTBOX_PUBLISH_INTERVAL_SECONDS,
+            "kwargs": {"limit": 100},
+        },
+    },
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
@@ -30,6 +37,14 @@ celery_app.conf.update(
     broker_connection_retry_on_startup=True,
     task_track_started=True,
     task_ignore_result=True,
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
+    worker_prefetch_multiplier=1,
+    task_time_limit=settings.CELERY_TASK_TIME_LIMIT_SECONDS,
+    task_soft_time_limit=settings.CELERY_TASK_SOFT_TIME_LIMIT_SECONDS,
+    broker_transport_options={
+        "visibility_timeout": settings.CELERY_BROKER_VISIBILITY_TIMEOUT_SECONDS,
+    },
     timezone="UTC",
     enable_utc=True,
 )

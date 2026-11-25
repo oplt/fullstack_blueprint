@@ -20,14 +20,20 @@ OPTIONAL_FLAGS = (
     "OBSERVABILITY_ENABLED",
 )
 
+CONTRACT_PROFILES = {"all", "runtime"}
 
-def export_contract(output: Path) -> None:
-    for flag in OPTIONAL_FLAGS:
-        os.environ[flag] = "true"
+
+def export_contract(output: Path, *, profile: str = "all") -> None:
+    if profile not in CONTRACT_PROFILES:
+        raise ValueError(f"Unknown contract profile: {profile}")
+    if profile == "all":
+        for flag in OPTIONAL_FLAGS:
+            os.environ[flag] = "true"
 
     from backend.api.main import app
+    from backend.api.openapi import build_openapi
 
-    contract = app.openapi()
+    contract = build_openapi(app)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
         json.dumps(contract, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
@@ -38,8 +44,14 @@ def export_contract(output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--profile",
+        choices=sorted(CONTRACT_PROFILES),
+        default="all",
+        help="all enables every optional capability; runtime uses deployment settings",
+    )
     args = parser.parse_args()
-    export_contract(args.output)
+    export_contract(args.output, profile=args.profile)
 
 
 if __name__ == "__main__":

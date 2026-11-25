@@ -22,6 +22,7 @@ from backend.modules.platform.defaults import (
 )
 from backend.modules.platform.repository import PlatformRepository
 from backend.modules.platform.schemas import (
+    CapabilityManifestResponse,
     ModuleCatalogItem,
     ModulePackResponse,
     PlatformConfigResponse,
@@ -35,6 +36,10 @@ class PlatformConfigService:
         self.db = db
         self.repo = PlatformRepository(db)
         self.settings_repo = SettingsRepository(db)
+
+    async def save(self) -> None:
+        """Commit writes composed by this service and request audit records."""
+        await self.db.commit()
 
     async def ensure_defaults(self) -> None:
         setting_defaults = (
@@ -86,6 +91,7 @@ class PlatformConfigService:
             enabled_modules=config.enabled_modules,
             module_catalog=config.module_catalog,
             available_module_packs=config.available_module_packs,
+            capabilities=config.capabilities,
             mfa_enabled=config.mfa_enabled,
             available_features=[
                 name
@@ -151,8 +157,21 @@ class PlatformConfigService:
                 ModulePackResponse(key=key, **pack_payload)
                 for key, pack_payload in MODULE_PACKS.items()
             ],
+            capabilities=[
+                CapabilityManifestResponse.model_validate(item)
+                for item in self._capability_metadata(enabled_modules)
+            ],
             module_overrides=explicit_overrides,
             mfa_enabled=mfa_enabled,
+        )
+
+    @staticmethod
+    def _capability_metadata(enabled_modules: list[str]) -> list[dict[str, object]]:
+        from backend.modules.capabilities import CAPABILITY_REGISTRY
+
+        return CAPABILITY_REGISTRY.public_metadata(
+            settings,
+            runtime_enabled=set(enabled_modules) | {"identity", "projects", "platform"},
         )
 
     async def update_platform_config(

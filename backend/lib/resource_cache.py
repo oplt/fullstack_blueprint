@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date
 
 from pydantic import BaseModel
@@ -30,10 +31,10 @@ def user_directory_cache_key(limit: int, offset: int) -> str:
     return cache_key("users", "directory", str(limit), str(offset))
 
 
-async def get_cached_model_list(
+async def get_cached_model_list[ModelT: BaseModel](
     key: str,
-    model: type[BaseModel],
-) -> tuple[list[BaseModel], int] | None:
+    model: type[ModelT],
+) -> tuple[list[ModelT], int] | None:
     payload = await cache_get_json(key)
     if payload is None:
         return None
@@ -41,9 +42,9 @@ async def get_cached_model_list(
     return items, int(payload.get("total", 0))
 
 
-async def set_cached_model_list(
+async def set_cached_model_list[ModelT: BaseModel](
     key: str,
-    items: list[BaseModel],
+    items: Sequence[ModelT],
     *,
     total: int,
     ttl_seconds: int,
@@ -58,19 +59,19 @@ async def set_cached_model_list(
     )
 
 
-async def get_cached_model_items(
+async def get_cached_model_items[ModelT: BaseModel](
     key: str,
-    model: type[BaseModel],
-) -> list[BaseModel] | None:
+    model: type[ModelT],
+) -> list[ModelT] | None:
     payload = await cache_get_json(key)
     if payload is None:
         return None
     return [model.model_validate(item) for item in payload.get("items", [])]
 
 
-async def set_cached_model_items(
+async def set_cached_model_items[ModelT: BaseModel](
     key: str,
-    items: list[BaseModel],
+    items: Sequence[ModelT],
     *,
     ttl_seconds: int,
 ) -> None:

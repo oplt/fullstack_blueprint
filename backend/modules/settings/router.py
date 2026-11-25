@@ -37,7 +37,7 @@ async def update_config_settings(
         actor_user_id=admin.id,
         resource_type="config",
     )
-    await db.commit()
+    await SettingsService(db).save()
     return response
 
 
@@ -67,7 +67,7 @@ async def create_database_setting(
         resource_type="app_setting",
         resource_id=setting.id,
     )
-    await db.commit()
+    await service.save()
     return setting
 
 
@@ -91,7 +91,7 @@ async def update_database_setting(
         resource_type="app_setting",
         resource_id=setting.id,
     )
-    await db.commit()
+    await service.save()
     return setting
 
 
@@ -112,5 +112,5 @@ async def delete_database_setting(
         resource_type="app_setting",
         resource_id=setting_id,
     )
-    await db.commit()
+    await service.save()
     return Response(status_code=204)

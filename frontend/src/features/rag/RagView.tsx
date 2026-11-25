@@ -61,7 +61,7 @@ function MetricTile({
     description?: string;
 }) {
     return (
-        <div style={{ padding: 12, borderRadius: 4, backgroundColor: "action.hover", height: "100%" }}>
+        <div className="metric-tile h-full">
             <span className="text-muted-foreground">
                 {helpTermId ? (
                     <HelpTooltip termId={helpTermId} variant="label">

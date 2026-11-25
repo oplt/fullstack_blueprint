@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from time import perf_counter
 
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.lib.generation_port import AiServiceGenerationPort, GenerationPort
 from backend.lib.project_access import ProjectAccessPort, SqlAlchemyProjectAccessPort
 from backend.modules.identity_access.models import User
@@ -19,8 +22,6 @@ from backend.modules.rag.domain.models import RagAnswer, RetrievalOutcome, Retri
 from backend.modules.rag.infrastructure import metrics
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
-from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def _revision_by_document(chunks: list[RetrievedChunk]) -> dict[str, str]:

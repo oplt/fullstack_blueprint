@@ -4,6 +4,8 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.modules.memory.application.memory_service import MemoryService
 from backend.modules.memory.domain.models import MemoryItem, MemorySearchRequest
 from backend.modules.memory.infrastructure.memory_config import MemoryConfig
@@ -11,7 +13,6 @@ from backend.modules.rag.application.rag_context_builder import RagContextBuilde
 from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.domain.models import RetrievalOutcome, RetrievedChunk
 from backend.modules.rag.infrastructure.rag_config import RagConfig
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

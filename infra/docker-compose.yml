@@ -45,6 +45,65 @@ services:
       - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - object_data:/data
+  migrate:
+    profiles: ["ops"]
+    build:
+      context: ..
+      dockerfile: infra/backend.Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-fullstack_blueprint}:${POSTGRES_PASSWORD:-fullstack_blueprint}@postgres:5432/${POSTGRES_DB:-fullstack_blueprint}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-compose-secret-change-me-32-characters}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+    command: ["sh", "-c", "cd /app/backend && alembic upgrade head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    profiles: ["app"]
+    build:
+      context: ..
+      dockerfile: infra/backend.Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-fullstack_blueprint}:${POSTGRES_PASSWORD:-fullstack_blueprint}@postgres:5432/${POSTGRES_DB:-fullstack_blueprint}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-compose-secret-change-me-32-characters}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      RATE_LIMIT_FAIL_OPEN: ${RATE_LIMIT_FAIL_OPEN:-true}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  worker:
+    profiles: ["app"]
+    build:
+      context: ..
+      dockerfile: infra/backend.Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-fullstack_blueprint}:${POSTGRES_PASSWORD:-fullstack_blueprint}@postgres:5432/${POSTGRES_DB:-fullstack_blueprint}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-compose-secret-change-me-32-characters}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+    command: ["python", "-m", "backend.workers.run_worker"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 volumes:
   postgres_data:
   redis_data:

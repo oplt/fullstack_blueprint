@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.deps.auth import get_current_user
@@ -10,12 +10,12 @@ from backend.core.pagination import (
     pagination_params,
 )
 from backend.modules.identity_access.models import User
-from backend.modules.notifications.repository import NotificationsRepository
 from backend.modules.notifications.schemas import (
     NotificationPreferenceResponse,
     NotificationPreferenceUpdate,
     NotificationResponse,
 )
+from backend.modules.notifications.service import NotificationsService
 
 router = APIRouter()
 
@@ -26,8 +26,8 @@ async def list_notifications(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    repo = NotificationsRepository(db)
-    items, total = await repo.list_for_user(
+    service = NotificationsService(db)
+    items, total = await service.list_for_user(
         current_user.id,
         limit=pagination.limit,
         offset=pagination.offset,
@@ -56,12 +56,7 @@ async def mark_read(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    repo = NotificationsRepository(db)
-    n = await repo.get_by_id(notification_id)
-    if not n or n.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Notification not found")
-    await repo.mark_read(n)
-    await db.commit()
+    await NotificationsService(db).mark_read(current_user.id, notification_id)
 
 
 @router.patch("/read-all", status_code=204)
@@ -69,9 +64,7 @@ async def mark_all_read(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    repo = NotificationsRepository(db)
-    await repo.mark_all_read(current_user.id)
-    await db.commit()
+    await NotificationsService(db).mark_all_read(current_user.id)
 
 
 @router.get("/preferences", response_model=NotificationPreferenceResponse)
@@ -79,13 +72,12 @@ async def get_preferences(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    repo = NotificationsRepository(db)
-    prefs = await repo.get_or_create_preferences(current_user.id)
-    await db.commit()
+    prefs = await NotificationsService(db).get_preferences(current_user.id)
     return NotificationPreferenceResponse(
         email_enabled=prefs.email_enabled,
         push_enabled=prefs.push_enabled,
         marketing_enabled=prefs.marketing_enabled,
+        locale=prefs.locale,
     )
 
 
@@ -95,17 +87,16 @@ async def update_preferences(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    repo = NotificationsRepository(db)
-    prefs = await repo.get_or_create_preferences(current_user.id)
-    if payload.email_enabled is not None:
-        prefs.email_enabled = payload.email_enabled
-    if payload.push_enabled is not None:
-        prefs.push_enabled = payload.push_enabled
-    if payload.marketing_enabled is not None:
-        prefs.marketing_enabled = payload.marketing_enabled
-    await db.commit()
+    prefs = await NotificationsService(db).update_preferences(
+        current_user.id,
+        email_enabled=payload.email_enabled,
+        push_enabled=payload.push_enabled,
+        marketing_enabled=payload.marketing_enabled,
+        locale=payload.locale,
+    )
     return NotificationPreferenceResponse(
         email_enabled=prefs.email_enabled,
         push_enabled=prefs.push_enabled,
         marketing_enabled=prefs.marketing_enabled,
+        locale=prefs.locale,
     )

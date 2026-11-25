@@ -81,13 +81,13 @@ class IdentityService:
             raise HTTPException(status_code=403, detail="Verify your email before signing in")
         if user.mfa_enabled:
             try:
-                import pyotp
+                from pyotp.totp import TOTP
             except ImportError as exc:
                 raise HTTPException(status_code=501, detail="MFA not available") from exc
             if (
                 not mfa_code
                 or not user.mfa_secret
-                or not pyotp.TOTP(user.mfa_secret).verify(mfa_code, valid_window=1)
+                or not TOTP(user.mfa_secret).verify(mfa_code, valid_window=1)
             ):
                 raise HTTPException(
                     status_code=401,
@@ -161,6 +161,8 @@ class IdentityService:
         user_id = await redis_client.get(key)
         if not user_id:
             raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+        if isinstance(user_id, bytes):
+            user_id = user_id.decode()
 
         user = await self.repo.get_user_by_id(user_id)
         if not user:
@@ -248,6 +250,8 @@ class IdentityService:
         user_id = await redis_client.get(key)
         if not user_id:
             raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        if isinstance(user_id, bytes):
+            user_id = user_id.decode()
 
         user = await self.repo.get_user_by_id(user_id)
         if not user:
@@ -263,6 +267,7 @@ class IdentityService:
     async def mfa_enable(self, user: User) -> dict:
         try:
             import pyotp
+            from pyotp.totp import TOTP
         except ImportError:
             raise HTTPException(
                 status_code=501, detail="MFA not available (pyotp not installed)"
@@ -273,7 +278,7 @@ class IdentityService:
         key = f"mfa_pending:{user.id}"
         await redis_client.setex(key, 600, secret)  # 10 min to complete setup
 
-        totp = pyotp.TOTP(secret)
+        totp = TOTP(secret)
         uri = totp.provisioning_uri(
             name=user.email, issuer_name=await self._get_platform_app_name()
         )
@@ -281,7 +286,7 @@ class IdentityService:
 
     async def mfa_verify_enable(self, user: User, code: str) -> None:
         try:
-            import pyotp
+            from pyotp.totp import TOTP
         except ImportError:
             raise HTTPException(status_code=501, detail="MFA not available") from None
 
@@ -289,8 +294,10 @@ class IdentityService:
         secret = await redis_client.get(key)
         if not secret:
             raise HTTPException(status_code=400, detail="MFA setup session expired. Start again.")
+        if isinstance(secret, bytes):
+            secret = secret.decode()
 
-        if not pyotp.TOTP(secret).verify(code, valid_window=1):
+        if not TOTP(secret).verify(code, valid_window=1):
             raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
         user.mfa_secret = secret
@@ -300,14 +307,14 @@ class IdentityService:
 
     async def mfa_disable(self, user: User, code: str) -> None:
         try:
-            import pyotp
+            from pyotp.totp import TOTP
         except ImportError:
             raise HTTPException(status_code=501, detail="MFA not available") from None
 
         if not user.mfa_enabled or not user.mfa_secret:
             raise HTTPException(status_code=400, detail="MFA is not enabled")
 
-        if not pyotp.TOTP(user.mfa_secret).verify(code, valid_window=1):
+        if not TOTP(user.mfa_secret).verify(code, valid_window=1):
             raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
         user.mfa_enabled = False

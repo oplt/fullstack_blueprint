@@ -13,10 +13,22 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
+from backend.modules.ai.agent_workflow_service import AgentWorkflowService
 from backend.modules.ai.application.agent_service import AgentService
 from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
-from backend.modules.ai.schemas import AiRunRequest, AiRunResponse
-from backend.modules.ai.serializers import run_to_response
+from backend.modules.ai.schemas import (
+    AiAgentDefinitionCreate,
+    AiAgentDefinitionResponse,
+    AiRunRequest,
+    AiRunResponse,
+    AiWorkflowRunCreate,
+    AiWorkflowRunResponse,
+)
+from backend.modules.ai.serializers import (
+    agent_definition_to_response,
+    run_to_response,
+    workflow_run_to_response,
+)
 from backend.modules.identity_access.models import User
 
 router = APIRouter()
@@ -95,3 +107,88 @@ async def create_agent_run(
     except TimeoutError as exc:
         raise HTTPException(status_code=504, detail="Agent run timed out") from exc
     return _agent_run_to_response(run).model_copy(update={"memory_run_id": memory_run_id})
+
+
+@router.get("/definitions", response_model=list[AiAgentDefinitionResponse])
+async def list_agent_definitions(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    definitions = await AgentWorkflowService(db).list_definitions(current_user)
+    return [agent_definition_to_response(item) for item in definitions]
+
+
+@router.post("/definitions", response_model=AiAgentDefinitionResponse, status_code=201)
+async def create_agent_definition(
+    payload: AiAgentDefinitionCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    definition = await AgentWorkflowService(db).create_definition(current_user, payload)
+    await db.commit()
+    await db.refresh(definition)
+    return agent_definition_to_response(definition)
+
+
+@router.post("/workflow-runs", response_model=AiWorkflowRunResponse, status_code=201)
+async def start_agent_workflow(
+    payload: AiWorkflowRunCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(enforce_ai_generation_rate_limit),
+):
+    workflow = await AgentWorkflowService(db).start(
+        current_user,
+        definition_id=payload.definition_id,
+        user_message=payload.user_message,
+        idempotency_key=payload.idempotency_key,
+    )
+    return workflow_run_to_response(workflow)
+
+
+@router.get("/workflow-runs/{workflow_id}", response_model=AiWorkflowRunResponse)
+async def get_agent_workflow(
+    workflow_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    workflow = await AgentWorkflowService(db).get(current_user, workflow_id)
+    return workflow_run_to_response(workflow)
+
+
+@router.post(
+    "/workflow-runs/{workflow_id}/approvals/{approval_id}",
+    response_model=AiWorkflowRunResponse,
+)
+async def approve_agent_workflow(
+    workflow_id: str,
+    approval_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(enforce_ai_generation_rate_limit),
+):
+    workflow = await AgentWorkflowService(db).approve_and_resume(
+        current_user, workflow_id, approval_id
+    )
+    return workflow_run_to_response(workflow)
+
+
+@router.post("/workflow-runs/{workflow_id}/cancel", response_model=AiWorkflowRunResponse)
+async def cancel_agent_workflow(
+    workflow_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    workflow = await AgentWorkflowService(db).cancel(current_user, workflow_id)
+    return workflow_run_to_response(workflow)
+
+
+@router.post("/workflow-runs/{workflow_id}/resume", response_model=AiWorkflowRunResponse)
+async def resume_agent_workflow(
+    workflow_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(enforce_ai_generation_rate_limit),
+):
+    workflow = await AgentWorkflowService(db).resume(current_user, workflow_id)
+    return workflow_run_to_response(workflow)

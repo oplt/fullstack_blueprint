@@ -5,6 +5,10 @@ import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from datetime import UTC, datetime
 
+from fastapi import HTTPException, UploadFile
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.storage import ObjectStorageError, StorageNotConfiguredError
 from backend.lib.project_access import ProjectAccessPort, SqlAlchemyProjectAccessPort
 from backend.lib.retrieval_cache import invalidate_retrieval_cache_for_document
@@ -14,6 +18,7 @@ from backend.modules.rag.application.embedding_service import EmbeddingService
 from backend.modules.rag.application.rag_policy_service import RagPolicyService
 from backend.modules.rag.domain.enums import DocumentStatus, IngestionJobStatus
 from backend.modules.rag.infrastructure import metrics
+from backend.modules.rag.infrastructure.document_safety import DocumentSafetyService
 from backend.modules.rag.infrastructure.file_storage_adapter import (
     EmptyUploadError,
     FileStorageAdapter,
@@ -24,9 +29,6 @@ from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
 from backend.modules.rag.infrastructure.vector_store_adapter import build_vector_store
 from backend.modules.rag.workers import queue_document_cleanup, queue_document_indexing
-from fastapi import HTTPException, UploadFile
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,8 @@ class DocumentIngestionService:
         self.config = config or RagConfig.from_settings()
         self.repo = RagRepository(db)
         self.project_access: ProjectAccessPort = SqlAlchemyProjectAccessPort(db)
-        self.parser = DocumentParserService()
+        self.parser = DocumentParserService(self.config)
+        self.safety = DocumentSafetyService(self.config)
         self.chunker = ChunkingService(self.config)
         self.embeddings = EmbeddingService(self.config)
         self.policy = RagPolicyService()
@@ -296,6 +299,17 @@ class DocumentIngestionService:
                     detail="No file content available for indexing",
                 )
 
+            safety = getattr(self, "safety", None)
+            if safety is not None:
+                scan_result = await safety.scan(
+                    content,
+                    filename=document.original_filename,
+                )
+                job.malware_scan_status = scan_result.status
+                job.progress_percent = 10
+                job.last_heartbeat_at = datetime.now(UTC)
+                await self.db.commit()
+
             parsed = await self.parser.parse_bytes(
                 content=content,
                 filename=document.original_filename,
@@ -305,6 +319,8 @@ class DocumentIngestionService:
             if not parsed:
                 raise ValueError("No text extracted from document")
             metrics.rag_parse_success_total.inc()
+            job.progress_percent = 30
+            job.last_heartbeat_at = datetime.now(UTC)
 
             await self.repo.update_document_status(document, DocumentStatus.CHUNKING)
             await self.db.commit()
@@ -350,9 +366,13 @@ class DocumentIngestionService:
                     document.user_id,
                 )
             metrics.rag_chunk_count.observe(len(chunks))
+            job.progress_percent = 50
+            job.last_heartbeat_at = datetime.now(UTC)
 
             await self.repo.update_document_status(document, DocumentStatus.EMBEDDING)
             await self.db.commit()
+            job.progress_percent = 75
+            job.last_heartbeat_at = datetime.now(UTC)
 
             retrieval_chunks = [
                 chunk
@@ -397,6 +417,7 @@ class DocumentIngestionService:
             await self.repo.update_ingestion_job(
                 job, status=IngestionJobStatus.COMPLETED, finished=True
             )
+            job.progress_percent = 100
             document.updated_at = datetime.now(UTC)
             await self.db.commit()
             await self.db.refresh(document)

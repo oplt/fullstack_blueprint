@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 
 from backend.core.config import settings
@@ -19,10 +20,23 @@ class CorrelationContextFilter(logging.Filter):
         return True
 
 
+class JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "correlation_id": getattr(record, "correlation_id", "-"),
+        }
+        if record.exc_info and record.exc_info[0] is not None:
+            payload["exception_type"] = record.exc_info[0].__name__
+        return json.dumps(payload, ensure_ascii=True, default=str)
+
+
 def _build_formatter() -> logging.Formatter:
     if settings.LOG_FORMAT.lower() == "json":
-        # Keep text as default; JSON reserved for future structured shipping.
-        pass
+        return JsonFormatter()
     return logging.Formatter(
         fmt="%(asctime)s %(levelname)s [%(name)s] [correlation_id=%(correlation_id)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",

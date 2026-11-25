@@ -40,8 +40,7 @@ def cleanup_old_logs(log_file: Path, retention_days: int) -> int:
     Only removes files matching ``<log_file.name>.YYYY-MM-DD`` created by our handler.
     Returns the number of deleted files.
     """
-    if retention_days < 1:
-        retention_days = 1
+    retention_days = max(retention_days, 1)
 
     log_dir = log_file.parent
     if not log_dir.exists():

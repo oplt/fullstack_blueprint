@@ -152,7 +152,7 @@ class FileStorageAdapter:
             raise StorageNotConfiguredError("Object storage is not configured")
 
         def _get() -> bytes:
-            response = object_storage._client.get_object(  # noqa: SLF001
+            response = object_storage._client.get_object(
                 Bucket=settings.STORAGE_BUCKET,
                 Key=storage_path,
             )

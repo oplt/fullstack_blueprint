@@ -26,13 +26,13 @@ jobs:
       REFRESH_TOKEN_EXPIRE_DAYS: 7
       LOG_TO_FILE: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22.13.0"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: "0.8.17"
       - name: Install locked backend contract profile
@@ -73,7 +73,7 @@ jobs:
         working-directory: frontend
       - name: Upload frontend artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: frontend-validation-artifacts
           if-no-files-found: ignore
@@ -97,8 +97,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: "0.8.17"
       - name: Install locked backend dependencies
@@ -114,7 +114,7 @@ jobs:
         working-directory: backend
       - name: Upload backend test report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: backend-test-results
           if-no-files-found: ignore
@@ -183,13 +183,13 @@ jobs:
       E2E_API_URL: http://127.0.0.1:8000
       E2E_WORKERS: 1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22.13.0"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: "0.8.17"
       - name: Install locked backend dependencies
@@ -233,7 +233,7 @@ jobs:
         working-directory: frontend
       - name: Upload browser and service logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: e2e-browser-artifacts
           if-no-files-found: ignore

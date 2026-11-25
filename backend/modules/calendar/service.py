@@ -1,4 +1,5 @@
 from datetime import date
+from typing import cast
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,11 +13,15 @@ from backend.lib.resource_cache import (
 )
 from backend.modules.calendar.models import CalendarEntry
 from backend.modules.calendar.repository import CalendarRepository
-from backend.modules.calendar.schemas import CalendarItemCreate, CalendarItemResponse
+from backend.modules.calendar.schemas import (
+    CalendarItemCreate,
+    CalendarItemResponse,
+    CalendarItemType,
+)
 from backend.modules.identity_access.models import User
 from backend.modules.projects.models import Project, ProjectTask
 from backend.modules.projects.repository import ProjectsRepository
-from backend.modules.projects.schemas import ProjectTaskCreate
+from backend.modules.projects.schemas import ProjectTaskCreate, TaskPriority, TaskStatus
 from backend.modules.projects.service import ProjectsService
 
 
@@ -136,7 +141,7 @@ class CalendarService:
         return CalendarItemResponse(
             id=entry.id,
             source="planner",
-            type=entry.type,
+            type=cast(CalendarItemType, entry.type),
             title=entry.title,
             description=entry.description,
             date=entry.scheduled_for,
@@ -159,7 +164,7 @@ class CalendarService:
             date=task.due_date,
             project_id=project.id,
             project_name=project.name,
-            priority=task.priority,
-            status=task.status,
+            priority=cast(TaskPriority, task.priority),
+            status=cast(TaskStatus, task.status),
             created_at=task.created_at,
         )

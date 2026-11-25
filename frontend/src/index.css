@@ -203,6 +203,267 @@
   --motion-easing: cubic-bezier(0.2, 0, 0, 1);
 }
 
+@layer components {
+  .responsive-card-grid,
+  .form-grid,
+  .workspace-split,
+  .calendar-month-grid {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    gap: var(--layout-gap, var(--spacing-section-gap));
+  }
+
+  .responsive-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .workspace-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calendar-month-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .workspace-split > aside {
+    min-width: 0;
+  }
+
+  .page-shell {
+    position: relative;
+    width: 100%;
+    padding: 20px 16px;
+  }
+
+  .page-shell__content {
+    display: flex;
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    flex-direction: column;
+    gap: var(--spacing-section-gap);
+    container-type: inline-size;
+    container-name: page-content;
+  }
+
+  .page-shell--dense {
+    padding-block: 12px;
+  }
+
+  .page-shell__content[data-width="xs"],
+  .page-shell__content[data-width="compact"] {
+    max-width: 600px;
+  }
+
+  .page-shell__content[data-width="sm"] {
+    max-width: 600px;
+  }
+
+  .page-shell__content[data-width="md"],
+  .page-shell__content[data-width="readable"] {
+    max-width: 900px;
+  }
+
+  .page-shell__content[data-width="lg"],
+  .page-shell__content[data-width="default"] {
+    max-width: 1200px;
+  }
+
+  .page-shell__content[data-width="full"] {
+    max-width: none;
+  }
+
+  .surface-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
+  }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-gap, var(--spacing-section-gap));
+  }
+
+  .inline {
+    display: flex;
+    align-items: center;
+    gap: var(--layout-gap, var(--spacing-md));
+  }
+
+  .dashboard-grid {
+    display: grid;
+    align-items: stretch;
+    gap: var(--spacing-section-gap);
+  }
+
+  .dashboard-project-list {
+    gap: var(--spacing-sm);
+  }
+
+  .dashboard-project,
+  .dashboard-health__item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--card);
+  }
+
+  .dashboard-project {
+    padding: var(--spacing-md);
+    cursor: pointer;
+  }
+
+  .dashboard-health {
+    display: flex;
+    flex: 1;
+    gap: var(--spacing-sm);
+  }
+
+  .dashboard-health__item {
+    flex: 1;
+    padding: var(--spacing-sm);
+  }
+
+  .metric-tile,
+  .trace-step {
+    border-radius: var(--radius-md);
+    background: var(--muted);
+  }
+
+  .metric-tile {
+    padding: var(--spacing-sm);
+  }
+
+  .trace-step {
+    border-left: 3px solid var(--primary);
+    padding: var(--spacing-sm);
+  }
+
+  .trace-step--error {
+    border-left-color: var(--destructive);
+  }
+
+  .trace-step--warning {
+    border-left-color: var(--warning);
+  }
+
+  @media (min-width: 600px) {
+    .responsive-card-grid[data-columns="2"],
+    .responsive-card-grid[data-columns="3"],
+    .responsive-card-grid[data-columns="4"],
+    .form-grid[data-columns="2"],
+    .form-grid[data-columns="3"],
+    .form-grid[data-columns="4"],
+    .form-grid[data-columns="6-6"],
+    .form-grid[data-columns="4-4-4"],
+    .form-grid[data-columns="8-4"],
+    .form-grid[data-columns="4-8"],
+    .form-grid[data-columns="3-9"],
+    .form-grid[data-columns="9-3"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 900px) {
+    .calendar-month-grid[data-columns="3"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .workspace-split[data-side-from="md"] {
+      grid-template-columns: var(--workspace-main, minmax(0, 1fr)) var(--workspace-side, minmax(280px, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .workspace-split[data-side-from="lg"] {
+      grid-template-columns: var(--workspace-main, minmax(0, 1fr)) var(--workspace-side, minmax(280px, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .responsive-card-grid[data-columns="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .responsive-card-grid[data-columns="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .form-grid[data-columns="3"],
+    .form-grid[data-columns="4-4-4"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .form-grid[data-columns="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .form-grid[data-columns="8-4"] {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+
+    .form-grid[data-columns="4-8"] {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    }
+
+    .form-grid[data-columns="3-9"] {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    }
+
+    .form-grid[data-columns="9-3"] {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+    }
+
+    .workspace-split[data-side-from="xl"],
+    .workspace-split[data-side-from="lg"] {
+      grid-template-columns: var(--workspace-main, minmax(0, 1fr)) var(--workspace-side, minmax(280px, 1fr));
+    }
+
+    .calendar-month-grid[data-columns="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .calendar-month-grid[data-columns="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 640px) {
+    .page-shell {
+      padding: 24px;
+    }
+  }
+
+  @container page-content (min-width: 600px) {
+    .responsive-card-grid[data-columns="2"],
+    .responsive-card-grid[data-columns="3"],
+    .responsive-card-grid[data-columns="4"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container page-content (min-width: 1280px) {
+    .responsive-card-grid[data-columns="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .responsive-card-grid[data-columns="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+}
+
 @layer base {
   html,
   body,

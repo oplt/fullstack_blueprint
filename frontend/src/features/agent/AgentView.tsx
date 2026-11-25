@@ -587,18 +587,7 @@ export default function AgentView() {
                                             {traceSteps.map((step) => (
                                                 <div
                                                     key={step.id}
-                                                    style={{
-                                                        padding: 12,
-                                                        borderRadius: 4,
-                                                        backgroundColor: "action.hover",
-                                                        borderLeft: 3,
-                                                        borderColor:
-                                                            step.status === "error"
-                                                                ? "error.main"
-                                                                : step.status === "warn"
-                                                                  ? "warning.main"
-                                                                  : "primary.main",
-                                                    }}
+                                                    className={`trace-step ${step.status === "error" ? "trace-step--error" : step.status === "warn" ? "trace-step--warning" : "trace-step--default"}`}
                                                 >
                                                     <div className="flex flex-col sm:flex-row gap-[8px] justify-between">
                                                         <p>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from backend.modules.ai.schemas import (
+    AiAgentDefinitionResponse,
     AiDocumentResponse,
     AiEvaluationCaseResponse,
     AiEvaluationDatasetResponse,
@@ -9,7 +10,50 @@ from backend.modules.ai.schemas import (
     AiPromptVersionResponse,
     AiReviewItemResponse,
     AiRunResponse,
+    AiWorkflowRunResponse,
 )
+
+
+def agent_definition_to_response(definition) -> AiAgentDefinitionResponse:
+    return AiAgentDefinitionResponse(
+        id=definition.id,
+        key=definition.key,
+        name=definition.name,
+        version=definition.version,
+        instructions=definition.instructions,
+        provider_key=definition.provider_key,
+        model_name=definition.model_name,
+        tool_ids=definition.tool_ids_json,
+        max_steps=definition.max_steps,
+        max_tool_calls=definition.max_tool_calls,
+        max_tokens=definition.max_tokens,
+        max_cost_micros=definition.max_cost_micros,
+        timeout_seconds=definition.timeout_seconds,
+        is_active=definition.is_active,
+        created_at=definition.created_at,
+        updated_at=definition.updated_at,
+    )
+
+
+def workflow_run_to_response(workflow) -> AiWorkflowRunResponse:
+    return AiWorkflowRunResponse(
+        id=workflow.id,
+        user_id=workflow.user_id,
+        tenant_id=workflow.tenant_id,
+        agent_definition_id=workflow.agent_definition_id,
+        status=workflow.status,
+        current_step=workflow.current_step,
+        state=workflow.state_json,
+        checkpoint=workflow.checkpoint_json,
+        input_tokens=workflow.input_tokens,
+        output_tokens=workflow.output_tokens,
+        estimated_cost_micros=workflow.estimated_cost_micros,
+        cancellation_requested=workflow.cancellation_requested,
+        last_error=workflow.last_error,
+        created_at=workflow.created_at,
+        updated_at=workflow.updated_at,
+        completed_at=workflow.completed_at,
+    )
 
 
 def run_to_response(run) -> AiRunResponse:

@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from backend.core.schemas import RequestModel
 from pydantic import BaseModel, ConfigDict, Field
+
+from backend.core.schemas import RequestModel
 
 
 class MemoryMetadataResponse(BaseModel):
@@ -18,6 +19,10 @@ class MemoryMetadataResponse(BaseModel):
     source_ref: str | None = None
     confidence: float = 0.0
     privacy: str = "normal"
+    scope: str | None = None
+    expires_at: datetime | None = None
+    consent_status: str | None = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
     version: int = 1
     created_at: datetime | None = None
     last_seen_at: datetime | None = None
@@ -44,6 +49,8 @@ class MemoryWriteRequest(RequestModel):
     source_ref: str | None = None
     confidence: float = Field(default=0.85, ge=0.0, le=1.0)
     privacy: str = "normal"
+    consent_status: str = Field(default="implicit", pattern="^(implicit|explicit|withdrawn)$")
+    retention_days: int | None = Field(default=None, ge=1, le=3650)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -65,6 +72,11 @@ class MemorySearchRequestBody(RequestModel):
 
 
 class MemoryForgetRequest(RequestModel):
+    reason: str = Field(min_length=3, max_length=500)
+
+
+class MemoryCorrectionRequest(RequestModel):
+    content: str = Field(min_length=3, max_length=4000)
     reason: str = Field(min_length=3, max_length=500)
 
 

@@ -113,7 +113,7 @@ async def create_plan(
         resource_id=plan.id,
         metadata={"code": plan.code},
     )
-    await db.commit()
+    await service.save()
     return _plan_to_response(plan)
 
 
@@ -135,5 +135,5 @@ async def update_plan(
         resource_type="subscription_plan",
         resource_id=plan.id,
     )
-    await db.commit()
+    await service.save()
     return _plan_to_response(plan)

@@ -17,7 +17,7 @@ from backend.modules.rag.infrastructure.config_models import (
 
 SUPPORTED_VECTOR_BACKENDS = frozenset({"pgvector"})
 SUPPORTED_FUSION_METHODS = frozenset({"rrf"})
-SUPPORTED_PDF_PARSERS = frozenset({"auto", "pymupdf", "pypdf"})
+SUPPORTED_PDF_PARSERS = frozenset({"auto", "pymupdf", "pypdf", "docling"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +34,10 @@ class RagConfig:
     max_context_tokens: int
     allowed_file_types: tuple[str, ...]
     max_file_bytes: int
+    malware_scan_enabled: bool = False
+    malware_scan_required: bool = False
+    malware_scanner: str = "none"
+    docling_enabled: bool = False
     embedding_model_version: str | None = None
     embedding_preprocessing_version: str = "unicode-nfc-v1"
     rerank_enabled: bool = False
@@ -205,6 +209,10 @@ class RagConfig:
             max_context_tokens=settings.RAG_MAX_CONTEXT_TOKENS,
             allowed_file_types=allowed or ("pdf", "txt", "md", "docx", "csv"),
             max_file_bytes=settings.RAG_MAX_FILE_BYTES,
+            malware_scan_enabled=settings.RAG_MALWARE_SCAN_ENABLED,
+            malware_scan_required=settings.RAG_MALWARE_SCAN_REQUIRED,
+            malware_scanner=settings.RAG_MALWARE_SCANNER.strip().lower() or "none",
+            docling_enabled=settings.RAG_DOCLING_ENABLED,
             dense_candidates=max(1, settings.RAG_DENSE_CANDIDATES),
             lexical_candidates=max(1, settings.RAG_LEXICAL_CANDIDATES),
             fusion_method=settings.RAG_FUSION_METHOD.lower().strip() or "rrf",
@@ -258,6 +266,12 @@ def validate_rag_config(config: RagConfig | None = None) -> None:
             f"RAG_PDF_PARSER={resolved.pdf_parser!r} is not supported. "
             f"Supported parsers: {supported}."
         )
+    if resolved.pdf_parser == "docling" and not resolved.docling_enabled:
+        raise RuntimeError("RAG_PDF_PARSER=docling requires RAG_DOCLING_ENABLED=true")
+    if resolved.malware_scanner not in {"none", "clamd"}:
+        raise RuntimeError("RAG_MALWARE_SCANNER must be 'none' or 'clamd'")
+    if resolved.malware_scan_required and not resolved.malware_scan_enabled:
+        raise RuntimeError("RAG_MALWARE_SCAN_REQUIRED requires RAG_MALWARE_SCAN_ENABLED=true")
     if resolved.dense_candidates < resolved.top_k:
         raise RuntimeError("RAG_DENSE_CANDIDATES must be >= RAG_TOP_K")
     if resolved.lexical_candidates < 1:

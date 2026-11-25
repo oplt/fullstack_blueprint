@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.db.base import Base
@@ -41,6 +41,15 @@ class MemoryRegistry(Base):
     project_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     memory_level: Mapped[str] = mapped_column(String(32), index=True)
     memory_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    scope: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    consent_status: Mapped[str] = mapped_column(String(32), default="implicit")
+    retention_policy: Mapped[str] = mapped_column(String(64), default="default")
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    provenance_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    conflict_status: Mapped[str] = mapped_column(String(32), default="unreviewed")
+    corrected_by_external_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="active", index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)

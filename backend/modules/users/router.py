@@ -79,7 +79,7 @@ async def change_password(
         resource_type="user",
         resource_id=current_user.id,
     )
-    await db.commit()
+    await service.save()
 
 
 @router.get("/me/sessions", response_model=list[SessionResponse])
@@ -111,4 +111,4 @@ async def revoke_session(
         resource_type="refresh_session",
         resource_id=session_id,
     )
-    await db.commit()
+    await service.save()

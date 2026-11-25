@@ -62,6 +62,8 @@ For a deployment with a read-only home directory, export a writable `MEM0_DIR` i
 ```sh
 make check
 make test
+make coverage
+make security-audit
 cd frontend
 npm run audit
 npm run build

@@ -74,6 +74,13 @@ Set `MEMORY_ENABLED=false` or leave `MEM0_API_KEY` empty to run chat without mem
 
 Retrieved memories are appended as background context with an explicit instruction not to override system safety rules.
 
+Memory records are editable context, not audit records. Phase 07 adds explicit
+consent, provenance, confidence, content-hash deduplication, retention/TTL,
+sensitive-information filtering, correction, export, and deletion propagation
+through the Mem0 adapter, local registry, and search cache. Correction and
+export are available at `/api/v1/memory/{id}/correct` and
+`/api/v1/memory/export`; all operations remain authenticated and project-scoped.
+
 ## Database
 
 ```sh

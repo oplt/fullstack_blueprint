@@ -100,5 +100,6 @@ describe("grids", () => {
             </ResponsiveCardGrid>
         );
         expect(screen.getByText("C")).toBeInTheDocument();
+        expect(screen.getByText("C").parentElement).toHaveClass("responsive-card-grid");
     });
 });

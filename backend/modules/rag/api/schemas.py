@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from backend.core.schemas import RequestModel
 from pydantic import BaseModel, ConfigDict, Field
+
+from backend.core.schemas import RequestModel
 
 
 class RagDocumentResponse(BaseModel):
@@ -52,6 +53,14 @@ class RagIngestionJobResponse(BaseModel):
     error_message: str | None
     started_at: datetime | None
     finished_at: datetime | None
+    progress_percent: int = 0
+    retry_count: int = 0
+    max_retries: int = 3
+    idempotency_key: str | None = None
+    parser_version: str | None = None
+    malware_scan_status: str = "pending"
+    last_heartbeat_at: datetime | None = None
+    error_code: str | None = None
     created_at: datetime
 
 

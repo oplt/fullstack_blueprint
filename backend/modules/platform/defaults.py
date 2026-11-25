@@ -1,5 +1,7 @@
 from typing import TypedDict
 
+from backend.modules.capabilities import CAPABILITY_REGISTRY
+
 
 class ModuleCatalogDefinition(TypedDict):
     key: str
@@ -42,43 +44,23 @@ class EmailTemplateDefinition(TypedDict):
     is_active: bool
 
 
-MODULE_CATALOG: tuple[ModuleCatalogDefinition, ...] = (
+_MODULE_PACK_CAPABILITY_ORDER = (
+    "ai",
+    "billing",
+    "api_keys",
+    "webhooks",
+    "feature_flags",
+    "email_templates",
+)
+_CAPABILITY_BY_ID = {item.identifier: item for item in CAPABILITY_REGISTRY.all()}
+MODULE_CATALOG: tuple[ModuleCatalogDefinition, ...] = tuple(
     {
-        "key": "ai",
-        "label": "AI",
-        "description": "Prompt ops, document retrieval, reviews, and evaluations.",
-        "user_visible": True,
-    },
-    {
-        "key": "billing",
-        "label": "Billing",
-        "description": "Plan catalog and subscription management.",
-        "user_visible": True,
-    },
-    {
-        "key": "api_keys",
-        "label": "API Keys",
-        "description": "User-managed credentials for integrations and automation.",
-        "user_visible": True,
-    },
-    {
-        "key": "webhooks",
-        "label": "Webhooks",
-        "description": "Outbound event delivery to external systems.",
-        "user_visible": True,
-    },
-    {
-        "key": "feature_flags",
-        "label": "Feature Flags",
-        "description": "Runtime rollout controls for features and experiments.",
-        "user_visible": True,
-    },
-    {
-        "key": "email_templates",
-        "label": "Email Templates",
-        "description": "Customizable transactional email content.",
-        "user_visible": False,
-    },
+        "key": identifier,
+        "label": _CAPABILITY_BY_ID[identifier].label,
+        "description": _CAPABILITY_BY_ID[identifier].description,
+        "user_visible": _CAPABILITY_BY_ID[identifier].user_visible,
+    }
+    for identifier in _MODULE_PACK_CAPABILITY_ORDER
 )
 
 MODULE_PACKS: dict[str, ModulePackDefinition] = {

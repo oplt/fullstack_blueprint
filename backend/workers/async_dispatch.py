@@ -50,7 +50,7 @@ class _WorkerAsyncRuntime:
 
             engine, self._sessionmaker = create_worker_sessionmaker()
             self._loop = loop
-        except BaseException as exc:  # noqa: BLE001
+        except BaseException as exc:
             self._startup_error = exc
         finally:
             self._ready.set()

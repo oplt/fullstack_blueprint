@@ -8,9 +8,10 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi",
+    "starlette>=1.1.0",
     "uvicorn[standard]",
     "celery",
-    "sqlalchemy",
+    "sqlalchemy[asyncio]",
     "asyncpg",
     "alembic",
     "redis",
@@ -22,7 +23,7 @@ dependencies = [
     "httpx",
     "aiosmtplib",
     "pyotp",
-    "sentry-sdk[fastapi]",
+    "sentry-sdk",
     "prometheus-client",
     "prometheus-fastapi-instrumentator",
     "opentelemetry-api",
@@ -32,19 +33,31 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-http",
     "opentelemetry-exporter-otlp-proto-grpc",
     "pgvector",
+    "cryptography>=43.0.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
 memory = ["mem0ai"]
 storage = ["boto3"]
-rag = ["boto3", "langchain-text-splitters", "pypdf", "python-docx"]
+rag = ["boto3", "langchain-community", "langchain-text-splitters", "pypdf", "python-docx"]
 rag-eval = ["simplemma"]
+ai = ["pydantic-ai-slim[openai,anthropic]>=1.0"]
+agentic = ["mcp>=1.0"]
+durable = ["temporalio>=1.7"]
 # pip install -e ".[dev]" (CI / local). Keep in sync with [dependency-groups].dev.
 dev = [
     "honcho>=2.0.0",
+    "import-linter>=2.3.0",
+    "openapi-spec-validator>=0.7.2",
+    "pip-audit>=2.9.0",
+    "pre-commit>=4.0.0",
+    "pyright>=1.1.390",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-cov>=6.0.0",
     "ruff>=0.11.2",
+    "langchain-community",
     "langchain-text-splitters",
     "pypdf",
     "python-docx",
@@ -73,8 +86,33 @@ exclude = [
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 6
+max-branches = 12
+max-returns = 6
+max-statements = 50
+
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
+select = [
+    "E",     # Style
+    "F",     # Python errors
+    "I",     # Import sorting
+    "UP",    # Modern Python
+    "B",     # Potential bugs
+    "SIM",   # Simplification
+    "C90",   # Cyclomatic complexity
+    "PLR",   # Structural complexity
+    "ARG",   # Unused arguments
+    "S",     # Security
+    "ASYNC", # Async correctness
+    "RUF",   # Ruff-specific rules
+    "PERF",  # Performance
+    "T20",   # Print statements
+]
+extend-select = ["C90", "PLR0912", "PLR0915", "PLR0913"]
 ignore = ["B008"]  # FastAPI Depends() in defaults
 
 [tool.ruff.lint.per-file-ignores]
@@ -84,8 +122,14 @@ ignore = ["B008"]  # FastAPI Depends() in defaults
 [dependency-groups]
 dev = [
     "honcho>=2.0.0",
+    "import-linter>=2.3.0",
+    "openapi-spec-validator>=0.7.2",
+    "pip-audit>=2.9.0",
+    "pre-commit>=4.0.0",
+    "pyright>=1.1.390",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-cov>=6.0.0",
     "ruff>=0.11.2",
     "langchain-text-splitters",
     "pypdf",
@@ -98,3 +142,50 @@ package = true
 
 [tool.pytest.ini_options]
 faulthandler_timeout = 30
+testpaths = ["tests", "modules"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+branch = true
+source = ["backend"]
+parallel = true
+omit = [
+    "backend/alembic/*",
+    "backend/scripts/*",
+    "backend/**/tests/*",
+    "backend/modules/rag/eval/*",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+skip_covered = true
+show_missing = true
+
+[tool.pyright]
+include = ["."]
+venvPath = "."
+venv = ".venv"
+exclude = [
+    "**/__pycache__",
+    ".venv",
+    "**/tests",
+    "modules/rag/eval",
+    "alembic/versions",
+]
+extraPaths = [".."]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+reportMissingTypeStubs = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownParameterType = "none"
+reportMissingImports = "error"
+reportOptionalMemberAccess = "error"
+reportOptionalSubscript = "error"
+reportArgumentType = "error"
+reportReturnType = "error"
