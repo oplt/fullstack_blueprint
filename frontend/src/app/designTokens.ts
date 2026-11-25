@@ -201,13 +201,13 @@ const defaultPreferences: ThemePreferences = {
     density: "comfortable",
 };
 
-export const fonts = {
+const fonts = {
     display: "\"Cormorant Garamond\", \"EB Garamond\", Georgia, \"Times New Roman\", serif",
     text: "Inter, Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
     mono: "\"JetBrains Mono\", \"IBM Plex Mono\", ui-monospace, SFMono-Regular, Menlo, monospace",
 } as const;
 
-export const motion = {
+const motion = {
     durationMs: 220,
     easing: "cubic-bezier(0.2, 0, 0, 1)",
 } as const;

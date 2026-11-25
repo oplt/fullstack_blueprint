@@ -34,7 +34,7 @@ export type LayoutVariant =
     | "public-marketing"
     | "ai-conversation";
 
-export type NavigationPlacement = "primary" | "settings";
+type NavigationPlacement = "primary" | "settings";
 export type NavigationIcon =
     | "dashboard"
     | "projects"
@@ -80,7 +80,7 @@ export type DeploymentConfiguration = {
     source: ConfigurationSource;
 };
 
-export type BrandingConfiguration = {
+type BrandingConfiguration = {
     logo?: string;
     logoAlt?: string;
     favicon?: string;

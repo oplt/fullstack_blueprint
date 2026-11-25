@@ -44,7 +44,7 @@ export type RagChunk = {
     metadata: Record<string, unknown>;
 };
 
-export type RagRetrievedChunk = {
+type RagRetrievedChunk = {
     chunk_id: string;
     document_id: string;
     content: string;
@@ -62,7 +62,7 @@ export type RagRetrieveResult = {
     injection_chunks_filtered: number;
 };
 
-export type RagCitation = {
+type RagCitation = {
     document_id: string;
     chunk_id: string;
     filename: string;

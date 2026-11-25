@@ -107,7 +107,7 @@ export const BACKEND_MODULE_PACK_KEYS = [
     "full_platform",
 ] as const;
 
-export function getCapabilityManifest(capability: CapabilityId): CapabilityManifest {
+function getCapabilityManifest(capability: CapabilityId): CapabilityManifest {
     return CAPABILITY_MANIFESTS[capability];
 }
 

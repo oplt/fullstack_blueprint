@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 
-function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
+export function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
       role="navigation"
@@ -16,7 +16,7 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   )
 }
 
-function PaginationContent({
+export function PaginationContent({
   className,
   ...props
 }: React.ComponentProps<"ul">) {
@@ -29,7 +29,7 @@ function PaginationContent({
   )
 }
 
-function PaginationItem({ ...props }: React.ComponentProps<"li">) {
+export function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />
 }
 
@@ -60,7 +60,7 @@ function PaginationLink({
   );
 }
 
-function PaginationPrevious({
+export function PaginationPrevious({
   className,
   text = "Previous",
   ...props
@@ -77,7 +77,7 @@ function PaginationPrevious({
   )
 }
 
-function PaginationNext({
+export function PaginationNext({
   className,
   text = "Next",
   ...props
@@ -94,7 +94,7 @@ function PaginationNext({
   )
 }
 
-function PaginationEllipsis({
+export function PaginationEllipsis({
   className,
   ...props
 }: React.ComponentProps<"span">) {
@@ -128,12 +128,12 @@ function PaginationControls({ count, page, rowsPerPage, onPageChange }: { count:
 }
 
 export {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+  
+  
+  
+  
+  
+  
+  
   PaginationControls,
 }

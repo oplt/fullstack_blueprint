@@ -1,6 +1,6 @@
 import { apiFetch, apiFetchItems, type ApiRequestOptions } from "./client";
 
-export type ModuleCatalogItem = {
+type ModuleCatalogItem = {
     key: string;
     label: string;
     description: string;
@@ -8,7 +8,7 @@ export type ModuleCatalogItem = {
     enabled: boolean;
 };
 
-export type ModulePack = {
+type ModulePack = {
     key: string;
     label: string;
     description: string;

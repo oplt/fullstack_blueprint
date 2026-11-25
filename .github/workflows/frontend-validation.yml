@@ -48,7 +48,7 @@ jobs:
         run: npm run lint
         working-directory: frontend
       - name: Type-check frontend
-        run: npx tsc -b
+        run: npm run typecheck
         working-directory: frontend
       - name: Verify generated API contract
         run: npm run api:check
@@ -71,6 +71,10 @@ jobs:
       - name: Build Storybook
         run: npm run storybook:build
         working-directory: frontend
+      - name: Detect unused frontend code
+        working-directory: frontend
+        run: npm run knip
+        continue-on-error: true
       - name: Upload frontend artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

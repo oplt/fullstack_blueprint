@@ -51,7 +51,7 @@ function AvatarFallback({
   )
 }
 
-function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
+export function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       data-slot="avatar-badge"
@@ -67,7 +67,7 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   )
 }
 
-function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
+export function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="avatar-group"
@@ -80,7 +80,7 @@ function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function AvatarGroupCount({
+export function AvatarGroupCount({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -100,7 +100,7 @@ export {
   Avatar,
   AvatarImage,
   AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-  AvatarBadge,
+  
+  
+  
 }

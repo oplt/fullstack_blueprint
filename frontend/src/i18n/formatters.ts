@@ -23,7 +23,7 @@ export function pluralKey(count: number, singular: string, plural = `${singular}
     return count === 1 ? `${singular}_one` : plural;
 }
 
-export function validationMessage(key: "required" | "email" | "minLength" | "invalid", options?: Record<string, number | string>): string {
+function validationMessage(key: "required" | "email" | "minLength" | "invalid", options?: Record<string, number | string>): string {
     return options ? i18nInstance.t(`validation.${key}`, options) : i18nInstance.t(`validation.${key}`);
 }
 

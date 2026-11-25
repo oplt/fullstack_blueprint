@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-export type AlertColor = "error" | "warning" | "info" | "success";
+type AlertColor = "error" | "warning" | "info" | "success";
 
 export type ToastOptions = {
     message: string;

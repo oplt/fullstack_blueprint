@@ -2,13 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Component, type PropsWithChildren } from "react";
 
 export class RouteErrorBoundary extends Component<PropsWithChildren, { failed: boolean }> {
-    state = { failed: false };
+    override state = { failed: false };
 
     static getDerivedStateFromError() {
         return { failed: true };
     }
 
-    render() {
+    override render() {
         if (!this.state.failed) return this.props.children;
 
         return (

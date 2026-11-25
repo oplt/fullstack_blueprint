@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "scripts/**/*.{js,mjs,ts}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,js,jsx}",
+    "scripts/**/*.{js,mjs,ts}"
+  ],
+  "ignoreIssues": {
+    "src/api/generated/**": ["files", "exports", "types"]
+  }
+}

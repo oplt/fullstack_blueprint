@@ -17,7 +17,7 @@ For a repeatable workflow, use the repository-local skills documented in [docs/f
 ```sh
 cd frontend
 npm run lint
-npx tsc -b
+npm run typecheck
 npm test -- --run
 npm run api:check
 npm run storybook:build

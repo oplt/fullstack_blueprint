@@ -25,7 +25,7 @@ export const PRESET_CAPABILITIES: Readonly<Record<ApplicationPreset, readonly Ca
     "internal-business": [...CORE_CAPABILITIES, "calendar", "observability"],
 };
 
-export const PRESET_THEME: Readonly<Record<ApplicationPreset, ThemePreset>> = {
+const PRESET_THEME: Readonly<Record<ApplicationPreset, ThemePreset>> = {
     minimal: "minimal-saas",
     saas: "minimal-saas",
     "ai-saas": "creative-ai",
@@ -71,7 +71,7 @@ export function buildConfigurationForPreset(
     };
 }
 
-export function deploymentConfigurationFor(
+function deploymentConfigurationFor(
     capabilities: readonly CapabilityId[],
     environment: DeploymentConfiguration["environment"] = "custom",
     source: ConfigurationSource = "deployment",
@@ -79,7 +79,7 @@ export function deploymentConfigurationFor(
     return { availableCapabilities: uniqueCapabilities(capabilities), environment, source };
 }
 
-export const DEFAULT_APPLICATION_CONFIGURATION: ApplicationConfiguration = {
+const DEFAULT_APPLICATION_CONFIGURATION: ApplicationConfiguration = {
     preset: "enterprise",
     appName: "Fullstack Blueprint",
     branding: {},

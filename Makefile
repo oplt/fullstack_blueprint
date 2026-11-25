@@ -2,6 +2,8 @@
 include Makefile.local
 
 .PHONY: setup backend-sync backend-lock backend-lock-check lint format check check-types typecheck architecture-check coverage test test-backend test-frontend api-contract-check blueprint-check phase11-check security-audit load-test backup restore
+.PHONY: dead-code dead-code-frontend dead-code-backend
+.PHONY: dead-code-production dead-code-backend-strict
 
 setup: backend-sync
 	cd frontend && npm ci
@@ -24,7 +26,7 @@ format:
 	$(VENV)/ruff format backend
 
 check-types:
-	cd frontend && ./node_modules/.bin/tsc -b
+	cd frontend && npm run typecheck
 
 typecheck:
 	cd backend && uv run --locked --all-extras pyright -p pyproject.toml
@@ -74,3 +76,21 @@ test-backend:
 
 test-frontend:
 	cd frontend && npm test
+
+dead-code-frontend:
+	cd frontend && npm run knip
+
+dead-code-backend:
+	cd backend && uv run --locked vulture
+
+dead-code-production:
+	cd frontend && npm run knip:production
+
+dead-code-backend-strict:
+	cd backend && uv run --locked vulture --min-confidence 100
+
+dead-code:
+	@status=0; \
+	$(MAKE) dead-code-frontend || status=1; \
+	$(MAKE) dead-code-backend || status=1; \
+	exit $$status

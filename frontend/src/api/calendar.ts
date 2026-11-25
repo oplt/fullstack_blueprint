@@ -2,7 +2,7 @@ import { apiFetch, type ApiRequestOptions } from "./client";
 import type { ProjectTaskPriority, ProjectTaskStatus } from "./projects";
 
 export type CalendarItemType = "event" | "appointment" | "task";
-export type CalendarItemSource = "planner" | "task";
+type CalendarItemSource = "planner" | "task";
 
 export type CalendarItem = {
     id: string;

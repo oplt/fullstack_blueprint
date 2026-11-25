@@ -1,7 +1,7 @@
 import { actionSchema, type GenerativeAction } from "../schemas";
 
 export type ActionContext = { conversationId?: string; componentId?: string };
-export type ActionResult = { status: "executed"; value?: unknown } | { status: "denied" | "failed"; reason: string };
+type ActionResult = { status: "executed"; value?: unknown } | { status: "denied" | "failed"; reason: string };
 export type ActionDispatcher = (action: GenerativeAction, context?: ActionContext) => Promise<ActionResult>;
 
 export function createGenerativeActionDispatcher(options: {

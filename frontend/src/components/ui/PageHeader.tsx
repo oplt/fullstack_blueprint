@@ -3,7 +3,7 @@ import { MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CSSProperties } from "react";
 
-export type PageHeaderOverflowItem = { id: string; label: ReactNode; onClick: () => void; disabled?: boolean };
+type PageHeaderOverflowItem = { id: string; label: ReactNode; onClick: () => void; disabled?: boolean };
 type PageHeaderProps = { title: ReactNode; description?: ReactNode; status?: ReactNode; primaryAction?: ReactNode; secondaryActions?: ReactNode; overflowItems?: PageHeaderOverflowItem[]; actions?: ReactNode; icon?: ReactNode; dense?: boolean; sx?: CSSProperties };
 
 export function PageHeader({ title, description, status, primaryAction, secondaryActions, overflowItems, actions, icon, dense = false, sx }: PageHeaderProps) {

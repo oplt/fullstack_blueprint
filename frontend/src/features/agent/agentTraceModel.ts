@@ -5,7 +5,7 @@
 
 import type { AgentRun } from "../../api/agent";
 
-export type AgentTraceCategory = "plan" | "tool" | "result" | "error" | "meta";
+type AgentTraceCategory = "plan" | "tool" | "result" | "error" | "meta";
 
 export type AgentTraceStep = {
     id: string;

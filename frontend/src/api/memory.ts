@@ -2,7 +2,7 @@ import { apiFetch, type ApiRequestOptions, type Paginated } from "./client";
 
 const BASE = "/memory";
 
-export type MemoryMetadata = {
+type MemoryMetadata = {
     memory_level: string;
     memory_type: string;
     user_id: string;
@@ -42,7 +42,7 @@ export type MemoryAuditLog = {
     created_at: string;
 };
 
-export type MemoryWriteResult = {
+type MemoryWriteResult = {
     memory_id: string;
     memory_level: string;
     memory_type: string;

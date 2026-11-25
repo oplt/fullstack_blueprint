@@ -6,7 +6,7 @@ export type ObservabilityToolLink = {
     allowed: boolean;
 };
 
-export type ObservabilityDashboards = {
+type ObservabilityDashboards = {
     application_overview: ObservabilityToolLink;
     api: ObservabilityToolLink;
     frontend: ObservabilityToolLink;

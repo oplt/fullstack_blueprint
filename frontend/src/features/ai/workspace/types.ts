@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const aiCitationSchema = z.object({
+const aiCitationSchema = z.object({
     id: z.string().min(1),
     title: z.string().min(1),
     url: z.string().optional(),
@@ -8,7 +8,7 @@ export const aiCitationSchema = z.object({
     sourceType: z.string().optional(),
 });
 
-export const aiArtifactSchema = z.object({
+const aiArtifactSchema = z.object({
     id: z.string().min(1),
     title: z.string().min(1),
     contentType: z.enum(["text", "markdown", "json", "image"]).default("text"),
@@ -18,7 +18,7 @@ export const aiArtifactSchema = z.object({
 
 const eventBase = z.object({ eventId: z.string().min(1).optional(), runId: z.string().min(1) });
 
-export const aiStreamEventSchema = z.discriminatedUnion("type", [
+const aiStreamEventSchema = z.discriminatedUnion("type", [
     eventBase.extend({ type: z.literal("run_started") }),
     eventBase.extend({ type: z.literal("message_started"), messageId: z.string().min(1), role: z.enum(["user", "assistant", "system"]) }),
     eventBase.extend({ type: z.literal("text_delta"), messageId: z.string().min(1), delta: z.string() }),
@@ -40,9 +40,9 @@ export type AiArtifact = z.infer<typeof aiArtifactSchema>;
 
 export type AiMessage = { id: string; role: "user" | "assistant" | "system"; content: string; citations: AiCitation[]; streaming?: boolean };
 export type AiToolCall = { id: string; name: string; input?: unknown; output?: unknown; status: "running" | "completed" | "failed" };
-export type AiApproval = { id: string; title: string; description?: string; actionLabel?: string; approved?: boolean; reason?: string };
+type AiApproval = { id: string; title: string; description?: string; actionLabel?: string; approved?: boolean; reason?: string };
 export type AiUsage = { inputTokens?: number; outputTokens?: number; totalTokens?: number; estimatedCostMicros?: number };
-export type AiStreamStatus = "idle" | "connecting" | "streaming" | "completed" | "cancelled" | "failed";
+type AiStreamStatus = "idle" | "connecting" | "streaming" | "completed" | "cancelled" | "failed";
 export type AiWorkspaceState = { runId?: string; status: AiStreamStatus; messages: AiMessage[]; toolCalls: AiToolCall[]; approvals: AiApproval[]; artifacts: AiArtifact[]; usage?: AiUsage; error?: string; seenEventIds: string[] };
 
 export const emptyAiWorkspaceState: AiWorkspaceState = { status: "idle", messages: [], toolCalls: [], approvals: [], artifacts: [], seenEventIds: [] };

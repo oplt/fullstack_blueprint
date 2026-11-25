@@ -11,7 +11,7 @@ The shared primitive layer is configured in [`components.json`](components.json)
 ```sh
 npm ci
 npm run lint
-npx tsc -b
+npm run typecheck
 npm test
 npm run build
 npm run api:generate:all

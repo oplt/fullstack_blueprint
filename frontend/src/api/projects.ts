@@ -10,7 +10,7 @@ export type Project = {
 export type ProjectTaskStatus = "backlog" | "todo" | "in_progress" | "review" | "done";
 export type ProjectTaskPriority = "low" | "medium" | "high" | "urgent";
 
-export type ProjectTaskAssignee = {
+type ProjectTaskAssignee = {
     id: string;
     email: string;
     full_name: string | null;

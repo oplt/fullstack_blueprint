@@ -26,7 +26,7 @@ export const ROUTES = {
     appRedirect: "/app",
 } as const;
 
-export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
+type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
 /** Build a project URL without allowing an id to change the route structure. */
 export function projectPath(projectId: string): string {

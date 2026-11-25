@@ -17,7 +17,7 @@ export function parseSseFrame(block: string): SseFrame | null {
     return data.length ? { event, id, retry, data: data.join("\n") } : null;
 }
 
-export async function* readSseFrames(response: Response, signal?: AbortSignal): AsyncGenerator<SseFrame> {
+async function* readSseFrames(response: Response, signal?: AbortSignal): AsyncGenerator<SseFrame> {
     if (!response.body) throw new Error("AI stream response did not include a body.");
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
     let buffer = "";
@@ -57,7 +57,7 @@ export async function* readAiStream(response: Response, signal?: AbortSignal): A
     }
 }
 
-export type AiStreamTransport = (path: string, options: RequestInit) => Promise<Response>;
+type AiStreamTransport = (path: string, options: RequestInit) => Promise<Response>;
 
 export async function* connectAiStream(path: string, { body, signal, transport = apiFetchStream, maxReconnectAttempts = 0, reconnectDelayMs = 1000 }: { body?: BodyInit; signal?: AbortSignal; transport?: AiStreamTransport; maxReconnectAttempts?: number; reconnectDelayMs?: number } = {}): AsyncGenerator<AiStreamEvent> {
     let attempt = 0;

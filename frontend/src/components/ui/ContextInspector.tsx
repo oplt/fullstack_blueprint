@@ -1,7 +1,0 @@
-import { X } from "lucide-react";
-import { Button } from "./button";
-import { SectionCard } from "./SectionCard";
-import type { CSSProperties } from "react";
-type ContextInspectorProps = { title?: React.ReactNode; description?: React.ReactNode; children: React.ReactNode; dismissible?: boolean; onDismiss?: () => void; sticky?: boolean; width?: number | { lg?: number; xl?: number }; sx?: CSSProperties };
-export function ContextInspector({ title = "Context", description, children, dismissible = false, onDismiss, sticky = true, width, sx }: ContextInspectorProps) { const widthValue = typeof width === "number" ? width : width?.lg; return <aside aria-label={typeof title === "string" ? title : "Contextual panel"} className={sticky ? "sticky top-4 min-w-0" : "min-w-0"} style={{ width: widthValue, maxWidth: "100%", ...sx }}><SectionCard title={title} description={description} variant="subtle" compact action={dismissible ? <Button variant="ghost" aria-label="Close contextual panel" onClick={onDismiss} type="button"><X className="size-4" /></Button> : undefined}><div className="space-y-2">{children}</div></SectionCard></aside>; }
-export function ContextInspectorHeader({ title, description }: { title: React.ReactNode; description?: React.ReactNode }) { return <div className="mb-2"><h3 className="font-semibold">{title}</h3>{description ? <p className="text-sm text-muted-foreground">{description}</p> : null}</div>; }

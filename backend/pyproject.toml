@@ -97,20 +97,20 @@ max-statements = 50
 
 [tool.ruff.lint]
 select = [
-    "E",     # Style
-    "F",     # Python errors
-    "I",     # Import sorting
-    "UP",    # Modern Python
-    "B",     # Potential bugs
-    "SIM",   # Simplification
-    "C90",   # Cyclomatic complexity
-    "PLR",   # Structural complexity
-    "ARG",   # Unused arguments
-    "S",     # Security
+    "E", # Style
+    "F", # Python errors
+    "I", # Import sorting
+    "UP", # Modern Python
+    "B", # Potential bugs
+    "SIM", # Simplification
+    "C90", # Cyclomatic complexity
+    "PLR", # Structural complexity
+    "ARG", # Unused arguments
+    "S", # Security
     "ASYNC", # Async correctness
-    "RUF",   # Ruff-specific rules
-    "PERF",  # Performance
-    "T20",   # Print statements
+    "RUF", # Ruff-specific rules
+    "PERF", # Performance
+    "T20", # Print statements
 ]
 extend-select = ["C90", "PLR0912", "PLR0915", "PLR0913"]
 ignore = ["B008"]  # FastAPI Depends() in defaults
@@ -134,6 +134,7 @@ dev = [
     "langchain-text-splitters",
     "pypdf",
     "python-docx",
+    "vulture>=2.16",
 ]
 
 # Deterministic installs use uv sync --locked.
@@ -189,3 +190,13 @@ reportOptionalMemberAccess = "error"
 reportOptionalSubscript = "error"
 reportArgumentType = "error"
 reportReturnType = "error"
+
+[tool.vulture]
+paths = ["."]
+exclude = [
+    "*/.venv/*",
+    "*/__pycache__/*",
+    "*/alembic/versions/*",
+]
+min_confidence = 60
+sort_by_size = true

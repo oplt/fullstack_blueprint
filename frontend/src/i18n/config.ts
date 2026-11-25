@@ -2,7 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { resources, supportedLanguages, type SupportedLanguage } from "./resources";
 
-export const LANGUAGE_STORAGE_KEY = "fullstack-blueprint.language";
+const LANGUAGE_STORAGE_KEY = "fullstack-blueprint.language";
 
 function languageStorage(): Storage | undefined {
     if (typeof window === "undefined") return undefined;

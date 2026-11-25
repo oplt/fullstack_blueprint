@@ -1,6 +1,6 @@
 import { componentSchema, generativePayloadSchema, type GenerativeComponent, type GenerativePayload } from "./schemas";
 
-export const GENERATIVE_UI_LIMITS = { maxBytes: 200_000, maxDepth: 4, maxNodes: 120, maxChildren: 20 } as const;
+const GENERATIVE_UI_LIMITS = { maxBytes: 200_000, maxDepth: 4, maxNodes: 120, maxChildren: 20 } as const;
 
 export type GenerativeValidationResult = { success: true; data: GenerativePayload } | { success: false; error: string };
 

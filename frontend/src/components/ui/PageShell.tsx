@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { CSSProperties } from "react";
-export type PageWidth = "compact" | "readable" | "default" | "wide" | "full";
+type PageWidth = "compact" | "readable" | "default" | "wide" | "full";
 type PageShellProps = { children: ReactNode; width?: PageWidth; maxWidth?: "xs" | "sm" | "md" | "lg" | "xl" | false; dense?: boolean; sx?: CSSProperties };
 export function PageShell({ children, width, maxWidth, dense = false, sx }: PageShellProps) {
     const resolved = maxWidth !== undefined ? maxWidth : width ?? "wide";

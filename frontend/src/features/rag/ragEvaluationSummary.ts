@@ -3,7 +3,7 @@
  * Metrics are descriptive of a single ask/retrieve response — not offline benchmarks.
  */
 
-export type RagCitationLike = {
+type RagCitationLike = {
     document_id: string;
     chunk_id: string;
     score: number;

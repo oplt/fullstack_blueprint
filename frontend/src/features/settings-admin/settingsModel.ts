@@ -1,7 +1,7 @@
 import type { ConfigEntry, ConfigSettingsResponse, DatabaseSetting } from "../../api/settings";
 
 export type DatabaseSettingDrafts = Record<string, { value: string; description: string }>;
-export type ConfigGroupId = "application" | "infrastructure" | "security" | "email" | "observability" | "storage" | "custom";
+type ConfigGroupId = "application" | "infrastructure" | "security" | "email" | "observability" | "storage" | "custom";
 export type SettingsTabValue = ConfigGroupId | "database";
 export type ConfigGroup = { id: ConfigGroupId; label: string; description: string; items: ConfigEntry[] };
 

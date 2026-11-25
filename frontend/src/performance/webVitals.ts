@@ -1,5 +1,5 @@
-export type WebVitalName = "FCP" | "LCP" | "CLS" | "INP";
-export type WebVitalMetric = { name: WebVitalName; value: number; rating: "good" | "needs-improvement" | "poor"; navigationId?: string };
+type WebVitalName = "FCP" | "LCP" | "CLS" | "INP";
+type WebVitalMetric = { name: WebVitalName; value: number; rating: "good" | "needs-improvement" | "poor"; navigationId?: string };
 
 export type WebVitalsOptions = {
     onMetric?: (metric: WebVitalMetric) => void;
