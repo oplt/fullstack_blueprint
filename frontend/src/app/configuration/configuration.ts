@@ -1,4 +1,4 @@
-import { themePresets, type ThemePreset } from "../designTokens";
+import { themePresets, type ThemePreset } from "../theme";
 import { CAPABILITY_IDS, CAPABILITY_MANIFESTS } from "./capabilities";
 import type {
     ApplicationConfiguration,

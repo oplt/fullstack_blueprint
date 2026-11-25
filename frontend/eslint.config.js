@@ -13,6 +13,7 @@ export default defineConfig([
         'playwright-report',
         'storybook-static',
         'public/mockServiceWorker.js',
+        'src/api/generated/**',
         '.vitest',
     ]),
     {

@@ -1,13 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import {
-    applyDesignTokens,
-    createDesignTokens,
+    applyTheme,
     loadThemePreferences,
     saveThemePreferences,
     THEME_PREFERENCES_STORAGE_KEY,
     type ThemePreferences,
-} from "./designTokens";
+} from "./theme";
 import { queryClient } from "../config/queryClient";
 import { AuthProvider } from "../features/auth/context/AuthContext";
 import { SnackbarProvider } from "./SnackbarProvider";
@@ -66,17 +65,13 @@ function ConfiguredProviders({ children }: PropsWithChildren) {
             : "light"
         : preferences.colorMode;
 
-    const tokens = useMemo(
-        () => createDesignTokens({ ...preferences, mode: resolvedMode }),
-        [preferences, resolvedMode],
-    );
     useEffect(() => {
         saveThemePreferences(preferences, getBrowserStorage());
     }, [preferences]);
 
     useLayoutEffect(() => {
-        applyDesignTokens(tokens);
-    }, [tokens]);
+        applyTheme(preferences, resolvedMode);
+    }, [preferences, resolvedMode]);
 
     const contextValue = useMemo(
         () => ({

@@ -4,7 +4,7 @@ import type {
     Density,
     RadiusScale,
     ThemePreset,
-} from "./designTokens";
+} from "./theme";
 
 type ColorModeContextValue = {
     colorMode: ColorMode;

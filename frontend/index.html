@@ -4,6 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fullstack Blueprint</title>
+    <script>
+      (() => {
+        try {
+          const saved = JSON.parse(localStorage.getItem("fullstack-blueprint.theme") || "null");
+          const mode = saved?.colorMode === "dark" || saved?.colorMode === "light"
+            ? saved.colorMode
+            : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          document.documentElement.dataset.theme = mode;
+          document.documentElement.dataset.themePreset = typeof saved?.preset === "string" ? saved.preset : "minimal-saas";
+          document.documentElement.dataset.density = saved?.density === "compact" ? "compact" : "comfortable";
+          document.documentElement.dataset.radius = typeof saved?.radius === "string" ? saved.radius : "md";
+        } catch { /* use CSS defaults when storage is unavailable */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

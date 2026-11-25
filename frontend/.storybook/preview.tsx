@@ -5,12 +5,12 @@ import { I18nextProvider } from "react-i18next";
 import { MemoryRouter } from "react-router-dom";
 import { mswLoader } from "msw-storybook-addon/csf3";
 import "../src/index.css";
-import { applyDesignTokens, createDesignTokens, type ThemePreset } from "../src/app/designTokens";
+import { applyTheme, type ThemePreset, type ThemePreferences } from "../src/app/theme";
 import { i18nInstance, setLanguage } from "../src/i18n/config";
 import { handlers } from "../src/mocks/handlers";
 
 function StoryEnvironment({ children, theme, language }: PropsWithChildren<{ theme: "light" | "dark"; language: "en" | "nl" | "fr" }>) {
-    useEffect(() => { applyDesignTokens(createDesignTokens({ mode: theme, colorMode: theme, preset: "minimal-saas" as ThemePreset, density: "comfortable", radius: "md" })); document.documentElement.dataset.theme = theme; void setLanguage(language); }, [language, theme]);
+    useEffect(() => { const preferences: ThemePreferences = { colorMode: theme, preset: "minimal-saas" as ThemePreset, density: "comfortable", radius: "md" }; applyTheme(preferences, theme); void setLanguage(language); }, [language, theme]);
     return <I18nextProvider i18n={i18nInstance}><MemoryRouter>{children}</MemoryRouter></I18nextProvider>;
 }
 

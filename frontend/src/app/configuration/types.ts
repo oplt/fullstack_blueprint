@@ -1,4 +1,4 @@
-import type { ThemePreset } from "../designTokens";
+import type { ThemePreset } from "../theme";
 
 /** Stable identifiers used by product presets and generated applications. */
 export type CapabilityId =
