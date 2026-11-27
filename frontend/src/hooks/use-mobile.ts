@@ -1,20 +1,15 @@
-import * as React from "react"
-
-const MOBILE_BREAKPOINT = 768
-
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState(
-    () => typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT,
-  )
-
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    mql.addEventListener("change", onChange)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
-
-  return !!isMobile
+import { useSyncExternalStore } from "react";
+// CSS owns the breakpoint. The fallback is only used before styles are available;
+// design:check verifies it matches the CSS value.
+const FALLBACK_BREAKPOINT = "48rem";
+function mediaQuery() {
+    const breakpoint = getComputedStyle(document.documentElement).getPropertyValue("--navigation-breakpoint").trim() || FALLBACK_BREAKPOINT;
+    return window.matchMedia?.(`(width < ${breakpoint})`);
 }
+function subscribe(onChange: () => void) {
+    const media = mediaQuery();
+    media?.addEventListener("change", onChange);
+    return () => media?.removeEventListener("change", onChange);
+}
+function snapshot() { return mediaQuery()?.matches ?? false; }
+export function useIsMobile() { return useSyncExternalStore(subscribe, snapshot, () => false); }

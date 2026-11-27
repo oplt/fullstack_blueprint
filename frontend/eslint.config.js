@@ -7,49 +7,27 @@ import {defineConfig, globalIgnores} from 'eslint/config'
 
 export default defineConfig([
     globalIgnores([
-        'dist',
-        'coverage',
-        'test-results',
-        'playwright-report',
-        'storybook-static',
-        'public/mockServiceWorker.js',
-        'src/api/generated/**',
-        '.vitest',
+        'dist', 'coverage', 'test-results', 'playwright-report', 'storybook-static',
+        'public/mockServiceWorker.js', 'src/api/generated/**', '.vitest',
     ]),
     {
-        files: ["src/**/*.{ts,tsx,js,jsx}"],
-        extends: [
-            js.configs.recommended,
-            tseslint.configs.recommended,
-            reactHooks.configs.flat.recommended,
-            reactRefresh.configs.vite,
-        ],
-        languageOptions: {
-            ecmaVersion: 2020,
-            globals: globals.browser,
-        },
+        files: ['src/**/*.{ts,tsx,js,jsx}'],
+        extends: [js.configs.recommended, tseslint.configs.recommended, reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
+        languageOptions: { ecmaVersion: 2020, globals: globals.browser },
         rules: {
-            // Existing feature adapters still expose a few structurally dynamic API
-            // payloads while their screens are incrementally typed.
             '@typescript-eslint/no-explicit-any': 'off',
             'no-restricted-imports': ['error', {
+                paths: ['styled-components', 'bootstrap', 'antd'].map(name => ({name, message: 'Use existing shadcn/Base UI components and index.css.'})),
                 patterns: [{
-                    group: ['@mui/*', '@material-ui/*', '@emotion/*', '**/muiCompat', '**/styleCompat', '**/iconsCompat'],
-                    message: 'Use existing shadcn/ui Base UI components, Tailwind CSS and named lucide-react imports.',
+                    group: ['@mui/*', '@material-ui/*', '@emotion/*', '@chakra-ui/*', 'styled-components/*', 'bootstrap/*', 'antd/*', '**/muiCompat', '**/styleCompat', '**/iconsCompat'],
+                    message: 'Use existing shadcn/Base UI components, index.css and named Lucide icons.',
                 }],
             }],
-            "max-lines": [
-                "warn",
-                {
-                    max: 300,
-                    skipBlankLines: true,
-                    skipComments: true
-                }
-            ],
-            "complexity": ["error", 10],
-            "max-depth": ["warn", 3],
-            "max-params": ["warn", 5],
-            "max-nested-callbacks": ["warn", 3],
+            'max-lines': ['warn', {max: 300, skipBlankLines: true, skipComments: true}],
+            'complexity': ['error', 10],
+            'max-depth': ['warn', 3],
+            'max-params': ['warn', 5],
+            'max-nested-callbacks': ['warn', 3],
         },
     },
 ])

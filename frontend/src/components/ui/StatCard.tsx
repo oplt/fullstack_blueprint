@@ -1,39 +1,10 @@
 import type { ReactNode } from "react";
-import { cva } from "class-variance-authority";
-import { cn } from "@/lib/utils";
+import { Skeleton } from "./skeleton";
+import { Card, CardContent, CardHeader } from "./card";
 type StatCardProps = { label: string; value: ReactNode; description?: ReactNode; icon: ReactNode; loading?: boolean; color?: "primary" | "secondary" | "success" | "warning" | "error" | "info" };
-const iconTone = cva("grid size-10 place-items-center rounded-lg", {
-    variants: {
-        color: {
-            primary: "bg-primary/10 text-primary",
-            secondary: "bg-secondary text-secondary-foreground",
-            success: "bg-success-soft text-success-deep",
-            warning: "bg-warning-soft text-warning-deep",
-            error: "bg-destructive-soft text-destructive-deep",
-            info: "bg-information/10 text-information",
-        },
-    },
-    defaultVariants: { color: "primary" },
-});
-
 export function StatCard({ label, value, description, icon, loading = false, color = "primary" }: StatCardProps) {
-    return (
-        <section className="flex min-h-full flex-col rounded-xl border border-border bg-card p-5">
-            <div className="flex items-start justify-between gap-4">
-                <span className="text-sm text-muted-foreground">{label}</span>
-                <span className={cn(iconTone({ color }))}>{icon}</span>
-            </div>
-            {loading ? (
-                <div className="mt-6 space-y-2">
-                    <div className="h-9 w-28 animate-pulse rounded-md bg-muted" />
-                    <div className="h-4 w-3/4 animate-pulse rounded-md bg-muted" />
-                </div>
-            ) : (
-                <div className="mt-6 space-y-1">
-                    <div className="text-display-lg font-semibold">{value}</div>
-                    {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
-                </div>
-            )}
-        </section>
-    );
+    return <Card className="ui-stat-card">
+        <CardHeader className="ui-stat-card-header"><span className="ui-muted-copy">{label}</span><span data-tone={color} className="ui-stat-icon">{icon}</span></CardHeader>
+        <CardContent>{loading ? <div className="ui-stat-loading"><Skeleton className="ui-stat-value-skeleton" /><Skeleton className="ui-stat-description-skeleton" /></div> : <div className="ui-stat-body"><div className="ui-stat-value">{value}</div>{description ? <p className="ui-muted-copy">{description}</p> : null}</div>}</CardContent>
+    </Card>;
 }

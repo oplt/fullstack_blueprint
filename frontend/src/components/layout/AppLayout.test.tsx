@@ -7,7 +7,9 @@ import "../../i18n/config";
 import { queryKeys } from "../../config/queryKeys";
 import { ColorModeContext } from "../../app/colorModeContext";
 import { AppLayout } from "./AppLayout";
-
+// jsdom does not evaluate CSS media queries. Mount the mobile control explicitly;
+// real viewport behavior is validated in browser tests.
+vi.mock("../../hooks/use-mobile", () => ({ useIsMobile: () => true }));
 it("keeps the shell operable when storage is blocked and labels its collapsed and mobile controls", async () => {
     const user = userEvent.setup();
     const client = new QueryClient({ defaultOptions: { queries: { enabled: false } } });
@@ -17,11 +19,7 @@ it("keeps the shell operable when storage is blocked and labels its collapsed an
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(denied);
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(denied);
     try {
-        render(<QueryClientProvider client={client}>
-            <ColorModeContext.Provider value={{ colorMode: "system", resolvedMode: "dark", setColorMode: setMode }}>
-                <MemoryRouter initialEntries={["/dashboard"]}><AppLayout /></MemoryRouter>
-            </ColorModeContext.Provider>
-        </QueryClientProvider>);
+        render(<QueryClientProvider client={client}><ColorModeContext.Provider value={{ colorMode: "system", resolvedMode: "dark", setColorMode: setMode }}><MemoryRouter initialEntries={["/dashboard"]}><AppLayout /></MemoryRouter></ColorModeContext.Provider></QueryClientProvider>);
         await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
         expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
         const nav = screen.getByRole("navigation", { name: "Main navigation" });
@@ -39,8 +37,5 @@ it("keeps the shell operable when storage is blocked and labels its collapsed an
         expect(sheet).toHaveAccessibleDescription("Workspace");
         await user.click(within(sheet).getByRole("link", { name: "Dashboard" }));
         expect(screen.queryByRole("dialog")).toBeNull();
-    } finally {
-        vi.restoreAllMocks();
-        client.clear();
-    }
+    } finally { vi.restoreAllMocks(); client.clear(); }
 });

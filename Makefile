@@ -7,6 +7,8 @@ BACKEND_PYTHON ?= $(VENV_BIN)/python
 BACKEND_PORT ?= 8000
 FRONTEND_PORT ?= 5173
 DEV_OPEN ?= 1
+# Local development only: reclaim occupied API/Vite ports before startup.
+DEV_KILL_PORTS ?= 1
 DEV_WORKER ?= 0
 DEV_READY_TIMEOUT ?= 90
 BACKEND_RELOAD ?= 1
@@ -42,7 +44,7 @@ E2E_FRONTEND_PORT ?= 15173
 PWA_PORT ?= 14173
 ARTIFACTS ?= .audit-artifacts
 ARTIFACT_DIR := $(abspath $(ARTIFACTS))
-export BACKEND_PYTHON BACKEND_PORT FRONTEND_PORT DEV_OPEN BACKEND_RELOAD DEV_WORKER DEV_READY_TIMEOUT
+export BACKEND_PYTHON BACKEND_PORT FRONTEND_PORT DEV_OPEN BACKEND_RELOAD DEV_WORKER DEV_READY_TIMEOUT DEV_KILL_PORTS
 export PREVIOUS_DB_REVISION PREVIOUS_OPENAPI PRODUCTION_BASE_URL PRODUCTION_API_URL PRODUCTION_E2E_CONFIRM RAG_RECALL_MIN RAG_MRR_MIN RAG_NDCG_MIN
 
 # Public selectors are only for genuinely different operational actions.
@@ -166,7 +168,7 @@ update: ## Refresh lockfiles and requirements; UPGRADE=1 upgrades allowed versio
 	@cd frontend; if [[ $$UPGRADE = 1 ]]; then npm update --package-lock-only --ignore-scripts; else npm install --package-lock-only --ignore-scripts; fi
 	@echo 'Review lockfile changes, then run make install and make check.'
 
-dev: _ports _db-check ## Start API/Vite and optionally Celery (DEV_WORKER=1).
+dev: _ports _db-check ## Start API/Vite, reclaim ports (DEV_KILL_PORTS=0 to disable), optionally Celery (DEV_WORKER=1).
 	@case "$$DEV_WORKER" in 0) exec "$(VENV_BIN)/honcho" -e /dev/null -f Procfile.dev start backend frontend ;; 1) exec "$(VENV_BIN)/honcho" -e /dev/null -f Procfile.dev start backend frontend worker ;; *) echo 'DEV_WORKER=0|1' >&2; exit 2;; esac
 
 infra: ## ACTION=up|down|check|status|logs; down preserves volumes.
@@ -226,8 +228,37 @@ _local-ready:
 _ports: _versions _local-ready _dev-config
 	@[[ $$DEV_OPEN = 0 || $$DEV_OPEN = 1 ]] && [[ $$DEV_WORKER = 0 || $$DEV_WORKER = 1 ]] && [[ $$BACKEND_RELOAD = 0 || $$BACKEND_RELOAD = 1 ]] || { echo "DEV_OPEN, DEV_WORKER and BACKEND_RELOAD must be 0 or 1" >&2; exit 2; }
 	@[[ $$DEV_READY_TIMEOUT =~ ^[1-9][0-9]{0,2}$$ ]] && ((DEV_READY_TIMEOUT<=600)) || { echo "DEV_READY_TIMEOUT must be 1..600 seconds" >&2; exit 2; }
-	@$(call ports_free,$(BACKEND_PORT),$(FRONTEND_PORT))
+	@[[ $$DEV_KILL_PORTS = 0 || $$DEV_KILL_PORTS = 1 ]] || { echo 'DEV_KILL_PORTS must be 0 or 1' >&2; exit 2; }
 	@"$(BACKEND_PYTHON)" -c 'import os,sys; from backend.core.config import settings; sys.exit("Enable DEV_WORKER=1 or disable WORKER_HEALTH_REQUIRED in development") if settings.WORKER_HEALTH_REQUIRED and os.environ["DEV_WORKER"] != "1" else None'
+	@# Validate both configured development ports before sending any signals.
+	@for port in "$$BACKEND_PORT" "$$FRONTEND_PORT"; do \
+	  [[ $$port =~ ^[1-9][0-9]{0,4}$$ ]] && ((10#$$port<=65535)) || { echo 'Use TCP ports in 1..65535, without leading zeros' >&2; exit 2; }; \
+	done; [[ $$BACKEND_PORT != "$$FRONTEND_PORT" ]] || { echo 'Use distinct TCP ports' >&2; exit 2; }
+	@if [[ $$DEV_KILL_PORTS = 1 ]]; then \
+	  echo "Releasing development ports $$BACKEND_PORT and $$FRONTEND_PORT..."; \
+	  port_free() { "$(BACKEND_PYTHON)" -S -c 'import socket,sys; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",int(sys.argv[1]))); s.listen(1)' "$$1" >/dev/null 2>&1; }; \
+	  signal_listeners() { local port="$$1" signal="$$2" listeners pid; \
+	    listeners=$$(ss -H -ltnp "sport = :$$port") || return 1; \
+	    while [[ $$listeners =~ pid=([0-9]+), ]]; do \
+	      pid=$${BASH_REMATCH[1]}; listeners=$${listeners#*pid=$$pid,}; \
+	      if [[ $$pid != "$$$$" && $$pid != "$$PPID" ]] && kill -0 "$$pid" 2>/dev/null; then \
+	        echo "Sending SIG$$signal to PID $$pid (TCP port $$port)"; \
+	        kill -s "$$signal" "$$pid" 2>/dev/null || true; \
+	      fi; \
+	    done; \
+	  }; \
+	  for port in "$$BACKEND_PORT" "$$FRONTEND_PORT"; do \
+	    port_free "$$port" && continue; \
+	    command -v ss >/dev/null 2>&1 || { echo 'ERROR: Install iproute2 (ss) or stop the port owner manually' >&2; exit 1; }; \
+	    signal_listeners "$$port" TERM; \
+	    end=$$((SECONDS+5)); while ((SECONDS<end)); do port_free "$$port" && break; sleep .2; done; \
+	    if ! port_free "$$port"; then \
+	      signal_listeners "$$port" KILL; \
+	      end=$$((SECONDS+2)); while ((SECONDS<end)); do port_free "$$port" && break; sleep .2; done; \
+	    fi; \
+	  done; \
+	fi
+	@$(call ports_free,$(BACKEND_PORT),$(FRONTEND_PORT))
 
 _db-check: _dev-config
 	@"$(BACKEND_PYTHON)" -c 'import os,sys,subprocess; from backend.core.config import settings; env=dict(os.environ,DATABASE_URL=str(settings.DATABASE_URL),APP_ENV=settings.APP_ENV,PYTHONPATH=os.getcwd()+os.pathsep+os.environ.get("PYTHONPATH","")); cmd=[sys.executable,"-m","alembic"]; heads=subprocess.check_output(cmd+["heads"],cwd="backend",env=env,text=True,timeout=15).splitlines(); current=subprocess.check_output(cmd+["current"],cwd="backend",env=env,text=True,timeout=20).splitlines(); expected=[x.strip() for x in heads if x.strip().endswith("(head)")]; actual={x.strip() for x in current if x.strip()}; sys.exit("Database not at its single Alembic head. Review and run make db ACTION=migrate MIGRATE_CONFIRM=1") if len(expected)!=1 or actual!=set(expected) else None; print("PostgreSQL: connected; Alembic revision current")'

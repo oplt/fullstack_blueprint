@@ -1,32 +1,31 @@
-import type { LayoutVariant } from "@/config/application/types";
-import type { CapabilityId } from "@/config/application/types";
-
+import type { LayoutVariant, CapabilityId } from "@/config/application/types";
 export type { LayoutVariant } from "@/config/application/types";
 
+type LayoutRule = { prefix: string; variant: LayoutVariant; capability?: CapabilityId };
+const rules: readonly LayoutRule[] = [
+    { prefix: "/pricing", variant: "public-marketing" },
+    { prefix: "/about", variant: "public-marketing" },
+    { prefix: "/login", variant: "authentication" },
+    { prefix: "/register", variant: "authentication" },
+    { prefix: "/reset-password", variant: "authentication" },
+    { prefix: "/verify-email", variant: "authentication" },
+    { prefix: "/ai", variant: "ai-conversation", capability: "ai" },
+    { prefix: "/agent", variant: "ai-conversation", capability: "agent" },
+    { prefix: "/projects/", variant: "split-panel-workspace", capability: "projects" },
+    { prefix: "/rag", variant: "split-panel-workspace", capability: "rag" },
+    { prefix: "/profile", variant: "settings", capability: "profile" },
+    { prefix: "/platform", variant: "settings", capability: "platform" },
+    { prefix: "/admin", variant: "settings", capability: "platform" },
+    { prefix: "/calendar", variant: "full-width-workspace", capability: "calendar" },
+    { prefix: "/notifications", variant: "full-width-workspace", capability: "notifications" },
+];
 export function layoutVariantForPath(pathname: string, overrides: Partial<Record<CapabilityId, LayoutVariant>> = {}): LayoutVariant {
-    if (pathname === "/" || pathname.startsWith("/pricing") || pathname.startsWith("/about")) {
-        return "public-marketing";
-    }
-    if (
-        pathname.startsWith("/login") ||
-        pathname.startsWith("/register") ||
-        pathname.startsWith("/reset-password") ||
-        pathname.startsWith("/verify-email")
-    ) {
-        return "authentication";
-    }
-    if (pathname.startsWith("/ai") || pathname.startsWith("/agent")) return overrides[pathname.startsWith("/agent") ? "agent" : "ai"] ?? "ai-conversation";
-    if (pathname.startsWith("/projects/")) return overrides.projects ?? "split-panel-workspace";
-    if (pathname.startsWith("/rag")) return overrides.rag ?? "split-panel-workspace";
-    if (pathname.startsWith("/profile") || pathname.startsWith("/platform") || pathname.startsWith("/admin")) return overrides[pathname.startsWith("/profile") ? "profile" : "platform"] ?? "settings";
-    if (pathname.startsWith("/calendar") || pathname.startsWith("/notifications")) return overrides[pathname.startsWith("/calendar") ? "calendar" : "notifications"] ?? "full-width-workspace";
-    return "saas-dashboard";
+    if (pathname === "/") return "public-marketing";
+    const rule = rules.find(({ prefix }) => pathname.startsWith(prefix));
+    if (!rule) return "saas-dashboard";
+    return rule.capability ? overrides[rule.capability] ?? rule.variant : rule.variant;
 }
-
 export function layoutContentClass(variant: LayoutVariant): string {
-    const gutters = "px-3 py-4 sm:px-6 sm:py-6";
-    if (variant === "full-width-workspace" || variant === "split-panel-workspace" || variant === "ai-conversation") {
-        return `w-full ${gutters}`;
-    }
-    return `mx-auto w-full max-w-[1200px] ${gutters}`;
+    const fluid = ["full-width-workspace", "split-panel-workspace", "ai-conversation"].includes(variant);
+    return fluid ? "ui-layout-content ui-layout-content-fluid" : "ui-layout-content";
 }

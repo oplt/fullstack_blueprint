@@ -57,11 +57,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
                 {documents.length > 0 ? (
                     <div className="flex gap-2">
                         {documents.map((document) => (
-                            <div key={document.id} style={({
-                                padding: 12,
-                                borderRadius: 12,
-                                border: `1px solid ${"var(--border)"}`
-                            })}>
+                            <div key={document.id} className="surface-card ui-feature-surface ui-feature-surface-dense">
                                 <p>{document.title}</p>
                                 <span className="text-muted-foreground">
                                     {document.chunk_count} chunks • {document.content_type} • {formatDateTime(document.updated_at)}

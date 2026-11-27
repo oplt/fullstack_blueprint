@@ -90,7 +90,7 @@ describe("AgentView persisted history", () => {
 
         const { container } = renderView();
 
-        expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
+        expect(container.querySelector('[role="status"][aria-busy="true"] [data-slot="skeleton"]')).toBeInTheDocument();
     });
 
     it("renders an empty persisted-history state", async () => {
