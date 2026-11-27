@@ -17,7 +17,7 @@ const hoverIconClassName = 'text-muted-foreground group-hover:text-foreground gr
 
 export function EventCalendarCloseIcon() {
   return (
-    <XIcon className={`size-5 ${hoverIconClassName}`} />
+    <XIcon className={cn('size-(--icon-size-lg)', hoverIconClassName)} />
   )
 }
 
@@ -25,7 +25,8 @@ export function EventCalendarExpanderIcon(props: { isExpanded: boolean }) {
   return (
     <ChevronDownIcon
       className={cn(
-        `size-4 m-px ${hoverIconClassName}`,
+        'size-(--icon-size-md) m-px',
+        hoverIconClassName,
         !props.isExpanded && '-rotate-90 [[dir=rtl]_&]:rotate-90'
       )}
     />

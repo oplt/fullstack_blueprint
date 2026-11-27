@@ -26,13 +26,13 @@ export function ConfigSettingsSection({configData, model}: Props) {
                                                                                  {model.configMutation.isPending ? "Saving..." : "Save all config"}
                                                                              </Button>
                                                                          }>
-            <div className="flex gap-4">
-                <div role="alert" className="rounded-lg border border-border p-3 text-sm">{configData.notice}</div>
+            <div className="flex gap-ui-md">
+                <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">{configData.notice}</div>
                 {model.configMutation.isSuccess &&
-                    <div role="alert" className="rounded-lg border border-border p-3 text-sm">Config saved. Restart the
+                    <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">Config saved. Restart the
                         backend if a startup-bound value changed.</div>}
                 {model.configMutation.isError && <div role="alert"
-                                                      className="rounded-lg border border-border p-3 text-sm">{getQueryErrorMessage(model.configMutation.error, "Failed to save config.")}</div>}
+                                                      className="rounded-lg border border-border p-ui-sm text-body-md">{getQueryErrorMessage(model.configMutation.error, "Failed to save config.")}</div>}
                 <div className="flex flex-wrap gap-ui-xs">
                     <Badge variant="outline">
                         {group.items.length} variables in this group
@@ -48,7 +48,7 @@ export function ConfigSettingsSection({configData, model}: Props) {
                             : "No unsaved config changes"}
                     </Badge>
                 </div>
-                <div className="gap-3" style={{display: "grid", gridTemplateColumns: "1fr", alignItems: "start"}}>
+                <div className="grid grid-cols-1 items-start gap-ui-sm">
                     {group.items.map((item) => <ConfigEntryEditor key={item.key} item={item}
                                                                   value={model.configDrafts[item.key] ?? item.value}
                                                                   onChange={(value) => model.setConfigDrafts((current) => ({

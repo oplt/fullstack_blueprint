@@ -1,5 +1,5 @@
 import type { DragEvent } from "react";
-import { Plus as AddIcon, ListChecks as TaskIcon } from "lucide-react";
+import { Plus, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "../../../components/ui/EmptyState";
@@ -25,7 +25,7 @@ export function ProjectFlowSection({
 
     function renderLoading() {
         return (
-            <div className="flex gap-3" aria-busy="true">
+            <div className="flex gap-ui-sm" aria-busy="true">
                 <div className="h-40 min-w-60 flex-1 animate-pulse rounded-md bg-muted" />
                 <div className="h-40 min-w-60 flex-1 animate-pulse rounded-md bg-muted" />
             </div>
@@ -35,12 +35,12 @@ export function ProjectFlowSection({
     function renderEmpty() {
         return (
             <EmptyState
-                icon={<TaskIcon />}
+                icon={<ListChecks />}
                 title="No tasks yet"
                 description="Use New task to add the first item to this project flow."
                 action={
                     <Button variant="default" onClick={onNewTask} type="button">
-                        <AddIcon />New task
+                        <Plus />New task
                     </Button>
                 }
             />
@@ -49,8 +49,8 @@ export function ProjectFlowSection({
 
     function renderBoard() {
         return (
-            <div className="overflow-x-auto overscroll-x-contain pb-2">
-                <div className="grid min-w-[1280px] grid-cols-[repeat(5,minmax(240px,1fr))] gap-3">
+            <div className="overflow-x-auto overscroll-x-contain pb-ui-xs">
+                <div className="grid min-w-[1280px] grid-cols-[repeat(5,minmax(240px,1fr))] gap-ui-sm">
                     {TASK_STATUS_OPTIONS.map((option) => {
                         const tasks = m.orderedTasks.filter(
                             (task) => task.status === option.value,
@@ -63,13 +63,13 @@ export function ProjectFlowSection({
                                     event.preventDefault();
                                     m.drop(option.value);
                                 }}
-                                className="min-h-60 rounded-md border border-border bg-card p-3"
+                                className="min-h-60 rounded-md border border-border bg-card p-ui-sm"
                             >
-                                <div className="mb-3">
+                                <div className="mb-ui-sm">
                                     <p className="font-medium">{option.label}</p>
                                 </div>
-                                <hr className="mb-3 border-border" />
-                                <div className="flex flex-col gap-2">
+                                <hr className="mb-ui-sm border-border" />
+                                <div className="flex flex-col gap-ui-xs">
                                     {tasks.length ? (
                                         tasks.map((task) => (
                                             <TaskBoardCard
@@ -84,7 +84,7 @@ export function ProjectFlowSection({
                                             />
                                         ))
                                     ) : (
-                                        <div className="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                                        <div className="rounded-md border border-dashed border-border p-ui-md text-center text-body-md text-muted-foreground">
                                             Drop tasks here
                                         </div>
                                     )}
@@ -103,7 +103,7 @@ export function ProjectFlowSection({
             description="Switch between a sortable Kanban board and a detailed list view."
             action={
                 <Button variant="default" size="sm" onClick={onNewTask} type="button">
-                    <AddIcon />New task
+                    <Plus />New task
                 </Button>
             }
         >
@@ -112,7 +112,7 @@ export function ProjectFlowSection({
                 onValueChange={(value) => {
                     if (value === "board" || value === "list") m.setTaskView(value);
                 }}
-                className="min-w-0 gap-3"
+                className="min-w-0 gap-ui-sm"
             >
                 <TabsList aria-label="Task view">
                     <TabsTrigger value="board">Board</TabsTrigger>
@@ -123,7 +123,7 @@ export function ProjectFlowSection({
                 </TabsPanel>
                 <TabsPanel value="list">
                     {loading ? renderLoading() : empty ? renderEmpty() : (
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-ui-sm">
                             {m.orderedTasks.map((task) => (
                                 <TaskListCard
                                     key={task.id}

@@ -20,7 +20,7 @@ export function EvaluationResults({ model }: Props) {
                         />
                     )}
                     {selectedDatasetId && datasetCasesLoading ? (
-                        <div className="flex gap-2">
+                        <div className="flex gap-ui-xs">
                             {Array.from({ length: 2 }).map((_: any, index: any) => (
                                 <div
                                     key={index}
@@ -28,9 +28,9 @@ export function EvaluationResults({ model }: Props) {
                             ))}
                         </div>
                     ) : selectedDatasetCases.length > 0 ? (
-                        <div className="flex gap-2">
+                        <div className="flex gap-ui-xs">
                             {selectedDatasetCases.map((item) => (
-                                <div key={item.id} className="rounded-md border border-border p-3">
+                                <div key={item.id} className="rounded-md border border-border p-ui-sm">
                                     {recordToKeyValueItems(item.input_variables).length ? (
                                         <KeyValueList
                                             dense
@@ -66,7 +66,7 @@ export function EvaluationResults({ model }: Props) {
                         />
                     )}
                     {evaluationRunsLoading ? (
-                        <div className="flex gap-2">
+                        <div className="flex gap-ui-xs">
                             {Array.from({ length: 2 }).map((_: any, index: any) => (
                                 <div
                                     key={index}
@@ -75,12 +75,12 @@ export function EvaluationResults({ model }: Props) {
                             ))}
                         </div>
                     ) : evaluationRuns.length > 0 ? (
-                        <div className="flex gap-2">
+                        <div className="flex gap-ui-xs">
                             {evaluationRuns.map((run) => (
                                 <div
                                     key={run.id}
                                     role="alert"
-                                    className="rounded-lg border border-border p-3 text-sm">
+                                    className="rounded-lg border border-border p-ui-sm text-body-md">
                                     {formatDateTime(run.created_at)}:{" "}
                                     {run.status === "running"
                                         ? `Running (${run.total_cases} cases)...`

@@ -111,7 +111,7 @@ export function PageSearch({ pages }: PageSearchProps) {
             >
                 <ComboboxInputGroup>
                     <Search
-                        className="pointer-events-none absolute left-3 size-4 shrink-0 text-muted-foreground"
+                        className="pointer-events-none absolute left-3 size-(--icon-size-md) shrink-0 text-muted-foreground"
                         aria-hidden="true"
                     />
                     <ComboboxInput
@@ -124,7 +124,7 @@ export function PageSearch({ pages }: PageSearchProps) {
                             if (query.trim()) setIsOpen(true);
                         }}
                         onKeyDown={handleKeyDown}
-                        className={`w-full min-w-0 rounded-sm bg-card pl-9 text-base md:text-sm ${query ? "pr-12" : "pr-3 xl:pr-20"}`}
+                        className={`w-full min-w-0 rounded-sm bg-card pl-9 text-body-lg md:text-body-md ${query ? "pr-12" : "pr-ui-sm xl:pr-20"}`}
                     />
                     {query ? (
                         <Button
@@ -139,12 +139,12 @@ export function PageSearch({ pages }: PageSearchProps) {
                             }}
                             className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground"
                         >
-                            <X className="size-4" aria-hidden="true" />
+                            <X className="size-(--icon-size-md)" aria-hidden="true" />
                         </Button>
                     ) : (
                         <kbd
                             aria-hidden="true"
-                            className="pointer-events-none absolute right-3 hidden select-none rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground xl:inline-block"
+                            className="pointer-events-none absolute right-3 hidden select-none rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-body-sm text-muted-foreground xl:inline-block"
                         >
                             {isMac ? "⌘K" : "Ctrl+K"}
                         </kbd>
@@ -156,10 +156,10 @@ export function PageSearch({ pages }: PageSearchProps) {
                             const Icon = page.icon;
                             return (
                                 <ComboboxItem key={page.path} value={page}>
-                                    <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                                    <Icon className="size-(--icon-size-md) shrink-0 text-muted-foreground" aria-hidden="true" />
                                     <span className="min-w-0 flex-1 truncate">{page.label}</span>
                                     {page.path === highlightedPath ? (
-                                        <CornerDownLeft className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                                        <CornerDownLeft className="size-(--icon-size-compact) shrink-0 text-muted-foreground" aria-hidden="true" />
                                     ) : null}
                                 </ComboboxItem>
                             );
@@ -169,7 +169,7 @@ export function PageSearch({ pages }: PageSearchProps) {
                     {results.length > 0 ? (
                         <div
                             aria-hidden="true"
-                            className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border px-3 py-2 text-xs text-muted-foreground"
+                            className="flex flex-wrap items-center gap-x-ui-sm gap-y-ui-xxs border-t border-border px-ui-sm py-ui-xs text-body-sm text-muted-foreground"
                         >
                             <span>↑ ↓ Navigate</span>
                             <span>↵ Select</span>

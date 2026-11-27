@@ -1,7 +1,8 @@
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";
-import { RotateCcw as RestartIcon, Settings2 as SettingsIcon, HardDrive as StorageIcon } from "lucide-react";
+import { RotateCcw, Settings2, HardDrive } from "lucide-react";
 import type { ConfigSettingsResponse, DatabaseSetting } from "../../../api/settings";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
+import { MetricGrid } from "../../../components/ui/MetricGrid";
 import { PageShell } from "../../../components/ui/PageShell";
 import { StatCard } from "../../../components/ui/StatCard";
 import type { SettingsTabValue } from "../settingsModel";
@@ -21,13 +22,13 @@ export function AdminSettingsContent(props: Props) {
     return (
         <PageShell width="wide">
             <SettingsTabs />
-            <div className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
-                <StatCard label="Config variables" value={props.configData.items.length} description="Environment-backed values available in the settings file" icon={<SettingsIcon />} />
-                <StatCard label="Restart-sensitive" value={props.configData.items.filter((item) => item.requires_restart).length} description="Values likely to require a backend restart after saving" icon={<RestartIcon />} color="warning" />
-                <StatCard label="Runtime database settings" value={props.databaseSettings.length} description="Key/value records stored in the database for live updates" icon={<StorageIcon />} color="secondary" />
-            </div>
-            {props.hasConfigError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{props.configErrorMessage}</div>}
-            {props.hasDatabaseError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{props.databaseErrorMessage}</div>}
+            <MetricGrid columns={3}>
+                <StatCard label="Config variables" value={props.configData.items.length} description="Environment-backed values available in the settings file" icon={<Settings2 />} />
+                <StatCard label="Restart-sensitive" value={props.configData.items.filter((item) => item.requires_restart).length} description="Values likely to require a backend restart after saving" icon={<RotateCcw />} color="warning" />
+                <StatCard label="Runtime database settings" value={props.databaseSettings.length} description="Key/value records stored in the database for live updates" icon={<HardDrive />} color="secondary" />
+            </MetricGrid>
+            {props.hasConfigError && <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">{props.configErrorMessage}</div>}
+            {props.hasDatabaseError && <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">{props.databaseErrorMessage}</div>}
             <Tabs
                 value={props.activeTab}
                 onValueChange={(value) => {
@@ -38,13 +39,13 @@ export function AdminSettingsContent(props: Props) {
                 }}
                 className="min-w-0"
             >
-                <TabsList variant="line" aria-label="Settings category" className="mb-4 max-w-full overflow-x-auto border-b border-border">
+                <TabsList variant="line" aria-label="Settings category" className="mb-ui-md max-w-full overflow-x-auto border-b border-border">
                     {model.configGroups.map((group) => (
-                        <TabsTrigger key={group.id} value={group.id} className="shrink-0 px-3 py-2">
+                        <TabsTrigger key={group.id} value={group.id} className="shrink-0 px-ui-sm py-ui-xs">
                             {group.label}
                         </TabsTrigger>
                     ))}
-                    <TabsTrigger value="database" className="shrink-0 px-3 py-2">Database</TabsTrigger>
+                    <TabsTrigger value="database" className="shrink-0 px-ui-sm py-ui-xs">Database</TabsTrigger>
                 </TabsList>
                 {model.configGroups.map((group) => (
                     <TabsPanel key={group.id} value={group.id}>

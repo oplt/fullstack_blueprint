@@ -35,24 +35,24 @@ export function MemoryAuditPanel({
                         onRetry={() => void query.refetch()}
                     >
                         <div className="min-w-0 max-w-full overflow-x-auto">
-                            <table className="w-full text-sm">
+                            <table className="w-full text-body-md">
                                 <thead>
                                     <tr className="border-b border-border">
-                                        <th scope="col" className="p-2 text-left">Operation</th>
-                                        <th scope="col" className="p-2 text-left">Level</th>
-                                        <th scope="col" className="p-2 text-left">Agent</th>
-                                        <th scope="col" className="p-2 text-left">Source ref</th>
-                                        <th scope="col" className="p-2 text-left">When</th>
+                                        <th scope="col" className="p-ui-xs text-left">Operation</th>
+                                        <th scope="col" className="p-ui-xs text-left">Level</th>
+                                        <th scope="col" className="p-ui-xs text-left">Agent</th>
+                                        <th scope="col" className="p-ui-xs text-left">Source ref</th>
+                                        <th scope="col" className="p-ui-xs text-left">When</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {(query.data?.items ?? []).map((log) => (
                                         <tr key={log.id} className="border-b border-border">
-                                            <td className="p-2">{log.operation}</td>
-                                            <td className="p-2">{log.memory_level ?? "—"}</td>
-                                            <td className="p-2">{log.agent_id ?? "—"}</td>
-                                            <td className="p-2">{log.source_ref ?? "—"}</td>
-                                            <td className="p-2">
+                                            <td className="p-ui-xs">{log.operation}</td>
+                                            <td className="p-ui-xs">{log.memory_level ?? "—"}</td>
+                                            <td className="p-ui-xs">{log.agent_id ?? "—"}</td>
+                                            <td className="p-ui-xs">{log.source_ref ?? "—"}</td>
+                                            <td className="p-ui-xs">
                                                 {new Date(log.created_at).toLocaleString()}
                                             </td>
                                         </tr>

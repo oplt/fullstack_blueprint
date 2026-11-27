@@ -14,5 +14,5 @@ export function RagDegradedNotice({ result }: { result: Result }) {
               : result.memory_degraded
                 ? "Memory degraded."
                 : "");
-    return <div role="alert" className="rounded-lg border border-border p-3 text-sm">{message}</div>;
+    return <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">{message}</div>;
 }

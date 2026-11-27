@@ -9,7 +9,7 @@ export function DashboardCalendar(props: DashboardCalendarProps) {
     const model = useDashboardCalendar(props);
 
     return (
-        <div className="flex h-full min-h-0 flex-col gap-4">
+        <div className="flex h-full min-h-0 flex-col gap-ui-md">
             <SectionCard
                 title="Workspace calendar"
                 description="Switch between day, week, month, and rolling 12-month views."

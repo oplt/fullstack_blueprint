@@ -1,7 +1,7 @@
 import {
-    Mail as MailOutlineIcon,
-    BellRing as NotificationsActiveIcon,
-    Megaphone as CampaignIcon,
+    Mail,
+    BellRing,
+    Megaphone,
 } from "lucide-react";
 import { NotificationListItem } from "../components/notifications/NotificationListItem";
 import { NotificationPreferencesForm } from "../components/notifications/NotificationPreferencesForm";
@@ -11,9 +11,11 @@ import { useNotificationPreferences } from "../hooks/useNotificationPreferences"
 import { useNotifications } from "../hooks/useNotifications";
 import { useNotificationMutations } from "../hooks/useNotificationMutations";
 import { PageShell } from "../components/ui/PageShell";
+import { MetricGrid } from "../components/ui/MetricGrid";
 import { QueryBoundary } from "../components/ui/QueryBoundary";
 import { SectionCard } from "../components/ui/SectionCard";
 import { StatCard } from "../components/ui/StatCard";
+import { WorkspaceSplit } from "../components/ui/WorkspaceSplit";
 
 export default function NotificationsPage() {
     const {
@@ -36,21 +38,19 @@ export default function NotificationsPage() {
         <PageShell width="wide">
             {unreadCount > 0 ? <MarkAllReadButton mutation={markAllMutation} /> : null}
 
-            <div
-                className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}
-            >
+            <MetricGrid columns={3}>
                 <StatCard
                     label="Unread"
                     value={unreadCount}
                     description="Fresh activity that still needs attention"
-                    icon={<NotificationsActiveIcon />}
+                    icon={<BellRing />}
                     loading={isLoading}
                 />
                 <StatCard
                     label="All notifications"
                     value={totalCount}
                     description="Historical inbox items available for review"
-                    icon={<MailOutlineIcon />}
+                    icon={<Mail />}
                     loading={isLoading}
                     color="secondary"
                 />
@@ -58,16 +58,15 @@ export default function NotificationsPage() {
                     label="Channels enabled"
                     value={prefsQuery.isLoading ? "—" : `${enabledChannels}/3`}
                     description="Delivery routes currently turned on"
-                    icon={<CampaignIcon />}
+                    icon={<Megaphone />}
                     loading={prefsQuery.isLoading}
                     color="success"
                 />
-            </div>
+            </MetricGrid>
 
-            <div
-                className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}
-            >
-                <SectionCard title="Inbox" description="Messages are sorted for fast scanning and clear read state.">
+            <WorkspaceSplit
+                ratio="8-4"
+                main={<SectionCard title="Inbox" description="Messages are sorted for fast scanning and clear read state.">
                     <QueryBoundary
                         isLoading={isLoading}
                         isError={isError}
@@ -77,13 +76,13 @@ export default function NotificationsPage() {
                         isEmpty={!notifications || notifications.length === 0}
                         emptyFallback={
                             <EmptyState
-                                icon={<NotificationsActiveIcon />}
+                                icon={<BellRing />}
                                 title="Inbox is clear"
                                 description="You have no notifications yet. New product updates and account events will appear here."
                             />
                         }
                     >
-                        <div className="flex gap-3">
+                        <div className="flex gap-ui-sm">
                             {notifications?.map((notification) => {
                                 const isUpdatingThisItem =
                                     markOneMutation.isPending &&
@@ -99,10 +98,9 @@ export default function NotificationsPage() {
                             })}
                         </div>
                     </QueryBoundary>
-                </SectionCard>
-
-                <NotificationPreferencesForm query={prefsQuery} mutation={prefsMutation} />
-            </div>
+                </SectionCard>}
+                side={<NotificationPreferencesForm query={prefsQuery} mutation={prefsMutation} />}
+            />
         </PageShell>
     );
 }

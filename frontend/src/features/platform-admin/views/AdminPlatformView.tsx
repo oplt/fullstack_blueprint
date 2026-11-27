@@ -16,7 +16,7 @@ export default function AdminPlatformPage() {
     const flags = useQuery({ queryKey: queryKeys.platform.admin.featureFlags, queryFn: ({ signal }) => listAdminFeatureFlags({ signal }) });
     const templates = useQuery({ queryKey: queryKeys.platform.admin.emailTemplates, queryFn: ({ signal }) => listAdminEmailTemplates({ signal }) });
     if ([config, plans, flags, templates].some((query) => query.isLoading)) return (
-        <PageShell width="wide"><div className="flex gap-4"><div
+        <PageShell width="wide"><div className="flex gap-ui-md"><div
 
                 className="animate-pulse rounded-md bg-muted rounded-lg" /><div
 
@@ -25,7 +25,7 @@ export default function AdminPlatformPage() {
                 className="animate-pulse rounded-md bg-muted rounded-lg" /></div></PageShell>
     );
     if (!config.data || !plans.data || !flags.data || !templates.data) return (
-        <PageShell width="wide"><SettingsTabs /><div className="mt-4 flex gap-4">
+        <PageShell width="wide"><SettingsTabs /><div className="mt-ui-md flex gap-ui-md">
             {!config.data && <QueryErrorAlert error={config.error ?? new Error("Failed to load platform configuration.")} fallback="Failed to load platform configuration." title="Configuration" onRetry={() => void config.refetch()} />}
             {!plans.data && <QueryErrorAlert error={plans.error ?? new Error("Failed to load subscription plans.")} fallback="Failed to load subscription plans." title="Plans" onRetry={() => void plans.refetch()} />}
             {!flags.data && <QueryErrorAlert error={flags.error ?? new Error("Failed to load feature flags.")} fallback="Failed to load feature flags." title="Feature flags" onRetry={() => void flags.refetch()} />}

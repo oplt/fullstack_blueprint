@@ -15,7 +15,7 @@ export default function AdminSettingsPage() {
     const database = useQuery({ queryKey: queryKeys.settings.database, queryFn: ({ signal }) => listDatabaseSettings({ signal }) });
     if ((config.isLoading && !config.data) || (database.isLoading && !database.data)) {
         return (
-            <PageShell width="wide"><div className="flex gap-4"><div
+            <PageShell width="wide"><div className="flex gap-ui-md"><div
 
                     className="animate-pulse rounded-md bg-muted rounded-lg" /><div
 
@@ -24,7 +24,7 @@ export default function AdminSettingsPage() {
     }
     if (!config.data) {
         return (
-            <PageShell width="wide"><SettingsTabs /><div className="mt-4 flex gap-4">
+            <PageShell width="wide"><SettingsTabs /><div className="mt-ui-md flex gap-ui-md">
                     <QueryErrorAlert error={config.error ?? new Error("Failed to load config values.")} fallback="Failed to load config values." title="Config" onRetry={() => void config.refetch()} />
                     {database.isError && <QueryErrorAlert error={database.error} fallback="Failed to load database settings." title="Database settings" onRetry={() => void database.refetch()} />}
                 </div></PageShell>

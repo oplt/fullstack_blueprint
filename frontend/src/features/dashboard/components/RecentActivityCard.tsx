@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bell as NotificationsIcon } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Notification } from "../../../api/notifications";
 import { ROUTES } from "@/config/routes";
@@ -38,13 +38,13 @@ export function RecentActivityCard({ enabled, notifications, isLoading, isError,
                 isEmpty={!recentNotifications.length}
                 emptyFallback={
                     <EmptyState
-                        icon={<NotificationsIcon />}
+                        icon={<Bell />}
                         title="No notifications yet"
                         description="Updates, reminders, and account events will appear here as soon as the workspace becomes active."
                     />
                 }
             >
-                <div className="flex min-h-0 max-h-full flex-1 flex-col gap-3 overflow-auto">
+                <div className="flex min-h-0 max-h-full flex-1 flex-col gap-ui-sm overflow-auto">
                     {recentNotifications.map((notification) => (
                         <NotificationListItem key={notification.id} notification={notification} variant="compact" />
                     ))}

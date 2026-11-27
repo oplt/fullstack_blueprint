@@ -27,9 +27,9 @@ export default function RagView() {
             />
             <SettingsTabs />
 
-            <div className="mt-4 flex flex-col gap-4">
+            <div className="mt-ui-md flex flex-col gap-ui-md">
                 <div
-                    className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+                    className="flex flex-col sm:flex-row gap-ui-sm sm:items-center justify-between">
                     <p className="text-muted-foreground">
                         Optionally limit documents and retrieval to one project.
                     </p>

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import {
-    MessageCircleQuestion as AskIcon,
+    MessageCircleQuestion,
 } from "lucide-react";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { useRagWorkspace } from "../hooks/useRagWorkspace";
@@ -18,7 +18,7 @@ export function RagEvaluationPanel({ workspace }: Props) {
                         title="Evaluation"
                         description="Grounded ask with citation coverage and retrieval-relevance signals for this response."
                     >
-                        <div className="flex gap-3">
+                        <div className="flex gap-ui-sm">
                             <FormField
                                 label="Question"
                                 value={workspace.askQuery}
@@ -29,7 +29,7 @@ export function RagEvaluationPanel({ workspace }: Props) {
                                 variant="default"
                                 disabled={!workspace.askQuery.trim() || workspace.askMutation.isPending}
                                 onClick={() => workspace.askMutation.mutate()}
-                                type="button"><AskIcon />Ask (grounded)
+                                type="button"><MessageCircleQuestion />Ask (grounded)
                                                             </Button>
                             <RagEvaluationAnswer workspace={workspace} />
                         </div>

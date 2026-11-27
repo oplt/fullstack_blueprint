@@ -3,7 +3,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { GripVertical as DragIcon } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import type { ProjectTask, ProjectTaskStatus } from "../../../api/projects";
 import { formatDateTime } from "../../../utils/formatters";
 import { TASK_STATUS_OPTIONS } from "../projectTaskModel";
@@ -15,7 +15,7 @@ export function TaskBoardCard({ task, selected, isDragging, onSelect, onDragStar
     return <Card size="sm" className="ui-task-card" data-selected={selected} data-dragging={isDragging} draggable onClick={onSelect}
         onDragStart={(event) => { event.dataTransfer.setData("text/plain", task.id); event.dataTransfer.effectAllowed = "move"; onDragStart(); }}
         onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); onDropBefore(); }}>
-        <CardContent className="ui-task-content"><div className="flex items-center justify-between gap-ui-xs"><Button variant="link" className="ui-task-title" onClick={(event) => { event.stopPropagation(); onSelect(); }} type="button">{task.title}</Button><DragIcon aria-hidden="true" className="size-(--icon-size-md) text-muted-foreground" /></div><p className="text-body-md text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
+        <CardContent className="ui-task-content"><div className="flex items-center justify-between gap-ui-xs"><Button variant="link" className="ui-task-title" onClick={(event) => { event.stopPropagation(); onSelect(); }} type="button">{task.title}</Button><GripVertical aria-hidden="true" className="size-(--icon-size-md) text-muted-foreground" /></div><p className="text-body-md text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
             <FormField as="select" label="Move to" value="" onClick={(event: MouseEvent<HTMLSelectElement>) => event.stopPropagation()} onChange={(event: ChangeEvent<HTMLSelectElement>) => { event.stopPropagation(); if (event.target.value) onMove(event.target.value as ProjectTaskStatus); }} aria-label={`Move ${task.title} to another column`}><option value="" disabled>Select status</option>{TASK_STATUS_OPTIONS.filter((option) => option.value !== task.status).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</FormField>
         </CardContent>
     </Card>;

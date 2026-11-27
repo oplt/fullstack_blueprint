@@ -55,4 +55,17 @@ describe("MfaQrCode", () => {
         expect(await screen.findByRole("img", { name: "Scan this QR code with your authenticator app" }))
             .toHaveAttribute("src", "data:image/png;base64,new");
     });
+
+    it("keeps scan-safe third-party rendering geometry and colors", async () => {
+        render(<MfaQrCode provisioningUri="otpauth://scan-safe" />);
+
+        await waitFor(() => expect(QRCode.toDataURL).toHaveBeenCalledWith(
+            "otpauth://scan-safe",
+            expect.objectContaining({
+                width: 220,
+                margin: 1,
+                color: { dark: "#000000", light: "#ffffff" },
+            }),
+        ));
+    });
 });

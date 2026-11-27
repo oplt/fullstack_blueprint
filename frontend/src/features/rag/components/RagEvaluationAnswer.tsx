@@ -12,7 +12,7 @@ export function RagEvaluationAnswer({ workspace }: Props) {
     if (!workspace.askResult || !workspace.askEval) return null;
     return (
                             
-                                <div className="flex gap-3">
+                                <div className="flex gap-ui-sm">
                                     <MetricGrid columns={4}>
                                         <MetricTile
                                             label="Retrieved chunks"
@@ -45,7 +45,7 @@ export function RagEvaluationAnswer({ workspace }: Props) {
                                         <div
                                             key={note}
                                             role="alert"
-                                            className="rounded-lg border border-border p-3 text-sm">
+                                            className="rounded-lg border border-border p-ui-sm text-body-md">
                                             {note}
                                         </div>
                                     ))}
@@ -57,7 +57,7 @@ export function RagEvaluationAnswer({ workspace }: Props) {
                                         <p role="status">Citations checked against source text.</p>
                                     )}
                                     {workspace.askResult.claims?.length ? (
-                                        <ul className="grid gap-2">
+                                        <ul className="grid gap-ui-xs">
                                             {workspace.askResult.claims.map((claim, index) => (
                                                 <li key={`${index}:${claim.text}`} className="whitespace-pre-wrap">
                                                     {claim.text}{" "}

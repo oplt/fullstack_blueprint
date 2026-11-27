@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { RefreshCw as RetryIcon } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import type { useRagWorkspace } from "../hooks/useRagWorkspace";
@@ -20,7 +20,7 @@ export function RagIndexingPanel({ workspace, onTabChange }: Props) {
                                 description="Select a document to inspect embedding/chunk settings, progress, and chunks."
                             >
                                 <EmptyState
-                                    icon={<RetryIcon />}
+                                    icon={<RefreshCw />}
                                     title="No document selected"
                                     description="Choose a document from Documents, then return here to browse chunks and indexing progress."
                                     action={

@@ -72,8 +72,8 @@ export function AgentConfigurationPanel(props: Props) {
                         title="Configure"
                         description="Model, tools, prompt, limits, and retrieval — then continue to Run."
                     >
-                        <div className="flex gap-4">
-                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                        <div className="flex gap-ui-md">
+                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                                 Execution is synchronous today (HTTP 201). The Run tab shows live
                                 status until the backend responds or times out.
                             </div>
@@ -111,7 +111,7 @@ export function AgentConfigurationPanel(props: Props) {
                                 ]}
                             />
 
-                            <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+                            <div className="flex flex-col sm:flex-row gap-ui-md flex-wrap">
                                 <FormField
                                     label="Agent ID"
                                     value={agentId}
@@ -143,7 +143,7 @@ export function AgentConfigurationPanel(props: Props) {
                                         Tools
                                     </HelpTooltip>
                                 </p>
-                                <div className="flex flex-row gap-2 flex-wrap">
+                                <div className="flex flex-row gap-ui-xs flex-wrap">
                                     {enabledTools.map((tool) => (
                                         <Badge key={tool.id} variant="outline">
                                             {tool.label}: {tool.enabled ? "enabled" : "disabled"}

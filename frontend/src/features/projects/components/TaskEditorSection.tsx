@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { Trash2 as DeleteIcon } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { formatDateTime } from "../../../utils/formatters";
@@ -16,7 +16,7 @@ type TaskEditorSectionProps = {
 export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSectionProps) {
     const d = m.taskDraft;
     const form = (
-        <div className="flex gap-4">
+        <div className="flex gap-ui-md">
             <FormField
                 label="Title"
                 {...m.taskForm.register("title")}
@@ -82,13 +82,13 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                 />
             )}
             {m.selectedTask && (
-                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                     Created {formatDateTime(m.selectedTask.created_at)}. Last updated{" "}
                     {formatDateTime(m.selectedTask.updated_at)}.
                 </div>
             )}
-            {m.taskError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{m.taskError}</div>}
-            <div className="flex flex-row gap-2.5">
+            {m.taskError && <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">{m.taskError}</div>}
+            <div className="flex flex-row gap-ui-sm">
                 <Button
                     variant="default"
                     onClick={m.submit}
@@ -107,7 +107,7 @@ export function TaskEditorSection({ model: m, embedded = false }: TaskEditorSect
                         variant="destructive"
                         onClick={() => m.deleteMutation.mutate()}
                         disabled={m.deleteMutation.isPending}
-                        type="button"><DeleteIcon />
+                        type="button"><Trash2 />
                         {m.deleteMutation.isPending ? "Deleting..." : "Delete"}
                     </Button>
                 )}

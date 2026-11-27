@@ -72,7 +72,7 @@ export default function VerifyEmailPage() {
                 />
             }
         >
-            <div className="flex gap-6">
+            <div className="flex gap-ui-lg">
                 <div>
                     <span className="text-primary">
                         Email verification
@@ -80,13 +80,13 @@ export default function VerifyEmailPage() {
                     <h4 className="mt-1" >
                         Confirm your email address
                     </h4>
-                    <span className="mt-2 text-muted-foreground">
+                    <span className="mt-ui-xs text-muted-foreground">
                         Verification improves account trust and unlocks the full sign-in experience.
                     </span>
                 </div>
 
                 {status === "loading" && (
-                    <div className="py-8" style={{ display: "grid", placeItems: "center" }}>
+                    <div className="grid place-items-center py-8">
                         <span
                             className="inline-block animate-spin rounded-full border-2 border-primary border-t-transparent"
                             role="progressbar" />
@@ -94,8 +94,8 @@ export default function VerifyEmailPage() {
                 )}
 
                 {status === "success" && (
-                    <div className="flex gap-4">
-                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">Your email has been verified. You can now sign in.</div>
+                    <div className="flex gap-ui-md">
+                        <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">Your email has been verified. You can now sign in.</div>
                         <Button variant="default" render={<RouterLink to="/" />} type="button">
                             Go to sign in
                         </Button>
@@ -103,14 +103,14 @@ export default function VerifyEmailPage() {
                 )}
 
                 {(status === "error" || status === "no-token") && (
-                    <div className="flex gap-4">
+                    <div className="flex gap-ui-md">
                         {status === "error" && (
-                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                                 The verification link is invalid or has expired.
                             </div>
                         )}
                         {status === "no-token" && (
-                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                                 Check your email for a verification link, or request a new one below.
                             </div>
                         )}
@@ -126,7 +126,7 @@ export default function VerifyEmailPage() {
                             description={
                                 resendError && !resendDone ? resendError : "Use the same address you registered with."
                             } />
-                        {resendDone && <div role="alert" className="rounded-lg border border-border p-3 text-sm">A new verification email has been sent.</div>}
+                        {resendDone && <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">A new verification email has been sent.</div>}
                         {!resendDone && (
                             <Button
                                 variant="default"

@@ -1,6 +1,6 @@
 import {Button} from "@/components/ui/button";
 import {FormField} from "@/components/ui/form-field";
-import {CircleCheck as ReviewIcon} from "lucide-react";
+import {CircleCheck} from "lucide-react";
 import {EmptyState} from "../../../components/ui/EmptyState";
 import {QueryErrorAlert} from "../../../components/ui/QueryBoundary";
 import type {AiStudioModel} from "../hooks/useAiStudioView";
@@ -22,7 +22,7 @@ export function ReviewQueueSection({model}: Props) {
         decideReviewMutation
     } = model;
     return (
-        <div className="flex gap-2.5">
+        <div className="flex gap-ui-sm">
             <p>Review queue</p>
             {reviewsIsError && (
                 <QueryErrorAlert
@@ -32,7 +32,7 @@ export function ReviewQueueSection({model}: Props) {
                 />
             )}
             {reviewsLoading ? (
-                <div className="flex gap-3">
+                <div className="flex gap-ui-sm">
                     {Array.from({length: 2}).map((_: any, index: any) => (
                         <div
                             key={index}
@@ -41,9 +41,9 @@ export function ReviewQueueSection({model}: Props) {
                 </div>
             ) : reviews.length > 0 ? (
                 reviews.map((review) => (
-                    <div key={review.id} className="rounded-lg border border-border p-4">
-                        <div className="flex gap-2">
-                            <div className="flex flex-col sm:flex-row gap-2 justify-between">
+                    <div key={review.id} className="rounded-lg border border-border p-ui-md">
+                        <div className="flex gap-ui-xs">
+                            <div className="flex flex-col sm:flex-row gap-ui-xs justify-between">
                                 <p>Run {review.run_id.slice(0, 8)}</p>
                                 <Badge variant="outline">
                                     {review.status}
@@ -65,7 +65,7 @@ export function ReviewQueueSection({model}: Props) {
                                 }))}
                                 as="textarea"
                                 rows={2}/>
-                            <div className="flex flex-col sm:flex-row gap-2">
+                            <div className="flex flex-col sm:flex-row gap-ui-xs">
                                 <Button
                                     variant="outline"
                                     onClick={() => decideReviewMutation.mutate({
@@ -103,7 +103,7 @@ export function ReviewQueueSection({model}: Props) {
                     </div>
                 ))
             ) : (
-                <EmptyState icon={<ReviewIcon/>} title="No reviews queued"
+                <EmptyState icon={<CircleCheck/>} title="No reviews queued"
                             description="Review requests created from runs will appear here."/>
             )}
         </div>

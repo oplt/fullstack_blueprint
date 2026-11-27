@@ -11,7 +11,7 @@ export function AgentSourcesDetails({ run: selectedRun }: Props) {
                                     title="Sources"
                                     description="Citations and retrieved evidence attached to this run."
                                 >
-                                    <div className="flex gap-3">
+                                    <div className="flex gap-ui-sm">
                                         {selectedRun.retrieval_query ? (
                                             <p className="text-muted-foreground">
                                                 Retrieval query: {selectedRun.retrieval_query}
@@ -23,23 +23,23 @@ export function AgentSourcesDetails({ run: selectedRun }: Props) {
                                                 No retrieved evidence for this run.
                                             </p>
                                         ) : (
-                                            <table className="w-full text-sm">
+                                            <table className="w-full text-body-md">
                                                 <thead>
                                                     <tr className="border-b border-border">
-                                                        <td className="p-2 align-top">#</td>
-                                                        <td className="p-2 align-top">Chunk ID</td>
-                                                        <td className="p-2 align-top">Role</td>
+                                                        <td className="p-ui-xs align-top">#</td>
+                                                        <td className="p-ui-xs align-top">Chunk ID</td>
+                                                        <td className="p-ui-xs align-top">Role</td>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {selectedRun.retrieved_chunk_ids.map(
                                                         (chunkId, index) => (
                                                             <tr key={chunkId} className="border-b border-border">
-                                                                <td className="p-2 align-top">{index + 1}</td>
+                                                                <td className="p-ui-xs align-top">{index + 1}</td>
                                                                 <td className="p-ui-xs align-top font-mono text-body-sm">
                                                                     {chunkId}
                                                                 </td>
-                                                                <td className="p-2 align-top">
+                                                                <td className="p-ui-xs align-top">
                                                                     Retrieved evidence
                                                                 </td>
                                                             </tr>
@@ -50,7 +50,7 @@ export function AgentSourcesDetails({ run: selectedRun }: Props) {
                                         )}
 
                                         {selectedRun.injection_chunks_filtered > 0 ? (
-                                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                                                 Filtered {selectedRun.injection_chunks_filtered}{" "}
                                                 injection chunk(s) before generation.
                                             </div>
@@ -58,7 +58,7 @@ export function AgentSourcesDetails({ run: selectedRun }: Props) {
 
                                         {(selectedRun.retrieval_degraded ||
                                             selectedRun.memory_degraded) && (
-                                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                                                 {selectedRun.degradation_reason ??
                                                     (selectedRun.retrieval_degraded
                                                         ? "Retrieval degraded — treat sources cautiously."

@@ -91,7 +91,7 @@ export function EventCalendar({
       dir={direction === 'rtl' ? 'rtl' : undefined}
     >
       <EventCalendarToolbar
-        className='p-4'
+        className='p-ui-md'
         controller={controller}
         availableViews={availableViews}
         addButton={addButton}

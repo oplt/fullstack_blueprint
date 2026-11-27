@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { FormField } from "../../components/ui/form-field";
 import { SectionCard } from "../../components/ui/SectionCard";
-import { Search as SearchIcon } from "lucide-react";
+import { Search } from "lucide-react";
 import { MEMORY_LEVELS, useMemoryWorkspace } from "./hooks/useMemoryWorkspace";
 
 type Workspace = ReturnType<typeof useMemoryWorkspace>;
@@ -11,8 +11,8 @@ export function MemoryFiltersPanel({ workspace }: Props) {
     const { memoryLevel, setMemoryLevel, setOffset, setSearchResults, projectId, setProjectId, projects, agentId, setAgentId, searchQuery, setSearchQuery, searchMutation, searchResults } = workspace;
     return (
                 <SectionCard title="Filters & search" description="Scope by level, project, and agent.">
-                    <div className="flex gap-4">
-                        <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+                    <div className="flex gap-ui-md">
+                        <div className="flex flex-col sm:flex-row gap-ui-md flex-wrap">
                             <FormField
                                 as="select"
                                 label="Memory level"
@@ -54,7 +54,7 @@ export function MemoryFiltersPanel({ workspace }: Props) {
                                     setSearchResults(null);
                                 }} />
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex flex-col sm:flex-row gap-ui-xs">
                             <FormField
                                 label="Search query"
                                 value={searchQuery}
@@ -64,7 +64,7 @@ export function MemoryFiltersPanel({ workspace }: Props) {
                                 disabled={!searchQuery.trim() || searchMutation.isPending}
                                 onClick={() => searchMutation.mutate()}
                                 type="button"
-                            ><SearchIcon />Search
+                            ><Search />Search
                                                             </Button>
                             {searchResults ? (
                                 <Button variant="outline" onClick={() => setSearchResults(null)} type="button">

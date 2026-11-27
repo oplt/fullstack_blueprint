@@ -1,5 +1,5 @@
 import {Button} from "@/components/ui/button";
-import {Trash2 as DeleteIcon} from "lucide-react";
+import {Trash2} from "lucide-react";
 import {QueryBoundary} from "../../components/ui/QueryBoundary";
 import {SectionCard} from "../../components/ui/SectionCard";
 import type {MemoryItem} from "../../api/memory";
@@ -27,7 +27,7 @@ export function MemoryDetail({
             title="Memory detail"
             description="Source, confidence, privacy, and timestamps."
             action={
-                <Button variant="destructive" disabled={!item} onClick={onForget} type="button"><DeleteIcon/>Forget
+                <Button variant="destructive" disabled={!item} onClick={onForget} type="button"><Trash2/>Forget
                 </Button>
             }
         >
@@ -42,7 +42,7 @@ export function MemoryDetail({
                         Select a memory to inspect.
                     </p>
                 ) : (
-                    <div className="flex gap-3">
+                    <div className="flex gap-ui-sm">
                         <p>{item.content}</p>
                         <div className="flex flex-wrap gap-ui-xs">
                             <Badge variant="secondary">
@@ -95,7 +95,7 @@ export function MemoryDetail({
                             </span>
                         </div>
                         {item.score != null ? (
-                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">Search
+                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">Search
                                 score: {item.score.toFixed(3)}</div>
                         ) : null}
                     </div>

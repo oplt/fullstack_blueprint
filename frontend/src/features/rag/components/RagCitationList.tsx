@@ -62,7 +62,7 @@ export function CitationPreview({ citation }: { citation: RagCitation }) {
 
 export function RagCitationList({ result }: { result: AskResult }) {
     return (
-        <section className="grid gap-2">
+        <section className="grid gap-ui-xs">
             <h3>
                 <HelpTooltip termId="grounding" variant="label">Citations (evidence)</HelpTooltip>
             </h3>
@@ -70,7 +70,7 @@ export function RagCitationList({ result }: { result: AskResult }) {
                 <article
                     key={`${citation.document_id}:${citation.chunk_id}:${citation.index_revision_id}`}
                     id={citation.citation_number != null ? `rag-citation-${citation.citation_number}` : undefined}
-                    className="grid gap-1 rounded-md border border-border p-2"
+                    className="grid gap-ui-xxs rounded-md border border-border p-ui-xs"
                 >
                     <span className="text-muted-foreground">
                         {citation.filename} · score {citation.score.toFixed(3)}

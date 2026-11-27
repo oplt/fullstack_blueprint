@@ -20,8 +20,8 @@ export function AgentOutputDetails({run: selectedRun, setTab}: Props) {
             title="Output"
             description="Final generated artifact — separate from Trace."
         >
-            <div className="flex gap-3">
-                <div className="flex flex-row gap-2 flex-wrap">
+            <div className="flex gap-ui-sm">
+                <div className="flex flex-row gap-ui-xs flex-wrap">
                     <RunStatusBadge status={selectedRun.status}/>
                     <Badge variant="outline">
                         {selectedRun.provider_key}/{selectedRun.model_name}
@@ -43,7 +43,7 @@ export function AgentOutputDetails({run: selectedRun, setTab}: Props) {
                 </p>
 
                 {selectedRun.output_json ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-ui-xs">
                         {recordToKeyValueItems(selectedRun.output_json)
                             .length ? (
                             <KeyValueList

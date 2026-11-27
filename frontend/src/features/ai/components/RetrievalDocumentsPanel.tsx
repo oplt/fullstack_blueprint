@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { FileText as DocumentIcon } from "lucide-react";
+import { FileText } from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { formatDateTime } from "../../../utils/formatters";
@@ -9,7 +9,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
     const { textDocumentForm, setTextDocumentForm, createTextDocumentMutation, uploadDocumentMutation, uploadDescription, setUploadDescription, documents } = m;
     return (
         <SectionCard title="Retrieval documents" description="Ingest source files or direct text, chunk them, and use them as retrieval context in prompt runs.">
-            <div className="flex gap-4">
+            <div className="flex gap-ui-md">
                 <FormField
                     label="Document title"
                     value={textDocumentForm.title}
@@ -55,7 +55,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
                     value={uploadDescription}
                     onChange={(event: any) => setUploadDescription(event.target.value)} />
                 {documents.length > 0 ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-ui-xs">
                         {documents.map((document) => (
                             <div key={document.id} className="surface-card ui-feature-surface ui-feature-surface-dense">
                                 <p>{document.title}</p>
@@ -66,7 +66,7 @@ export function RetrievalDocumentsPanel({ m }: { m: AiStudioModel }) {
                         ))}
                     </div>
                 ) : (
-                    <EmptyState icon={<DocumentIcon />} title="No documents indexed" description="Upload source material to power retrieval-augmented runs." />
+                    <EmptyState icon={<FileText />} title="No documents indexed" description="Upload source material to power retrieval-augmented runs." />
                 )}
             </div>
         </SectionCard>

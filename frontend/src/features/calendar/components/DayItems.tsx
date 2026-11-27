@@ -1,17 +1,17 @@
 import { Badge } from "@/components/ui/badge";
 import {
-    CalendarCheck as AppointmentIcon,
-    CalendarDays as EventIcon,
-    ListChecks as TaskIcon,
+    CalendarCheck,
+    CalendarDays,
+    ListChecks,
 } from "lucide-react";
 import type { CalendarItem, CalendarItemType } from "../../../api/calendar";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { humanizeKey } from "../../../utils/formatters";
 
 function ItemIcon({ type }: { type: CalendarItemType }) {
-    if (type === "task") return <TaskIcon aria-hidden="true" />;
-    if (type === "appointment") return <AppointmentIcon aria-hidden="true" />;
-    return <EventIcon aria-hidden="true" />;
+    if (type === "task") return <ListChecks aria-hidden="true" />;
+    if (type === "appointment") return <CalendarCheck aria-hidden="true" />;
+    return <CalendarDays aria-hidden="true" />;
 }
 
 function ItemBadges({ item }: { item: CalendarItem }) {
@@ -23,7 +23,7 @@ function ItemBadges({ item }: { item: CalendarItem }) {
     ].filter((value): value is string => Boolean(value));
 
     return (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-ui-xxs.5">
             {badges.map((badge) => (
                 <Badge key={badge} variant="outline">
                     {badge}
@@ -43,17 +43,17 @@ export function DayItems({
     emptyDescription: string;
 }) {
     if (items.length === 0) {
-        return <EmptyState icon={<EventIcon />} title={emptyTitle} description={emptyDescription} />;
+        return <EmptyState icon={<CalendarDays />} title={emptyTitle} description={emptyDescription} />;
     }
 
     return (
-        <div className="grid gap-2">
+        <div className="grid gap-ui-xs">
             {items.map((item) => (
                 <article
                     key={item.id}
-                    className={`grid gap-2 rounded-xl border border-border p-3 ${item.type === "task" ? "bg-success-soft" : "bg-card"}`}
+                    className={`grid gap-ui-xs rounded-xl border border-border p-ui-sm ${item.type === "task" ? "bg-success-soft" : "bg-card"}`}
                 >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-ui-xs">
                         <ItemIcon type={item.type} />
                         <h3>{item.title}</h3>
                     </div>

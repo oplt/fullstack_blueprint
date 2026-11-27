@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
                 />
             }
         >
-            <div className="flex gap-6">
+            <div className="flex gap-ui-lg">
                 <div>
                     <span className="text-primary">
                         Reset password
@@ -77,23 +77,23 @@ export default function ResetPasswordPage() {
                     <h4 className="mt-1" >
                         Choose a new password
                     </h4>
-                    <span className="mt-2 text-muted-foreground">
+                    <span className="mt-ui-xs text-muted-foreground">
                         Use a secure password that you have not used elsewhere.
                     </span>
                 </div>
 
                 {done ? (
-                    <div className="flex gap-4">
-                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">Password reset successfully.</div>
+                    <div className="flex gap-ui-md">
+                        <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">Password reset successfully.</div>
                         <Button variant="default" render={<RouterLink to="/" />} type="button">
                             Return to sign in
                         </Button>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-                            {serverError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{serverError}</div>}
+                    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-ui-md">
+                            {serverError && <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">{serverError}</div>}
                             {!token && (
-                                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                                <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                                     No reset token found. Please use the link from your email.
                                 </div>
                             )}

@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { Trash2 as DeleteIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { Trash2 } from "lucide-react";
 import type { ConfigEntry, DatabaseSetting } from "../../../api/settings";
 import { formatDateTime } from "../../../utils/formatters";
 
 export function ConfigEntryEditor({ item, value, onChange }: { item: ConfigEntry; value: string; onChange: (value: string) => void }) {
     return (
         <div className="surface-card ui-feature-surface ui-feature-surface-subtle">
-            <div className="flex gap-2.5">
-                <div className="flex flex-col sm:flex-row gap-2 justify-between">
+            <div className="flex gap-ui-sm">
+                <div className="flex flex-col sm:flex-row gap-ui-xs justify-between">
                     <div>
                         <p>{item.key}</p>
                         {item.description && <p className="text-muted-foreground">{item.description}</p>}
                     </div>
-                    <div className="flex flex-row gap-2 flex-wrap">
+                    <div className="flex flex-row gap-ui-xs flex-wrap">
                         <Badge variant={item.is_secret ? "warning" : "outline"}>{item.is_secret ? "Secret" : item.value_type}</Badge>
                         {item.is_custom && <Badge variant="secondary">Custom</Badge>}
                         {item.requires_restart && <Badge variant="warning">Restart required</Badge>}
@@ -40,10 +40,10 @@ type DatabaseEditorProps = {
 export function DatabaseSettingEditor({ item, draft, onDraftChange, onSave, onDelete, isSaving, isDeleting }: DatabaseEditorProps) {
     return (
         <div className="surface-card ui-feature-surface">
-            <div className="flex gap-3">
-                <div className="flex flex-row gap-3 justify-between">
+            <div className="flex gap-ui-sm">
+                <div className="flex flex-row gap-ui-sm justify-between">
                     <div><p>{item.key}</p><span className="text-muted-foreground">Updated {formatDateTime(item.updated_at)}</span></div>
-                    <Button size="icon" aria-label={`Delete ${item.key}`} onClick={onDelete} disabled={isDeleting}><DeleteIcon /></Button>
+                    <Button size="icon" aria-label={`Delete ${item.key}`} onClick={onDelete} disabled={isDeleting}><Trash2 /></Button>
                 </div>
                 <FormField
                     label="Value"

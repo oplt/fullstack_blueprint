@@ -1,7 +1,10 @@
 import { useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import type { RagCompareRequest } from "@/api/generated/types";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FormField } from "@/components/ui/form-field";
+import { FormGrid } from "@/components/ui/FormGrid";
+import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { useRetrievalComparison } from "../hooks/useRetrievalComparison";
 import type { useRagWorkspace } from "../hooks/useRagWorkspace";
@@ -63,7 +66,7 @@ function ModeAndOutputFields({
     onChooseDocuments: (value: boolean) => void;
 }) {
     return (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <FormGrid columns="4">
             <FormField as="select" label="Baseline search" value={baselineMode}
                 onChange={(event) => onBaselineMode(event.currentTarget.value as Mode)}>
                 {modes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -81,7 +84,7 @@ function ModeAndOutputFields({
                 </option>
                 <option value="pick">Choose documents</option>
             </FormField>
-        </div>
+        </FormGrid>
     );
 }
 
@@ -102,19 +105,18 @@ function SelectedDocumentScope({
     return (
         <>
             {chooseDocuments && (
-                <fieldset className="grid gap-2 rounded-lg border border-border p-3">
+                <fieldset className="grid gap-ui-xs rounded-lg border border-border p-ui-sm">
                     <legend>Indexed documents on the current page</legend>
                     {indexedDocuments.map((doc: WorkspaceDocument) => (
-                        <label className="flex items-center gap-2" key={doc.id}>
-                            <input type="checkbox" checked={documentIds.includes(doc.id)}
-                                onChange={(event) => {
-                                    const checked = event.currentTarget.checked;
+                        <Label className="flex items-center gap-ui-xs" key={doc.id}>
+                            <Checkbox checked={documentIds.includes(doc.id)}
+                                onCheckedChange={(checked) => {
                                     onDocumentIds((ids) => checked
                                         ? [...ids, doc.id]
                                         : ids.filter((id) => id !== doc.id));
                                 }} />
                             {doc.original_filename}
-                        </label>
+                        </Label>
                     ))}
                     {indexedDocuments.length === 0 && (
                         <p className="text-muted-foreground">Index a document to include it in a comparison.</p>
@@ -151,9 +153,9 @@ function RankingAndFilters({
     onLanguage: (value: string) => void;
 }) {
     return (
-        <details className="grid rounded-lg border border-border p-3">
+        <details className="grid rounded-lg border border-border p-ui-sm">
             <summary className="cursor-pointer">Ranking and filters</summary>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <FormGrid columns="3" className="mt-ui-sm">
                 <FormField type="number" label="Draft minimum cosine" min={-1} max={1} step={0.01}
                     placeholder="Configured value" value={draft.min_cosine ?? ""}
                     description="Exclude vector matches below this cosine score (−1 to 1); keyword search and displayed RRF scores are unaffected."
@@ -198,7 +200,7 @@ function RankingAndFilters({
                     <option value="de">German</option>
                     <option value="tr">Turkish</option>
                 </FormField>
-            </div>
+            </FormGrid>
         </details>
     );
 }
@@ -257,8 +259,8 @@ function RetrievalComparisonForm({ workspace }: Props) {
             title="Retrieval comparison"
             description="Compare ranked excerpts for one query and document scope. Draft settings apply to this run."
         >
-            <div className="grid gap-6">
-                <form className="grid gap-4" onSubmit={submit}>
+            <div className="grid gap-ui-lg">
+                <form className="grid gap-ui-md" onSubmit={submit}>
                     <FormField as="textarea" label="Query" rows={2} maxLength={4000} required
                         value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
                     <ModeAndOutputFields
@@ -287,7 +289,7 @@ function RetrievalComparisonForm({ workspace }: Props) {
                         onFormat={setFormat}
                         onLanguage={setLanguage}
                     />
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-ui-xs">
                         <Button type="submit" disabled={!query.trim() || !ready || running}>
                             {running ? "Comparing…" : "Compare retrieval"}
                         </Button>

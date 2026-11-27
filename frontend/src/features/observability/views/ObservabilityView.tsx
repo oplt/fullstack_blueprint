@@ -15,7 +15,7 @@ export default function ObservabilityPage() {
     return (
         <PageShell width="wide">
             <SettingsTabs />
-            <div className="flex flex-row justify-end mb-4" >
+            <div className="flex flex-row justify-end mb-ui-md" >
                 <Button
                     variant="default"
                     disabled={!model.technicalAccess || !links?.dashboards.application_overview.url}
@@ -28,7 +28,7 @@ export default function ObservabilityPage() {
                                     </Button>
             </div>
             {model.linksQuery.isError && (
-                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                     Observability links are unavailable. Health checks can still render when the status endpoint responds.
                 </div>
             )}

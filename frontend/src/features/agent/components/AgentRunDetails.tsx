@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bot as AgentIcon } from "lucide-react";
+import { Bot } from "lucide-react";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { QueryBoundary } from "../../../components/ui/QueryBoundary";
 import { SectionCard } from "../../../components/ui/SectionCard";
@@ -27,7 +27,7 @@ export function AgentRunDetails({ tab, selectedRunId, selectedRunQuery, selected
         return (
             <SectionCard title={title} description="Select or create a run first.">
                 <EmptyState
-                    icon={<AgentIcon />}
+                    icon={<Bot />}
                     title="No run selected"
                     description="Run an agent or pick a history item on the Run tab."
                     action={<Button variant="default" onClick={() => setTab("run")} type="button">Open Run</Button>}

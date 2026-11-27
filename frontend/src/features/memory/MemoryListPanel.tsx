@@ -1,5 +1,5 @@
 import {Button} from "@/components/ui/button";
-import {Brain as MemoryIcon, Trash2 as DeleteIcon} from "lucide-react";
+import {Brain, Trash2} from "lucide-react";
 import {EmptyState} from "../../components/ui/EmptyState";
 import {QueryBoundary, QueryErrorAlert} from "../../components/ui/QueryBoundary";
 import {SectionCard} from "../../components/ui/SectionCard";
@@ -37,21 +37,21 @@ export function MemoryListPanel({workspace}: Props) {
                 >
                     {displayItems.length === 0 ? (
                         <EmptyState
-                            icon={<MemoryIcon/>}
+                            icon={<Brain/>}
                             title="No memories"
                             description="Adjust filters or run an agent that writes memory."
                         />
                     ) : (
                         <div className="min-w-0 max-w-full overflow-x-auto">
-                            <table className="w-full text-sm">
+                            <table className="w-full text-body-md">
                                 <thead>
                                 <tr className="border-b border-border">
-                                    <td className="p-2 align-top">Content</td>
-                                    <td className="p-2 align-top">Level</td>
-                                    <td className="p-2 align-top">Privacy</td>
-                                    <td className="p-2 align-top">Confidence</td>
-                                    <td className="p-2 align-top">Updated</td>
-                                    <td align="right" className="p-2 align-top">Actions</td>
+                                    <td className="p-ui-xs align-top">Content</td>
+                                    <td className="p-ui-xs align-top">Level</td>
+                                    <td className="p-ui-xs align-top">Privacy</td>
+                                    <td className="p-ui-xs align-top">Confidence</td>
+                                    <td className="p-ui-xs align-top">Updated</td>
+                                    <td align="right" className="p-ui-xs align-top">Actions</td>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -59,35 +59,34 @@ export function MemoryListPanel({workspace}: Props) {
                                     <tr
                                         key={item.id}
                                         onClick={() => setSelectedId(item.id)}
-                                        style={{cursor: "pointer"}}
-                                        className="border-b border-border">
-                                        <td style={{maxWidth: 360}} className="p-2 align-top">
+                                        className="cursor-pointer border-b border-border">
+                                        <td className="ui-table-long-text p-ui-xs align-top">
                                             <p>
                                                 {item.content}
                                             </p>
                                         </td>
-                                        <td className="p-2 align-top">
+                                        <td className="p-ui-xs align-top">
                                             <Badge variant="secondary">
                                                 {item.metadata.memory_level}
                                             </Badge>
                                         </td>
-                                        <td className="p-2 align-top">{item.metadata.privacy}</td>
-                                        <td className="p-2 align-top">
+                                        <td className="p-ui-xs align-top">{item.metadata.privacy}</td>
+                                        <td className="p-ui-xs align-top">
                                             {item.metadata.confidence.toFixed(2)}
                                         </td>
-                                        <td className="p-2 align-top">
+                                        <td className="p-ui-xs align-top">
                                             {item.updated_at
                                                 ? new Date(item.updated_at).toLocaleString()
                                                 : "—"}
                                         </td>
-                                        <td align="right" className="p-2 align-top">
+                                        <td align="right" className="p-ui-xs align-top">
                                             <Button
                                                 variant="destructive"
                                                 onClick={(e: any) => {
                                                     e.stopPropagation();
                                                     setConfirmDelete(item);
                                                 }}
-                                                type="button"><DeleteIcon/>Forget
+                                                type="button"><Trash2/>Forget
                                             </Button>
                                         </td>
                                     </tr>

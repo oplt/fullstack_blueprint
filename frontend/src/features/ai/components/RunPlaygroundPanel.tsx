@@ -100,10 +100,10 @@ function RunDegradationNotice({ run }: { run: AiRun }) {
     }
 
     return (
-        <div className="flex flex-col gap-2 rounded-lg border border-warning/30 bg-warning-soft p-3">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-ui-xs rounded-lg border border-warning/30 bg-warning-soft p-ui-sm">
+            <div className="flex flex-wrap items-center gap-ui-xs">
                 <TriangleAlert
-                    className="size-4 shrink-0 text-warning-deep"
+                    className="size-(--icon-size-md) shrink-0 text-warning-deep"
                     aria-hidden="true"
                 />
 
@@ -121,7 +121,7 @@ function RunDegradationNotice({ run }: { run: AiRun }) {
             </div>
 
             {run.degradation_reason && (
-                <p className="break-words text-sm text-muted-foreground">
+                <p className="break-words text-body-md text-muted-foreground">
                     {run.degradation_reason}
                 </p>
             )}
@@ -136,10 +136,10 @@ function RunOutput({ run }: { run: AiRun }) {
         return (
             <div
                 role="alert"
-                className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-sm text-destructive-deep"
+                className="flex items-start gap-ui-xs rounded-lg border border-destructive/30 bg-destructive-soft p-ui-sm text-body-md text-destructive-deep"
             >
                 <TriangleAlert
-                    className="mt-0.5 size-4 shrink-0"
+                    className="mt-0.5 size-(--icon-size-md) shrink-0"
                     aria-hidden="true"
                 />
 
@@ -151,24 +151,24 @@ function RunOutput({ run }: { run: AiRun }) {
     }
 
     return (
-        <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex min-w-0 flex-col gap-ui-sm">
             {outputText ? (
                 <>
-                    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">
+                    <p className="whitespace-pre-wrap break-words text-body-md leading-relaxed text-foreground">
                         {outputText.slice(0, 280)}
                         {outputText.length > 280 ? "…" : ""}
                     </p>
 
                     {outputText.length > 280 && (
                         <AdvancedSettings title="Full output">
-                            <div className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted/50 p-3 text-sm leading-relaxed">
+                            <div className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted/50 p-ui-sm text-body-md leading-relaxed">
                                 {outputText}
                             </div>
                         </AdvancedSettings>
                     )}
                 </>
             ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body-md text-muted-foreground">
                     {run.output_json
                         ? "Structured JSON output available below."
                         : "No output available."}
@@ -189,54 +189,54 @@ function RunOutput({ run }: { run: AiRun }) {
 
 function RunMetrics({ run }: { run: AiRun }) {
     return (
-        <dl className="grid grid-cols-2 gap-3 rounded-lg bg-muted/40 p-3 sm:grid-cols-4">
-            <div className="min-w-0 space-y-1">
-                <dt className="text-xs text-muted-foreground">
+        <dl className="grid grid-cols-2 gap-ui-sm rounded-lg bg-muted/40 p-ui-sm sm:grid-cols-4">
+            <div className="min-w-0 flex flex-col gap-ui-xxs">
+                <dt className="text-body-sm text-muted-foreground">
                     Input tokens
                 </dt>
 
-                <dd className="text-sm font-medium tabular-nums">
+                <dd className="text-body-md font-medium tabular-nums">
                     {run.input_tokens.toLocaleString()}
                 </dd>
             </div>
 
-            <div className="min-w-0 space-y-1">
-                <dt className="text-xs text-muted-foreground">
+            <div className="min-w-0 flex flex-col gap-ui-xxs">
+                <dt className="text-body-sm text-muted-foreground">
                     Output tokens
                 </dt>
 
-                <dd className="text-sm font-medium tabular-nums">
+                <dd className="text-body-md font-medium tabular-nums">
                     {run.output_tokens.toLocaleString()}
                 </dd>
             </div>
 
-            <div className="min-w-0 space-y-1">
-                <dt className="text-xs text-muted-foreground">
+            <div className="min-w-0 flex flex-col gap-ui-xxs">
+                <dt className="text-body-sm text-muted-foreground">
                     Total tokens
                 </dt>
 
-                <dd className="text-sm font-medium tabular-nums">
+                <dd className="text-body-md font-medium tabular-nums">
                     {run.total_tokens.toLocaleString()}
                 </dd>
             </div>
 
-            <div className="min-w-0 space-y-1">
-                <dt className="text-xs text-muted-foreground">
+            <div className="min-w-0 flex flex-col gap-ui-xxs">
+                <dt className="text-body-sm text-muted-foreground">
                     Estimated cost
                 </dt>
 
-                <dd className="text-sm font-medium tabular-nums">
+                <dd className="text-body-md font-medium tabular-nums">
                     {formatCostMicros(run.estimated_cost_micros)}
                 </dd>
             </div>
 
             {run.latency_ms !== null && (
-                <div className="min-w-0 space-y-1">
-                    <dt className="text-xs text-muted-foreground">
+                <div className="min-w-0 flex flex-col gap-ui-xxs">
+                    <dt className="text-body-sm text-muted-foreground">
                         Latency
                     </dt>
 
-                    <dd className="text-sm font-medium tabular-nums">
+                    <dd className="text-body-md font-medium tabular-nums">
                         {run.latency_ms.toLocaleString()} ms
                     </dd>
                 </div>
@@ -260,14 +260,14 @@ function RetrievalDocumentSelector({ m }: { m: AiStudioModel }) {
     return (
         <fieldset
             disabled={createRunMutation.isPending}
-            className="min-w-0 space-y-3"
+            className="min-w-0 flex flex-col gap-ui-sm"
         >
-            <legend className="text-sm font-medium">
+            <legend className="text-body-md font-medium">
                 Retrieval documents
             </legend>
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-ui-xs">
+                <p className="text-body-md text-muted-foreground">
                     Select documents to include as retrieval context.
                 </p>
 
@@ -277,7 +277,7 @@ function RetrievalDocumentSelector({ m }: { m: AiStudioModel }) {
             </div>
 
             {documents.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-ui-xs">
                     {documents.map((document) => {
                         const selected = selectedDocumentIds.includes(
                             document.id,
@@ -296,12 +296,12 @@ function RetrievalDocumentSelector({ m }: { m: AiStudioModel }) {
                             >
                                 {selected ? (
                                     <Check
-                                        className="size-3.5 shrink-0"
+                                        className="size-(--icon-size-compact) shrink-0"
                                         aria-hidden="true"
                                     />
                                 ) : (
                                     <FileText
-                                        className="size-3.5 shrink-0"
+                                        className="size-(--icon-size-compact) shrink-0"
                                         aria-hidden="true"
                                     />
                                 )}
@@ -314,7 +314,7 @@ function RetrievalDocumentSelector({ m }: { m: AiStudioModel }) {
                     })}
                 </div>
             ) : (
-                <p className="rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
+                <p className="rounded-lg border border-dashed border-border p-ui-sm text-body-md text-muted-foreground">
                     No retrieval documents are available.
                     You can still execute a prompt without selecting documents.
                 </p>
@@ -353,8 +353,8 @@ function RunFeedback({ m, run }: {
         createFeedbackMutation.variables?.rating === -1;
 
     return (
-        <div className="flex flex-col gap-4 border-t border-border pt-4">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-ui-md border-t border-border pt-ui-md">
+            <div className="flex flex-wrap items-center gap-ui-xs">
                 <Button
                     type="button"
                     variant="outline"
@@ -364,12 +364,12 @@ function RunFeedback({ m, run }: {
                 >
                     {reviewPending ? (
                         <LoaderCircle
-                            className="size-4 animate-spin"
+                            className="size-(--icon-size-md) animate-spin"
                             aria-hidden="true"
                         />
                     ) : (
                         <ClipboardCheck
-                            className="size-4"
+                            className="size-(--icon-size-md)"
                             aria-hidden="true"
                         />
                     )}
@@ -394,12 +394,12 @@ function RunFeedback({ m, run }: {
                 >
                     {positiveFeedbackPending ? (
                         <LoaderCircle
-                            className="size-4 animate-spin"
+                            className="size-(--icon-size-md) animate-spin"
                             aria-hidden="true"
                         />
                     ) : (
                         <ThumbsUp
-                            className="size-4"
+                            className="size-(--icon-size-md)"
                             aria-hidden="true"
                         />
                     )}
@@ -423,12 +423,12 @@ function RunFeedback({ m, run }: {
                 >
                     {negativeFeedbackPending ? (
                         <LoaderCircle
-                            className="size-4 animate-spin"
+                            className="size-(--icon-size-md) animate-spin"
                             aria-hidden="true"
                         />
                     ) : (
                         <ThumbsDown
-                            className="size-4"
+                            className="size-(--icon-size-md)"
                             aria-hidden="true"
                         />
                     )}
@@ -437,7 +437,7 @@ function RunFeedback({ m, run }: {
                 </Button>
             </div>
 
-            <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 gap-ui-md lg:grid-cols-2">
                 <FormField
                     as="textarea"
                     label="Feedback note"
@@ -483,18 +483,18 @@ function RecentRunCard({ m, run }: {
     return (
         <Card size="sm" className="min-w-0">
             <CardHeader>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-1">
+                <div className="flex flex-wrap items-start justify-between gap-ui-sm">
+                    <div className="min-w-0 flex flex-col gap-ui-xxs">
                         <CardTitle as="h3" className="break-words">
                             {run.provider_key}/{run.model_name}
                         </CardTitle>
 
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-body-sm text-muted-foreground">
                             {formatDateTime(run.created_at)}
                         </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-ui-xs">
                         <RunStatusBadge status={run.status} />
 
                         {run.review_status && (
@@ -510,14 +510,14 @@ function RecentRunCard({ m, run }: {
                 </div>
             </CardHeader>
 
-            <CardContent className="flex min-w-0 flex-col gap-4">
+            <CardContent className="flex min-w-0 flex-col gap-ui-md">
                 <RunDegradationNotice run={run} />
 
                 {run.injection_chunks_filtered > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-ui-xs">
                         <Badge variant="warning">
                             <TriangleAlert
-                                className="mr-1 size-3"
+                                className="mr-1 size-(--icon-size-sm)"
                                 aria-hidden="true"
                             />
 
@@ -620,7 +620,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
             title="Run playground"
             description="Execute prompt versions with structured variables, retrieval context, and human-review routing."
         >
-            <div className="flex min-w-0 flex-col gap-6">
+            <div className="flex min-w-0 flex-col gap-ui-lg">
                 <form
                     className="flex min-w-0 flex-col gap-5"
                     aria-busy={isRunning}
@@ -629,7 +629,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                         handleRun();
                     }}
                 >
-                    <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid min-w-0 grid-cols-1 gap-ui-md md:grid-cols-2">
                         <FormField
                             as="select"
                             label="Prompt template"
@@ -693,7 +693,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                         spellCheck={false}
                         disabled={isRunning}
                         value={runForm.variables_json}
-                        className="min-h-40 resize-y font-mono text-sm"
+                        className="min-h-40 resize-y font-mono text-body-md"
                         onChange={(event) => {
                             const value = event.currentTarget.value;
 
@@ -723,15 +723,15 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
 
                     <RetrievalDocumentSelector m={m} />
 
-                    <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
-                        <div className="min-w-0 space-y-1">
+                    <div className="flex items-start justify-between gap-ui-md rounded-lg border border-border p-ui-md">
+                        <div className="min-w-0 flex flex-col gap-ui-xxs">
                             <Label htmlFor={reviewRequiredId}>
                                 Require human review
                             </Label>
 
                             <p
                                 id={`${reviewRequiredId}-description`}
-                                className="text-sm text-muted-foreground"
+                                className="text-body-md text-muted-foreground"
                             >
                                 Route the generated output for human review.
                             </p>
@@ -760,12 +760,12 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                         >
                             {isRunning ? (
                                 <LoaderCircle
-                                    className="size-4 animate-spin"
+                                    className="size-(--icon-size-md) animate-spin"
                                     aria-hidden="true"
                                 />
                             ) : (
                                 <PlayCircle
-                                    className="size-4"
+                                    className="size-(--icon-size-md)"
                                     aria-hidden="true"
                                 />
                             )}
@@ -777,10 +777,10 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
 
                 <section
                     aria-label="Recent AI runs"
-                    className="flex min-w-0 flex-col gap-4 border-t border-border pt-6"
+                    className="flex min-w-0 flex-col gap-ui-md border-t border-border pt-ui-lg"
                 >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                        <h3 className="text-base font-semibold">
+                    <div className="flex flex-wrap items-center justify-between gap-ui-xs">
+                        <h3 className="text-body-lg font-semibold">
                             Recent runs
                         </h3>
 
@@ -790,7 +790,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
                     </div>
 
                     {recentRuns.length > 0 ? (
-                        <div className="grid min-w-0 grid-cols-1 gap-4">
+                        <div className="grid min-w-0 grid-cols-1 gap-ui-md">
                             {recentRuns.map((run) => (
                                 <RecentRunCard
                                     key={run.id}

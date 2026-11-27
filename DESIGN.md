@@ -346,6 +346,8 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 **`button-icon-circular`** — circular icon / carousel control
 - Background `{colors.canvas-elevated}`, text `{colors.ink}`, 1px hairline `{colors.hairline}`, type `{typography.body-lg}`, rounded `{rounded.full}`, no padding.
 
+The shared `Button` API uses `variant="default"` for the filled app action; navigation uses the same filled variant with `size="nav"`. `nav-ghost` remains distinct because it owns the outlined navigation treatment. Marketing, category, destructive and link variants retain separate semantic roles. Icon sizes distinguish compact (`icon-xs`, `icon-sm`) from standard (`icon`) controls; aliases with identical appearance and dimensions are not public variants.
+
 ### Inputs & Forms
 
 **`text-input`** — default form field

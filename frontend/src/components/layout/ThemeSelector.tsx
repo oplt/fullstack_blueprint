@@ -26,9 +26,9 @@ export function ThemeSelector() {
             onClick={() => setColorMode(nextMode)}
         >
             {isDark ? (
-                <Sun className="size-5" aria-hidden="true" />
+                <Sun className="size-(--icon-size-lg)" aria-hidden="true" />
             ) : (
-                <Moon className="size-5" aria-hidden="true" />
+                <Moon className="size-(--icon-size-lg)" aria-hidden="true" />
             )}
         </Button>
     );

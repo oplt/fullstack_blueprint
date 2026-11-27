@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Play as RunIcon } from "lucide-react";
+import { Play } from "lucide-react";
 import { DisabledWithReason } from "../../../components/ui/DisabledWithReason";
 import { KeyValueList } from "../../../components/ui/KeyValueList";
 import { RunStatusPanel } from "../../../components/ui/RunStatusPanel";
@@ -57,7 +57,7 @@ export function AgentRunStatus({ runMutation, selectedRun, userMessage, elapsedM
                             title="Run"
                             description="Current task, step, progress, elapsed time, and status."
                         >
-                            <div className="flex gap-4">
+                            <div className="flex gap-ui-md">
                                 <RunStatusPanel
                                     title="Agent run"
                                     status={statusOf(runMutation, selectedRun)}
@@ -83,7 +83,7 @@ export function AgentRunStatus({ runMutation, selectedRun, userMessage, elapsedM
                                     ]}
                                 />
 
-                                <div className="flex flex-col sm:flex-row gap-2">
+                                <div className="flex flex-col sm:flex-row gap-ui-xs">
                                     <DisabledWithReason
                                         reason={agentRunDisabledReason(message, pending)}
                                     >
@@ -94,7 +94,7 @@ export function AgentRunStatus({ runMutation, selectedRun, userMessage, elapsedM
                                             }
                                             onClick={() => runMutation.mutate()}
                                             type="button"
-                                        ><RunIcon />
+                                        ><Play />
                                             {pending ? "Running…" : "Run agent"}
                                         </Button>
                                     </DisabledWithReason>

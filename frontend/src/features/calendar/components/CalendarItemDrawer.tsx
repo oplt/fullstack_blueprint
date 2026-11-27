@@ -7,7 +7,7 @@ import type { DashboardCalendarModel } from "../hooks/useDashboardCalendar";
 export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
     const items = m.selectedItemsQuery.data ?? [];
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-ui-md">
             <div>
                 <h2 className="font-semibold">
                     {m.selectedDateKey ? formatDateOnly(m.selectedDateKey) : "Select a day"}
@@ -17,7 +17,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                 </p>
             </div>
             <section aria-label="Day agenda">
-                <h3 className="mb-2 font-medium">Day agenda</h3>
+                <h3 className="mb-ui-xs font-medium">Day agenda</h3>
                 {m.selectedItemsQuery.isError ? (
                     <QueryErrorAlert
                         error={m.selectedItemsQuery.error}
@@ -25,7 +25,7 @@ export function CalendarItemDrawer({ m }: { m: DashboardCalendarModel }) {
                         onRetry={() => void m.selectedItemsQuery.refetch()}
                     />
                 ) : m.selectedItemsQuery.isLoading ? (
-                    <p role="status" className="text-sm text-muted-foreground">Loading agenda…</p>
+                    <p role="status" className="text-body-md text-muted-foreground">Loading agenda…</p>
                 ) : (
                     <DayItems
                         items={items}

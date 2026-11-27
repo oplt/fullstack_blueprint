@@ -24,13 +24,13 @@ export function NotificationMenu() {
         <PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("navigation.openNotificationCenter")} />}>
             <NotificationNavBadge unreadCount={unread}><Bell size={18} /></NotificationNavBadge>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-80 p-4">
+        <PopoverContent align="end" className="w-80 p-ui-md">
             <div className="flex items-center justify-between">
                 <h2 className="font-semibold">{t("navigation.notifications")}</h2>
-                <span className="text-xs text-muted-foreground">{t("status.unread", { count: unread })}</span>
+                <span className="text-body-sm text-muted-foreground">{t("status.unread", { count: unread })}</span>
             </div>
-            <p className="py-4 text-sm text-muted-foreground">{t(notifications?.length ? "status.reviewNotifications" : "status.allCaughtUp")}</p>
-            <Link to={ROUTES.notifications} className="text-sm font-medium text-primary hover:underline">{t("navigation.openNotificationCenter")}</Link>
+            <p className="py-ui-md text-body-md text-muted-foreground">{t(notifications?.length ? "status.reviewNotifications" : "status.allCaughtUp")}</p>
+            <Link to={ROUTES.notifications} className="text-body-md font-medium text-primary hover:underline">{t("navigation.openNotificationCenter")}</Link>
         </PopoverContent>
     </Popover>;
 }
@@ -42,11 +42,11 @@ export function ProfileMenu({ signOut }: { signOut: () => void }) {
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("navigation.openProfileMenu")} />}>
             <Avatar size="sm"><AvatarFallback>{getInitials(currentUser?.full_name, currentUser?.email)}</AvatarFallback></Avatar>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 p-2">
+        <DropdownMenuContent align="end" className="w-56 p-ui-xs">
             <p className="font-medium">{currentUser?.full_name ?? t("status.yourProfile")}</p>
-            <p className="mb-2 truncate px-2 text-xs text-muted-foreground">{currentUser?.email ?? t("status.signedIn")}</p>
+            <p className="mb-ui-xs truncate px-ui-xs text-body-sm text-muted-foreground">{currentUser?.email ?? t("status.signedIn")}</p>
             <DropdownMenuItem render={<Link to={ROUTES.profile} />}>{t("navigation.profile")}</DropdownMenuItem>
-            <DropdownMenuItem onClick={signOut} className="gap-2">
+            <DropdownMenuItem onClick={signOut} className="gap-ui-xs">
                 <LogOut aria-hidden size={15} />{t("actions.signOut")}
             </DropdownMenuItem>
         </DropdownMenuContent>

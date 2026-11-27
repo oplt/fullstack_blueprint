@@ -41,9 +41,9 @@ const AgentView = lazy(() =>
 
 function PageLoader() {
     return (
-        <div className="space-y-6 p-4 md:p-6">
+        <div className="flex flex-col gap-ui-lg p-ui-md md:p-ui-lg">
             <Skeleton className="h-[170px] w-full rounded-lg" />
-            <div className="flex flex-col gap-4 md:flex-row">
+            <div className="flex flex-col gap-ui-md md:flex-row">
                 <Skeleton className="h-[168px] min-w-0 flex-1 rounded-lg" />
                 <Skeleton className="h-[168px] min-w-0 flex-1 rounded-lg" />
                 <Skeleton className="h-[168px] min-w-0 flex-1 rounded-lg" />
@@ -64,7 +64,7 @@ function RoutedErrorBoundary({ children }: { children: React.ReactNode }) {
 
 function NotFoundPage() {
     return (
-        <div className="flex gap-4 items-center p-8" >
+        <div className="flex gap-ui-md items-center p-8" >
             <h1>Page not found</h1>
             <Button render={<Link to={ROUTES.home} />} type="button">Back to home</Button>
         </div>
@@ -77,7 +77,7 @@ function CapabilityPage({ feature, capability, children }: { feature?: string; c
     if (isPending) return <PageLoader />;
     if (isError) {
         return (
-            <div className="flex gap-4 items-center p-8" >
+            <div className="flex gap-ui-md items-center p-8" >
                 <span role="alert">Could not load application settings.</span>
                 <Button onClick={() => void refetch()} type="button">Retry</Button>
             </div>

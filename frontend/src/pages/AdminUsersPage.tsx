@@ -22,7 +22,7 @@ export default function AdminUsersPage() {
     return (
         <PageShell width="wide">
             <SettingsTabs />
-            <div className="mb-4 flex justify-end">
+            <div className="mb-ui-md flex justify-end">
                 <div className="relative">
                     <Search
                         aria-hidden="true"
@@ -40,7 +40,7 @@ export default function AdminUsersPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4">
+            <div className="grid gap-ui-md">
                 <StatCard
                     label="Total users"
                     value={data?.total ?? 0}

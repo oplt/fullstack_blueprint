@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import {
-    BadgeCheck as VerifiedUserIcon,
-    Bell as NotificationsIcon,
-    FolderOpen as ProjectsIcon,
-    Shield as SecurityIcon,
+    BadgeCheck,
+    Bell,
+    FolderOpen,
+    Shield,
 } from "lucide-react";
 import type { AuthUser } from "../../../api/auth";
 import { MetricGrid } from "../../../components/ui/MetricGrid";
@@ -34,14 +34,14 @@ export function DashboardMetrics(props: Props) {
                 label={coreDomainPlural}
                 value={projectCount ?? "—"}
                 description={`Total ${coreDomainPlural.toLowerCase()} in your workspace`}
-                icon={<ProjectsIcon />}
+                icon={<FolderOpen />}
                 loading={projectsLoading}
             /></OptionalMetric>
             <OptionalMetric enabled={notificationsEnabled}><StatCard
                 label="Unread notifications"
                 value={unreadCount}
                 description="New updates waiting for a response"
-                icon={<NotificationsIcon />}
+                icon={<Bell />}
                 loading={notificationsLoading}
                 color="warning"
             /></OptionalMetric>
@@ -49,14 +49,14 @@ export function DashboardMetrics(props: Props) {
                 label="Email status"
                 value={user?.is_verified ? "Verified" : "Pending"}
                 description="Identity confirmation for your account"
-                icon={<VerifiedUserIcon />}
+                icon={<BadgeCheck />}
                 color={user?.is_verified ? "success" : "warning"}
             />
             <StatCard
                 label="Multi-factor auth"
                 value={user?.mfa_enabled ? "Enabled" : "Not enabled"}
                 description="Additional sign-in protection"
-                icon={<SecurityIcon />}
+                icon={<Shield />}
                 color={user?.mfa_enabled ? "success" : "secondary"}
             />
         </MetricGrid>

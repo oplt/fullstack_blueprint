@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form-field";
+import { FormGrid } from "@/components/ui/FormGrid";
 import type { CalendarItemType } from "../../../api/calendar";
 import type { ProjectTaskPriority } from "../../../api/projects";
 import { PROJECT_TASK_PRIORITIES } from "@/config/projectTaskOptions";
@@ -111,7 +113,7 @@ function CalendarScheduleFields({ model }: { model: DashboardCalendarModel }) {
     const { draft, setDraft, setFieldErrors } = model;
     if (draft.type === "task") return null;
     return (
-        <div className="flex flex-col gap-2.5 sm:flex-row">
+        <FormGrid columns="2">
             <FormField
                 label="Start time"
                 type="time"
@@ -134,14 +136,14 @@ function CalendarScheduleFields({ model }: { model: DashboardCalendarModel }) {
                 error={Boolean(model.fieldErrors.end_time)}
                 description={model.fieldErrors.end_time}
             />
-        </div>
+        </FormGrid>
     );
 }
 
 function CalendarItemActions({ model }: { model: DashboardCalendarModel }) {
     const taskCannotBeSaved = model.draft.type === "task" && (!model.projectsEnabled || !model.projects.length);
     return (
-        <div className="flex gap-2">
+        <div className="flex gap-ui-xs">
             <Button variant="outline" onClick={() => model.setDrawerOpen(false)} type="button">Close</Button>
             <Button
                 variant="default"
@@ -157,13 +159,13 @@ function CalendarItemActions({ model }: { model: DashboardCalendarModel }) {
 
 export function CalendarItemForm({ model }: { model: DashboardCalendarModel }) {
     return (
-        <section aria-label="Add a calendar item" className="flex flex-col gap-3">
+        <section aria-label="Add a calendar item" className="flex flex-col gap-ui-sm">
             <h3 className="font-medium">Add new item</h3>
             <CalendarItemTypeField model={model} />
             <CalendarItemTitleFields model={model} />
             <CalendarTaskFields model={model} />
             <CalendarScheduleFields model={model} />
-            {model.fieldErrors.general && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{model.fieldErrors.general}</div>}
+            {model.fieldErrors.general && <Alert variant="destructive"><AlertDescription>{model.fieldErrors.general}</AlertDescription></Alert>}
             <CalendarItemActions model={model} />
         </section>
     );

@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import {
-    ArrowLeft as BackIcon,
-    ClipboardCheck as DoneIcon,
-    Calendar as CalendarIcon,
-    X as CloseIcon,
-    ListChecks as TaskIcon,
-    Kanban as BoardIcon,
+    ArrowLeft,
+    ClipboardCheck,
+    Calendar,
+    X,
+    ListChecks,
+    Kanban,
 } from "lucide-react";
 import type { ProjectTask } from "../../../api/projects";
 import { ROUTES } from "@/config/routes";
@@ -14,6 +14,7 @@ import { PageShell } from "../../../components/ui/PageShell";
 import { MetricGrid } from "../../../components/ui/MetricGrid";
 import { StatCard } from "../../../components/ui/StatCard";
 import { StatCardSkeletonGrid } from "../../../components/ui/StatCardSkeletonGrid";
+import { Skeleton } from "../../../components/ui/skeleton";
 import { getQueryErrorMessage } from "../../../utils/queryErrors";
 import { ProjectFlowSection } from "../components/ProjectFlowSection";
 import { TaskEditorSection } from "../components/TaskEditorSection";
@@ -26,19 +27,9 @@ export default function ProjectDetailPage() {
     if (m.projectQuery.isLoading) {
         return (
             <PageShell width="wide">
-                <div className="flex gap-4">
-                    <div
-                        className="animate-pulse rounded-md bg-muted"
-                        style={{
-                            height: 48,
-                            width: 280
-                        }} />
-                    <div
-                        className="animate-pulse rounded-md bg-muted"
-                        style={{
-                            height: 28,
-                            width: "60%"
-                        }} />
+                <div className="flex gap-ui-md">
+                    <Skeleton className="h-12 w-70" />
+                    <Skeleton className="h-7 w-3/5" />
                     <StatCardSkeletonGrid />
                     <div
 
@@ -51,7 +42,7 @@ export default function ProjectDetailPage() {
     if (!m.projectQuery.data) {
         return (
             <PageShell width="wide">
-                <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                     {getQueryErrorMessage(m.projectQuery.error, "Project not found.")}
                 </div>
             </PageShell>
@@ -89,20 +80,20 @@ export default function ProjectDetailPage() {
 
     return (
         <PageShell width="wide">
-            <div className="flex flex-row gap-2 mb-4" >
+            <div className="flex flex-row gap-ui-xs mb-ui-md" >
                 <Button
                     variant="outline"
                     onClick={() => m.navigate(ROUTES.projects)}
                     type="button"
-                ><BackIcon />Back to projects
+                ><ArrowLeft />Back to projects
                                     </Button>
             </div>
 
-            <h4 className="mb-2" >
+            <h4 className="mb-ui-xs" >
                 {m.projectQuery.data.name}
             </h4>
             {m.projectQuery.data.description && (
-                <span  className="text-muted-foreground mb-4">
+                <span  className="text-muted-foreground mb-ui-md">
                     {m.projectQuery.data.description}
                 </span>
             )}
@@ -111,27 +102,27 @@ export default function ProjectDetailPage() {
                     label="Total tasks"
                     value={m.orderedTasks.length}
                     description="All tracked work items inside this project"
-                    icon={<TaskIcon />}
+                    icon={<ListChecks />}
                 />
                 <StatCard
                     label="In flight"
                     value={flight}
                     description="Tasks currently being worked, reviewed, or queued next"
-                    icon={<BoardIcon />}
+                    icon={<Kanban />}
                     color="warning"
                 />
                 <StatCard
                     label="Completed"
                     value={done}
                     description="Tasks already moved to done"
-                    icon={<DoneIcon />}
+                    icon={<ClipboardCheck />}
                     color="success"
                 />
                 <StatCard
                     label="Overdue"
                     value={overdue}
                     description="Open tasks with a due date already behind today"
-                    icon={<CalendarIcon />}
+                    icon={<Calendar />}
                     color={overdue > 0 ? "error" : "secondary"}
                 />
             </MetricGrid>
@@ -140,7 +131,7 @@ export default function ProjectDetailPage() {
                 <div
 
                     role="alert"
-                    className="rounded-lg border border-border p-3 text-sm mb-4">
+                    className="rounded-lg border border-border p-ui-sm text-body-md mb-ui-md">
                     {getQueryErrorMessage(
                         m.projectQuery.error ?? m.tasksQuery.error,
                         "Failed to load project workspace."
@@ -151,9 +142,7 @@ export default function ProjectDetailPage() {
             <ProjectFlowSection model={m} onNewTask={openNewTask} onSelectTask={openTask} />
 
             <div>
-                <div
-                    className="p-5 gap-4" style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}
-                >
+                <div className="flex h-full flex-col gap-ui-md overflow-auto p-5">
                     <div className="flex flex-row items-center justify-between">
                         <h6>
                             {m.selectedTask ? "Edit task" : "Create task"}
@@ -163,7 +152,7 @@ export default function ProjectDetailPage() {
                             onClick={closeTaskDrawer}
 
                         >
-                            <CloseIcon />
+                            <X />
                         </Button>
                     </div>
                     <p className="text-muted-foreground">

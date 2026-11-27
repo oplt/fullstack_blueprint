@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { RefreshCw as RetryIcon } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { HelpTooltip } from "../../../components/ui/HelpTooltip";
 import { KeyValueList } from "../../../components/ui/KeyValueList";
 import { MetricGrid } from "../../../components/ui/MetricGrid";
@@ -27,11 +27,11 @@ export function RagIndexingConfiguration({ workspace, document }: Props) {
                                             onClick={() =>
                                                 workspace.indexMutation.mutate(selectedDocument.id)
                                             }
-                                            type="button"><RetryIcon />Re-index
+                                            type="button"><RefreshCw />Re-index
                                                                                     </Button>
                                     }
                                 >
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-ui-md">
                                         <MetricGrid columns={4}>
                                             <MetricTile
                                                 label="Document status"
@@ -83,7 +83,7 @@ export function RagIndexingConfiguration({ workspace, document }: Props) {
                                                 }))}
                                             />
                                         ) : (
-                                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                                                 Embedding model,{" "}
                                                 <HelpTooltip termId="chunk_size" variant="label">
                                                     chunk size

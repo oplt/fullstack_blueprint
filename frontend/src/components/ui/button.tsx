@@ -9,14 +9,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "ui-button-variant-default",
-        primary: "ui-button-variant-primary",
         outline:
           "ui-button-variant-outline",
         secondary:
           "ui-button-variant-secondary",
         ghost:
           "ui-button-variant-ghost",
-        "nav-primary": "ui-button-variant-nav-primary",
         "nav-ghost":
           "ui-button-variant-nav-ghost",
         marketing:
@@ -39,11 +37,10 @@ const buttonVariants = cva(
         icon: "ui-button-size-icon",
         "icon-xs": "ui-button-size-icon-xs",
         "icon-sm": "ui-button-size-icon-sm",
-        "icon-lg": "ui-button-size-icon-lg",
       },
     },
     compoundVariants: [
-      { variant: ["nav-primary", "nav-ghost"], size: "default", class: "ui-button-nav-padding" },
+      { variant: "nav-ghost", size: "default", class: "ui-button-nav-padding" },
       { variant: "category", size: "default", class: "ui-button-category-padding" },
     ],
     defaultVariants: {

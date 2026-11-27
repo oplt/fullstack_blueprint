@@ -6,6 +6,8 @@ type QrResult =
     | { uri: string; status: "success"; dataUrl: string }
     | { uri: string; status: "error" };
 
+const QR_CODE_SIZE = 220;
+
 export function MfaQrCode({ provisioningUri }: { provisioningUri: string }) {
     const [result, setResult] = useState<QrResult | null>(null);
     const currentResult = result?.uri === provisioningUri ? result : null;
@@ -16,7 +18,7 @@ export function MfaQrCode({ provisioningUri }: { provisioningUri: string }) {
         void import("qrcode").then(({ default: QRCode }) => QRCode.toDataURL(provisioningUri, {
             errorCorrectionLevel: "M",
             margin: 1,
-            width: 220,
+            width: QR_CODE_SIZE,
             // Keep printed QR pixels black on white so scans work in every theme.
             color: { dark: "#000000", light: "#ffffff" },
         })).then(
@@ -34,14 +36,14 @@ export function MfaQrCode({ provisioningUri }: { provisioningUri: string }) {
     }, [provisioningUri]);
 
     return (
-        <div className="flex size-64 shrink-0 items-center justify-center rounded-lg border border-border bg-white p-4">
+        <div className="ui-mfa-qr-frame">
             {currentResult?.status === "success" ? (
                 <img
                     src={currentResult.dataUrl}
                     alt="Scan this QR code with your authenticator app"
-                    width={220}
-                    height={220}
-                    className="block size-[220px]"
+                    width={QR_CODE_SIZE}
+                    height={QR_CODE_SIZE}
+                    className="ui-mfa-qr-image"
                 />
             ) : currentResult?.status === "error" ? (
                 <ErrorState
@@ -51,7 +53,7 @@ export function MfaQrCode({ provisioningUri }: { provisioningUri: string }) {
                 />
             ) : (
                 <div role="status" aria-label="Generating QR code">
-                    <Skeleton className="size-[220px]" />
+                    <Skeleton className="ui-mfa-qr-image" />
                 </div>
             )}
         </div>

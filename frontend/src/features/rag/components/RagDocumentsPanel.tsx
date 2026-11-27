@@ -8,8 +8,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-    CloudUpload as UploadIcon,
-    RefreshCw as RetryIcon,
+    CloudUpload,
+    RefreshCw,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { HelpTooltip } from "../../../components/ui/HelpTooltip";
@@ -36,11 +36,11 @@ export function ConfirmDeleteDocument({ disabled, onConfirm }: { disabled: boole
                 Delete
             </AlertDialogTrigger>
             <AlertDialogContent>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-ui-xs">
                     <AlertDialogTitle>Delete this RAG document?</AlertDialogTitle>
                     <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
                 </div>
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-ui-xs">
                     <AlertDialogClose render={<Button variant="outline" type="button" />}>
                         Cancel
                     </AlertDialogClose>
@@ -76,7 +76,7 @@ export function RagDocumentsPanel({ workspace, fileInputRef, onTabChange }: Prop
                                     variant="default"
                                     disabled={workspace.uploadMutation.isPending}
                                     onClick={() => fileInputRef.current?.click()}
-                                    type="button"><UploadIcon />Upload
+                                    type="button"><CloudUpload />Upload
                                                                     </Button>
                             </>
                         }
@@ -138,11 +138,11 @@ export function RagDocumentsPanel({ workspace, fileInputRef, onTabChange }: Prop
                                             header: "Actions",
                                             enableHiding: false,
                                             cell: ({ row }) => (
-                                                <div className="flex flex-row justify-end gap-1">
+                                                <div className="flex flex-row justify-end gap-ui-xxs">
                                                     <Button
                                                         disabled={workspace.indexMutation.isPending}
                                                         onClick={() => workspace.indexMutation.mutate(row.original.id)}
-                                                        type="button"><RetryIcon />Re-index</Button>
+                                                        type="button"><RefreshCw />Re-index</Button>
                                                     <ConfirmDeleteDocument
                                                         disabled={workspace.deleteMutation.isPending}
                                                         onConfirm={() => workspace.deleteMutation.mutate(row.original.id)}
@@ -170,14 +170,14 @@ export function RagDocumentsPanel({ workspace, fileInputRef, onTabChange }: Prop
                                         workspace.setChunkOffset(0);
                                         onTabChange("indexing");
                                     }}
-                                    emptyIcon={<UploadIcon />}
+                                    emptyIcon={<CloudUpload />}
                                     emptyTitle="No RAG documents"
                                     emptyDescription="Upload a file to start parsing, chunking, and indexing."
                                 />
                             </QueryBoundary>
                         )}
                         {workspace.pollJobId && workspace.jobQuery.data ? (
-                            <div className="mt-2" >
+                            <div className="mt-ui-xs" >
                                 <RagIngestionStatus
                                     dense
                                     title="Ingestion job"

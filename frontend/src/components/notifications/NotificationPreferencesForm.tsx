@@ -49,12 +49,12 @@ export function NotificationPreferencesForm({ query, mutation }: Props) {
                 errorFallback="Failed to load notification preferences."
                 onRetry={() => void query.refetch()}
             >
-                <div className="grid gap-3">
+                <div className="grid gap-ui-sm">
                     {preferenceOptions.map((option) => (
                         <label
                             key={option.key}
                             htmlFor={option.id}
-                            className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
+                            className="flex items-start gap-ui-sm rounded-xl border border-border bg-card p-ui-md"
                         >
                             <Switch
                                 id={option.id}
@@ -63,9 +63,9 @@ export function NotificationPreferencesForm({ query, mutation }: Props) {
                                 aria-describedby={`${option.id}-description`}
                                 onCheckedChange={(checked) => mutation.mutate({ [option.key]: checked })}
                             />
-                            <span className="grid gap-1">
+                            <span className="grid gap-ui-xxs">
                                 <span className="font-medium">{option.label}</span>
-                                <span id={`${option.id}-description`} className="text-sm text-muted-foreground">
+                                <span id={`${option.id}-description`} className="text-body-md text-muted-foreground">
                                     {option.description}
                                 </span>
                             </span>

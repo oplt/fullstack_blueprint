@@ -2,6 +2,8 @@
 const TEST = '(?:^|/)(?:__tests__|tests|test|mocks|__mocks__|__fixtures__|test-utils)(?:/|$)|[.](?:test|spec|stories)[.](?:[cm]?[jt]s|[jt]sx)$|(?:^|/)setupTests[.][jt]sx?$';
 const SRC = '^src/';
 const SHARED = '^src/(?:shared|components/ui|lib|utils)/';
+const UI_PRIMITIVES = '^src/components/ui/';
+const LAYOUT = '^src/components/layout/';
 const APP = '^src/(?:app|pages|routes)/';
 const FEATURES = '^src/features/';
 
@@ -23,6 +25,9 @@ module.exports = {
     { name: 'no-frontend-to-backend', severity: 'error', from: { path: SRC }, to: { path: '^(?:[.][.]/)+backend/' } },
     // Architectural conventions: adjust paths to the actual source tree.
     { name: 'no-shared-to-features-or-app', severity: 'error', from: { path: SHARED }, to: { path: [FEATURES, APP] } },
+    { name: 'no-ui-primitives-to-layout', severity: 'error',
+      comment: 'Primitive and shared UI building blocks must not depend on application layout composition.',
+      from: { path: UI_PRIMITIVES, pathNot: TEST }, to: { path: LAYOUT } },
     { name: 'no-feature-to-app', severity: 'error', from: { path: FEATURES }, to: { path: APP } },
     { name: 'no-cross-feature-imports', severity: 'error',
       comment: 'Keep features independent; compose them at application level or extract shared contracts.',

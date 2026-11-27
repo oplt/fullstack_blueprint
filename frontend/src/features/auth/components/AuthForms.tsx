@@ -61,7 +61,7 @@ function PasswordField(props: PasswordFieldProps) {
             .join(" ") || undefined;
 
     return (
-        <div className="flex w-full min-w-0 flex-col gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-ui-xs">
             {label && (
                 <Label htmlFor={controlId}>
                     {label}
@@ -102,12 +102,12 @@ function PasswordField(props: PasswordFieldProps) {
                 >
                     {showPassword ? (
                         <EyeOff
-                            className="size-4"
+                            className="size-(--icon-size-md)"
                             aria-hidden="true"
                         />
                     ) : (
                         <Eye
-                            className="size-4"
+                            className="size-(--icon-size-md)"
                             aria-hidden="true"
                         />
                     )}
@@ -118,7 +118,7 @@ function PasswordField(props: PasswordFieldProps) {
                 <p
                     id={descriptionId}
                     className={cn(
-                        "text-xs leading-relaxed",
+                        "text-body-sm leading-relaxed",
                         error
                             ? "text-destructive-deep"
                             : "text-muted-foreground",
@@ -139,7 +139,7 @@ function AuthError({ message }: { message: string }) {
     return (
         <div
             role="alert"
-            className="rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-sm leading-relaxed text-destructive-deep"
+            className="rounded-lg border border-destructive/30 bg-destructive-soft p-ui-sm text-body-md leading-relaxed text-destructive-deep"
         >
             {message}
         </div>
@@ -154,7 +154,7 @@ function AuthSuccess({ message }: { message: string }) {
     return (
         <div
             role="status"
-            className="rounded-lg border border-success/30 bg-success-soft p-3 text-sm leading-relaxed text-success-deep"
+            className="rounded-lg border border-success/30 bg-success-soft p-ui-sm text-body-md leading-relaxed text-success-deep"
         >
             {message}
         </div>
@@ -247,12 +247,12 @@ export function SignInForm() {
     }
 
     return (
-        <div className="flex w-full min-w-0 flex-col gap-4">
+        <div className="flex w-full min-w-0 flex-col gap-ui-md">
             <AuthError message={serverError} />
 
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex w-full min-w-0 flex-col gap-4"
+                className="flex w-full min-w-0 flex-col gap-ui-md"
                 aria-busy={isSubmitting}
                 noValidate
             >
@@ -295,11 +295,11 @@ export function SignInForm() {
                     type="submit"
                     variant="default"
                     disabled={isSubmitting}
-                    className="mt-2 w-full"
+                    className="mt-ui-xs w-full"
                 >
                     {isSubmitting && (
                         <LoaderCircle
-                            className="size-4 animate-spin"
+                            className="size-(--icon-size-md) animate-spin"
                             aria-hidden="true"
                         />
                     )}
@@ -317,7 +317,7 @@ export function SignInForm() {
                 onClick={toggleForgotPassword}
                 aria-expanded={forgotOpen}
                 aria-controls={forgotPanelId}
-                className="w-full text-sm"
+                className="w-full text-body-md"
             >
                 {forgotOpen
                     ? "Hide password reset"
@@ -328,14 +328,14 @@ export function SignInForm() {
                 <section
                     id={forgotPanelId}
                     aria-label="Password recovery"
-                    className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-border bg-muted/30 p-4"
+                    className="flex w-full min-w-0 flex-col gap-ui-md rounded-lg border border-border bg-muted/30 p-ui-md"
                 >
-                    <div className="flex flex-col gap-1">
-                        <h3 className="text-base font-semibold">
+                    <div className="flex flex-col gap-ui-xxs">
+                        <h3 className="text-body-lg font-semibold">
                             Reset your password
                         </h3>
 
-                        <p className="text-sm leading-relaxed text-muted-foreground">
+                        <p className="text-body-md leading-relaxed text-muted-foreground">
                             Enter your email address and we will
                             send a reset link if an account exists.
                         </p>
@@ -353,7 +353,7 @@ export function SignInForm() {
                         onSubmit={handleForgotSubmit(
                             onForgotPasswordSubmit,
                         )}
-                        className="flex w-full flex-col gap-4"
+                        className="flex w-full flex-col gap-ui-md"
                         aria-busy={isSubmittingForgot}
                         noValidate
                     >
@@ -378,7 +378,7 @@ export function SignInForm() {
                         >
                             {isSubmittingForgot && (
                                 <LoaderCircle
-                                    className="size-4 animate-spin"
+                                    className="size-(--icon-size-md) animate-spin"
                                     aria-hidden="true"
                                 />
                             )}
@@ -436,12 +436,12 @@ export function SignUpForm({
     }
 
     return (
-        <div className="flex w-full min-w-0 flex-col gap-4">
+        <div className="flex w-full min-w-0 flex-col gap-ui-md">
             <AuthError message={serverError} />
 
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex w-full min-w-0 flex-col gap-4"
+                className="flex w-full min-w-0 flex-col gap-ui-md"
                 aria-busy={isSubmitting}
                 noValidate
             >
@@ -494,11 +494,11 @@ export function SignUpForm({
                     type="submit"
                     variant="default"
                     disabled={isSubmitting}
-                    className="mt-2 w-full"
+                    className="mt-ui-xs w-full"
                 >
                     {isSubmitting && (
                         <LoaderCircle
-                            className="size-4 animate-spin"
+                            className="size-(--icon-size-md) animate-spin"
                             aria-hidden="true"
                         />
                     )}

@@ -9,9 +9,9 @@ export function FlagsSection({flags, model}: { flags: FeatureFlag[]; model: Plat
     const n = model.newFlag;
     return (
         <SectionCard title="Feature flags" description="Create rollout controls and tune existing flags.">
-            <div className="flex gap-6">
+            <div className="flex gap-ui-lg">
                 <div className="surface-card ui-feature-surface">
-                    <div className="flex gap-3"><p>Create flag</p>
+                    <div className="flex gap-ui-sm"><p>Create flag</p>
                         <div className="grid grid-cols-1 gap-ui-sm">
                             <FormField label="Key" value={n.key} onChange={(e: any) => model.setNewFlag((v) => ({
                                 ...v,
@@ -54,12 +54,12 @@ export function FlagsSection({flags, model}: { flags: FeatureFlag[]; model: Plat
                             type="button">{model.createFlagMutation.isPending ? "Creating..." : "Create flag"}</Button>
                     </div>
                 </div>
-                <div className="flex gap-3">{flags.map((flag) => {
+                <div className="flex gap-ui-sm">{flags.map((flag) => {
                     const d = model.flagDrafts[flag.id];
                     const saving = model.updateFlagMutation.isPending && model.updateFlagMutation.variables?.id === flag.id;
                     return (
                         <div key={flag.id} className="surface-card ui-feature-surface">
-                            <div className="flex gap-3"><p>{flag.key}</p>
+                            <div className="flex gap-ui-sm"><p>{flag.key}</p>
                                 <div className="grid grid-cols-1 gap-ui-sm"><FormField label="Name" value={d.name}
                                                                                        onChange={(e: any) => model.setFlagDrafts((v) => ({
                                                                                            ...v,

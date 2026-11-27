@@ -1,7 +1,8 @@
 import { notify } from "../lib/notify";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form-field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
@@ -9,11 +10,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-    Plus as AddIcon,
-    CirclePlus as AddCircleOutlineIcon,
-    FolderOpen as FolderOpenIcon,
+    Plus,
+    CirclePlus,
+    FolderOpen,
     ArrowRight,
-    X as CloseIcon,
+    X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { projectPath } from "@/config/routes";
@@ -75,7 +76,7 @@ export default function ProjectsPage() {
     }
 
     const createForm = (
-        <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="flex flex-col gap-ui-md">
                 <FormField
                     label={`${coreDomainSingular} name`}
                     placeholder={`Acme ${coreDomainSingular}`}
@@ -91,13 +92,11 @@ export default function ProjectsPage() {
                     as="textarea"
                     rows={4} />
                 {mutation.isError && (
-                    <div role="alert" className="rounded-lg border border-border p-3 text-sm">
-                        {mutation.error instanceof Error
-                            ? mutation.error.message
-                            : `Failed to create ${coreDomainSingular.toLowerCase()}.`}
-                    </div>
+                    <Alert variant="destructive"><AlertDescription>
+                        {mutation.error instanceof Error ? mutation.error.message : `Failed to create ${coreDomainSingular.toLowerCase()}.`}
+                    </AlertDescription></Alert>
                 )}
-                <Button type="submit" variant="default" disabled={mutation.isPending}><AddCircleOutlineIcon />{mutation.isPending ? "Creating..." : `Create ${coreDomainSingular}`}</Button>
+                <Button type="submit" variant="default" disabled={mutation.isPending}><CirclePlus />{mutation.isPending ? "Creating..." : `Create ${coreDomainSingular}`}</Button>
         </form>
     );
 
@@ -107,7 +106,7 @@ export default function ProjectsPage() {
                 title={`Your ${coreDomainPlural}`}
                 description={`Browse the current ${coreDomainPlural.toLowerCase()} and scan for missing descriptions or naming gaps.`}
                 action={
-                    <Button variant="default" onClick={openCreateDrawer} type="button"><AddIcon />New {coreDomainSingular.toLowerCase()}
+                    <Button variant="default" onClick={openCreateDrawer} type="button"><Plus />New {coreDomainSingular.toLowerCase()}
                     </Button>
                 }
             >
@@ -118,7 +117,7 @@ export default function ProjectsPage() {
                     errorFallback={`Failed to load ${coreDomainPlural.toLowerCase()}.`}
                     onRetry={() => void refetch()}
                     loadingFallback={
-                        <div className="grid min-w-0 gap-3">
+                        <div className="grid min-w-0 gap-ui-sm">
                             {Array.from({ length: 4 }, (_, index) => (
                                 <Skeleton key={index} className="h-24 w-full" />
                             ))}
@@ -127,7 +126,7 @@ export default function ProjectsPage() {
                     isEmpty={!projects || projects.length === 0}
                     emptyFallback={
                         <EmptyState
-                            icon={<FolderOpenIcon />}
+                            icon={<FolderOpen />}
                             title={`No ${coreDomainPlural.toLowerCase()} yet`}
                             description={`Create the first ${coreDomainSingular.toLowerCase()} to give the workspace structure and momentum.`}
                             action={
@@ -135,28 +134,28 @@ export default function ProjectsPage() {
                                     variant="default"
                                     onClick={openCreateDrawer}
                                     type="button"
-                                ><AddIcon />New {coreDomainSingular.toLowerCase()}
+                                ><Plus />New {coreDomainSingular.toLowerCase()}
                                 </Button>
                             }
                         />
                     }
                 >
-                    <div className="grid min-w-0 gap-3">
+                    <div className="grid min-w-0 gap-ui-sm">
                         {projects?.map((project) => (
-                            <Card key={project.id} className="min-w-0 p-6">
-                                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <div className="flex min-w-0 items-center gap-3">
-                                        <div className="grid size-11 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                                            <FolderOpenIcon aria-hidden="true" />
+                            <Card key={project.id} className="min-w-0">
+                                <CardContent className="flex min-w-0 flex-col gap-ui-sm sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex min-w-0 items-center gap-ui-sm">
+                                        <div className="grid size-(--control-height) shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                                            <FolderOpen aria-hidden="true" />
                                         </div>
                                         <div className="min-w-0">
                                             <p className="font-medium">{project.name}</p>
-                                            <span className="text-sm text-muted-foreground">
+                                            <span className="text-body-md text-muted-foreground">
                                                 Created {formatDate(project.created_at)}
                                             </span>
                                         </div>
                                     </div>
-                                    <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                                    <p className="min-w-0 flex-1 text-body-md text-muted-foreground">
                                         {project.description ||
                                             `No description yet for this ${coreDomainSingular.toLowerCase()}.`}
                                     </p>
@@ -166,7 +165,7 @@ export default function ProjectsPage() {
                                         type="button"
                                         className="shrink-0"
                                     >Open workspace<ArrowRight /></Button>
-                                </div>
+                                </CardContent>
                             </Card>
                         ))}
                     </div>
@@ -174,7 +173,7 @@ export default function ProjectsPage() {
             </SectionCard>
 
             <div>
-                <div className="flex h-full min-w-0 flex-col gap-4 overflow-auto p-6">
+                <div className="flex h-full min-w-0 flex-col gap-ui-md overflow-auto p-ui-lg">
                     <div className="flex flex-row items-center justify-between">
                         <h6>Create {coreDomainSingular}</h6>
                         <Button size="icon"
@@ -182,7 +181,7 @@ export default function ProjectsPage() {
                             onClick={closeCreateDrawer}
 
                         >
-                            <CloseIcon />
+                            <X />
                         </Button>
                     </div>
                     <p className="text-muted-foreground">

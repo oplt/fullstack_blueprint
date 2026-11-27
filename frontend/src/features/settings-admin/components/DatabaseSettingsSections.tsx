@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
-import { HardDrive as StorageIcon } from "lucide-react";
+import { HardDrive } from "lucide-react";
 import type { DatabaseSetting } from "../../../api/settings";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { SectionCard } from "../../../components/ui/SectionCard";
@@ -10,11 +10,11 @@ import { DatabaseSettingEditor } from "./SettingEditors";
 export function DatabaseSettingsSections({ settings, model }: { settings: DatabaseSetting[]; model: AdminSettingsModel }) {
     const create = model.createDatabaseMutation;
     return (
-        <div className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr", alignItems: "start" }}>
+        <div className="grid grid-cols-1 items-start gap-ui-md">
             <SectionCard title="Add database setting" description="Store arbitrary key/value settings inside the database.">
-                <div className="flex gap-4">
-                    {create.isSuccess && <div role="alert" className="rounded-lg border border-border p-3 text-sm">Database setting created.</div>}
-                    {create.isError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{getQueryErrorMessage(create.error, "Failed to create database setting.")}</div>}
+                <div className="flex gap-ui-md">
+                    {create.isSuccess && <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">Database setting created.</div>}
+                    {create.isError && <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">{getQueryErrorMessage(create.error, "Failed to create database setting.")}</div>}
                     <FormField
                         label="Key"
                         value={model.newSetting.key}
@@ -41,7 +41,7 @@ export function DatabaseSettingsSections({ settings, model }: { settings: Databa
                 </div>
             </SectionCard>
             <SectionCard title="Database settings" description="Review, edit, and delete runtime settings stored in the database.">
-                {settings.length > 0 ? <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr", alignItems: "start" }}>
+                {settings.length > 0 ? <div className="grid grid-cols-1 items-start gap-ui-sm">
                     {settings.map((item) => {
                         const draft = model.databaseDrafts[item.id] ?? { value: item.value, description: item.description ?? "" };
                         return <DatabaseSettingEditor key={item.id} item={item} draft={draft}
@@ -51,7 +51,7 @@ export function DatabaseSettingsSections({ settings, model }: { settings: Databa
                             isSaving={model.updateDatabaseMutation.isPending && model.updateDatabaseMutation.variables?.id === item.id}
                             isDeleting={model.deleteDatabaseMutation.isPending && model.deleteDatabaseMutation.variables === item.id} />;
                     })}
-                </div> : <EmptyState icon={<StorageIcon />} title="No database settings yet" description="Create a setting when you need runtime-configurable values stored in the database." />}
+                </div> : <EmptyState icon={<HardDrive />} title="No database settings yet" description="Create a setting when you need runtime-configurable values stored in the database." />}
             </SectionCard>
         </div>
     );

@@ -45,6 +45,18 @@ describe("RagRetrievalPanel", () => {
         expect(screen.getByText(/exclude vector matches below this cosine score/i)).toBeVisible();
     });
 
+    it("uses the shared accessible checkbox for document scope selection", async () => {
+        const user = userEvent.setup();
+        render(<RagRetrievalPanel workspace={workspace("indexed")} />);
+
+        await user.selectOptions(screen.getByLabelText("Document scope"), "pick");
+        const checkbox = screen.getByRole("checkbox", { name: "report.pdf" });
+
+        expect(checkbox).toHaveAttribute("data-slot", "checkbox");
+        await user.click(checkbox);
+        expect(checkbox).toBeChecked();
+    });
+
     it("sends scoped draft settings only to the comparison request", async () => {
         const user = userEvent.setup();
         render(<RagRetrievalPanel workspace={workspace("indexed")} />);

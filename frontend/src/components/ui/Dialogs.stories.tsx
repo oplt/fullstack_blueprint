@@ -33,7 +33,7 @@ function DialogExample({ longContent = false }: { longContent?: boolean }) {
                         Review the project configuration before continuing.
                     </DialogDescription>
                 </DialogHeader>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-body-md text-muted-foreground">
                     {longContent
                         ? "This longer dialog body demonstrates bounded scrolling and readable line length. ".repeat(8)
                         : "Changes are saved securely and can be revised later."}

@@ -21,7 +21,7 @@ export default function MemoryView() {
         <PageShell width="wide">
             <SettingsTabs />
 
-            <div className="flex gap-4">
+            <div className="flex gap-ui-md">
                 <MemoryFiltersPanel workspace={workspace} />
                 <MemoryListPanel workspace={workspace} />
 
@@ -51,8 +51,8 @@ export default function MemoryView() {
             <div>
                 <div>Forget memory?</div>
                 <div>
-                    <div className="mt-2 flex gap-4">
-                        <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                    <div className="mt-ui-xs flex gap-ui-md">
+                        <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                             This permanently removes the memory item and records an audit entry.
                             It is separate from search/list browsing.
                         </div>

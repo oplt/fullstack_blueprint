@@ -29,8 +29,8 @@ export function AgentTraceDetails({run: selectedRun, traceSteps}: Props) {
             title="Trace"
             description="Structured steps (plan, tool calls, results, errors) — not a raw log dump."
         >
-            <div className="flex gap-3">
-                <div className="flex flex-row gap-2 flex-wrap">
+            <div className="flex gap-ui-sm">
+                <div className="flex flex-row gap-ui-xs flex-wrap">
                     <Badge variant="secondary">
                         run {selectedRun.id}
                     </Badge>
@@ -41,7 +41,7 @@ export function AgentTraceDetails({run: selectedRun, traceSteps}: Props) {
                 {(selectedRun.retrieval_degraded ||
                     selectedRun.memory_degraded ||
                     selectedRun.error_message) && (
-                    <div role="alert" className="rounded-lg border border-border p-3 text-sm">
+                    <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
                         {selectedRun.error_message ??
                             selectedRun.degradation_reason ??
                             (selectedRun.retrieval_degraded
@@ -50,17 +50,17 @@ export function AgentTraceDetails({run: selectedRun, traceSteps}: Props) {
                     </div>
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex gap-ui-xs">
                     {traceSteps.map((step) => (
                         <div
                             key={step.id}
                             className={`trace-step ${step.status === "error" ? "trace-step--error" : step.status === "warn" ? "trace-step--warning" : "trace-step--default"}`}
                         >
-                            <div className="flex flex-col sm:flex-row gap-2 justify-between">
+                            <div className="flex flex-col sm:flex-row gap-ui-xs justify-between">
                                 <p>
                                     {step.title}
                                 </p>
-                                <div className="flex flex-row items-center gap-1.5">
+                                <div className="flex flex-row items-center gap-ui-xxs.5">
                                     <Badge variant="outline">
                                         {TRACE_CATEGORY_LABELS[step.category]}
                                     </Badge>

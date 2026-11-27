@@ -45,9 +45,9 @@ export default function AuthHomePage() {
                 />
             }
         >
-            <div className="flex w-full min-w-0 flex-col gap-6">
-                <header className="flex flex-col gap-2">
-                    <p className="text-sm font-medium text-muted-foreground">
+            <div className="flex w-full min-w-0 flex-col gap-ui-lg">
+                <header className="flex flex-col gap-ui-xs">
+                    <p className="text-body-md font-medium text-muted-foreground">
                         {appName}
                     </p>
 
@@ -57,7 +57,7 @@ export default function AuthHomePage() {
                             : "Create your account"}
                     </h2>
 
-                    <p className="text-sm leading-relaxed text-muted-foreground">
+                    <p className="text-body-md leading-relaxed text-muted-foreground">
                         {isSignIn
                             ? `Sign in to manage your ${domainName} and account activity.`
                             : `Create an account to manage your ${domainName}.`}
@@ -67,14 +67,14 @@ export default function AuthHomePage() {
                 <div
                     role="group"
                     aria-label="Authentication mode"
-                    className="grid w-full grid-cols-2 gap-1 rounded-lg bg-muted p-1"
+                    className="grid w-full grid-cols-2 gap-ui-xxs rounded-lg bg-muted p-1"
                 >
                     <Button
                         type="button"
                         variant={isSignIn ? "default" : "ghost"}
                         aria-pressed={isSignIn}
                         onClick={() => changeMode("signIn")}
-                        className="h-auto min-h-(--control-height) min-w-0 whitespace-normal px-2"
+                        className="h-auto min-h-(--control-height) min-w-0 whitespace-normal px-ui-xs"
                     >
                         Sign in
                     </Button>
@@ -84,7 +84,7 @@ export default function AuthHomePage() {
                         variant={!isSignIn ? "default" : "ghost"}
                         aria-pressed={!isSignIn}
                         onClick={() => changeMode("signUp")}
-                        className="h-auto min-h-(--control-height) min-w-0 whitespace-normal px-2"
+                        className="h-auto min-h-(--control-height) min-w-0 whitespace-normal px-ui-xs"
                     >
                         Create account
                     </Button>
@@ -93,7 +93,7 @@ export default function AuthHomePage() {
                 {successMsg && (
                     <div
                         role="status"
-                        className="rounded-lg border border-success/30 bg-success-soft p-3 text-sm text-success-deep"
+                        className="rounded-lg border border-success/30 bg-success-soft p-ui-sm text-body-md text-success-deep"
                     >
                         {successMsg}
                     </div>
@@ -112,8 +112,8 @@ export default function AuthHomePage() {
                     )}
                 </div>
 
-                <footer className="border-t border-border pt-4">
-                    <p className="text-center text-xs leading-relaxed text-muted-foreground">
+                <footer className="border-t border-border pt-ui-md">
+                    <p className="text-center text-body-sm leading-relaxed text-muted-foreground">
                         By continuing, you are entering a cleaner
                         product experience with improved navigation,
                         readability, and trust cues.

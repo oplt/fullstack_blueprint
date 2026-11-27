@@ -28,7 +28,7 @@ export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
     return (
         <SectionCard title="Version builder"
                      description="Attach deployable versions to a prompt template with model selection, rollout state, and provider pricing.">
-            <div className="flex gap-4">
+            <div className="flex gap-ui-md">
                 <FormField
                     as="select"
                     label="Selected template"
@@ -86,7 +86,7 @@ export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
                         ...current,
                         variable_names: event.target.value
                     }))}/>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-ui-sm">
                     <FormField
                         as="select"
                         label="Response format"
@@ -106,7 +106,7 @@ export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
                             temperature: event.target.value
                         }))}/>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-ui-sm">
                     <FormField
                         label="Rollout %"
                         value={versionForm.rollout_percentage}
@@ -123,7 +123,7 @@ export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
                         }))}
                     />
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-ui-sm">
                     <FormField
                         label="Input cost / million"
                         value={versionForm.input_cost_per_million}
@@ -176,7 +176,7 @@ export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
                     />
                 )}
                 {selectedTemplateId && versionsLoading ? (
-                    <div className="flex gap-2.5">
+                    <div className="flex gap-ui-sm">
                         {Array.from({length: 2}).map((_: any, index: any) => (
                             <div
                                 key={index}
@@ -184,15 +184,15 @@ export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
                         ))}
                     </div>
                 ) : selectedTemplateVersions.length > 0 ? (
-                    <div className="flex gap-2.5">
+                    <div className="flex gap-ui-sm">
                         {selectedTemplateVersions.map((version) => (
-                            <div key={version.id} className="rounded-lg border border-border p-4">
-                                <div className="flex gap-2">
-                                    <div className="flex flex-col sm:flex-row gap-2 justify-between">
+                            <div key={version.id} className="rounded-lg border border-border p-ui-md">
+                                <div className="flex gap-ui-xs">
+                                    <div className="flex flex-col sm:flex-row gap-ui-xs justify-between">
                                         <p>
                                             v{version.version_number} • {version.provider_key}/{version.model_name}
                                         </p>
-                                        <div className="flex flex-row gap-2 flex-wrap">
+                                        <div className="flex flex-row gap-ui-xs flex-wrap">
                                             {version.is_published && (
                                                 <Badge variant="success">
                                                     published
@@ -207,7 +207,7 @@ export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
                                     <p className="text-muted-foreground">
                                         {version.user_prompt_template.slice(0, 180)}
                                     </p>
-                                    <div className="flex flex-col sm:flex-row gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-ui-xs">
                                         <Button
                                             variant="outline"
                                             onClick={() => activateVersionMutation.mutate({

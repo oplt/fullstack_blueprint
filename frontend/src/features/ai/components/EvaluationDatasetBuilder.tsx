@@ -25,7 +25,7 @@ export function EvaluationDatasetBuilder({model}: Props) {
         notify
     } = model;
     return (
-        <div className="flex gap-3">
+        <div className="flex gap-ui-sm">
 
             <p>Evaluation datasets</p>
             <FormField
@@ -81,7 +81,7 @@ export function EvaluationDatasetBuilder({model}: Props) {
                     ...current,
                     expected_chunk_ids: event.target.value
                 }))}/>
-            <div className="flex flex-row gap-2 flex-wrap">
+            <div className="flex flex-row gap-ui-xs flex-wrap">
                 {m.documents.map((document) => {
                     const selected =
                         m.selectedEvaluationDocumentIds.includes(document.id);

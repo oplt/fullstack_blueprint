@@ -22,41 +22,41 @@ export function RagRunsPanel({workspace}: Props) {
                 onRetry={() => void workspace.historyQuery.refetch()}
             >
                 <div className="min-w-0 max-w-full overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-body-md">
                         <thead>
                         <tr className="border-b border-border">
-                            <td className="p-2 align-top">Timestamp</td>
-                            <td className="p-2 align-top">Query</td>
-                            <td className="p-2 align-top">Model</td>
-                            <td className="p-2 align-top">Project / index</td>
-                            <td className="p-2 align-top">Status</td>
-                            <td className="p-2 align-top">Duration</td>
+                            <td className="p-ui-xs align-top">Timestamp</td>
+                            <td className="p-ui-xs align-top">Query</td>
+                            <td className="p-ui-xs align-top">Model</td>
+                            <td className="p-ui-xs align-top">Project / index</td>
+                            <td className="p-ui-xs align-top">Status</td>
+                            <td className="p-ui-xs align-top">Duration</td>
                         </tr>
                         </thead>
                         <tbody>
                         {(workspace.historyQuery.data?.items ?? []).map((item) => (
                             <tr key={item.id} className="border-b border-border">
-                                <td className="p-2 align-top">
+                                <td className="p-ui-xs align-top">
                                     {new Date(item.created_at).toLocaleString()}
                                 </td>
                                 <td className="ui-table-long-text p-ui-xs align-top">
                                     {item.query}
                                 </td>
-                                <td className="p-2 align-top">{item.model_name}</td>
-                                <td className="p-2 align-top">
+                                <td className="p-ui-xs align-top">{item.model_name}</td>
+                                <td className="p-ui-xs align-top">
                                     {item.project_id
                                         ? workspace.projectNameById.get(item.project_id) ??
                                         item.project_id.slice(0, 8)
                                         : "All / default"}
                                 </td>
-                                <td className="p-2 align-top">
+                                <td className="p-ui-xs align-top">
                                     <Badge
                                         variant={item.answer?.trim() ? "success" : "warning"}
                                     >
                                         {item.answer?.trim() ? "completed" : "empty answer"}
                                     </Badge>
                                 </td>
-                                <td className="p-2 align-top">{item.latency_ms} ms</td>
+                                <td className="p-ui-xs align-top">{item.latency_ms} ms</td>
                             </tr>
                         ))}
                         </tbody>

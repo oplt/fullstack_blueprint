@@ -83,7 +83,7 @@ export default function AgentView() {
                     { value: "output", label: "Output" },
                 ]}
                 ariaLabel="Agent workflow"
-                className="mt-4"
+                className="mt-ui-md"
             >
                 <TabsPanel value="configure">
                 <AgentConfigurationPanel

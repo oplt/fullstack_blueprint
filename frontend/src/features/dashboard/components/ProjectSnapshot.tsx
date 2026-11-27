@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FolderOpen as ProjectsIcon } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Project } from "../../../api/projects";
 import { projectPath, ROUTES } from "@/config/routes";
@@ -38,7 +38,7 @@ export function ProjectSnapshot({
                 isEmpty={!projects?.length}
                 emptyFallback={
                     <EmptyState
-                        icon={<ProjectsIcon />}
+                        icon={<FolderOpen />}
                         title={`No ${coreDomainPlural.toLowerCase()} yet`}
                         description={`Create your first ${coreDomainSingular.toLowerCase()} to start building out the workspace.`}
                         action={<Button onClick={onCreate} type="button">Create {coreDomainSingular}</Button>}
@@ -58,7 +58,7 @@ export function ProjectSnapshot({
                             </p>
                         </Link>
                     ))}
-                    {projects && projects.length > 6 && <Link className="text-sm text-primary underline-offset-4 hover:underline" to={ROUTES.projects}>View all</Link>}
+                    {projects && projects.length > 6 && <Link className="text-body-md text-primary underline-offset-4 hover:underline" to={ROUTES.projects}>View all</Link>}
                 </div>
             </QueryBoundary>
         </SectionCard>
