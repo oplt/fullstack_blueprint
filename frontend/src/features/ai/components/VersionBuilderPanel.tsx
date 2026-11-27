@@ -1,13 +1,33 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Switch } from "@/components/ui/switch";
-import { QueryErrorAlert } from "../../../components/ui/QueryBoundary";
-import { SectionCard } from "../../../components/ui/SectionCard";
-import type { AiStudioModel } from "../hooks/useAiStudioView";
-import { firstSchemaError, promptVersionDraftSchema } from "../studioUtils";
+import {Button} from "@/components/ui/button";
+import {FormField} from "@/components/ui/form-field";
+import {Switch} from "@/components/ui/switch";
+import {QueryErrorAlert} from "../../../components/ui/QueryBoundary";
+import {SectionCard} from "../../../components/ui/SectionCard";
+import type {AiStudioModel} from "../hooks/useAiStudioView";
+import {firstSchemaError, promptVersionDraftSchema} from "../studioUtils";
+import {Badge} from "@/components/ui/badge";
 
-export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
-    const { selectedTemplateId, setSelectedTemplateId, promptTemplates, versionForm, setVersionForm, providers, createVersionMutation, parseVariableDefinitions, versionsIsError, versionsError, refetchVersions, versionsLoading, selectedTemplateVersions, activateVersionMutation, publishVersionMutation } = m;
+export function VersionBuilderPanel({m}: { m: AiStudioModel }) {
+    const {
+        selectedTemplateId,
+        setSelectedTemplateId,
+        promptTemplates,
+        versionForm,
+        setVersionForm,
+        providers,
+        createVersionMutation,
+        parseVariableDefinitions,
+        versionsIsError,
+        versionsError,
+        refetchVersions,
+        versionsLoading,
+        selectedTemplateVersions,
+        activateVersionMutation,
+        publishVersionMutation
+    } = m;
     return (
-        <SectionCard title="Version builder" description="Attach deployable versions to a prompt template with model selection, rollout state, and provider pricing.">
+        <SectionCard title="Version builder"
+                     description="Attach deployable versions to a prompt template with model selection, rollout state, and provider pricing.">
             <div className="flex gap-4">
                 <FormField
                     as="select"
@@ -24,7 +44,10 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     as="select"
                     label="Provider"
                     value={versionForm.provider_key}
-                    onChange={(event: any) => setVersionForm((current) => ({ ...current, provider_key: event.target.value }))}>
+                    onChange={(event: any) => setVersionForm((current) => ({
+                        ...current,
+                        provider_key: event.target.value
+                    }))}>
                     {providers.map((provider) => (
                         <option key={provider.key}>
                             {provider.label}
@@ -34,57 +57,87 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                 <FormField
                     label="Model name"
                     value={versionForm.model_name}
-                    onChange={(event: any) => setVersionForm((current) => ({ ...current, model_name: event.target.value }))} />
+                    onChange={(event: any) => setVersionForm((current) => ({
+                        ...current,
+                        model_name: event.target.value
+                    }))}/>
                 <FormField
                     label="System prompt"
                     value={versionForm.system_prompt}
-                    onChange={(event: any) => setVersionForm((current) => ({ ...current, system_prompt: event.target.value }))}
+                    onChange={(event: any) => setVersionForm((current) => ({
+                        ...current,
+                        system_prompt: event.target.value
+                    }))}
                     as="textarea"
-                    rows={3} />
+                    rows={3}/>
                 <FormField
                     label="User prompt template"
                     value={versionForm.user_prompt_template}
-                    onChange={(event: any) => setVersionForm((current) => ({ ...current, user_prompt_template: event.target.value }))}
+                    onChange={(event: any) => setVersionForm((current) => ({
+                        ...current,
+                        user_prompt_template: event.target.value
+                    }))}
                     as="textarea"
-                    rows={5} />
+                    rows={5}/>
                 <FormField
                     label="Variable names (comma separated)"
                     value={versionForm.variable_names}
-                    onChange={(event: any) => setVersionForm((current) => ({ ...current, variable_names: event.target.value }))} />
+                    onChange={(event: any) => setVersionForm((current) => ({
+                        ...current,
+                        variable_names: event.target.value
+                    }))}/>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <FormField
                         as="select"
                         label="Response format"
                         value={versionForm.response_format}
-                        onChange={(event: any) => setVersionForm((current) => ({ ...current, response_format: event.target.value as "text" | "json" }))}>
+                        onChange={(event: any) => setVersionForm((current) => ({
+                            ...current,
+                            response_format: event.target.value as "text" | "json"
+                        }))}>
                         <option>Text</option>
                         <option>JSON</option>
                     </FormField>
                     <FormField
                         label="Temperature"
                         value={versionForm.temperature}
-                        onChange={(event: any) => setVersionForm((current) => ({ ...current, temperature: event.target.value }))} />
+                        onChange={(event: any) => setVersionForm((current) => ({
+                            ...current,
+                            temperature: event.target.value
+                        }))}/>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <FormField
                         label="Rollout %"
                         value={versionForm.rollout_percentage}
-                        onChange={(event: any) => setVersionForm((current) => ({ ...current, rollout_percentage: event.target.value }))} />
+                        onChange={(event: any) => setVersionForm((current) => ({
+                            ...current,
+                            rollout_percentage: event.target.value
+                        }))}/>
                     <Switch
                         aria-label="Publish prompt version"
                         checked={versionForm.is_published}
-                        onCheckedChange={(checked) => setVersionForm((current) => ({ ...current, is_published: checked }))}
+                        onCheckedChange={(checked) => setVersionForm((current) => ({
+                            ...current,
+                            is_published: checked
+                        }))}
                     />
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <FormField
                         label="Input cost / million"
                         value={versionForm.input_cost_per_million}
-                        onChange={(event: any) => setVersionForm((current) => ({ ...current, input_cost_per_million: event.target.value }))} />
+                        onChange={(event: any) => setVersionForm((current) => ({
+                            ...current,
+                            input_cost_per_million: event.target.value
+                        }))}/>
                     <FormField
                         label="Output cost / million"
                         value={versionForm.output_cost_per_million}
-                        onChange={(event: any) => setVersionForm((current) => ({ ...current, output_cost_per_million: event.target.value }))} />
+                        onChange={(event: any) => setVersionForm((current) => ({
+                            ...current,
+                            output_cost_per_million: event.target.value
+                        }))}/>
                 </div>
                 <Button
                     variant="default"
@@ -92,7 +145,7 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                     onClick={() => {
                         const result = promptVersionDraftSchema.safeParse(versionForm);
                         if (!result.success) {
-                            m.notify({ message: firstSchemaError(result), severity: "error" });
+                            m.notify({message: firstSchemaError(result), severity: "error"});
                             return;
                         }
                         createVersionMutation.mutate({
@@ -124,10 +177,10 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                 )}
                 {selectedTemplateId && versionsLoading ? (
                     <div className="flex gap-2.5">
-                        {Array.from({ length: 2 }).map((_: any, index: any) => (
+                        {Array.from({length: 2}).map((_: any, index: any) => (
                             <div
                                 key={index}
-                                className="animate-pulse rounded-md bg-muted" />
+                                className="animate-pulse rounded-md bg-muted"/>
                         ))}
                     </div>
                 ) : selectedTemplateVersions.length > 0 ? (
@@ -140,10 +193,15 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                                             v{version.version_number} • {version.provider_key}/{version.model_name}
                                         </p>
                                         <div className="flex flex-row gap-2 flex-wrap">
-                                            {version.is_published && <div
-                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}
-                                            <div
-                                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                                            {version.is_published && (
+                                                <Badge variant="success">
+                                                    published
+                                                </Badge>
+                                            )}
+
+                                            <Badge variant="outline">
+                                                {version.rollout_percentage}% rollout
+                                            </Badge>
                                         </div>
                                     </div>
                                     <p className="text-muted-foreground">
@@ -152,13 +210,20 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                                     <div className="flex flex-col sm:flex-row gap-2">
                                         <Button
                                             variant="outline"
-                                            onClick={() => activateVersionMutation.mutate({ templateId: selectedTemplateId, versionId: version.id })}
+                                            onClick={() => activateVersionMutation.mutate({
+                                                templateId: selectedTemplateId,
+                                                versionId: version.id
+                                            })}
                                             type="button">
                                             Set active
                                         </Button>
                                         <Button
                                             variant="outline"
-                                            onClick={() => publishVersionMutation.mutate({ templateId: selectedTemplateId, versionId: version.id, isPublished: !version.is_published })}
+                                            onClick={() => publishVersionMutation.mutate({
+                                                templateId: selectedTemplateId,
+                                                versionId: version.id,
+                                                isPublished: !version.is_published
+                                            })}
                                             type="button">
                                             {version.is_published ? "Unpublish" : "Publish"}
                                         </Button>

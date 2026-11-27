@@ -359,6 +359,7 @@
     --badge-padding-y: var(--space-xxs);
     --table-cell-padding-compact: var(--space-xxs);
     --table-cell-padding-comfortable: var(--space-xs);
+    --table-long-text-width: 20rem;
     --focus-ring-width: 3px;
     --focus-ring-offset: 2px;
 
@@ -1207,6 +1208,11 @@
     .ui-table[data-density="compact"] { --table-cell-padding: var(--table-cell-padding-compact); }
     .ui-table-head { @apply border-b border-border px-ui-sm py-(--table-cell-padding) text-left align-middle font-medium whitespace-nowrap text-muted-foreground; }
     .ui-table-cell { @apply px-ui-sm py-(--table-cell-padding) align-middle; }
+    .ui-table-long-text {
+    max-width: var(--table-long-text-width);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
     .ui-tabs { @apply flex gap-ui-xs data-horizontal:flex-col; }
     .ui-tabs-list { @apply inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none; }
     .ui-tabs-list-default { @apply bg-muted; }

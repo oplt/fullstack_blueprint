@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import {fileURLToPath} from "node:url";
 import ts from "typescript";
 
 const frontend = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -13,7 +13,61 @@ const errors = [];
 const files = [];
 const banned = /(?:^|\/)(?:@mui\/|@material-ui\/|@emotion\/|styled-components(?:\/|$)|bootstrap(?:\/|$)|@chakra-ui\/|antd(?:\/|$)|muiCompat(?:\.|$)|styleCompat(?:\.|$)|iconsCompat(?:\.|$))/;
 const cssExt = /\.(?:css|scss|sass|less|styl|stylus)$/i;
-const semanticStyleProperties = new Set(["color", "backgroundColor", "background", "borderColor", "borderRadius", "boxShadow", "padding", "paddingBlock", "paddingInline", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "margin", "marginBlock", "marginInline", "marginTop", "marginRight", "marginBottom", "marginLeft", "gap", "rowGap", "columnGap", "fontSize", "fontWeight", "lineHeight", "letterSpacing"]);
+const semanticStyleProperties = new Set([
+    "color",
+    "backgroundColor",
+    "background",
+    "border",
+    "borderColor",
+    "borderWidth",
+    "borderStyle",
+    "borderRadius",
+    "borderTop",
+    "borderRight",
+    "borderBottom",
+    "borderLeft",
+    "boxShadow",
+    "padding",
+    "paddingBlock",
+    "paddingInline",
+    "paddingTop",
+    "paddingRight",
+    "paddingBottom",
+    "paddingLeft",
+    "margin",
+    "marginBlock",
+    "marginInline",
+    "marginTop",
+    "marginRight",
+    "marginBottom",
+    "marginLeft",
+    "gap",
+    "rowGap",
+    "columnGap",
+    "fontFamily",
+    "fontSize",
+    "fontWeight",
+    "fontStyle",
+    "lineHeight",
+    "letterSpacing",
+    "textAlign",
+    "textDecoration",
+    "whiteSpace",
+    "wordBreak",
+    "overflowWrap",
+    "maxWidth",
+    "minWidth",
+    "display",
+    "gridTemplateColumns",
+    "gridTemplateRows",
+    "flexDirection",
+    "alignItems",
+    "justifyContent",
+    "opacity",
+    "zIndex",
+    "transition",
+    "animation",
+]);
 const rawSvgExceptions = new Set(["components/ui/event-calendar-views.tsx"]);
 const rawButtonExceptions = new Set(["components/ui/PageHeader.tsx"]);
 const arbitraryClassExceptions = new Set(["components/ui/tooltip.tsx"]);
@@ -22,13 +76,14 @@ const bitmapColorExceptions = new Set(["features/profile/components/MfaQrCode.ts
 const report = (file, sf, node, message) => errors.push(`${file}:${sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1} ${message}`);
 
 function walk(dir, onFile) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
         if (["generated", "node_modules", "dist", "coverage", "storybook-static", "test-results", "playwright-report", ".git", ".vitest"].includes(entry.name)) continue;
         const file = path.join(dir, entry.name);
         if (entry.isDirectory()) walk(file, onFile);
         else if (entry.isFile()) onFile(file);
     }
 }
+
 const relative = (file) => path.relative(sourceRoot, file).split(path.sep).join("/");
 // Inspect all authored frontend stylesheets, including public and Storybook.
 for (const folder of [sourceRoot, path.join(frontend, "public"), path.join(frontend, ".storybook")]) {
@@ -50,6 +105,7 @@ for (const name of Object.keys(lock.packages ?? {})) {
 function declarations(block) {
     return new Map([...block.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
 }
+
 const light = declarations(css.match(/:root\s*\{([^}]+)\}/)?.[1] ?? "");
 const dark = new Map([...light, ...declarations(css.match(/\[data-theme="dark"\]\s*\{([^}]+)\}/)?.[1] ?? "")]);
 const normalize = (value) => value?.replace(/\s+/g, "").toLowerCase();
@@ -72,6 +128,7 @@ const animationLegacy = /(?:^|:)(?:animate-in|animate-out|fade-in-\d+|fade-out-\
 const paletteUtility = /(?:^|:)(?:bg|text|border|ring|outline|fill|stroke|from|via|to|decoration)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}(?:\/\d+)?!?$/;
 const rawColor = /(?:^|\s)(?:text|bg|border|ring|fill|stroke)-\[\s*#|(?:^|\s)\[(?:color|background-color|border-color):\s*(?:#|rgb\()/i;
 const arbitraryToken = /(?:^|\s)(?:rounded|shadow|font)-\[[^\]]+\]|(?:^|\s)(?:text|leading|tracking)-\[\d+(?:\.\d+)?(?:px|rem|em)\]|(?:^|\s)(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|gap-x|gap-y|space-x|space-y)-\[[^\]]+\]/i;
+
 function inspectClass(file, sf, node, value) {
     if (rawColor.test(value)) report(file, sf, node, "DS-004 hard-coded class color");
     if (arbitraryToken.test(value) && !arbitraryClassExceptions.has(file)) report(file, sf, node, "DS-006 arbitrary static visual utility; use a CSS format or token");
@@ -85,17 +142,45 @@ function inspectClass(file, sf, node, value) {
         }
     }
 }
+
 function classLiterals(node, callback) {
     if (!node) return;
-    if (ts.isStringLiteralLike(node)) { callback(node, node.text); return; }
-    if (ts.isConditionalExpression(node)) { classLiterals(node.whenTrue, callback); classLiterals(node.whenFalse, callback); return; }
-    if (ts.isBinaryExpression(node)) { if (node.operatorToken.kind !== ts.SyntaxKind.AmpersandAmpersandToken) classLiterals(node.left, callback); classLiterals(node.right, callback); return; }
-    if (ts.isCallExpression(node) && /^(?:cn|clsx|twMerge|cva)$/.test(node.expression.getText())) { for (const arg of node.arguments) classLiterals(arg, callback); return; }
-    if (ts.isArrayLiteralExpression(node)) { for (const item of node.elements) classLiterals(item, callback); return; }
-    if (ts.isObjectLiteralExpression(node)) { for (const prop of node.properties) if (ts.isPropertyAssignment(prop)) classLiterals(prop.initializer, callback); return; }
-    if (ts.isTemplateExpression(node)) { callback(node.head, node.head.text); for (const span of node.templateSpans) { callback(span.literal, span.literal.text); classLiterals(span.expression, callback); } }
+    if (ts.isStringLiteralLike(node)) {
+        callback(node, node.text);
+        return;
+    }
+    if (ts.isConditionalExpression(node)) {
+        classLiterals(node.whenTrue, callback);
+        classLiterals(node.whenFalse, callback);
+        return;
+    }
+    if (ts.isBinaryExpression(node)) {
+        if (node.operatorToken.kind !== ts.SyntaxKind.AmpersandAmpersandToken) classLiterals(node.left, callback);
+        classLiterals(node.right, callback);
+        return;
+    }
+    if (ts.isCallExpression(node) && /^(?:cn|clsx|twMerge|cva)$/.test(node.expression.getText())) {
+        for (const arg of node.arguments) classLiterals(arg, callback);
+        return;
+    }
+    if (ts.isArrayLiteralExpression(node)) {
+        for (const item of node.elements) classLiterals(item, callback);
+        return;
+    }
+    if (ts.isObjectLiteralExpression(node)) {
+        for (const prop of node.properties) if (ts.isPropertyAssignment(prop)) classLiterals(prop.initializer, callback);
+        return;
+    }
+    if (ts.isTemplateExpression(node)) {
+        callback(node.head, node.head.text);
+        for (const span of node.templateSpans) {
+            callback(span.literal, span.literal.text);
+            classLiterals(span.expression, callback);
+        }
+    }
     if (ts.isParenthesizedExpression(node)) classLiterals(node.expression, callback);
 }
+
 for (const absolute of files) {
     const file = relative(absolute);
     const sourceText = fs.readFileSync(absolute, "utf8");
@@ -105,6 +190,7 @@ for (const absolute of files) {
         for (const match of sourceText.matchAll(/#(?:[\da-f]{3,8})\b|rgba?\(/ig)) errors.push(`${file}:${sourceText.slice(0, match.index).split("\n").length} DS-004 hard-coded color literal`);
     }
     const checkClass = (node, value) => inspectClass(file, sf, node, value);
+
     function visit(node) {
         if (ts.isImportDeclaration(node) && ts.isStringLiteralLike(node.moduleSpecifier)) {
             const name = node.moduleSpecifier.text;
@@ -137,6 +223,7 @@ for (const absolute of files) {
         }
         ts.forEachChild(node, visit);
     }
+
     visit(sf);
 }
 const unique = [...new Set(errors)];

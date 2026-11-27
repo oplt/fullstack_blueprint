@@ -1,66 +1,72 @@
-import { QueryBoundary } from "../../../components/ui/QueryBoundary";
-import { SectionCard } from "../../../components/ui/SectionCard";
-import { PaginationControls } from "../../../components/ui/pagination";
-import { PAGE_SIZE } from "../hooks/useRagWorkspace";
-import type { useRagWorkspace } from "../hooks/useRagWorkspace";
+import {QueryBoundary} from "../../../components/ui/QueryBoundary";
+import {SectionCard} from "../../../components/ui/SectionCard";
+import {PaginationControls} from "../../../components/ui/pagination";
+import {PAGE_SIZE} from "../hooks/useRagWorkspace";
+import type {useRagWorkspace} from "../hooks/useRagWorkspace";
+import {Badge} from "@/components/ui/badge";
 
 type RagWorkspace = ReturnType<typeof useRagWorkspace>;
 type Props = { workspace: RagWorkspace };
 
-export function RagRunsPanel({ workspace }: Props) {
+export function RagRunsPanel({workspace}: Props) {
     return (
-                
-                    <SectionCard
-                        title="Runs"
-                        description="Recent RAG asks with timestamp, model, scope, status, and duration."
-                    >
-                        <QueryBoundary
-                            isLoading={workspace.historyQuery.isLoading}
-                            isError={workspace.historyQuery.isError}
-                            error={workspace.historyQuery.error}
-                            onRetry={() => void workspace.historyQuery.refetch()}
-                        >
-                            <div className="min-w-0 max-w-full overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b border-border">
-                                            <td className="p-2 align-top">Timestamp</td>
-                                            <td className="p-2 align-top">Query</td>
-                                            <td className="p-2 align-top">Model</td>
-                                            <td className="p-2 align-top">Project / index</td>
-                                            <td className="p-2 align-top">Status</td>
-                                            <td className="p-2 align-top">Duration</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {(workspace.historyQuery.data?.items ?? []).map((item) => (
-                                            <tr key={item.id} className="border-b border-border">
-                                                <td className="p-2 align-top">
-                                                    {new Date(item.created_at).toLocaleString()}
-                                                </td>
-                                                <td style={{ maxWidth: 320 }} className="p-2 align-top">
-                                                    {item.query}
-                                                </td>
-                                                <td className="p-2 align-top">{item.model_name}</td>
-                                                <td className="p-2 align-top">
-                                                    {item.project_id
-                                                        ? workspace.projectNameById.get(item.project_id) ??
-                                                          item.project_id.slice(0, 8)
-                                                        : "All / default"}
-                                                </td>
-                                                <td className="p-2 align-top">
-                                                    <div
-                                                        className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
-                                                </td>
-                                                <td className="p-2 align-top">{item.latency_ms} ms</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <PaginationControls count={workspace.historyQuery.data?.total ?? 0} page={Math.floor(workspace.historyOffset / PAGE_SIZE)} rowsPerPage={PAGE_SIZE} onPageChange={(page) => workspace.setHistoryOffset(page * PAGE_SIZE)} />
-                        </QueryBoundary>
-                    </SectionCard>
-                
+
+        <SectionCard
+            title="Runs"
+            description="Recent RAG asks with timestamp, model, scope, status, and duration."
+        >
+            <QueryBoundary
+                isLoading={workspace.historyQuery.isLoading}
+                isError={workspace.historyQuery.isError}
+                error={workspace.historyQuery.error}
+                onRetry={() => void workspace.historyQuery.refetch()}
+            >
+                <div className="min-w-0 max-w-full overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead>
+                        <tr className="border-b border-border">
+                            <td className="p-2 align-top">Timestamp</td>
+                            <td className="p-2 align-top">Query</td>
+                            <td className="p-2 align-top">Model</td>
+                            <td className="p-2 align-top">Project / index</td>
+                            <td className="p-2 align-top">Status</td>
+                            <td className="p-2 align-top">Duration</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {(workspace.historyQuery.data?.items ?? []).map((item) => (
+                            <tr key={item.id} className="border-b border-border">
+                                <td className="p-2 align-top">
+                                    {new Date(item.created_at).toLocaleString()}
+                                </td>
+                                <td className="ui-table-long-text p-ui-xs align-top">
+                                    {item.query}
+                                </td>
+                                <td className="p-2 align-top">{item.model_name}</td>
+                                <td className="p-2 align-top">
+                                    {item.project_id
+                                        ? workspace.projectNameById.get(item.project_id) ??
+                                        item.project_id.slice(0, 8)
+                                        : "All / default"}
+                                </td>
+                                <td className="p-2 align-top">
+                                    <Badge
+                                        variant={item.answer?.trim() ? "success" : "warning"}
+                                    >
+                                        {item.answer?.trim() ? "completed" : "empty answer"}
+                                    </Badge>
+                                </td>
+                                <td className="p-2 align-top">{item.latency_ms} ms</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+                <PaginationControls count={workspace.historyQuery.data?.total ?? 0}
+                                    page={Math.floor(workspace.historyOffset / PAGE_SIZE)} rowsPerPage={PAGE_SIZE}
+                                    onPageChange={(page) => workspace.setHistoryOffset(page * PAGE_SIZE)}/>
+            </QueryBoundary>
+        </SectionCard>
+
     );
 }

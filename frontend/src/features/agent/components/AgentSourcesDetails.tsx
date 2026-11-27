@@ -36,9 +36,7 @@ export function AgentSourcesDetails({ run: selectedRun }: Props) {
                                                         (chunkId, index) => (
                                                             <tr key={chunkId} className="border-b border-border">
                                                                 <td className="p-2 align-top">{index + 1}</td>
-                                                                <td
-                                                                    style={{ fontFamily: "monospace" }}
-                                                                    className="p-2 align-top text-xs">
+                                                                <td className="p-ui-xs align-top font-mono text-body-sm">
                                                                     {chunkId}
                                                                 </td>
                                                                 <td className="p-2 align-top">

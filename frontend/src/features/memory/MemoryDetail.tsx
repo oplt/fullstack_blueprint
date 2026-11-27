@@ -1,7 +1,9 @@
-import { Button } from "@/components/ui/button";import { Trash2 as DeleteIcon } from "lucide-react";
-import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
-import type { MemoryItem } from "../../api/memory";
+import {Button} from "@/components/ui/button";
+import {Trash2 as DeleteIcon} from "lucide-react";
+import {QueryBoundary} from "../../components/ui/QueryBoundary";
+import {SectionCard} from "../../components/ui/SectionCard";
+import type {MemoryItem} from "../../api/memory";
+import {Badge} from "@/components/ui/badge";
 
 type MemoryDetailProps = {
     item: MemoryItem | null;
@@ -13,20 +15,20 @@ type MemoryDetailProps = {
 };
 
 export function MemoryDetail({
-    item,
-    isLoading,
-    isError,
-    error,
-    onRetry,
-    onForget,
-}: MemoryDetailProps) {
+                                 item,
+                                 isLoading,
+                                 isError,
+                                 error,
+                                 onRetry,
+                                 onForget,
+                             }: MemoryDetailProps) {
     return (
         <SectionCard
             title="Memory detail"
             description="Source, confidence, privacy, and timestamps."
             action={
-                <Button variant="destructive" disabled={!item} onClick={onForget} type="button"><DeleteIcon />Forget
-                                    </Button>
+                <Button variant="destructive" disabled={!item} onClick={onForget} type="button"><DeleteIcon/>Forget
+                </Button>
             }
         >
             <QueryBoundary
@@ -42,15 +44,22 @@ export function MemoryDetail({
                 ) : (
                     <div className="flex gap-3">
                         <p>{item.content}</p>
-                        <div className="flex flex-row gap-2 flex-wrap">
-                            <div
-                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
-                            <div
-                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
-                            <div
-                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
-                            <div
-                                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
+                        <div className="flex flex-wrap gap-ui-xs">
+                            <Badge variant="secondary">
+                                {item.metadata.memory_level}
+                            </Badge>
+
+                            <Badge variant="outline">
+                                {item.metadata.memory_type}
+                            </Badge>
+
+                            <Badge variant="outline">
+                                {item.metadata.privacy}
+                            </Badge>
+
+                            <Badge variant="outline">
+                                confidence {item.metadata.confidence.toFixed(2)}
+                            </Badge>
                         </div>
                         <div>
                             <span className="text-muted-foreground">
@@ -86,7 +95,8 @@ export function MemoryDetail({
                             </span>
                         </div>
                         {item.score != null ? (
-                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">Search score: {item.score.toFixed(3)}</div>
+                            <div role="alert" className="rounded-lg border border-border p-3 text-sm">Search
+                                score: {item.score.toFixed(3)}</div>
                         ) : null}
                     </div>
                 )}
