@@ -5,10 +5,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea
       data-slot="textarea"
-      className={cn(
-        "form-control flex field-sizing-content min-h-16",
-        className
-      )}
+      className={cn("ui-textarea", className)}
       {...props}
     />
   )

@@ -6,26 +6,5 @@ type AdvancedSettingsProps = { children: ReactNode; title?: string; description?
 export function AdvancedSettings({ children, title = "Advanced settings", description, defaultExpanded = false, disabled = false, className }: AdvancedSettingsProps) {
     const id = useId();
     const [expanded, setExpanded] = useState(defaultExpanded);
-
-    return (
-        <section className={cn("rounded-lg border border-border bg-transparent", className)}>
-            <Button
-                variant="ghost"
-                type="button"
-                id={`${id}-header`}
-                aria-controls={`${id}-content`}
-                aria-expanded={expanded}
-                disabled={disabled}
-                onClick={() => setExpanded((value) => !value)}
-                className="min-h-12 w-full justify-start px-3 text-left text-sm font-semibold"
-            >
-                <span>{title}</span>
-                {description ? <span className="font-normal text-muted-foreground">{description}</span> : null}
-                <ChevronDown className={cn("ml-auto size-4 transition-transform", expanded && "rotate-180")} aria-hidden="true" />
-            </Button>
-            <div id={`${id}-content`} role="region" aria-labelledby={`${id}-header`} hidden={!expanded} className="px-3 pb-3">
-                {children}
-            </div>
-        </section>
-    );
+    return <section className={cn("ui-advanced-settings", className)}><Button variant="ghost" type="button" id={`${id}-header`} aria-controls={`${id}-content`} aria-expanded={expanded} disabled={disabled} onClick={() => setExpanded((value) => !value)} className="ui-advanced-settings-trigger"><span>{title}</span>{description ? <span className="ui-muted-copy">{description}</span> : null}<ChevronDown className="ui-advanced-settings-chevron" data-expanded={expanded} aria-hidden="true" /></Button><div id={`${id}-content`} role="region" aria-labelledby={`${id}-header`} hidden={!expanded} className="ui-advanced-settings-content">{children}</div></section>;
 }

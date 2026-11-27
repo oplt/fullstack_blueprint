@@ -6,11 +6,17 @@ export type WebVitalsOptions = {
     sampleRate?: number;
 };
 
+const RATING_THRESHOLDS: Record<WebVitalName, readonly [number, number]> = {
+    CLS: [0.1, 0.25],
+    INP: [200, 500],
+    LCP: [2500, 4000],
+    FCP: [1800, 3000],
+};
+
 function rating(name: WebVitalName, value: number): WebVitalMetric["rating"] {
-    if (name === "CLS") return value <= 0.1 ? "good" : value <= 0.25 ? "needs-improvement" : "poor";
-    if (name === "INP") return value <= 200 ? "good" : value <= 500 ? "needs-improvement" : "poor";
-    if (name === "LCP") return value <= 2500 ? "good" : value <= 4000 ? "needs-improvement" : "poor";
-    return value <= 1800 ? "good" : value <= 3000 ? "needs-improvement" : "poor";
+    const [good, needsImprovement] = RATING_THRESHOLDS[name];
+    if (value <= good) return "good";
+    return value <= needsImprovement ? "needs-improvement" : "poor";
 }
 
 function emit(name: WebVitalName, value: number, options: WebVitalsOptions) {

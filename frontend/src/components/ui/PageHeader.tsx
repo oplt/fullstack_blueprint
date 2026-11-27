@@ -26,12 +26,12 @@ type PageHeaderProps = {
 function HeaderActions({ primaryAction, secondaryActions, actions, overflowItems = [] }: PageHeaderProps) {
     if (!primaryAction && !secondaryActions && !actions && !overflowItems.length) return null;
     return (
-        <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 sm:justify-end">
+        <div className="ui-page-header-actions">
             {secondaryActions}{actions}{primaryAction}
             {overflowItems.length > 0 && (
                 <DropdownMenu>
                     <DropdownMenuTrigger render={<Button variant="ghost" aria-label="More actions" />}>
-                        <MoreVertical className="size-4" />
+                        <MoreVertical className="size-(--icon-size-md)" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         {overflowItems.map((item) => (
@@ -56,13 +56,13 @@ function HeaderActions({ primaryAction, secondaryActions, actions, overflowItems
 export function PageHeader(props: PageHeaderProps) {
     const { title, description, status, icon, dense, className } = props;
     return (
-        <header className={cn("mb-6 flex min-w-0 flex-col justify-between gap-4 sm:flex-row sm:items-start", className)}>
-            <div className="flex min-w-0 items-start gap-3">
-                {icon && <span className="mt-1 flex shrink-0 text-primary">{icon}</span>}
+        <header className={cn("ui-page-header", className)}>
+            <div className="ui-page-header-heading">
+                {icon && <span className="ui-page-header-icon">{icon}</span>}
                 <div className="min-w-0">
-                    <h1 className={cn("font-semibold", dense ? "text-display-md" : "text-page-title")}>{title}</h1>
-                    {description && <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>}
-                    {status && <div className="mt-2">{status}</div>}
+                    <h1 className={dense ? "text-display-md" : "text-page-title"}>{title}</h1>
+                    {description && <p className="ui-page-header-description">{description}</p>}
+                    {status && <div className="ui-page-header-status">{status}</div>}
                 </div>
             </div>
             <HeaderActions {...props} />

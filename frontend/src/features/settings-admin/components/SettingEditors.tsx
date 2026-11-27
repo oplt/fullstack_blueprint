@@ -1,15 +1,10 @@
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { colorMix } from "@/lib/color";import { Trash2 as DeleteIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { Trash2 as DeleteIcon } from "lucide-react";
 import type { ConfigEntry, DatabaseSetting } from "../../../api/settings";
 import { formatDateTime } from "../../../utils/formatters";
 
 export function ConfigEntryEditor({ item, value, onChange }: { item: ConfigEntry; value: string; onChange: (value: string) => void }) {
     return (
-        <div style={({
-            padding: 16,
-            borderRadius: 16,
-            border: `1px solid ${"var(--border)"}`,
-            backgroundColor: colorMix("var(--card)", 0.78)
-        })}>
+        <div className="surface-card ui-feature-surface ui-feature-surface-subtle">
             <div className="flex gap-2.5">
                 <div className="flex flex-col sm:flex-row gap-2 justify-between">
                     <div>
@@ -44,11 +39,7 @@ type DatabaseEditorProps = {
 
 export function DatabaseSettingEditor({ item, draft, onDraftChange, onSave, onDelete, isSaving, isDeleting }: DatabaseEditorProps) {
     return (
-        <div style={({
-            padding: 18,
-            borderRadius: 16,
-            border: `1px solid ${"var(--border)"}`
-        })}>
+        <div className="surface-card ui-feature-surface">
             <div className="flex gap-3">
                 <div className="flex flex-row gap-3 justify-between">
                     <div><p>{item.key}</p><span className="text-muted-foreground">Updated {formatDateTime(item.updated_at)}</span></div>

@@ -5,10 +5,7 @@ function NativeSelect({ className, ...props }: ComponentProps<"select">) {
     return (
         <select
             data-slot="native-select"
-            className={cn(
-                "form-control h-(--control-height) focus-visible:outline-none",
-                className,
-            )}
+            className={cn("ui-native-select", className)}
             {...props}
         />
     );

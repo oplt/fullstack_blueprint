@@ -35,11 +35,7 @@ export function PromptLibraryPanel({ m }: { m: AiStudioModel }) {
                 {promptTemplates.length > 0 ? (
                     <div className="flex gap-2.5">
                         {promptTemplates.map((template) => (
-                            <div key={template.id} style={({
-                                padding: 16,
-                                borderRadius: 16,
-                                border: `1px solid ${"var(--border)"}`
-                            })}>
+                            <div key={template.id} className="surface-card ui-feature-surface">
                                 <div className="flex gap-2">
                                     <div className="flex flex-col sm:flex-row gap-2 justify-between">
                                         <div>

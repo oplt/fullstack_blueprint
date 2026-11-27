@@ -10,21 +10,24 @@ export function stringifyPretty(data: unknown): string {
     }
 }
 
+function formatDisplayArray(value: unknown[]): string {
+    if (!value.length) return "[]";
+    if (value.every((item) => typeof item === "string" || typeof item === "number")) {
+        return value.map(String).join(", ");
+    }
+    return `${value.length} items`;
+}
+
+function formatDisplayObject(value: object): string {
+    const keys = Object.keys(value);
+    return keys.length ? `{${keys.slice(0, 4).join(", ")}${keys.length > 4 ? ", …" : ""}}` : "{}";
+}
+
 export function formatDisplayValue(value: unknown): string {
     if (value == null) return "—";
     if (typeof value === "string") return value || "—";
-    if (typeof value === "number" || typeof value === "boolean") return String(value);
-    if (Array.isArray(value)) {
-        if (!value.length) return "[]";
-        if (value.every((item) => typeof item === "string" || typeof item === "number")) {
-            return value.map(String).join(", ");
-        }
-        return `${value.length} items`;
-    }
-    if (typeof value === "object") {
-        const keys = Object.keys(value as object);
-        return keys.length ? `{${keys.slice(0, 4).join(", ")}${keys.length > 4 ? ", …" : ""}}` : "{}";
-    }
+    if (Array.isArray(value)) return formatDisplayArray(value);
+    if (typeof value === "object") return formatDisplayObject(value);
     return String(value);
 }
 

@@ -15,16 +15,25 @@ const GROUPS: Array<Omit<ConfigGroup, "items">> = [
     { id: "custom", label: "Custom", description: "Unmapped or custom environment variables kept in `backend/.env`." },
 ];
 
+const GROUP_RULES: ReadonlyArray<{
+    id: ConfigGroupId;
+    prefixes: readonly string[];
+    keys: readonly string[];
+}> = [
+    { id: "application", prefixes: ["APP_", "CORE_DOMAIN_"], keys: ["LOG_LEVEL", "PLATFORM_DEFAULT_MODULE_PACK", "FRONTEND_URL"] },
+    { id: "infrastructure", prefixes: ["CELERY_"], keys: ["DATABASE_URL", "REDIS_URL"] },
+    { id: "security", prefixes: ["JWT_"], keys: ["ACCESS_TOKEN_EXPIRE_MINUTES", "REFRESH_TOKEN_EXPIRE_DAYS", "COOKIE_SECURE", "VERIFICATION_TOKEN_TTL", "PASSWORD_RESET_TOKEN_TTL", "ADMIN_SIGNUP_INVITE_CODE"] },
+    { id: "email", prefixes: ["SMTP_"], keys: [] },
+    { id: "observability", prefixes: ["SENTRY_", "OTLP_"], keys: [] },
+    { id: "storage", prefixes: ["STORAGE_"], keys: [] },
+];
+
 function getGroup(item: ConfigEntry): ConfigGroupId {
-    const { key } = item;
     if (item.is_custom) return "custom";
-    if (key.startsWith("APP_") || key === "LOG_LEVEL" || key.startsWith("CORE_DOMAIN_") || key === "PLATFORM_DEFAULT_MODULE_PACK" || key === "FRONTEND_URL") return "application";
-    if (key === "DATABASE_URL" || key === "REDIS_URL" || key.startsWith("CELERY_")) return "infrastructure";
-    if (key.startsWith("JWT_") || ["ACCESS_TOKEN_EXPIRE_MINUTES", "REFRESH_TOKEN_EXPIRE_DAYS", "COOKIE_SECURE", "VERIFICATION_TOKEN_TTL", "PASSWORD_RESET_TOKEN_TTL", "ADMIN_SIGNUP_INVITE_CODE"].includes(key)) return "security";
-    if (key.startsWith("SMTP_")) return "email";
-    if (key.startsWith("SENTRY_") || key.startsWith("OTLP_")) return "observability";
-    if (key.startsWith("STORAGE_")) return "storage";
-    return "custom";
+    const rule = GROUP_RULES.find(({ keys, prefixes }) =>
+        keys.includes(item.key) || prefixes.some((prefix) => item.key.startsWith(prefix)),
+    );
+    return rule?.id ?? "custom";
 }
 
 export function buildConfigGroups(items: ConfigEntry[]): ConfigGroup[] {

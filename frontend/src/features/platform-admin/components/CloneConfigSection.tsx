@@ -43,11 +43,7 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                         set((v) => ({ ...v, module_pack, module_states: Object.fromEntries(source.module_catalog.map((item) => [item.key, defaults.includes(item.key)])) }));
                     }}>{source.available_module_packs.map((pack) => <option key={pack.key}>{pack.label}</option>)}</FormField>
                 {activePack && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{activePack.description}</div>}
-                <div style={({
-                    padding: 16,
-                    borderRadius: 16,
-                    border: `1px solid ${"var(--border)"}`
-                })}>
+                <div className="surface-card ui-feature-surface">
                     <div className="flex flex-row gap-3 justify-between"><div><p>MFA authentication</p><p className="text-muted-foreground">Show the authenticator code field on the login page.</p></div>
                         <Switch
                             aria-label="Enable multi-factor authentication"
@@ -56,11 +52,7 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                 </div>
                 <div><p className="mb-2.5" >Module access</p>
                     <div className="gap-2.5" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
-                        {source.module_catalog.map((item) => <div key={item.key} style={({
-                            padding: 16,
-                            borderRadius: 16,
-                            border: `1px solid ${"var(--border)"}`
-                        })}>
+                        {source.module_catalog.map((item) => <div key={item.key} className="surface-card ui-feature-surface">
                             <div className="flex flex-row gap-3 justify-between"><div><p>{item.label}</p><p className="text-muted-foreground">{item.description}</p></div>
                                 <Switch
                                     aria-label={`Enable ${item.label}`}

@@ -4,45 +4,48 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-sm border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button ui-button",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
-        primary: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default: "ui-button-variant-default",
+        primary: "ui-button-variant-primary",
         outline:
-          "border-border bg-card hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:hover:bg-input/50",
+          "ui-button-variant-outline",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "ui-button-variant-secondary",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
-        "nav-primary": "bg-primary text-primary-foreground hover:bg-primary/80",
+          "ui-button-variant-ghost",
+        "nav-primary": "ui-button-variant-nav-primary",
         "nav-ghost":
-          "border-border bg-card text-foreground hover:bg-muted hover:text-foreground dark:border-input dark:hover:bg-input/50",
+          "ui-button-variant-nav-ghost",
         marketing:
-          "rounded-pill bg-primary text-primary-foreground text-base leading-5 hover:bg-primary/80",
+          "ui-button-variant-marketing",
         "marketing-secondary":
-          "rounded-pill border-border bg-card text-foreground text-base leading-5 hover:bg-muted",
+          "ui-button-variant-marketing-secondary",
         category:
-          "min-h-(--control-height) rounded-pill-category border-border bg-card px-4 text-left text-sm whitespace-normal hover:bg-muted aria-pressed:bg-primary aria-pressed:text-primary-foreground",
+          "ui-button-variant-category",
         destructive:
-          "bg-destructive-soft text-destructive-deep hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "content-link underline-offset-4",
+          "ui-button-variant-destructive",
+        link: "ui-button-variant-link",
       },
       size: {
-        default:
-          "h-(--control-height) gap-1.5 px-3.5 has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5",
-        nav: "h-(--control-height) gap-1.5 px-1.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5",
-        category: "min-h-(--control-height) gap-1.5 px-4 text-sm",
-        xs: "h-(--control-height) min-h-(--control-height) gap-1 rounded-sm px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-(--control-height) min-h-(--control-height) gap-1 rounded-sm px-2.5 text-sm has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-(--control-height) gap-1.5 px-3.5 has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5",
-        icon: "size-11 rounded-full p-0",
-        "icon-xs": "size-11 rounded-full p-0 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-11 rounded-full p-0 [&_svg:not([class*='size-'])]:size-3.5",
-        "icon-lg": "size-11 rounded-full p-0",
+        default: "ui-button-size-default",
+        nav: "ui-button-size-nav",
+        category: "ui-button-size-category",
+        xs: "ui-button-size-xs",
+        sm: "ui-button-size-sm",
+        lg: "ui-button-size-lg",
+        icon: "ui-button-size-icon",
+        "icon-xs": "ui-button-size-icon-xs",
+        "icon-sm": "ui-button-size-icon-sm",
+        "icon-lg": "ui-button-size-icon-lg",
       },
     },
+    compoundVariants: [
+      { variant: ["nav-primary", "nav-ghost"], size: "default", class: "ui-button-nav-padding" },
+      { variant: "category", size: "default", class: "ui-button-category-padding" },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",
@@ -59,7 +62,7 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   )

@@ -7,11 +7,7 @@ export function PlansSection({ plans, model }: { plans: SubscriptionPlan[]; mode
     const create = model.newPlan;
     return (
         <SectionCard title="Subscription plans" description="Create new commercial tiers and tune existing plans."><div className="flex gap-6">
-                                <div style={({
-                                    padding: 20,
-                                    borderRadius: 16,
-                                    border: `1px solid ${"var(--border)"}`
-                                })}><div className="flex gap-3">
+                                <div className="surface-card ui-feature-surface"><div className="flex gap-3">
                                     <p>Create plan</p>
                                     <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                                         <FormField label="Code" value={create.code} onChange={(e: any) => model.setNewPlan((v) => ({ ...v, code: e.target.value }))} />
@@ -33,11 +29,7 @@ export function PlansSection({ plans, model }: { plans: SubscriptionPlan[]; mode
                                         type="button">{model.createPlanMutation.isPending ? "Creating..." : "Create plan"}</Button>
                                 </div></div>
                                 <div className="flex gap-3">{plans.map((plan) => { const d = model.planDrafts[plan.id]; const saving = model.updatePlanMutation.isPending && model.updatePlanMutation.variables?.id === plan.id; return (
-                                    <div key={plan.id} style={({
-                                        padding: 20,
-                                        borderRadius: 16,
-                                        border: `1px solid ${"var(--border)"}`
-                                    })}><div className="flex gap-3">
+                                    <div key={plan.id} className="surface-card ui-feature-surface"><div className="flex gap-3">
                                                             <div className="flex flex-row gap-2 items-center"><p>{plan.code}</p>{plan.is_default && <Badge variant="secondary">Default</Badge>}</div>
                                                             <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                                                                 <FormField label="Name" value={d.name} onChange={(e: any) => model.setPlanDrafts((v) => ({ ...v, [plan.id]: { ...d, name: e.target.value } }))} />

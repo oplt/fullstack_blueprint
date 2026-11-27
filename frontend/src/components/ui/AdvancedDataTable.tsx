@@ -1,29 +1,20 @@
 import {
-    flexRender,
-    getCoreRowModel,
-    getExpandedRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
-    type ColumnDef,
-    type ExpandedState,
-    type OnChangeFn,
-    type PaginationState,
-    type RowSelectionState,
-    type SortingState,
-    type VisibilityState,
+    flexRender, getCoreRowModel, getExpandedRowModel, getFilteredRowModel,
+    getPaginationRowModel, getSortedRowModel, useReactTable,
+    type ColumnDef, type ExpandedState, type OnChangeFn, type PaginationState,
+    type RowSelectionState, type SortingState, type VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronRight, Download, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Download, Search, SlidersHorizontal, Inbox } from "lucide-react";
 import { Fragment, useState, type ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-
 import { Button } from "./button";
 import { EmptyState } from "./EmptyState";
 import { Input } from "./input";
 import { Checkbox } from "./checkbox";
 import { NativeSelect } from "./native-select";
+import { Skeleton } from "./skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
+import { cn } from "@/lib/utils";
 
 export type AdvancedDataTableProps<T> = {
     columns: ColumnDef<T, unknown>[];
@@ -68,22 +59,16 @@ export type AdvancedDataTableProps<T> = {
 };
 
 function resolveUpdater<T>(updater: T | ((previous: T) => T), previous: T): T {
-    return typeof updater === "function"
-        ? (updater as (previous: T) => T)(previous)
-        : updater;
+    return typeof updater === "function" ? (updater as (previous: T) => T)(previous) : updater;
 }
-
 function csvValue(value: unknown): string {
     const raw = value == null ? "" : typeof value === "string" ? value : JSON.stringify(value);
     const text = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
     return `"${text.replaceAll('"', '""')}"`;
 }
-
 function downloadCsv<T>(table: ReturnType<typeof useReactTable<T>>, fileName: string) {
     const headers = table.getVisibleLeafColumns().map((column) => csvValue(column.id));
-    const rows = table.getRowModel().rows.map((row) =>
-        table.getVisibleLeafColumns().map((column) => csvValue(row.getValue(column.id))).join(","),
-    );
+    const rows = table.getRowModel().rows.map((row) => table.getVisibleLeafColumns().map((column) => csvValue(row.getValue(column.id))).join(","));
     const blob = new Blob([[headers.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -94,45 +79,15 @@ function downloadCsv<T>(table: ReturnType<typeof useReactTable<T>>, fileName: st
 }
 
 export function AdvancedDataTable<T>({
-    columns,
-    data,
-    getRowId,
-    ariaLabel,
-    loading = false,
-    error,
-    emptyTitle = "No rows",
-    emptyDescription = "Nothing to show yet.",
-    emptyAction,
-    emptyIcon,
-    globalFilter: globalFilterProp,
-    onGlobalFilterChange,
-    searchable = true,
-    searchPlaceholder = "Search rows…",
-    enableRowSelection = false,
-    selectedRowIds,
-    onSelectedRowIdsChange,
-    enableColumnVisibility = true,
-    enableColumnResizing = true,
-    enableSorting = true,
-    enableExpanding = false,
-    renderSubComponent,
-    manualPagination = false,
-    manualFiltering = false,
-    pageCount,
-    pagination: paginationProp,
-    onPaginationChange,
-    pageSizeOptions = [10, 25, 50],
-    density: densityProp,
-    onDensityChange,
-    showDensityToggle = false,
-    stickyHeader = true,
-    stickyFirstColumn = false,
-    selectedRowId,
-    onRowClick,
-    csvFileName,
-    onExport,
-    toolbarStart,
-    toolbarEnd,
+    columns, data, getRowId, ariaLabel, loading = false, error,
+    emptyTitle = "No rows", emptyDescription = "Nothing to show yet.", emptyAction, emptyIcon,
+    globalFilter: globalFilterProp, onGlobalFilterChange, searchable = true, searchPlaceholder = "Search rows…",
+    enableRowSelection = false, selectedRowIds, onSelectedRowIdsChange,
+    enableColumnVisibility = true, enableColumnResizing = true, enableSorting = true,
+    enableExpanding = false, renderSubComponent, manualPagination = false, manualFiltering = false,
+    pageCount, pagination: paginationProp, onPaginationChange, pageSizeOptions = [10, 25, 50],
+    density: densityProp, onDensityChange, showDensityToggle = false, stickyHeader = true,
+    stickyFirstColumn = false, selectedRowId, onRowClick, csvFileName, onExport, toolbarStart, toolbarEnd,
 }: AdvancedDataTableProps<T>) {
     const [internalFilter, setInternalFilter] = useState("");
     const [sorting, setSorting] = useState<SortingState>([]);
@@ -148,9 +103,7 @@ export function AdvancedDataTable<T>({
     // must not memoize this hook result.
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
-        data,
-        columns,
-        getRowId,
+        data, columns, getRowId,
         state: { sorting, globalFilter, columnVisibility, rowSelection: selectedRowIds ?? rowSelection, expanded, pagination },
         onSortingChange: setSorting,
         onGlobalFilterChange: (updater) => {
@@ -170,9 +123,7 @@ export function AdvancedDataTable<T>({
             onPaginationChange?.(next);
             if (paginationProp === undefined) setInternalPagination(next);
         }) as OnChangeFn<PaginationState>,
-        enableSorting,
-        enableRowSelection,
-        enableColumnResizing,
+        enableSorting, enableRowSelection, enableColumnResizing,
         columnResizeMode: "onChange",
         getRowCanExpand: () => enableExpanding && Boolean(renderSubComponent),
         getCoreRowModel: getCoreRowModel(),
@@ -183,7 +134,6 @@ export function AdvancedDataTable<T>({
         manualPagination,
         pageCount: manualPagination ? pageCount : undefined,
     });
-
     const exportRows = () => {
         if (onExport) return onExport(table.getRowModel().rows.map((row) => row.original));
         if (csvFileName) downloadCsv(table, csvFileName);
@@ -191,49 +141,54 @@ export function AdvancedDataTable<T>({
     const hasRows = table.getRowModel().rows.length > 0;
     const colSpan = table.getVisibleLeafColumns().length + (enableRowSelection ? 1 : 0) + (enableExpanding ? 1 : 0);
 
-    return (
-        <section className="space-y-3" aria-label={ariaLabel}>
-            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                    {searchable ? <label className="relative min-w-52 flex-1 sm:max-w-sm">
-                        <Search className="pointer-events-none absolute left-2.5 top-2 size-4 text-muted-foreground" />
-                        <Input value={globalFilter} onChange={(event) => table.setGlobalFilter(event.target.value)} placeholder={searchPlaceholder} aria-label={`${ariaLabel} search`} className="pl-8" />
-                    </label> : null}
-                    {toolbarStart}
-                    {showDensityToggle ? <div className="inline-flex rounded-md border border-border p-0.5" aria-label="Table density">
-                        {(["compact", "comfortable"] as const).map((value) => <Button key={value} variant={density === value ? "secondary" : "ghost"} aria-pressed={density === value} onClick={() => { if (densityProp === undefined) setInternalDensity(value); onDensityChange?.(value); }} type="button">{value === "compact" ? "Compact" : "Comfortable"}</Button>)}
-                    </div> : null}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    {toolbarEnd}
-                    {enableColumnVisibility ? <Popover><PopoverTrigger className="flex size-8 items-center justify-center rounded-md border border-border hover:bg-muted" aria-label="Column visibility"><SlidersHorizontal className="size-4" /></PopoverTrigger><PopoverContent align="end" className="w-52 p-2">{table.getAllLeafColumns().map((column) => <label key={column.id} className="flex items-center gap-2 p-1 text-sm"><Checkbox checked={column.getIsVisible()} disabled={!column.getCanHide()} onCheckedChange={(checked) => column.toggleVisibility(checked)} />{column.id}</label>)}</PopoverContent></Popover> : null}
-                    {csvFileName || onExport ? <Button variant="outline" onClick={exportRows} type="button"><Download className="mr-2 size-4" />Export CSV</Button> : null}
-                </div>
+    return <section className="ui-data-table" aria-label={ariaLabel}>
+        <div className="ui-data-table-toolbar">
+            <div className="ui-data-table-toolbar-start">
+                {searchable ? <label className="ui-data-table-search">
+                    <Search className="ui-data-table-search-icon" aria-hidden="true" />
+                    <Input value={globalFilter} onChange={(event) => table.setGlobalFilter(event.target.value)} placeholder={searchPlaceholder} aria-label={`${ariaLabel} search`} className="ui-data-table-search-input" />
+                </label> : null}
+                {toolbarStart}
+                {showDensityToggle ? <div className="ui-data-table-density" aria-label="Table density">
+                    {(["compact", "comfortable"] as const).map((value) => <Button key={value} variant={density === value ? "secondary" : "ghost"} aria-pressed={density === value} onClick={() => { if (densityProp === undefined) setInternalDensity(value); onDensityChange?.(value); }} type="button">{value === "compact" ? "Compact" : "Comfortable"}</Button>)}
+                </div> : null}
             </div>
-            {error ? <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-sm text-destructive-deep">{error}</div> : null}
-            {loading ? <div className="space-y-2" aria-busy="true"><div className="animate-pulse rounded-md bg-muted h-10 w-full rounded-lg" /><div className="animate-pulse rounded-md bg-muted h-52 w-full rounded-lg" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={emptyIcon ?? <span aria-hidden="true">∅</span>} /> : <div className="overflow-x-auto rounded-md border border-border">
-                <Table density={density} aria-label={ariaLabel} aria-busy={loading}>
-                    <TableHeader className={stickyHeader ? "sticky top-0 z-(--z-sticky) bg-muted/95" : "bg-muted/60"}>
-                        <TableRow>
-                            {enableExpanding ? <TableHead scope="col" className="w-10 px-2" /> : null}
-                            {enableRowSelection ? <TableHead scope="col" className="w-10 px-2"><Checkbox aria-label="Select all rows" checked={table.getIsAllRowsSelected()} indeterminate={table.getIsSomeRowsSelected()} onCheckedChange={(checked) => table.toggleAllRowsSelected(checked)} /></TableHead> : null}
-                            {table.getHeaderGroups().map((group) => group.headers.map((header) => <TableHead key={header.id} scope="col" className={`relative font-semibold text-foreground ${stickyFirstColumn && header.column.getIndex() === 0 ? "sticky left-0 z-(--z-sticky) bg-muted" : ""}`} style={{ width: header.getSize() }}>{header.isPlaceholder ? null : <div className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined} onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === "asc" ? " ↑" : header.column.getIsSorted() === "desc" ? " ↓" : null}</div>}{enableColumnResizing && header.column.getCanResize() ? <span onMouseDown={header.getResizeHandler()} onTouchStart={header.getResizeHandler()} className="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary" aria-hidden="true" /> : null}</TableHead>))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>{table.getRowModel().rows.map((row) => <Fragment key={row.id}>
-                        <TableRow key={row.id} onClick={(event) => { if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea, label")) return; onRowClick?.(row.original); }} className={selectedRowId === row.id ? "border-b border-border bg-primary/10" : "border-b border-border hover:bg-muted/30"} aria-selected={selectedRowId === row.id || row.getIsSelected()}>
-                            {enableExpanding ? <TableCell className="px-2"><Button variant="ghost" size="icon-sm" aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"} onClick={row.getToggleExpandedHandler()} type="button">{row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}</Button></TableCell> : null}
-                            {enableRowSelection ? <TableCell className="px-2"><Checkbox aria-label={`Select row ${row.id}`} checked={row.getIsSelected()} disabled={!row.getCanSelect()} onCheckedChange={(checked) => row.toggleSelected(checked)} /></TableCell> : null}
-                            {row.getVisibleCells().map((cell) => <TableCell key={cell.id} className={stickyFirstColumn && cell.column.getIndex() === 0 ? "sticky left-0 bg-card" : "align-top"}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>)}
-                        </TableRow>
-                        {row.getIsExpanded() ? <TableRow key={`${row.id}-expanded`}><TableCell colSpan={colSpan} className="bg-muted/20 p-3">{renderSubComponent?.(row.original)}</TableCell></TableRow> : null}
-                    </Fragment>)}</TableBody>
-                </Table>
-            </div>}
-            <div className="flex flex-col justify-between gap-2 text-sm sm:flex-row sm:items-center">
-                <span className="text-muted-foreground">{table.getFilteredRowModel().rows.length} result{table.getFilteredRowModel().rows.length === 1 ? "" : "s"}</span>
-                <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows <NativeSelect value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="md:h-8 md:[--control-padding-x:var(--space-xxs)] md:[--control-padding-y:var(--space-xxs)]">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</NativeSelect></label><Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()} type="button">Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} type="button">Next</Button></div>
+            <div className="ui-data-table-toolbar-end">
+                {toolbarEnd}
+                {enableColumnVisibility ? <Popover><PopoverTrigger render={<Button variant="outline" size="icon" aria-label="Column visibility" />}><SlidersHorizontal /></PopoverTrigger><PopoverContent align="end" className="ui-data-table-column-popover">{table.getAllLeafColumns().map((column) => <label key={column.id} className="ui-data-table-column-label"><Checkbox checked={column.getIsVisible()} disabled={!column.getCanHide()} onCheckedChange={(checked) => column.toggleVisibility(checked)} />{column.id}</label>)}</PopoverContent></Popover> : null}
+                {csvFileName || onExport ? <Button variant="outline" onClick={exportRows} type="button"><Download />Export CSV</Button> : null}
             </div>
-        </section>
-    );
+        </div>
+        {error ? <div role="alert" className="ui-data-table-error">{error}</div> : null}
+        {loading ? <div className="ui-data-table-loading" aria-busy="true"><Skeleton className="ui-data-table-loading-header" /><Skeleton className="ui-data-table-loading-body" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={emptyIcon ?? <Inbox aria-hidden="true" />} /> : <div className="ui-readonly-table">
+            <Table density={density} aria-label={ariaLabel} aria-busy={loading}>
+                <TableHeader className={cn("ui-readonly-table-header", stickyHeader && "ui-data-table-sticky-header")}>
+                    <TableRow>
+                        {enableExpanding ? <TableHead scope="col" className="ui-data-table-control-head" /> : null}
+                        {enableRowSelection ? <TableHead scope="col" className="ui-data-table-control-head"><Checkbox aria-label="Select all rows" checked={table.getIsAllRowsSelected()} indeterminate={table.getIsSomeRowsSelected()} onCheckedChange={(checked) => table.toggleAllRowsSelected(checked)} /></TableHead> : null}
+                        {table.getHeaderGroups().map((group) => group.headers.map((header) => {
+                            const sort = header.column.getIsSorted();
+                            const label = flexRender(header.column.columnDef.header, header.getContext());
+                            return <TableHead key={header.id} scope="col" className={cn("ui-data-table-head", stickyFirstColumn && header.column.getIndex() === 0 && "ui-data-table-sticky-head")} style={{ width: header.getSize() }} aria-sort={sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined}>
+                                {header.isPlaceholder ? null : <div className={header.column.getCanSort() ? "ui-data-table-sort" : undefined} onClick={header.column.getToggleSortingHandler()}>{label}{sort === "asc" ? <ArrowUp aria-hidden="true" /> : sort === "desc" ? <ArrowDown aria-hidden="true" /> : null}</div>}
+                                {enableColumnResizing && header.column.getCanResize() ? <span onMouseDown={header.getResizeHandler()} onTouchStart={header.getResizeHandler()} className="ui-data-table-resize" aria-hidden="true" /> : null}
+                            </TableHead>;
+                        }))}
+                    </TableRow>
+                </TableHeader>
+                <TableBody>{table.getRowModel().rows.map((row) => <Fragment key={row.id}>
+                    <TableRow key={row.id} onClick={(event) => { if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea, label")) return; onRowClick?.(row.original); }} className="ui-data-table-row" data-selected={selectedRowId === row.id} aria-selected={selectedRowId === row.id || row.getIsSelected()}>
+                        {enableExpanding ? <TableCell className="ui-data-table-control-cell"><Button variant="ghost" size="icon-sm" aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"} onClick={row.getToggleExpandedHandler()} type="button">{row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}</Button></TableCell> : null}
+                        {enableRowSelection ? <TableCell className="ui-data-table-control-cell"><Checkbox aria-label={`Select row ${row.id}`} checked={row.getIsSelected()} disabled={!row.getCanSelect()} onCheckedChange={(checked) => row.toggleSelected(checked)} /></TableCell> : null}
+                        {row.getVisibleCells().map((cell) => <TableCell key={cell.id} className={stickyFirstColumn && cell.column.getIndex() === 0 ? "ui-data-table-sticky-cell" : "align-top"}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>)}
+                    </TableRow>
+                    {row.getIsExpanded() ? <TableRow key={`${row.id}-expanded`}><TableCell colSpan={colSpan} className="ui-data-table-expanded">{renderSubComponent?.(row.original)}</TableCell></TableRow> : null}
+                </Fragment>)}</TableBody>
+            </Table>
+        </div>}
+        <div className="ui-data-table-footer">
+            <span className="text-muted-foreground">{table.getFilteredRowModel().rows.length} result{table.getFilteredRowModel().rows.length === 1 ? "" : "s"}</span>
+            <div className="ui-data-table-pagination"><label className="ui-data-table-page-size">Rows <NativeSelect value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="ui-data-table-page-select">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</NativeSelect></label><Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()} type="button">Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} type="button">Next</Button></div>
+        </div>
+    </section>;
 }
