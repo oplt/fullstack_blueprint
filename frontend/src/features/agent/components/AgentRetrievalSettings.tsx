@@ -1,4 +1,5 @@
 import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";
 import { HelpFieldLabel } from "../../../components/ui/HelpTooltip";
 import { QueryBoundary } from "../../../components/ui/QueryBoundary";
 import type { useAgentWorkspace } from "../hooks/useAgentWorkspace";
@@ -57,15 +58,17 @@ export function AgentRetrievalSettings({
                             {(documentsQuery.data?.items ?? []).map((document) => {
                                 const selected = selectedDocumentIds.includes(document.id);
                                 return (
-                                    <button
+                                    <Button
                                         key={document.id}
                                         type="button"
+                                        variant="category"
+                                        size="category"
                                         aria-pressed={selected}
                                         onClick={() => toggleDocument(document.id)}
-                                        className="rounded-full border border-border px-2 py-0.5 text-xs"
+                                        className="h-auto min-h-8 px-2 py-1 text-xs"
                                     >
                                         {document.original_filename || document.filename}
-                                    </button>
+                                    </Button>
                                 );
                             })}
                         </div>

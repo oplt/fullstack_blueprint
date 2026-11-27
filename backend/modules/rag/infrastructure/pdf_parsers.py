@@ -35,6 +35,16 @@ def _stable_block_id(*, page_number: int, block_index: int, text: str, bbox) -> 
     return f"block-{hashlib.sha256(payload.encode('utf-8')).hexdigest()[:32]}"
 
 
+def _validate_pdf_page_count(page_count: int) -> None:
+    if page_count > settings.RAG_MAX_DOCUMENT_PAGES:
+        raise ValueError("PDF exceeds the page limit")
+
+
+def _validate_pdf_character_count(character_count: int) -> None:
+    if character_count > settings.RAG_MAX_DOCUMENT_CHARACTERS:
+        raise ValueError("PDF exceeds the parsed character limit")
+
+
 def _extract_ocr_text(page, fitz) -> tuple[str, dict]:
     """OCR a text-poor page only when explicitly enabled and dependencies exist."""
     if not settings.RAG_PDF_OCR_ENABLED:
@@ -101,7 +111,20 @@ def _extract_tables(page, *, page_number: int) -> list[dict]:
         for table_index, table in enumerate(tables):
             rows = table.extract()
             normalized_rows = [[cell if cell is not None else "" for cell in row] for row in rows]
+            header = getattr(table, "header", None)
+            headers = [name or "" for name in getattr(header, "names", []) or []]
             bbox = list(table.bbox) if getattr(table, "bbox", None) else None
+            cell_coordinates = []
+            for row_index, row in enumerate(getattr(table, "rows", []) or []):
+                for column_index, cell_bbox in enumerate(getattr(row, "cells", []) or []):
+                    cell_coordinates.append(
+                        {
+                            "row": row_index,
+                            "column": column_index,
+                            "bbox": list(cell_bbox) if cell_bbox else None,
+                            "bbox_coordinate_system": "page_points_top_left",
+                        }
+                    )
             table_id = _stable_block_id(
                 page_number=page_number,
                 block_index=10_000 + table_index,
@@ -115,6 +138,8 @@ def _extract_tables(page, *, page_number: int) -> list[dict]:
                     "page_number": page_number,
                     "bbox": bbox,
                     "rows": normalized_rows,
+                    "headers": headers if any(headers) else [],
+                    "cells": cell_coordinates,
                 }
             )
         return result
@@ -149,10 +174,14 @@ class BasicPypdfParser:
         import io
 
         reader = PdfReader(io.BytesIO(content))
+        _validate_pdf_page_count(len(reader.pages))
         docs: list[ParsedDocument] = []
+        total_characters = 0
         for index, page in enumerate(reader.pages, start=1):
             text = (page.extract_text() or "").strip()
             if text:
+                total_characters += len(text)
+                _validate_pdf_character_count(total_characters)
                 docs.append(
                     ParsedDocument(
                         content=text,
@@ -202,6 +231,8 @@ class EnhancedPdfParser:
         docs: list[ParsedDocument] = []
         page_payloads: list[dict] = []
         with fitz.open(stream=content, filetype="pdf") as document:
+            _validate_pdf_page_count(len(document))
+            total_characters = 0
             for page_index in range(len(document)):
                 index = page_index + 1
                 page: Any = document[page_index]
@@ -267,6 +298,14 @@ class EnhancedPdfParser:
                 if ocr_text:
                     text = ocr_text
                 tables = _extract_tables(page, page_number=index)
+                total_characters += len(text) + sum(
+                    len(cell)
+                    for table in tables
+                    for row in table["rows"]
+                    for cell in row
+                    if isinstance(cell, str)
+                )
+                _validate_pdf_character_count(total_characters)
                 page_payloads.append(
                     {
                         "index": index,

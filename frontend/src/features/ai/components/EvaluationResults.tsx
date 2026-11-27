@@ -20,22 +20,17 @@ export function EvaluationResults({ model }: Props) {
                         />
                     )}
                     {selectedDatasetId && datasetCasesLoading ? (
-                        <div className="flex gap-[8px]">
+                        <div className="flex gap-2">
                             {Array.from({ length: 2 }).map((_: any, index: any) => (
                                 <div
                                     key={index}
-                                    style={{ borderRadius: 8 }}
                                     className="animate-pulse rounded-md bg-muted" />
                             ))}
                         </div>
                     ) : selectedDatasetCases.length > 0 ? (
-                        <div className="flex gap-[8px]">
+                        <div className="flex gap-2">
                             {selectedDatasetCases.map((item) => (
-                                <div key={item.id} style={({
-                                    padding: 12,
-                                    borderRadius: 12,
-                                    border: `1px solid ${"var(--border)"}`
-                                })}>
+                                <div key={item.id} className="rounded-md border border-border p-3">
                                     {recordToKeyValueItems(item.input_variables).length ? (
                                         <KeyValueList
                                             dense
@@ -71,16 +66,16 @@ export function EvaluationResults({ model }: Props) {
                         />
                     )}
                     {evaluationRunsLoading ? (
-                        <div className="flex gap-[8px]">
+                        <div className="flex gap-2">
                             {Array.from({ length: 2 }).map((_: any, index: any) => (
                                 <div
                                     key={index}
-                                    style={{ borderRadius: 8 }}
-                                    className="animate-pulse rounded-md bg-muted" />
+
+                                    className="animate-pulse rounded-md bg-muted rounded-md" />
                             ))}
                         </div>
                     ) : evaluationRuns.length > 0 ? (
-                        <div className="flex gap-[8px]">
+                        <div className="flex gap-2">
                             {evaluationRuns.map((run) => (
                                 <div
                                     key={run.id}

@@ -1,11 +1,25 @@
 import json
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+MAX_LOG_RETENTION_DAYS = 365
+MIN_JWT_SECRET_LENGTH = 32
+MIN_JWT_SECRET_UNIQUE_CHARACTERS = 8
+MAX_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+MAX_REFRESH_TOKEN_EXPIRE_DAYS = 30
+
+
+def _is_weak_jwt_secret(value: str) -> bool:
+    normalized = value.strip().lower()
+    return (
+        len(value.strip()) < MIN_JWT_SECRET_LENGTH
+        or len(set(value.strip())) < MIN_JWT_SECRET_UNIQUE_CHARACTERS
+        or normalized in {"replace-me", "changeme", "secret"}
+    )
 
 
 class Settings(BaseSettings):
@@ -19,7 +33,8 @@ class Settings(BaseSettings):
     )
     APP_NAME: str = "Fullstack Blueprint"
     APP_ENV: str = "dev"
-    APP_HOST: str = "0.0.0.0"
+    # Containerized deployments must listen on the container interface.
+    APP_HOST: str = "0.0.0.0"  # noqa: S104
     APP_PORT: int = 8000
     LOG_LEVEL: str = "INFO"
     LOG_TO_CONSOLE: bool = True
@@ -44,7 +59,7 @@ class Settings(BaseSettings):
     DB_POOL_TIMEOUT: int = 30
     DB_POOL_RECYCLE: int = 1800
     # Per Celery worker *process* pool. Keep small: total connections ≈
-    # worker_processes × (DB_WORKER_POOL_SIZE + DB_WORKER_MAX_OVERFLOW).
+    # worker_processes x (DB_WORKER_POOL_SIZE + DB_WORKER_MAX_OVERFLOW).
     DB_WORKER_POOL_SIZE: int = 2
     DB_WORKER_MAX_OVERFLOW: int = 2
     DB_WORKER_POOL_TIMEOUT: int = 30
@@ -257,20 +272,29 @@ class Settings(BaseSettings):
     RAG_EMBEDDING_INDEX_LIFECYCLE: str = "database"
     RAG_CHUNK_SIZE: int = 1000
     RAG_CHUNK_OVERLAP: int = 150
-    RAG_CHUNK_POLICY_VERSION: str = "structure-v1"
+    RAG_CHUNK_POLICY_VERSION: str = "structure-v2"
     RAG_PARENT_WINDOW_SIZE: int = 3
     RAG_TOP_K: int = 5
     RAG_SCORE_THRESHOLD: float = 0.3
     RAG_RERANK_ENABLED: bool = False
     RAG_RERANK_HEURISTIC_ENABLED: bool = False
     RAG_RERANK_MAX_DEPTH: int = 40
+    RAG_RERANK_MODE: Literal["none", "heuristic", "cross_encoder", "provider"] | None = None
+    RAG_RERANK_MODEL: str = ""
+    RAG_RERANK_TIMEOUT_SECONDS: float = Field(default=2.0, gt=0, le=10)
+    RAG_COHERE_API_KEY: SecretStr = Field(default_factory=lambda: SecretStr(""))
     RAG_CONTEXT_OVERLAP_DEDUPE_THRESHOLD: float = 0.8
     RAG_EXPECTED_VECTOR_DIMENSIONS: int = 1536
     RAG_EXACT_VECTOR_FALLBACK_MAX_ROWS: int = 5000
     RAG_REQUIRE_ANN_INDEX: bool = False
+    RAG_PGVECTOR_ITERATIVE_SCAN: bool = False
     RAG_MAX_CONTEXT_TOKENS: int = 6000
     RAG_ALLOWED_FILE_TYPES: str = "pdf,txt,md,docx,csv"
     RAG_MAX_FILE_BYTES: int = 10 * 1024 * 1024
+    RAG_MAX_DOCUMENT_PAGES: int = Field(default=2000, ge=1, le=10_000)
+    RAG_MAX_DOCUMENT_CHARACTERS: int = Field(default=5_000_000, ge=1, le=50_000_000)
+    RAG_MAX_INGESTION_CHUNKS: int = Field(default=2000, ge=1, le=5000)
+    RAG_MAX_INGESTION_TOKENS: int = Field(default=1_000_000, ge=1, le=5_000_000)
     RAG_MALWARE_SCAN_ENABLED: bool = False
     RAG_MALWARE_SCAN_REQUIRED: bool = False
     RAG_MALWARE_SCANNER: str = "none"
@@ -280,6 +304,7 @@ class Settings(BaseSettings):
     RAG_EMBEDDING_BATCH_CONCURRENCY: int = 2
     RAG_ASK_PROMPT_TEMPLATE_KEY: str = "rag-answer"
     RAG_ASK_TIMEOUT_SECONDS: float = 45.0
+    RAG_RETRIEVAL_TIMEOUT_SECONDS: float = 30.0
     # Hybrid retrieval
     RAG_DENSE_CANDIDATES: int = 40
     RAG_LEXICAL_CANDIDATES: int = 40
@@ -297,8 +322,8 @@ class Settings(BaseSettings):
     RAG_SYNTHESIS_ASYNC_DOCUMENT_THRESHOLD: int = 8
     RAG_SYNTHESIS_PASSAGES_PER_DOCUMENT: int = 3
     RAG_PARENT_CONTEXT_ENABLED: bool = False
-    RAG_RETRIEVAL_ALGORITHM_VERSION: str = "hybrid-rrf-v1"
-    RAG_CHUNKER_VERSION: str = "structure-v1"
+    RAG_RETRIEVAL_ALGORITHM_VERSION: str = "hybrid-rrf-v2"
+    RAG_CHUNKER_VERSION: str = "structure-v2"
     RAG_PDF_PARSER: str = "auto"
     RAG_PDF_OCR_ENABLED: bool = False
     RAG_PDF_OCR_MIN_TEXT_CHARS: int = 40
@@ -401,7 +426,7 @@ class Settings(BaseSettings):
     @field_validator("LOG_RETENTION_DAYS")
     @classmethod
     def validate_log_retention_days(cls, value: int) -> int:
-        if value < 1 or value > 365:
+        if value < 1 or value > MAX_LOG_RETENTION_DAYS:
             return 1
         return value
 
@@ -424,21 +449,29 @@ class Settings(BaseSettings):
     @classmethod
     def validate_jwt_secret(cls, value: str) -> str:
         stripped = value.strip()
-        if len(stripped) < 32 or stripped.lower() in {"replace-me", "changeme", "secret"}:
+        if _is_weak_jwt_secret(stripped):
             raise ValueError("JWT_SECRET must be a high-entropy secret with at least 32 characters")
         return stripped
+
+    @field_validator("JWT_ALGORITHM")
+    @classmethod
+    def validate_jwt_algorithm(cls, value: str) -> str:
+        normalized = value.upper()
+        if normalized not in {"HS256", "HS384", "HS512"}:
+            raise ValueError("JWT_ALGORITHM must be a supported HMAC SHA-2 algorithm")
+        return normalized
 
     @field_validator("ACCESS_TOKEN_EXPIRE_MINUTES")
     @classmethod
     def validate_access_ttl(cls, value: int) -> int:
-        if value <= 0 or value > 30:
+        if value <= 0 or value > MAX_ACCESS_TOKEN_EXPIRE_MINUTES:
             raise ValueError("ACCESS_TOKEN_EXPIRE_MINUTES must be between 1 and 30")
         return value
 
     @field_validator("REFRESH_TOKEN_EXPIRE_DAYS")
     @classmethod
     def validate_refresh_ttl(cls, value: int) -> int:
-        if value <= 0 or value > 30:
+        if value <= 0 or value > MAX_REFRESH_TOKEN_EXPIRE_DAYS:
             raise ValueError("REFRESH_TOKEN_EXPIRE_DAYS must be between 1 and 30")
         return value
 
@@ -501,31 +534,42 @@ class Settings(BaseSettings):
     def validate_security_posture(self):
         if self.COOKIE_SAMESITE == "none" and not self.COOKIE_SECURE:
             raise ValueError("COOKIE_SECURE must be true when COOKIE_SAMESITE is 'none'")
-        if (
-            self.is_production
-            and self.JWT_SECRET == "local-dev-only-change-me-not-for-production-use"
-        ):
+        self._validate_production_security()
+        return self
+
+    def _validate_production_security(self) -> None:
+        if not self.is_production:
+            return
+        if self.JWT_SECRET == "local-dev-only-change-me-not-for-production-use":  # noqa: S105
             raise ValueError("Set a unique JWT_SECRET in production")
-        if self.is_production and self.REQUIRE_EMAIL_VERIFICATION and not self.SMTP_HOST:
+        if self.REQUIRE_EMAIL_VERIFICATION and not self.SMTP_HOST:
             raise ValueError("Configure SMTP before requiring email verification")
-        if self.is_production and not self.COOKIE_SECURE:
+        if not self.COOKIE_SECURE:
             raise ValueError("COOKIE_SECURE must be enabled in production")
-        if self.is_production and not self.CORS_ALLOWED_ORIGINS:
+        if not self.CORS_ALLOWED_ORIGINS:
             raise ValueError("CORS_ALLOWED_ORIGINS must be explicit in production")
         if "*" in self.CORS_ALLOWED_ORIGINS:
             raise ValueError("Wildcard CORS origins are not allowed with cookie credentials")
-        if self.is_production and not self.ALLOWED_HOSTS:
+        if not self.ALLOWED_HOSTS:
             raise ValueError("ALLOWED_HOSTS must be explicit in production")
-        if self.is_production and self.RATE_LIMIT_FAIL_OPEN:
+        if not self._has_positive_public_rate_limit():
+            raise ValueError("Public rate limits must be positive in production")
+        self._validate_production_logging()
+        self._validate_production_origins()
+
+    def _validate_production_logging(self) -> None:
+        if self.RATE_LIMIT_FAIL_OPEN:
             raise ValueError("RATE_LIMIT_FAIL_OPEN must be false in production")
-        if self.is_production and self.LOG_FORMAT != "json":
+        if self.LOG_FORMAT != "json":
             raise ValueError("LOG_FORMAT must be json in production")
-        if self.is_production and any(
-            not origin.startswith("https://")
-            for origin in [self.FRONTEND_URL, *self.allowed_origins]
-        ):
+
+    def _has_positive_public_rate_limit(self) -> bool:
+        return self.PUBLIC_RATE_LIMIT_REQUESTS > 0 and self.PUBLIC_RATE_LIMIT_WINDOW_SECONDS > 0
+
+    def _validate_production_origins(self) -> None:
+        origins = [self.FRONTEND_URL, *self.allowed_origins]
+        if any(not origin.startswith("https://") for origin in origins):
             raise ValueError("CORS_ALLOWED_ORIGINS/FRONTEND_URL must use https in production")
-        return self
 
 
 settings = Settings.model_validate({})

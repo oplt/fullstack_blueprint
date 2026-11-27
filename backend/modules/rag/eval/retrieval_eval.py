@@ -46,6 +46,10 @@ class Metrics:
     ndcg_at_k: float = 0.0
     recall_at_5: float = 0.0
     recall_at_10: float = 0.0
+    recall_at_20: float = 0.0
+    precision_at_5: float = 0.0
+    precision_at_10: float = 0.0
+    mrr_at_10: float = 0.0
     ndcg_at_10: float = 0.0
     document_coverage: float = 0.0
 
@@ -100,6 +104,10 @@ def mrr(ranked_ids: list[str], relevant: set[str]) -> float:
         if cid in relevant:
             return 1.0 / index
     return 0.0
+
+
+def mrr_at_k(ranked_ids: list[str], relevant: set[str], k: int) -> float:
+    return mrr(ranked_ids[:k], relevant)
 
 
 def ndcg_at_k(ranked_ids: list[str], relevant: set[str], k: int) -> float:
@@ -158,6 +166,10 @@ def evaluate_ranking(
         ndcg_at_k=ndcg_at_k(ranked_ids, relevant, k),
         recall_at_5=recall_at_k(ranked_ids, relevant, 5),
         recall_at_10=recall_at_k(ranked_ids, relevant, 10),
+        recall_at_20=recall_at_k(ranked_ids, relevant, 20),
+        precision_at_5=precision_at_k(ranked_ids, relevant, 5),
+        precision_at_10=precision_at_k(ranked_ids, relevant, 10),
+        mrr_at_10=mrr_at_k(ranked_ids, relevant, 10),
         ndcg_at_10=ndcg_at_k(ranked_ids, relevant, 10),
         document_coverage=document_coverage,
     )
@@ -181,6 +193,9 @@ def evaluate_citations(
 
     precision = len(cited & gold_chunk_ids) / len(cited) if cited else 0.0
     recall = len(cited & gold_chunk_ids) / len(gold_chunk_ids) if gold_chunk_ids else 0.0
+    if not cited and not gold_chunk_ids:
+        # Correct abstentions have an empty prediction and an empty gold set.
+        precision = recall = 1.0
     validity = (
         1.0
         if validated.citation_validation_status in {"valid", "no_evidence"}
@@ -191,12 +206,16 @@ def evaluate_citations(
     unsupported_rate = (
         unsupported / len(claims)
         if claims
-        else (1.0 if validated.citation_validation_status != "valid" else 0.0)
+        else (1.0 if validated.citation_validation_status not in {"valid", "no_evidence"} else 0.0)
     )
     grounded = (
         1.0 - unsupported_rate
         if claims
-        else (1.0 if validated.citation_validation_status == "valid" and not cited else 0.0)
+        else (
+            1.0
+            if validated.citation_validation_status in {"valid", "no_evidence"} and not cited
+            else 0.0
+        )
     )
     return CitationMetrics(
         citation_precision=precision,
@@ -295,6 +314,10 @@ def evaluate_case(case: dict[str, Any]) -> dict[str, Any]:
             name: {
                 "recall_at_5": metrics.recall_at_5,
                 "recall_at_10": metrics.recall_at_10,
+                "recall_at_20": metrics.recall_at_20,
+                "precision_at_5": metrics.precision_at_5,
+                "precision_at_10": metrics.precision_at_10,
+                "mrr_at_10": metrics.mrr_at_10,
                 "mrr": metrics.mrr,
                 "ndcg_at_10": metrics.ndcg_at_10,
                 "document_coverage": metrics.document_coverage,
@@ -405,6 +428,7 @@ def main() -> None:
             print(
                 f"  {name:16} recall@5={metrics.recall_at_5:.3f}  "
                 f"recall@10={metrics.recall_at_10:.3f}  mrr={metrics.mrr:.3f}  "
+                f"precision@5={metrics.precision_at_5:.3f}  "
                 f"ndcg@10={metrics.ndcg_at_10:.3f}  "
                 f"doc_coverage={metrics.document_coverage:.3f}"
             )

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import math
 from collections.abc import AsyncIterator, Awaitable, Callable
-from datetime import UTC, datetime
+from datetime import datetime
+from typing import TypedDict, TypeVar
+from uuid import uuid4
 
 from fastapi import HTTPException, UploadFile
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.config import settings
 from backend.core.storage import ObjectStorageError, StorageNotConfiguredError
 from backend.lib.project_access import ProjectAccessPort, SqlAlchemyProjectAccessPort
 from backend.lib.retrieval_cache import invalidate_retrieval_cache_for_document
@@ -16,7 +21,13 @@ from backend.modules.rag.application.chunking_service import ChunkingService
 from backend.modules.rag.application.document_parser_service import DocumentParserService
 from backend.modules.rag.application.embedding_service import EmbeddingService
 from backend.modules.rag.application.rag_policy_service import RagPolicyService
-from backend.modules.rag.domain.enums import DocumentStatus, IngestionJobStatus
+from backend.modules.rag.domain.enums import (
+    DocumentStatus,
+    IngestionErrorCode,
+    IngestionJobStatus,
+    IngestionStage,
+)
+from backend.modules.rag.domain.models import DocumentChunk, ParsedDocument
 from backend.modules.rag.infrastructure import metrics
 from backend.modules.rag.infrastructure.document_safety import DocumentSafetyService
 from backend.modules.rag.infrastructure.file_storage_adapter import (
@@ -25,12 +36,41 @@ from backend.modules.rag.infrastructure.file_storage_adapter import (
     FileTooLargeError,
     StoredDocument,
 )
+from backend.modules.rag.infrastructure.pgvector_adapter import build_vector_store
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
-from backend.modules.rag.infrastructure.pgvector_adapter import build_vector_store
 from backend.modules.rag.workers import queue_document_cleanup, queue_document_indexing
 
 logger = logging.getLogger(__name__)
+
+_T = TypeVar("_T")
+_HEARTBEAT_SECONDS = 30
+_LEASE_SECONDS = 120
+
+
+class IngestionAttemptArgs(TypedDict):
+    document_id: str
+    job_id: str
+    started_at: datetime
+
+
+def _validate_parsed_document_limits(parsed: list[ParsedDocument], config: RagConfig) -> None:
+    if len(parsed) > config.max_ingestion_chunks:
+        raise ValueError("Document exceeds the parsed-unit limit")
+    page_numbers = {
+        page
+        for document in parsed
+        if isinstance((page := document.page_number or document.metadata.get("page_number")), int)
+        and not isinstance(page, bool)
+    }
+    if len(page_numbers) > config.max_document_pages:
+        raise ValueError("Document exceeds the page limit")
+    if sum(len(document.content) for document in parsed) > config.max_document_characters:
+        raise ValueError("Document exceeds the parsed character limit")
+
+
+class IngestionAttemptLost(RuntimeError):
+    """The document was deleted or a newer worker owns the job."""
 
 
 class DocumentIngestionService:
@@ -108,7 +148,8 @@ class DocumentIngestionService:
                     dedupe_lookup=_dedupe_lookup,
                 )
             else:
-                assert content is not None
+                if content is None:
+                    raise HTTPException(status_code=400, detail="Uploaded document file is empty")
                 if len(content) > self.config.max_file_bytes:
                     raise HTTPException(status_code=413, detail="File too large")
                 if not content:
@@ -126,7 +167,7 @@ class DocumentIngestionService:
         except EmptyUploadError as exc:
             raise HTTPException(status_code=400, detail="Uploaded document file is empty") from exc
         except StorageNotConfiguredError as exc:
-            raise HTTPException(status_code=503, detail=str(exc)) from exc
+            raise HTTPException(status_code=503, detail="Object storage is not configured") from exc
         except ObjectStorageError as exc:
             raise HTTPException(
                 status_code=503,
@@ -145,8 +186,15 @@ class DocumentIngestionService:
             )
             if document is None:
                 raise HTTPException(status_code=500, detail="Duplicate document lookup failed")
+            document = await self.repo.get_document(document.id, for_update=True)
+            if document is None:
+                await self.db.rollback()
+                raise HTTPException(status_code=409, detail="Document changed; retry upload")
             active_job = await self.repo.get_active_ingestion_job(document.id)
             if active_job:
+                await self.db.commit()
+                await self.db.refresh(document)
+                await self.db.refresh(active_job)
                 return document, active_job, None
             job = await self.repo.create_ingestion_job(
                 document_id=document.id,
@@ -203,8 +251,6 @@ class DocumentIngestionService:
         upload: UploadFile,
         dedupe_lookup: Callable[[str], Awaitable[StoredDocument | None]] | None = None,
     ) -> StoredDocument:
-        from backend.core.config import settings
-
         chunk_size = max(8 * 1024, int(getattr(settings, "RAG_UPLOAD_CHUNK_SIZE", 256 * 1024)))
 
         async def _chunks() -> AsyncIterator[bytes]:
@@ -232,46 +278,195 @@ class DocumentIngestionService:
         file_content: bytes | None = None,
         is_admin: bool = False,
     ):
-        document = await self._get_document_for_indexing(
-            document_id=document_id,
-            user_id=user_id,
-            is_admin=is_admin,
-        )
-        active_job = await self.repo.get_active_ingestion_job(document.id)
-        if active_job:
-            if active_job.status == IngestionJobStatus.PENDING.value:
-                queue_document_indexing(
-                    document_id=document.id,
-                    user_id=user_id,
-                    job_id=active_job.id,
-                )
-            return active_job
+        # Lock the document before creating or inspecting its active job.
         try:
-            async with self.db.begin_nested():
-                job = await self.repo.create_ingestion_job(
-                    document_id=document.id,
-                    user_id=user_id,
-                    project_id=document.project_id,
-                )
-        except IntegrityError:
-            active_job = await self.repo.get_active_ingestion_job(document.id)
-            if active_job:
-                if active_job.status == IngestionJobStatus.PENDING.value:
-                    queue_document_indexing(
-                        document_id=document.id,
-                        user_id=user_id,
-                        job_id=active_job.id,
-                    )
-                return active_job
+            document = await self._get_document_for_indexing(
+                document_id=document_id,
+                user_id=user_id,
+                is_admin=is_admin,
+                for_update=True,
+            )
+            job = await self.repo.get_active_ingestion_job(document.id)
+            if job is None:
+                try:
+                    async with self.db.begin_nested():
+                        job = await self.repo.create_ingestion_job(
+                            document_id=document.id,
+                            user_id=document.user_id,
+                            project_id=document.project_id,
+                        )
+                except IntegrityError:
+                    job = await self.repo.get_active_ingestion_job(document.id)
+                    if job is None:
+                        raise
+            owner_id, queued_job_id = document.user_id, job.id
+            should_dispatch = (
+                job.status == IngestionJobStatus.PENDING.value
+                or self.repo.is_ingestion_job_expired(job, lease_seconds=_LEASE_SECONDS)
+            )
+            await self.db.commit()
+        except BaseException:
+            await self.db.rollback()
             raise
-        await self.db.commit()
+
+        # Dispatch is deliberately outside the DB transaction. A durable
+        # outbox dispatcher is needed to close the commit-to-publish gap.
+        if should_dispatch:
+            queue_document_indexing(
+                document_id=document_id,
+                user_id=owner_id,
+                job_id=queued_job_id,
+            )
         await self.db.refresh(job)
-        queue_document_indexing(
-            document_id=document.id,
-            user_id=user_id,
-            job_id=job.id,
-        )
         return job
+
+    async def _record_ingestion_failure(
+        self,
+        *,
+        document_id: str,
+        job_id: str,
+        started_at: datetime,
+        error_code: IngestionErrorCode,
+    ) -> bool:
+        """Rollback first, then record a sanitized failure in a fresh transaction.
+
+        Return True if an ambiguous final commit actually completed the job.
+        Never let a stale worker overwrite a newer attempt or deleted document.
+        """
+        try:
+            await self.db.rollback()
+            attempt = await self.repo.lock_ingestion_attempt(
+                document_id=document_id,
+                job_id=job_id,
+                started_at=started_at,
+            )
+            if attempt is None:
+                job = await self.repo.get_ingestion_job(job_id, for_update=True)
+                completed = bool(
+                    job is not None
+                    and job.document_id == document_id
+                    and job.started_at == started_at
+                    and job.status == IngestionJobStatus.COMPLETED.value
+                )
+                await self.db.rollback()
+                return completed
+            document, job = attempt
+            await self.repo.update_document_status(
+                document,
+                DocumentStatus.INDEXED
+                if await self.repo.has_published_content(document)
+                else DocumentStatus.FAILED,
+            )
+            await self.repo.update_ingestion_job(
+                job,
+                status=IngestionJobStatus.FAILED,
+                finished=True,
+                error_code=error_code.value,
+                error_message="Document indexing failed. Check the error code for details.",
+            )
+            await self.db.commit()
+            return False
+        except Exception:
+            try:
+                await self.db.rollback()
+            except Exception:
+                logger.error("Unable to roll back ingestion failure transaction")
+            logger.error(
+                "Unable to persist ingestion failure document=%s job=%s",
+                document_id,
+                job_id,
+            )
+            # Redelivery/recovery must reclaim the expired attempt.
+            return False
+
+    async def _update_ingestion_progress(
+        self,
+        *,
+        document_id: str,
+        job_id: str,
+        started_at: datetime,
+        progress: int | None = None,
+        malware_scan_status: str | None = None,
+    ) -> None:
+        try:
+            attempt = await self.repo.lock_ingestion_attempt(
+                document_id=document_id,
+                job_id=job_id,
+                started_at=started_at,
+            )
+            if attempt is None:
+                raise IngestionAttemptLost()
+            _, job = attempt
+            await self.repo.update_ingestion_job(
+                job,
+                status=IngestionJobStatus.RUNNING,
+                progress_percent=progress,
+                malware_scan_status=malware_scan_status,
+            )
+            await self.db.commit()
+        except BaseException:
+            await self.db.rollback()
+            raise
+
+    async def _with_heartbeat(
+        self,
+        operation: Awaitable[_T],
+        *,
+        document_id: str,
+        job_id: str,
+        started_at: datetime,
+    ) -> _T:
+        """Run external work without a DB transaction; renew the attempt periodically.
+
+        The operation must not use this AsyncSession concurrently.
+        """
+        task = asyncio.ensure_future(operation)
+        try:
+            while True:
+                done, _ = await asyncio.wait({task}, timeout=_HEARTBEAT_SECONDS)
+                if done:
+                    return task.result()
+                await self._update_ingestion_progress(
+                    document_id=document_id,
+                    job_id=job_id,
+                    started_at=started_at,
+                )
+        finally:
+            if not task.done():
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+    async def _embed_retrieval_chunks(
+        self,
+        chunks: list[DocumentChunk],
+        *,
+        attempt_args: IngestionAttemptArgs,
+    ) -> None:
+        batch_size = max(1, int(settings.RAG_EMBEDDING_BATCH_SIZE))
+        dimensions = getattr(self.config, "embedding_dimensions", None)
+        for start in range(0, len(chunks), batch_size):
+            batch = chunks[start : start + batch_size]
+            vectors = await self._with_heartbeat(
+                self.embeddings.embed_texts([chunk.content for chunk in batch]),
+                **attempt_args,
+            )
+            if len(vectors) != len(batch) or any(
+                not vector
+                or (dimensions is not None and len(vector) != dimensions)
+                or any(not math.isfinite(value) for value in vector)
+                for vector in vectors
+            ):
+                raise ValueError("Invalid embedding count, dimension or numeric value")
+            for chunk, vector in zip(batch, vectors, strict=True):
+                chunk.embedding = vector
+
+    async def _invalidate_cache(self, *, user_id: str, project_id: str | None) -> None:
+        # Post-commit work cannot change the durable ingestion outcome.
+        # Durable retry and revision-aware cache keys are a separate integration.
+        try:
+            await invalidate_retrieval_cache_for_document(user_id=user_id, project_id=project_id)
+        except Exception:
+            logger.warning("RAG cache invalidation failed user=%s project=%s", user_id, project_id)
 
     async def index_document(
         self,
@@ -282,125 +477,169 @@ class DocumentIngestionService:
         is_admin: bool = False,
         job_id: str | None = None,
     ):
-        document = await self._get_document_for_indexing(
-            document_id=document_id,
-            user_id=user_id,
-            is_admin=is_admin,
-        )
-        if job_id:
-            job = await self.repo.get_ingestion_job(job_id)
-            if not job or job.document_id != document.id:
-                raise HTTPException(status_code=404, detail="Ingestion job not found")
-        else:
-            job = await self.repo.create_ingestion_job(
-                document_id=document.id,
-                user_id=user_id,
-                project_id=document.project_id,
-            )
-        if not await self.repo.claim_ingestion_job(job.id):
-            await self.db.refresh(job)
-            return document, [], job
-        await self.repo.update_document_status(document, DocumentStatus.PARSING)
-        await self.db.commit()
+        if not self.config.enabled:
+            raise HTTPException(status_code=503, detail="RAG is disabled")
 
+        # Claim and snapshot in a short transaction; no ORM reads during I/O.
+        try:
+            document = await self._get_document_for_indexing(
+                document_id=document_id,
+                user_id=user_id,
+                is_admin=is_admin,
+                for_update=True,
+            )
+            if job_id is not None:
+                job = await self.repo.get_ingestion_job(job_id, for_update=True)
+                if (
+                    job is None
+                    or job.document_id != document.id
+                    or job.user_id != document.user_id
+                    or job.project_id != document.project_id
+                ):
+                    raise HTTPException(status_code=404, detail="Ingestion job not found")
+            else:
+                job = await self.repo.get_active_ingestion_job(document.id)
+                if job is None:
+                    job = await self.repo.create_ingestion_job(
+                        document_id=document.id,
+                        user_id=document.user_id,
+                        project_id=document.project_id,
+                    )
+            job_id = job.id
+            if not await self.repo.claim_ingestion_job(job_id, lease_seconds=_LEASE_SECONDS):
+                await self.db.commit()
+                await self.db.refresh(document)
+                await self.db.refresh(job)
+                return document, [], job
+            # Refresh to obtain the exact timestamp stored by the database.
+            await self.db.refresh(job)
+            started_at = job.started_at
+            if started_at is None:
+                raise RuntimeError("Claimed ingestion job has no attempt timestamp")
+            owner_id, project_id = document.user_id, document.project_id
+            organization_id = document.organization_id
+            filename, content_type = document.original_filename, document.content_type
+            storage_path = document.storage_path
+            document_metadata = json.loads(document.metadata_json or "{}")
+            if await self.repo.has_published_content(document):
+                await self.repo.update_document_status(document, DocumentStatus.INDEXED)
+            else:
+                await self.repo.update_document_status(document, DocumentStatus.UPLOADED)
+            await self.db.commit()
+        except BaseException:
+            await self.db.rollback()
+            raise
+
+        attempt_args: IngestionAttemptArgs = {
+            "document_id": document_id,
+            "job_id": job_id,
+            "started_at": started_at,
+        }
+        revision_id = str(uuid4())
+        stage = IngestionStage.DOWNLOAD
+        chunk_ids: list[str] = []
         try:
             content = file_content
-            if content is None and document.storage_path:
-                content = await self.storage.download_document(document.storage_path)
-            if content is None:
-                raise HTTPException(
-                    status_code=422,
-                    detail="No file content available for indexing",
+            if content is None and storage_path:
+                content = await self._with_heartbeat(
+                    self.storage.download_document(storage_path),
+                    **attempt_args,
                 )
+            if not content or len(content) > self.config.max_file_bytes:
+                raise HTTPException(status_code=422, detail="Invalid document content")
 
-            safety = getattr(self, "safety", None)
-            if safety is not None:
-                scan_result = await safety.scan(
-                    content,
-                    filename=document.original_filename,
-                )
-                job.malware_scan_status = scan_result.status
-                job.progress_percent = 10
-                job.last_heartbeat_at = datetime.now(UTC)
-                await self.db.commit()
+            stage = IngestionStage.SCAN
+            scan_result = await self._with_heartbeat(
+                self.safety.scan(content, filename=filename),
+                **attempt_args,
+            )
+            scan_status = str(scan_result.status)
+            if scan_status == "infected":
+                raise ValueError("Document rejected by malware scanner")
+            if scan_status not in {"clean", "not_configured"} or (
+                self.config.malware_scan_required and scan_status != "clean"
+            ):
+                raise RuntimeError("Malware scan unavailable")
+            await self._update_ingestion_progress(
+                **attempt_args,
+                progress=10,
+                malware_scan_status=scan_status,
+            )
 
-            parsed = await self.parser.parse_bytes(
-                content=content,
-                filename=document.original_filename,
-                content_type=document.content_type,
-                metadata={"document_id": document.id},
+            stage = IngestionStage.PARSE
+            parsed = await self._with_heartbeat(
+                self.parser.parse_bytes(
+                    content=content,
+                    filename=filename,
+                    content_type=content_type,
+                    metadata={
+                        "document_id": document_id,
+                        "document_revision_id": revision_id,
+                    },
+                ),
+                **attempt_args,
             )
             if not parsed:
                 raise ValueError("No text extracted from document")
+            _validate_parsed_document_limits(parsed, self.config)
             metrics.rag_parse_success_total.inc()
-            job.progress_percent = 30
-            job.last_heartbeat_at = datetime.now(UTC)
+            await self._update_ingestion_progress(**attempt_args, progress=30)
 
-            await self.repo.update_document_status(document, DocumentStatus.CHUNKING)
-            await self.db.commit()
-
-            document_metadata = json.loads(document.metadata_json or "{}")
-            index_revision = await self.repo.create_document_revision(
-                document,
-                source_content_hash=document_metadata.get("checksum_sha256"),
-                parser_version=getattr(self.config, "parser_version", None),
-                chunker_version=getattr(self.config, "chunker_version", None),
-                index_version=getattr(self.config, "index_version", None),
-                embedding_provider=getattr(self.config, "embedding_provider", None),
-                embedding_model=getattr(self.config, "embedding_model", None),
-                embedding_model_version=getattr(self.config, "embedding_model_version", None),
-                embedding_dimensions=getattr(self.config, "embedding_dimensions", None),
-                embedding_preprocessing_version=getattr(
-                    self.config, "embedding_preprocessing_version", None
+            stage = IngestionStage.CHUNK
+            chunks = await self._with_heartbeat(
+                self.chunker.chunk(
+                    parsed,
+                    document_id=document_id,
+                    user_id=owner_id,
+                    filename=filename,
+                    project_id=project_id,
+                    organization_id=organization_id,
+                    document_revision=revision_id,
                 ),
+                **attempt_args,
             )
-
-            chunks = await self.chunker.chunk(
-                parsed,
-                document_id=document.id,
-                user_id=document.user_id,
-                filename=document.original_filename,
-                project_id=document.project_id,
-                organization_id=document.organization_id,
-                document_revision=index_revision.id,
-            )
-            injection_flags = 0
             for chunk in chunks:
                 if self.policy.contains_prompt_injection(chunk.content):
-                    chunk.metadata = {
-                        **chunk.metadata,
-                        "prompt_injection_suspected": True,
-                    }
-                    injection_flags += 1
-            if injection_flags:
-                logger.warning(
-                    "Suspected prompt injection in %s chunk(s) for document=%s user=%s",
-                    injection_flags,
-                    document.id,
-                    document.user_id,
-                )
+                    chunk.metadata = {**(chunk.metadata or {}), "prompt_injection_suspected": True}
+                chunk.embedding = None
             metrics.rag_chunk_count.observe(len(chunks))
-            job.progress_percent = 50
-            job.last_heartbeat_at = datetime.now(UTC)
-
-            await self.repo.update_document_status(document, DocumentStatus.EMBEDDING)
-            await self.db.commit()
-            job.progress_percent = 75
-            job.last_heartbeat_at = datetime.now(UTC)
-
             retrieval_chunks = [
                 chunk
                 for chunk in chunks
                 if chunk.chunk_index >= 0 and (chunk.metadata or {}).get("chunk_role") != "parent"
             ]
-            for chunk in chunks:
-                chunk.embedding = None
-            vectors = await self.embeddings.embed_texts(
-                [chunk.content for chunk in retrieval_chunks]
-            )
-            for chunk, vector in zip(retrieval_chunks, vectors, strict=True):
-                chunk.embedding = vector
+            if not retrieval_chunks:
+                raise ValueError("No searchable chunks extracted")
+            if len(chunks) > self.config.max_ingestion_chunks:
+                raise ValueError("Document exceeds the chunk limit")
+            await self._update_ingestion_progress(**attempt_args, progress=50)
 
+            stage = IngestionStage.EMBED
+            dimensions = getattr(self.config, "embedding_dimensions", None)
+            await self._embed_retrieval_chunks(retrieval_chunks, attempt_args=attempt_args)
+            await self._update_ingestion_progress(**attempt_args, progress=75)
+
+            stage = IngestionStage.PERSIST
+            # Revision row, chunk rows, active pointer and job completion are atomic.
+            attempt = await self.repo.lock_ingestion_attempt(**attempt_args)
+            if attempt is None:
+                raise IngestionAttemptLost()
+            document, job = attempt
+            index_revision = await self.repo.create_document_revision(
+                document,
+                revision_id=revision_id,
+                source_content_hash=document_metadata.get("checksum_sha256"),
+                parser_version=getattr(self.config, "parser_version", None),
+                chunker_version=chunks[0].metadata.get("chunker_version"),
+                index_version=getattr(self.config, "index_version", None),
+                embedding_provider=getattr(self.config, "embedding_provider", None),
+                embedding_model=getattr(self.config, "embedding_model", None),
+                embedding_model_version=getattr(self.config, "embedding_model_version", None),
+                embedding_dimensions=dimensions,
+                embedding_preprocessing_version=getattr(
+                    self.config, "embedding_preprocessing_version", None
+                ),
+            )
             chunk_rows = await self.repo.replace_chunks(
                 document,
                 [
@@ -419,73 +658,114 @@ class DocumentIngestionService:
                     }
                     for c in chunks
                 ],
-                revision_id=index_revision.id,
-                expected_embedding_dimensions=getattr(self.config, "embedding_dimensions", None),
+                revision_id=revision_id,
+                expected_embedding_dimensions=dimensions,
             )
+            chunk_ids = [row.id for row in chunk_rows]
             await self.repo.activate_document_revision(document, index_revision)
-
             await self.repo.update_document_status(document, DocumentStatus.INDEXED)
             metadata = json.loads(document.metadata_json or "{}")
             metadata["chunk_count"] = len(chunk_rows)
             document.metadata_json = json.dumps(metadata, ensure_ascii=True)
             await self.repo.update_ingestion_job(
-                job, status=IngestionJobStatus.COMPLETED, finished=True
-            )
-            job.progress_percent = 100
-            document.updated_at = datetime.now(UTC)
-            await self.db.commit()
-            await self.db.refresh(document)
-            await invalidate_retrieval_cache_for_document(
-                user_id=document.user_id,
-                project_id=document.project_id,
-            )
-            return document, chunk_rows, job
-        except HTTPException as exc:
-            await self.repo.update_document_status(document, DocumentStatus.FAILED)
-            await self.repo.update_ingestion_job(
                 job,
-                status=IngestionJobStatus.FAILED,
-                error_message=(
-                    exc.detail[:500] if isinstance(exc.detail, str) else "Document indexing failed"
-                ),
+                status=IngestionJobStatus.COMPLETED,
                 finished=True,
+                progress_percent=100,
             )
             await self.db.commit()
+        except IngestionAttemptLost:
+            await self.db.rollback()
+            raise HTTPException(
+                status_code=409, detail="Ingestion attempt is no longer active"
+            ) from None
+        except asyncio.CancelledError:
+            await self._record_ingestion_failure(
+                **attempt_args,
+                error_code=IngestionErrorCode.WORKER_CANCELLED,
+            )
             raise
         except Exception as exc:
-            logger.exception("Document indexing failed for %s", document_id)
-            metrics.rag_parse_failure_total.inc()
-            metrics.rag_vector_upsert_failure_total.inc()
-            await self.repo.update_document_status(document, DocumentStatus.FAILED)
-            await self.repo.update_ingestion_job(
-                job,
-                status=IngestionJobStatus.FAILED,
-                error_message=str(exc)[:500],
-                finished=True,
+            if isinstance(exc, IntegrityError):
+                code = IngestionErrorCode.INDEXING_FAILED
+            elif isinstance(exc, SQLAlchemyError):
+                code = IngestionErrorCode.DATABASE_UNAVAILABLE
+            elif isinstance(exc, ValueError) and stage == IngestionStage.EMBED:
+                code = IngestionErrorCode.EMBEDDING_INVALID
+            elif isinstance(exc, (ValueError, HTTPException)):
+                code = IngestionErrorCode.DOCUMENT_INVALID
+            elif stage == IngestionStage.DOWNLOAD:
+                code = IngestionErrorCode.STORAGE_UNAVAILABLE
+            elif stage == IngestionStage.SCAN:
+                code = IngestionErrorCode.SCAN_UNAVAILABLE
+            elif stage == IngestionStage.EMBED:
+                code = IngestionErrorCode.EMBEDDING_FAILED
+            else:
+                code = IngestionErrorCode.INDEXING_FAILED
+            logger.warning(
+                "RAG ingestion failed document=%s job=%s stage=%s code=%s type=%s",
+                document_id,
+                job_id,
+                stage.value,
+                code.value,
+                type(exc).__name__,
             )
-            await self.db.commit()
-            raise HTTPException(status_code=502, detail="Document indexing failed") from exc
+            if stage == IngestionStage.PARSE:
+                metrics.rag_parse_failure_total.inc()
+            elif stage == IngestionStage.PERSIST:
+                metrics.rag_vector_upsert_failure_total.inc()
+            completed = await self._record_ingestion_failure(**attempt_args, error_code=code)
+            if not completed:
+                status = 422 if code == IngestionErrorCode.DOCUMENT_INVALID else 502
+                raise HTTPException(status_code=status, detail="Document indexing failed") from None
+            # A commit acknowledgement can fail after PostgreSQL commits.
+            # The persisted completion state wins over the exception.
+            document = await self.repo.get_document(document_id)
+            job = await self.repo.get_ingestion_job(job_id)
+            if document is None or job is None:
+                raise HTTPException(
+                    status_code=409, detail="Document no longer available"
+                ) from None
+            recovered = await self.repo.get_chunks_by_ids(chunk_ids)
+            by_id = {row.id: row for row in recovered}
+            chunk_rows = [by_id[chunk_id] for chunk_id in chunk_ids if chunk_id in by_id]
+
+        # No failure handler covering these post-commit operations.
+        await self._invalidate_cache(user_id=owner_id, project_id=project_id)
+        await self.db.refresh(document)
+        await self.db.refresh(job)
+        # Support expire_on_commit=True as well as the production session factory.
+        if self.db.sync_session.expire_on_commit:
+            for row in chunk_rows:
+                await self.db.refresh(row)
+        return document, chunk_rows, job
 
     async def delete_document(self, *, document_id: str, user_id: str, is_admin: bool = False):
-        document = await self.repo.get_document(document_id)
-        if not document:
-            raise HTTPException(status_code=404, detail="Document not found")
-        if document.user_id != user_id and not is_admin:
-            metrics.rag_permission_denied_total.inc()
-            raise HTTPException(status_code=403, detail="You cannot delete this document")
-
-        if document.project_id and not is_admin:
-            await self._ensure_project_access(user_id, document.project_id)
-        await self.repo.soft_delete_document(document)
-        await self.db.commit()
-        await invalidate_retrieval_cache_for_document(
-            user_id=document.user_id,
-            project_id=document.project_id,
-        )
+        try:
+            document = await self.repo.get_document(document_id, for_update=True)
+            if not document:
+                raise HTTPException(status_code=404, detail="Document not found")
+            if document.user_id != user_id and not is_admin:
+                metrics.rag_permission_denied_total.inc()
+                raise HTTPException(status_code=403, detail="You cannot delete this document")
+            if document.project_id and not is_admin:
+                await self._ensure_project_access(user_id, document.project_id)
+            owner_id, project_id, storage_path = (
+                document.user_id,
+                document.project_id,
+                document.storage_path,
+            )
+            await self.repo.soft_delete_document(document)
+            await self.repo.cancel_active_ingestion_jobs(document_id)
+            await self.db.commit()
+        except BaseException:
+            await self.db.rollback()
+            raise
+        await self._invalidate_cache(user_id=owner_id, project_id=project_id)
         queue_document_cleanup(
             document_id=document_id,
-            user_id=document.user_id,
-            storage_path=document.storage_path,
+            user_id=owner_id,
+            storage_path=storage_path,
         )
 
     async def cleanup_deleted_document(
@@ -495,9 +775,32 @@ class DocumentIngestionService:
         user_id: str,
         storage_path: str | None,
     ) -> None:
-        await self.vector_store.delete_document(document_id, user_id)
-        await self.storage.delete_document(storage_path)
-        await self.db.commit()
+        # The queue payload is not authoritative. Never delete chunks of a live
+        # document or an object belonging to a different owner.
+        try:
+            document = await self.repo.get_document(
+                document_id,
+                for_update=True,
+                include_deleted=True,
+            )
+            if document is None:
+                await self.db.rollback()
+                return
+            if document.deleted_at is None or document.user_id != user_id:
+                raise HTTPException(status_code=409, detail="Document is not eligible for cleanup")
+            actual_path = document.storage_path
+            if storage_path != actual_path:
+                raise HTTPException(status_code=409, detail="Document storage reference changed")
+            await self.vector_store.delete_document(document_id, user_id)
+            delete_storage = bool(
+                actual_path and not await self.repo.has_live_storage_reference(actual_path)
+            )
+            await self.db.commit()
+        except BaseException:
+            await self.db.rollback()
+            raise
+        if delete_storage and actual_path:
+            await self.storage.delete_document(actual_path)
         logger.info("RAG document cleanup completed document=%s user=%s", document_id, user_id)
 
     async def _get_document_for_indexing(
@@ -506,8 +809,9 @@ class DocumentIngestionService:
         document_id: str,
         user_id: str,
         is_admin: bool,
+        for_update: bool = False,
     ):
-        document = await self.repo.get_document(document_id)
+        document = await self.repo.get_document(document_id, for_update=for_update)
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
         if document.user_id != user_id and not is_admin:

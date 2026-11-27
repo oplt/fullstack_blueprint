@@ -77,8 +77,7 @@ def setup_metrics(app: Any) -> None:
 
     @app.middleware("http")
     async def prometheus_metrics_middleware(request: Request, call_next: Any) -> Response:
-        route = _route_path(request)
-        if route == config.prometheus_metrics_path:
+        if request.url.path == config.prometheus_metrics_path:
             return await call_next(request)
 
         started_at = time.perf_counter()
@@ -86,6 +85,7 @@ def setup_metrics(app: Any) -> None:
             response = await call_next(request)
         except Exception as exc:
             elapsed = time.perf_counter() - started_at
+            route = _route_path(request)
             prometheus_metrics.http_request_duration_seconds.labels(
                 request.method,
                 route,
@@ -103,6 +103,7 @@ def setup_metrics(app: Any) -> None:
             raise
 
         elapsed = time.perf_counter() - started_at
+        route = _route_path(request)
         prometheus_metrics.http_request_duration_seconds.labels(
             request.method,
             route,
@@ -131,4 +132,4 @@ def _route_path(request: Request) -> str:
     path = getattr(route, "path", None)
     if isinstance(path, str) and path:
         return path
-    return request.url.path
+    return "unmatched"

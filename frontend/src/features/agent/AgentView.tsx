@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePlatformMetadata } from "../../hooks/usePlatformMetadata";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { PageShell } from "../../components/ui/PageShell";
-import { PageTabs } from "../../components/ui/PageTabs";
+import { PageTabs, TabsPanel } from "../../components/ui/PageTabs";
 import { SettingsTabs } from "../../components/layout/SettingsTabs";
 import { useTabQueryParam } from "../../hooks/useTabQueryParam";
 import { useAgentWorkspace } from "./hooks/useAgentWorkspace";
@@ -72,20 +72,20 @@ export default function AgentView() {
             />
             <SettingsTabs />
 
-            <div className="mt-4 flex gap-4">
-                <PageTabs
-                    value={tab}
-                    onChange={setTab}
-                    tabs={[
-                        { value: "configure", label: "Configure" },
-                        { value: "run", label: "Run" },
-                        { value: "trace", label: "Trace" },
-                        { value: "sources", label: "Sources" },
-                        { value: "output", label: "Output" },
-                    ]}
-                    ariaLabel="Agent workflow"
-                />
-
+            <PageTabs
+                value={tab}
+                onChange={setTab}
+                tabs={[
+                    { value: "configure", label: "Configure" },
+                    { value: "run", label: "Run" },
+                    { value: "trace", label: "Trace" },
+                    { value: "sources", label: "Sources" },
+                    { value: "output", label: "Output" },
+                ]}
+                ariaLabel="Agent workflow"
+                className="mt-4"
+            >
+                <TabsPanel value="configure">
                 <AgentConfigurationPanel
                     active={tab === "configure"}
                     agentId={agentId}
@@ -112,6 +112,8 @@ export default function AgentView() {
                     selectedTemplate={selectedTemplate}
                     onContinue={() => setTab("run")}
                 />
+                </TabsPanel>
+                <TabsPanel value="run">
                 <AgentRunPanel
                     active={tab === "run"}
                     history={history}
@@ -124,15 +126,20 @@ export default function AgentView() {
                     userMessage={userMessage}
                     elapsedMs={elapsedMs}
                 />
-                <AgentRunDetails
-                    tab={tab}
+                </TabsPanel>
+                {(["trace", "sources", "output"] as const).map((detailTab) => (
+                    <TabsPanel key={detailTab} value={detailTab}>
+                        {tab === detailTab ? <AgentRunDetails
+                    tab={detailTab}
                     selectedRunId={selectedRunId}
                     selectedRunQuery={selectedRunQuery}
                     selectedRun={selectedRun}
                     traceSteps={traceSteps}
                     setTab={setTab}
-                />
-            </div>
+                /> : null}
+                    </TabsPanel>
+                ))}
+            </PageTabs>
         </PageShell>
     );
 }

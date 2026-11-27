@@ -10,7 +10,7 @@ import { DatabaseSettingEditor } from "./SettingEditors";
 export function DatabaseSettingsSections({ settings, model }: { settings: DatabaseSetting[]; model: AdminSettingsModel }) {
     const create = model.createDatabaseMutation;
     return (
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr", alignItems: "start" }}>
+        <div className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr", alignItems: "start" }}>
             <SectionCard title="Add database setting" description="Store arbitrary key/value settings inside the database.">
                 <div className="flex gap-4">
                     {create.isSuccess && <div role="alert" className="rounded-lg border border-border p-3 text-sm">Database setting created.</div>}
@@ -41,7 +41,7 @@ export function DatabaseSettingsSections({ settings, model }: { settings: Databa
                 </div>
             </SectionCard>
             <SectionCard title="Database settings" description="Review, edit, and delete runtime settings stored in the database.">
-                {settings.length > 0 ? <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr", alignItems: "start" }}>
+                {settings.length > 0 ? <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr", alignItems: "start" }}>
                     {settings.map((item) => {
                         const draft = model.databaseDrafts[item.id] ?? { value: item.value, description: item.description ?? "" };
                         return <DatabaseSettingEditor key={item.id} item={item} draft={draft}

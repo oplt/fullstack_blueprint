@@ -1,4 +1,7 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from backend.workers.celery_app import celery_app as celery_app
 
 
 def __getattr__(name: str) -> Any:
@@ -6,6 +9,7 @@ def __getattr__(name: str) -> Any:
         from backend.workers.celery_app import celery_app
 
         return celery_app
+
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

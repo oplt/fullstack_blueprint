@@ -132,6 +132,19 @@ class MemoryRegistryRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_active_by_external_ids(
+        self, external_memory_ids: list[str]
+    ) -> list[MemoryRegistry]:
+        if not external_memory_ids:
+            return []
+        result = await self.db.execute(
+            select(MemoryRegistry).where(
+                MemoryRegistry.external_memory_id.in_(external_memory_ids),
+                MemoryRegistry.status == "active",
+            )
+        )
+        return list(result.scalars().all())
+
     async def mark_deleted(self, external_memory_id: str) -> MemoryRegistry | None:
         row = await self.get_by_external_id(external_memory_id)
         if not row:

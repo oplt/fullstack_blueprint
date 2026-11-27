@@ -9,6 +9,7 @@ from typing import Any
 from fastapi import HTTPException
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
+from backend.lib.generation_port import RAG_MESSAGE_TOKEN_RESERVE, RagGenerationPlan
 from backend.modules.ai import metrics
 from backend.modules.ai.application.rag_answer_prompt import resolve_rag_answer_prompt
 from backend.modules.ai.contracts import AiMessage, AiMessageRole, AiProviderRequest
@@ -18,6 +19,10 @@ from backend.modules.ai.models import AiPromptVersion, AiRun
 from backend.modules.ai.prompt_service import AiPromptService, _render_template
 from backend.modules.identity_access.models import User
 from backend.modules.rag.application.prompt_context_service import PromptContextService
+from backend.modules.rag.application.rag_context_builder import (
+    RAG_UNTRUSTED_CONTEXT_RULE,
+    render_reference_data,
+)
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 
 
@@ -63,7 +68,6 @@ class AiRunService(AiPromptService, AiDocumentService):
                 document_ids=document_ids or None,
                 top_k=top_k,
             )
-            variables = {**variables, "retrieval_context": context.document_context}
             resolved_chunk_ids = context.retrieved_chunk_ids
             retrieval_degraded = context.retrieval_degraded
             memory_degraded = context.memory_degraded
@@ -80,21 +84,35 @@ class AiRunService(AiPromptService, AiDocumentService):
                 document_ids=document_ids,
                 top_k=top_k,
             )
-            variables = {
-                **variables,
-                "retrieval_context": "\n\n".join(
-                    f"[{item['document_title']} #{item['chunk_index']}]\n{item['content']}"
-                    for item in matches
-                ),
-            }
+            if matches:
+                additional_system_context = self._merge_system_context(
+                    additional_system_context,
+                    render_reference_data(
+                        "untrusted_documents",
+                        [
+                            {"chunk_id": item["chunk_id"], "content": item["content"]}
+                            for item in matches
+                        ],
+                    ),
+                )
             resolved_chunk_ids = [item["chunk_id"] for item in matches]
 
-        rendered_system_prompt = _render_template(version.system_prompt, variables)
+        variables = dict(variables)
+        supplied_context = variables.pop("retrieval_context", None)
+        if isinstance(supplied_context, str) and supplied_context:
+            additional_system_context = self._merge_system_context(
+                additional_system_context,
+                render_reference_data("untrusted_reference", supplied_context),
+            )
+        template_variables = {**variables, "retrieval_context": ""}
+        rendered_system_prompt = _render_template(version.system_prompt, template_variables)
+        stored_user_prompt = _render_template(version.user_prompt_template, template_variables)
+        rendered_user_prompt = stored_user_prompt
         if additional_system_context:
             rendered_system_prompt = (
-                f"{rendered_system_prompt.rstrip()}\n\n{additional_system_context}"
+                f"{rendered_system_prompt.rstrip()}\n\n{RAG_UNTRUSTED_CONTEXT_RULE}"
             )
-        rendered_user_prompt = _render_template(version.user_prompt_template, variables)
+            rendered_user_prompt = f"{stored_user_prompt}\n\n{additional_system_context}"
         run = await self.repo.create_run(
             user_id=user.id,
             prompt_template_id=template.id if template else None,
@@ -116,11 +134,11 @@ class AiRunService(AiPromptService, AiDocumentService):
             injection_chunks_filtered=injection_chunks_filtered,
             input_messages_json=[
                 {"role": "system", "content": rendered_system_prompt},
-                {"role": "user", "content": rendered_user_prompt},
+                {"role": "user", "content": stored_user_prompt},
             ],
             tenant_id=user.id,
             data_region=None,
-            input_hash=sha256(rendered_user_prompt.encode()).hexdigest(),
+            input_hash=sha256(stored_user_prompt.encode()).hexdigest(),
             routing_policy_json={"source": "prompt_version", "deterministic": True},
             review_status="pending" if review_required else "not_requested",
         )
@@ -154,16 +172,27 @@ class AiRunService(AiPromptService, AiDocumentService):
         degradation_reason: str | None = None,
         injection_chunks_filtered: int = 0,
         commit: bool = True,
+        plan: RagGenerationPlan | None = None,
+        output_capture: list[str | None] | None = None,
     ) -> AiRun:
-        prompt_spec = await resolve_rag_answer_prompt(self.repo, user)
+        prompt_spec = plan.prompt if plan else await resolve_rag_answer_prompt(self.repo, user)
 
         reference_context = combined_context.strip()
-        rendered_system_prompt = (
-            f"{prompt_spec.system_prompt}\n\n{reference_context}"
-            if reference_context
-            else prompt_spec.system_prompt
-        )
-        rendered_user_prompt = query
+        rendered_system_prompt = prompt_spec.system_prompt
+        rendered_user_prompt = f"{query}\n\n{reference_context}" if reference_context else query
+        version = prompt_spec.execution_version
+        if plan is not None:
+            version.max_output_tokens = plan.max_output_tokens
+            if (
+                plan.token_counter(rendered_system_prompt)
+                + plan.token_counter(rendered_user_prompt)
+                + plan.max_output_tokens
+                + RAG_MESSAGE_TOKEN_RESERVE
+                > plan.context_window
+            ):
+                raise HTTPException(
+                    status_code=422, detail="RAG answer prompt exceeds the model context"
+                )
 
         run = await self.repo.create_run(
             user_id=user.id,
@@ -182,11 +211,11 @@ class AiRunService(AiPromptService, AiDocumentService):
             injection_chunks_filtered=injection_chunks_filtered,
             input_messages_json=[
                 {"role": "system", "content": rendered_system_prompt},
-                {"role": "user", "content": rendered_user_prompt},
+                {"role": "user", "content": query},
             ],
             tenant_id=user.id,
             data_region=None,
-            input_hash=sha256(rendered_user_prompt.encode()).hexdigest(),
+            input_hash=sha256(query.encode()).hexdigest(),
             routing_policy_json={"source": "rag_prompt", "deterministic": True},
             review_status="pending" if review_required else "not_requested",
         )
@@ -194,11 +223,12 @@ class AiRunService(AiPromptService, AiDocumentService):
         return await self._finalize_run_generation(
             user=user,
             run=run,
-            version=prompt_spec.execution_version,
+            version=version,
             rendered_system_prompt=rendered_system_prompt,
             rendered_user_prompt=rendered_user_prompt,
             review_required=review_required,
             commit=commit,
+            output_capture=output_capture if output_capture is not None else [],
         )
 
     async def _finalize_run_generation(
@@ -211,6 +241,7 @@ class AiRunService(AiPromptService, AiDocumentService):
         rendered_user_prompt: str,
         review_required: bool,
         commit: bool,
+        output_capture: list[str | None] | None = None,
     ) -> AiRun:
         started = perf_counter()
         try:
@@ -224,13 +255,17 @@ class AiRunService(AiPromptService, AiDocumentService):
                     ],
                     response_format=version.response_format,
                     temperature=version.temperature,
+                    max_output_tokens=getattr(version, "max_output_tokens", None),
                 )
             )
             latency_ms = int((perf_counter() - started) * 1000)
             metrics.ai_run_latency_ms.observe(latency_ms)
             run.status = "completed"
-            run.output_text = result.output_text
-            run.output_json = result.output_json
+            if output_capture is not None:
+                output_capture.append(result.output_text)
+            else:
+                run.output_text = result.output_text
+                run.output_json = result.output_json
             run.latency_ms = latency_ms
             run.input_tokens = result.usage.input_tokens
             run.output_tokens = result.usage.output_tokens

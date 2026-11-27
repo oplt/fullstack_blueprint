@@ -91,7 +91,7 @@ class CapabilityRegistry:
         *,
         runtime_enabled: set[str] | None = None,
     ) -> list[CapabilityManifest]:
-        enabled_at_runtime = runtime_enabled or set(self._definitions)
+        enabled_at_runtime = set(self._definitions) if runtime_enabled is None else runtime_enabled
         return [
             CapabilityManifest(
                 identifier=item.identifier,

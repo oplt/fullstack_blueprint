@@ -37,8 +37,12 @@ def build_openapi(app: FastAPI) -> dict[str, Any]:
                 "title": {"type": "string"},
                 "status": {"type": "integer", "format": "int32"},
                 "detail": {"type": "string"},
-                "instance": {"type": "string", "nullable": True},
-                "correlation_id": {"type": "string", "nullable": True},
+                "instance": {
+                    "type": ["string", "null"],
+                },
+                "correlation_id": {
+                    "type": ["string", "null"],
+                },
                 "errors": {"type": "array", "items": {"type": "object"}},
             },
         },

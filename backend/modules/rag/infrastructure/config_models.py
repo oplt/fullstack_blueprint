@@ -63,6 +63,7 @@ class RetrievalConfig(ComponentConfig):
     parent_context_enabled: bool
     retrieval_branch_concurrency: int = 2
     query_variant_concurrency: int = 3
+    pgvector_iterative_scan: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +74,9 @@ class RerankingConfig(ComponentConfig):
     # Intent-specific depth overrides; missing intents fall back to max_depth.
     # FACT is forced to 0 by the planner regardless of this map.
     intent_depth_overrides: dict[str, int] | None = None
+    mode: str | None = None
+    model: str = ""
+    timeout_seconds: float = 2.0
 
 
 @dataclass(frozen=True, slots=True)

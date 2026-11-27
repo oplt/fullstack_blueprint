@@ -397,3 +397,9 @@ test-results/
 !.env.example
 
 .codegraph/
+
+# Generated frontend reports
+/frontend/.vitest/
+/frontend/knip-report.json
+
+/reports/audit/

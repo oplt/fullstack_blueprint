@@ -43,11 +43,11 @@ def check_file(path: Path) -> list[str]:
             ):
                 violations.append(f"{path.relative_to(ROOT)}:{node.lineno}: imports SQL expression")
         elif isinstance(node, ast.Import):
-            for alias in node.names:
-                if any(part in alias.name for part in FORBIDDEN_IMPORT_PARTS):
-                    violations.append(
-                        f"{path.relative_to(ROOT)}:{node.lineno}: imports {alias.name}"
-                    )
+            violations.extend(
+                f"{path.relative_to(ROOT)}:{node.lineno}: imports {alias.name}"
+                for alias in node.names
+                if any(part in alias.name for part in FORBIDDEN_IMPORT_PARTS)
+            )
         elif (
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)

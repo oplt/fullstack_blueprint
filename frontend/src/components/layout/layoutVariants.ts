@@ -24,9 +24,9 @@ export function layoutVariantForPath(pathname: string, overrides: Partial<Record
 }
 
 export function layoutContentClass(variant: LayoutVariant): string {
+    const gutters = "px-3 py-4 sm:px-6 sm:py-6";
     if (variant === "full-width-workspace" || variant === "split-panel-workspace" || variant === "ai-conversation") {
-        return "w-full px-3 py-4 sm:px-5 sm:py-6";
+        return `w-full ${gutters}`;
     }
-    if (variant === "settings") return "mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-6 sm:py-6";
-    return "mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-6 sm:py-6";
+    return `mx-auto w-full max-w-[1200px] ${gutters}`;
 }

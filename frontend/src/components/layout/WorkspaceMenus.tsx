@@ -6,6 +6,13 @@ import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
 import { getInitials } from "../../utils/formatters";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Button } from "../ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { NotificationNavBadge } from "./NotificationNavBadge";
 
@@ -14,7 +21,7 @@ export function NotificationMenu() {
     const { t } = useTranslation();
     const unread = notifications?.filter(item => !item.is_read).length ?? 0;
     return <Popover>
-        <PopoverTrigger className="rounded-md p-2 hover:bg-muted" aria-label={t("navigation.openNotificationCenter")}>
+        <PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("navigation.openNotificationCenter")} />}>
             <NotificationNavBadge unreadCount={unread}><Bell size={18} /></NotificationNavBadge>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-80 p-4">
@@ -31,17 +38,17 @@ export function NotificationMenu() {
 export function ProfileMenu({ signOut }: { signOut: () => void }) {
     const { currentUser } = useAuth();
     const { t } = useTranslation();
-    return <Popover>
-        <PopoverTrigger className="rounded-md p-2 hover:bg-muted" aria-label={t("navigation.openProfileMenu")}>
+    return <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("navigation.openProfileMenu")} />}>
             <Avatar size="sm"><AvatarFallback>{getInitials(currentUser?.full_name, currentUser?.email)}</AvatarFallback></Avatar>
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-56 p-3">
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 p-2">
             <p className="font-medium">{currentUser?.full_name ?? t("status.yourProfile")}</p>
-            <p className="mb-3 truncate text-xs text-muted-foreground">{currentUser?.email ?? t("status.signedIn")}</p>
-            <Link to={ROUTES.profile} className="block rounded-md px-3 py-2 text-sm hover:bg-muted">{t("navigation.profile")}</Link>
-            <button type="button" onClick={signOut} className="mt-1 flex w-full items-center rounded-md px-3 py-2 text-left text-sm hover:bg-muted">
-                <LogOut aria-hidden size={15} className="mr-2" />{t("actions.signOut")}
-            </button>
-        </PopoverContent>
-    </Popover>;
+            <p className="mb-2 truncate px-2 text-xs text-muted-foreground">{currentUser?.email ?? t("status.signedIn")}</p>
+            <DropdownMenuItem render={<Link to={ROUTES.profile} />}>{t("navigation.profile")}</DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut} className="gap-2">
+                <LogOut aria-hidden size={15} />{t("actions.signOut")}
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>;
 }

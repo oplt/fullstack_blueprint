@@ -27,6 +27,8 @@ jobs:
       LOG_TO_FILE: false
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22.13.0"
@@ -40,6 +42,9 @@ jobs:
         working-directory: backend
       - name: Install locked frontend dependencies
         run: npm ci
+        working-directory: frontend
+      - name: Check design system usage
+        run: npm run design:check
         working-directory: frontend
       - name: Audit frontend dependencies
         run: npm run audit
@@ -102,6 +107,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: "0.8.17"
@@ -188,6 +195,8 @@ jobs:
       E2E_WORKERS: 1
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22.13.0"
@@ -209,7 +218,7 @@ jobs:
         run: |
           nohup uv run uvicorn backend.api.main:app --host 127.0.0.1 --port 8000 > /tmp/blueprint-api.log 2>&1 &
           echo $! > /tmp/blueprint-api.pid
-          for attempt in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             if curl --fail --silent http://127.0.0.1:8000/health/ready > /dev/null; then exit 0; fi
             sleep 1
           done
@@ -225,7 +234,7 @@ jobs:
           npm run pwa:check
           nohup npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/blueprint-preview.log 2>&1 &
           echo $! > /tmp/blueprint-preview.pid
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then break; fi
             sleep 1
           done

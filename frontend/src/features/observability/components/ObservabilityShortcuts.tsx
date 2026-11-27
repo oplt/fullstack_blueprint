@@ -51,16 +51,16 @@ export function ObservabilityShortcuts({ context, isAdmin, linksQuery }: Props) 
     return (
         <SectionCard title="Shortcuts" description="Open Grafana as the main investigation surface. Prometheus is kept as an admin debug tool.">
             {linksQuery.isLoading ? (
-                <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+                <div className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                     {Array.from({ length: 6 }).map((_: any, index: any) => <div
                         key={index}
-                        style={{ borderRadius: 16 }}
-                        className="animate-pulse rounded-md bg-muted" />)}
+
+                        className="animate-pulse rounded-md bg-muted rounded-lg" />)}
                 </div>
             ) : shortcuts.length === 0 ? (
                 <EmptyState icon={<RouteIcon />} title="No observability shortcuts" description="Configure Grafana, Tempo, or Prometheus public URLs to enable launch links." />
             ) : (
-                <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+                <div className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                     {shortcuts.map((item) => <ObservabilityShortcutCard key={item.title} title={item.title}
                         description={item.description} buttonText={item.buttonText} url={item.url}
                         allowed={item.link?.allowed ?? false} configured={item.link?.configured ?? false}

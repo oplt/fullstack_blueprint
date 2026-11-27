@@ -29,7 +29,7 @@ export function ConfigSettingsSection({ configData, model }: Props) {
                     <div
                         className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                 </div>
-                <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr", alignItems: "start" }}>
+                <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr", alignItems: "start" }}>
                     {group.items.map((item) => <ConfigEntryEditor key={item.key} item={item}
                         value={model.configDrafts[item.key] ?? item.value}
                         onChange={(value) => model.setConfigDrafts((current) => ({ ...current, [item.key]: value }))} />)}

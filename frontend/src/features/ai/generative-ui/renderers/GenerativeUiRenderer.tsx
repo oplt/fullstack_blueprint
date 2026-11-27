@@ -6,6 +6,7 @@ import { LazyChart } from "@/components/ui/LazyChart";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/button";
+import { ReadOnlyTable } from "@/components/ui/ReadOnlyTable";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArtifactPreview, HumanApprovalRequest, SourceCitations } from "../../workspace/components";
@@ -39,14 +40,19 @@ function ComponentRenderer({ component, onAction, context }: { component: Genera
         case "text": return <div className="space-y-2"><p>{component.text}</p><ChildComponents children={children} render={(child) => <ComponentRenderer key={child.id} component={child} onAction={onAction} context={context} />} /></div>;
         case "markdown": return <div className="space-y-2"><MarkdownRenderer content={component.markdown} /><ChildComponents children={children} render={(child) => <ComponentRenderer key={child.id} component={child} onAction={onAction} context={context} />} /></div>;
         case "metric": return <section className="space-y-2"><StatCard label={component.label} value={component.value} description={component.description} icon={<span aria-hidden="true">#</span>} color={component.color} /><ChildComponents children={children} render={(child) => <ComponentRenderer key={child.id} component={child} onAction={onAction} context={context} />} /></section>;
-        case "data_table": return <section aria-label={component.title ?? "Data table"} className="space-y-2"><h3 className="font-semibold">{component.title}</h3><div className="overflow-x-auto rounded-lg border border-border"><table className="w-full text-sm"><thead className="bg-muted/60"><tr>{component.columns.map((column) => <th key={column.key} scope="col" className="p-2 text-left">{column.label}</th>)}</tr></thead><tbody>{component.rows.map((row, index) => <tr key={index} className="border-t border-border">{component.columns.map((column) => <td key={column.key} className="p-2">{renderValue(row[column.key])}</td>)}</tr>)}</tbody></table></div></section>;
+        case "data_table": return <section aria-label={component.title ?? "Data table"} className="space-y-2">{component.title ? <h3 className="font-semibold">{component.title}</h3> : null}<ReadOnlyTable
+            ariaLabel={component.title ?? "Data table"}
+            columns={component.columns}
+            rows={component.rows}
+            renderCell={(row, column) => renderValue(row[column.key])}
+        /></section>;
         case "chart": return <LazyChart chartType={component.chartType} title={component.title} description={component.description} data={component.data} xKey={component.xKey} series={component.series} />;
         case "comparison": return <ComparisonCard title={component.title} value={component.value} comparison={component.comparison} description={component.description} />;
-        case "checklist": return <section aria-label={component.title ?? "Checklist"} className="space-y-2"><h3 className="font-semibold">{component.title}</h3><ul className="space-y-1">{component.items.map((item) => <li key={item.id} className="flex items-center gap-2">{item.completed ? <CheckCircle2 className="size-4 text-success" aria-hidden="true" /> : <Circle className="size-4 text-muted-foreground" aria-hidden="true" />}<span className={item.completed ? "line-through text-muted-foreground" : undefined}>{item.label}</span></li>)}</ul></section>;
+        case "checklist": return <section aria-label={component.title ?? "Checklist"} className="space-y-2"><h3 className="font-semibold">{component.title}</h3><ul className="space-y-1">{component.items.map((item) => <li key={item.id} className="flex items-center gap-2">{item.completed ? <CheckCircle2 className="size-4 text-success-deep" aria-hidden="true" /> : <Circle className="size-4 text-muted-foreground" aria-hidden="true" />}<span className={item.completed ? "line-through text-muted-foreground" : undefined}>{item.label}</span></li>)}</ul></section>;
         case "task_list": return <section aria-label={component.title ?? "Task list"} className="space-y-2"><h3 className="font-semibold">{component.title}</h3><ul className="space-y-2">{component.tasks.map((task) => <li key={task.id} className="rounded-lg border border-border p-2"><div className="flex items-center justify-between gap-2"><span className="font-medium">{task.title}</span><span className="text-xs text-muted-foreground">{task.status}</span></div>{task.description ? <p className="text-sm text-muted-foreground">{task.description}</p> : null}</li>)}</ul></section>;
         case "timeline": return <ActivityTimeline items={component.items} />;
         case "citations": return <SourceCitations citations={component.citations as AiCitation[]} />;
-        case "file_preview": { const url = safeUrl(component.url); const artifact: AiArtifact = { id: component.id, title: component.title, contentType: component.contentType, content: component.content, url }; return <section className="space-y-2"><ArtifactPreview artifact={artifact} />{component.url && !url ? <p role="alert" className="text-sm text-destructive">Unsafe file URL was blocked.</p> : null}</section>; }
+        case "file_preview": { const url = safeUrl(component.url); const artifact: AiArtifact = { id: component.id, title: component.title, contentType: component.contentType, content: component.content, url }; return <section className="space-y-2"><ArtifactPreview artifact={artifact} />{component.url && !url ? <p role="alert" className="text-sm text-destructive-deep">Unsafe file URL was blocked.</p> : null}</section>; }
         case "form": return <GeneratedForm component={component} onAction={onAction} context={context} />;
         case "approval_request": return <HumanApprovalRequest title={component.title} description={component.description} actionLabel={component.actionLabel} onResolve={(approved) => { if (approved && onAction) void onAction(component.action, { ...context, componentId: component.id }); }} />;
         case "structured_report": return <article className="space-y-4"><h2 className="text-lg font-semibold">{component.title}</h2>{component.summary ? <MarkdownRenderer content={component.summary} /> : null}{component.sections.map((section) => <section key={section.id} className="space-y-2"><h3 className="font-semibold">{section.title}</h3>{section.body ? <MarkdownRenderer content={section.body} /> : null}<ChildComponents children={section.components} render={(child) => <ComponentRenderer key={child.id} component={child} onAction={onAction} context={context} />} /></section>)}</article>;
@@ -62,6 +68,6 @@ function GeneratedForm({ component, onAction, context }: { component: Extract<Ge
 
 export function GenerativeUiRenderer({ payload, onAction, context = {}, className }: GenerativeUiRendererProps) {
     const result = validateGenerativePayload(payload);
-    if (!result.success) return <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">This generated content could not be displayed safely.</div>;
+    if (!result.success) return <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-sm text-destructive-deep">This generated content could not be displayed safely.</div>;
     return <div className={className ?? "space-y-4"}>{result.data.components.map((component) => <section key={component.id} data-renderer={GENERATIVE_COMPONENT_REGISTRY[component.type]}><ComponentRenderer component={component} onAction={onAction} context={context} /></section>)}</div>;
 }

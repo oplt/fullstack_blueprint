@@ -171,7 +171,7 @@ class ProjectsRepository:
                 ProjectTask.status == status,
             )
         )
-        return int(max_position or -1) + 1
+        return 0 if max_position is None else int(max_position) + 1
 
     async def create_task(
         self,

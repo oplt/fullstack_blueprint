@@ -9,13 +9,15 @@ from backend.modules.rag.domain.models import RetrievedChunk
 
 # Unicode-aware tokens (letters/numbers across scripts), min length 2.
 _UNICODE_TOKEN = re.compile(r"[^\W_]{2,}", re.UNICODE)
+MIN_RERANK_CANDIDATES = 2
+MAX_RERANK_CANDIDATES = 256
 
 
 class RerankerPort(Protocol):
     name: str
     version: str
 
-    def rerank(
+    async def rank(
         self,
         query: str,
         chunks: list[RetrievedChunk],
@@ -30,13 +32,14 @@ class NoOpReranker:
     name = "noop"
     version = "v1"
 
-    def rerank(
+    async def rank(
         self,
         query: str,
         chunks: list[RetrievedChunk],
         *,
         limit: int,
     ) -> list[RetrievedChunk]:
+        del query
         return chunks[:limit]
 
 
@@ -46,6 +49,11 @@ class UnicodeHeuristicReranker:
     name = "unicode_heuristic"
     version = "v1"
 
+    async def rank(
+        self, query: str, chunks: list[RetrievedChunk], *, limit: int
+    ) -> list[RetrievedChunk]:
+        return self.rerank(query, chunks, limit=limit)
+
     def rerank(
         self,
         query: str,
@@ -54,7 +62,7 @@ class UnicodeHeuristicReranker:
         limit: int,
     ) -> list[RetrievedChunk]:
         terms = set(_UNICODE_TOKEN.findall(query.lower()))
-        if not terms or len(chunks) < 2:
+        if not terms or len(chunks) < MIN_RERANK_CANDIDATES:
             return chunks[:limit]
 
         def key(chunk: RetrievedChunk) -> tuple[float, float, int]:
@@ -66,9 +74,29 @@ class UnicodeHeuristicReranker:
         return sorted(chunks, key=key, reverse=True)[:limit]
 
 
-def build_reranker(*, enabled: bool, heuristic: bool = False) -> RerankerPort:
-    if not enabled:
-        return NoOpReranker()
-    if heuristic:
+def resolve_reranker_mode(config) -> str:
+    mode = getattr(config, "rerank_mode", None)
+    if mode is None:
+        return (
+            "heuristic"
+            if getattr(config, "rerank_enabled", False)
+            and getattr(config, "rerank_heuristic_enabled", False)
+            else "none"
+        )
+    if mode not in {"none", "heuristic", "provider"}:
+        raise RuntimeError(f"Reranker mode {mode!r} is unsupported in this runtime")
+    return mode
+
+
+def build_reranker(*, config) -> RerankerPort:
+    mode = resolve_reranker_mode(config)
+    if mode == "heuristic":
         return UnicodeHeuristicReranker()
+    if mode == "provider":
+        from backend.core.config import settings
+        from backend.modules.rag.infrastructure.cohere_reranker import CohereReranker
+
+        return CohereReranker(
+            api_key=settings.RAG_COHERE_API_KEY.get_secret_value(), model=config.rerank_model
+        )
     return NoOpReranker()

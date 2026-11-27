@@ -11,11 +11,7 @@ export function InvestigationContextFields({ filters, setters }: Props) {
             title="Investigation context"
             description="These fields are passed as safe Grafana query parameters when a dashboard supports them."
         >
-            <div style={{
-                display: "grid",
-                gap: 16,
-                gridTemplateColumns: "1fr",
-            }}>
+            <div className="grid gap-4">
                 <FormField as="select" label="Service" value={filters.service} onChange={(event: any) => setters.setService(event.target.value)}>
                     {SERVICES.map((item) => <option key={item}>{item}</option>)}
                 </FormField>

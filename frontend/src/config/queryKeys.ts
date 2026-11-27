@@ -1,4 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
+import type { QueryClient, QueryFilters } from "@tanstack/react-query";
 
 export const queryKeys = {
     auth: {
@@ -96,18 +96,23 @@ export async function invalidateAiOverview(queryClient: QueryClient) {
     await queryClient.invalidateQueries({ queryKey: queryKeys.ai.overview });
 }
 
-/**
- * User-scoped records must never survive an identity transition.  Query keys
- * intentionally stay domain-oriented, so clearing the cache at the session
- * boundary is the reliable isolation mechanism.
- */
-export async function clearUserSessionCache(queryClient: QueryClient): Promise<void> {
-    await queryClient.cancelQueries();
-    queryClient.clear();
+const identityScopedQueries: QueryFilters = {
+    predicate: ({ queryKey }) => {
+        // Only deployment metadata is shared across identities.
+        const metadataKey = queryKeys.platform.metadata;
+        return queryKey.length !== metadataKey.length
+            || !metadataKey.every((part, index) => part === queryKey[index]);
+    },
+};
+
+export function clearUserSessionCache(queryClient: QueryClient): Promise<void> {
+    const cancellation = queryClient.cancelQueries(identityScopedQueries);
+    queryClient.removeQueries(identityScopedQueries);
+    queryClient.getMutationCache().clear();
+    return cancellation;
 }
 
 /** Synchronous identity-transition variant used by sign-in handlers. */
 export function resetUserSessionCache(queryClient: QueryClient): void {
-    void queryClient.cancelQueries();
-    queryClient.clear();
+    void clearUserSessionCache(queryClient);
 }

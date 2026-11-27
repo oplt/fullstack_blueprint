@@ -20,21 +20,16 @@ export function ReviewQueueSection({ model }: Props) {
                         />
                     )}
                     {reviewsLoading ? (
-                        <div className="flex gap-2.5">
+                        <div className="flex gap-3">
                             {Array.from({ length: 2 }).map((_: any, index: any) => (
                                 <div
                                     key={index}
-                                    style={{ borderRadius: 12 }}
                                     className="animate-pulse rounded-md bg-muted" />
                             ))}
                         </div>
                     ) : reviews.length > 0 ? (
                         reviews.map((review) => (
-                            <div key={review.id} style={({
-                                padding: 16,
-                                borderRadius: 16,
-                                border: `1px solid ${"var(--border)"}`
-                            })}>
+                            <div key={review.id} className="rounded-lg border border-border p-4">
                                 <div className="flex gap-2">
                                     <div className="flex flex-col sm:flex-row gap-2 justify-between">
                                         <p>Run {review.run_id.slice(0, 8)}</p>

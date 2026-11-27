@@ -7,6 +7,7 @@ from backend.core.cache import (
     invalidate_platform_caches,
 )
 from backend.core.config import settings
+from backend.modules.capabilities import CAPABILITY_REGISTRY
 from backend.modules.platform.defaults import (
     DEFAULT_EMAIL_TEMPLATES,
     DEFAULT_FEATURE_FLAGS,
@@ -84,6 +85,19 @@ class PlatformConfigService:
 
     async def get_platform_metadata(self) -> PlatformMetadataResponse:
         config = await self.get_platform_config()
+
+        enabled_modules = set(config.enabled_modules)
+
+        available_features = [
+            definition.identifier
+            for definition in CAPABILITY_REGISTRY.all()
+            if CAPABILITY_REGISTRY.deployment_enabled(
+                definition.identifier,
+                settings,
+            )
+            and (not definition.module_pack_managed or definition.identifier in enabled_modules)
+        ]
+
         return PlatformMetadataResponse(
             app_name=config.app_name,
             core_domain_singular=config.core_domain_singular,
@@ -94,18 +108,7 @@ class PlatformConfigService:
             available_module_packs=config.available_module_packs,
             capabilities=config.capabilities,
             mfa_enabled=config.mfa_enabled,
-            available_features=[
-                name
-                for name, enabled in (
-                    ("ai", settings.AI_ENABLED and "ai" in config.enabled_modules),
-                    ("rag", settings.RAG_ENABLED),
-                    ("memory", settings.MEMORY_ENABLED),
-                    ("calendar", settings.CALENDAR_ENABLED),
-                    ("notifications", settings.NOTIFICATIONS_ENABLED),
-                    ("observability", settings.OBSERVABILITY_ENABLED),
-                )
-                if enabled
-            ],
+            available_features=available_features,
         )
 
     async def get_platform_config(self) -> PlatformConfigResponse:
@@ -168,12 +171,24 @@ class PlatformConfigService:
         )
 
     @staticmethod
-    def _capability_metadata(enabled_modules: list[str]) -> list[dict[str, object]]:
-        from backend.modules.capabilities import CAPABILITY_REGISTRY
+    def _capability_metadata(
+        enabled_modules: list[str],
+    ) -> list[dict[str, object]]:
+        enabled = set(enabled_modules)
+
+        runtime_enabled = {
+            definition.identifier
+            for definition in CAPABILITY_REGISTRY.all()
+            if CAPABILITY_REGISTRY.deployment_enabled(
+                definition.identifier,
+                settings,
+            )
+            and (not definition.module_pack_managed or definition.identifier in enabled)
+        }
 
         return CAPABILITY_REGISTRY.public_metadata(
             settings,
-            runtime_enabled=set(enabled_modules) | {"identity", "projects", "platform"},
+            runtime_enabled=runtime_enabled,
         )
 
     async def update_platform_config(
@@ -264,7 +279,23 @@ class PlatformConfigService:
         module_pack: str,
         explicit_overrides: dict[str, bool],
     ) -> list[str]:
-        return [item["key"] for item in MODULE_CATALOG]
+        enabled = set(MODULE_PACKS[module_pack]["modules"])
+
+        for key, is_enabled in explicit_overrides.items():
+            if is_enabled:
+                enabled.add(key)
+            else:
+                enabled.discard(key)
+
+        return [
+            item["key"]
+            for item in MODULE_CATALOG
+            if item["key"] in enabled
+            and CAPABILITY_REGISTRY.deployment_enabled(
+                item["key"],
+                settings,
+            )
+        ]
 
     @staticmethod
     def _parse_bool(raw_value: str) -> bool:

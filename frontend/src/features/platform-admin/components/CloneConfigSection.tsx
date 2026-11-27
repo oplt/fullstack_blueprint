@@ -17,13 +17,13 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                     core_domain_plural: draft.core_domain_plural, module_pack: draft.module_pack, module_overrides: draft.module_states, mfa_enabled: draft.mfa_enabled })}
                 type="button">
                 {model.saveConfigMutation.isPending ? "Saving..." : "Save platform config"}</Button>}>
-            <div className="flex gap-[20px]">
+            <div className="flex gap-6">
                 {model.saveConfigMutation.isError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{getQueryErrorMessage(model.saveConfigMutation.error, "Failed to save platform config.")}</div>}
                 <FormField
                     label="App name"
                     value={draft.app_name}
                     onChange={(e: any) => set((v) => ({ ...v, app_name: e.target.value }))} />
-                <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr" }}>
+                <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                     <FormField
                         label="Core domain singular"
                         value={draft.core_domain_singular}
@@ -54,8 +54,8 @@ export function CloneConfigSection({ source, model }: { source: PlatformConfig; 
                             checked={draft.mfa_enabled}
                             onCheckedChange={(checked) => set((v) => ({ ...v, mfa_enabled: checked }))} /></div>
                 </div>
-                <div><p style={{ marginBottom: 10 }}>Module access</p>
-                    <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr" }}>
+                <div><p className="mb-2.5" >Module access</p>
+                    <div className="gap-2.5" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                         {source.module_catalog.map((item) => <div key={item.key} style={({
                             padding: 16,
                             borderRadius: 16,

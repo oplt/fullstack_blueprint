@@ -7,7 +7,9 @@ from dataclasses import dataclass
 
 from backend.modules.rag.domain.enums import RetrievalIntent
 
-_QUOTED = re.compile(r"[\"“”'][^\"“”']+[\"“”']")
+MIN_COMPARISON_ENTITY_COUNT = 2
+
+_QUOTED = re.compile(r"""(?:"[^"\n]+"|“[^”\n]+”|(?<!\w)'[^'\n]+'(?!\w))""")
 _COMPARISON = re.compile(
     r"\b(compare|comparison|versus|vs\.?|difference between|vergleich|gegenüber|"
     r"unterschied zwischen|comparer|comparaison|contre|différence entre)\b",
@@ -15,7 +17,8 @@ _COMPARISON = re.compile(
 )
 _CONTRADICTION = re.compile(
     r"\b(contradict(?:s|ion|ory)?|counter[ -]?evidence|disagree|challenge|oppos(?:e|ing)|"
-    r"widerspricht|gegenbeweis|contredit|preuve contraire)\b",
+    r"widerspricht|gegenbeweis|contredit|preuve contraire|tegenspreekt|tegenbewijs|"
+    r"çelişen|çelişiyor|karşı kanıt)\b",
     re.I,
 )
 _DEFINITION = re.compile(
@@ -27,6 +30,25 @@ _CITATION_LOOKUP = re.compile(r"\b(citation|cite|cited|source|reference|referenz
 _FACT = re.compile(r"^(who|when|where|which year|how many)\b", re.I)
 _ENTITY = re.compile(r"\b[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'-]*\b")
 _DATE = re.compile(r"\b(?:18|19|20)\d{2}\b")
+_IDENTIFIER = re.compile(r"(?<!\w)[a-z0-9]+(?:[-_./:][a-z0-9]+)+(?!\w)", re.I)
+
+
+def quoted_phrase(query: str) -> str | None:
+    match = _QUOTED.search(query)
+    return match.group()[1:-1] if match else None
+
+
+def exact_identifier(query: str) -> str | None:
+    """Find one explicit mixed alphanumeric identifier for lexical lookup."""
+    return next(
+        (
+            identifier
+            for identifier in _IDENTIFIER.findall(query)
+            if any(char.isalpha() for char in identifier)
+            and any(char.isdigit() for char in identifier)
+        ),
+        None,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,7 +72,7 @@ class QueryAnalysis:
 def analyze_query(query: str) -> QueryAnalysis:
     text = (query or "").strip()
     reasons: list[str] = []
-    phrase_boost = bool(_QUOTED.search(text))
+    phrase_boost = quoted_phrase(text) is not None
     entities = tuple(dict.fromkeys(_ENTITY.findall(text)))
     entity_count = len(entities[1:] if entities and text.startswith(entities[0]) else entities)
     has_date = bool(_DATE.search(text))
@@ -66,7 +88,7 @@ def analyze_query(query: str) -> QueryAnalysis:
             entity_count,
             has_date,
         )
-    if _COMPARISON.search(text) and entity_count >= 2:
+    if _COMPARISON.search(text) and entity_count >= MIN_COMPARISON_ENTITY_COUNT:
         return QueryAnalysis(
             RetrievalIntent.COMPARISON,
             tuple([*reasons, "comparison_marker", "two_or_more_entities"]),

@@ -20,7 +20,7 @@
         {"chunk_id": "c-rel-1", "document_id": "d1", "score": 0.55, "content": "personal accountability and employability"},
         {"chunk_id": "c-lex-only", "document_id": "d4", "score": 0.40, "content": "responsibility of the individual"}
       ],
-      "citation_raw": "{\"answer\":\"Activation emphasized individual responsibility.\",\"claims\":[{\"text\":\"Activation emphasized individual responsibility.\",\"chunk_ids\":[\"c-rel-1\"]}]}"
+      "citation_raw": "{\"answer\":\"personal accountability and employability\",\"claims\":[{\"text\":\"personal accountability and employability\",\"chunk_ids\":[\"c-rel-1\"]}],\"no_evidence\":false}"
     },
     {
       "id": "semantic-paraphrase",
@@ -187,7 +187,7 @@
       "lexical": [
         {"chunk_id": "c-real", "document_id": "d25", "score": 0.80, "content": "The report concluded that access improved."}
       ],
-      "citation_raw": "{\"answer\":\"Access improved.\",\"claims\":[{\"text\":\"Access improved.\",\"chunk_ids\":[\"fabricated-chunk\"]}]}"
+      "citation_raw": "{\"answer\":\"Access improved.\",\"claims\":[{\"text\":\"Access improved.\",\"chunk_ids\":[\"fabricated-chunk\"]}],\"no_evidence\":false}"
     },
     {
       "id": "citation-omission",
@@ -201,7 +201,7 @@
       "lexical": [
         {"chunk_id": "c-omitted", "document_id": "d26", "score": 0.80, "content": "The report concluded that access improved."}
       ],
-      "citation_raw": "{\"answer\":\"Access improved.\",\"claims\":[]}"
+      "citation_raw": "{\"answer\":\"Access improved.\",\"claims\":[],\"no_evidence\":false}"
     }
   ]
 }

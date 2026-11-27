@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import re
 from dataclasses import dataclass
 
@@ -43,6 +44,9 @@ class RagConfig:
     rerank_enabled: bool = False
     rerank_heuristic_enabled: bool = False
     rerank_max_depth: int = 40
+    rerank_mode: str | None = None
+    rerank_model: str = ""
+    rerank_timeout_seconds: float = 2.0
     context_overlap_dedupe_threshold: float = 0.8
     context_ordering_policy: str = "relevance"
     pdf_ocr_enabled: bool = False
@@ -68,16 +72,21 @@ class RagConfig:
     retrieval_branch_concurrency: int = 2
     query_variant_concurrency: int = 3
     pdf_parser: str = "auto"
-    retrieval_algorithm_version: str = "hybrid-rrf-v1"
-    chunker_version: str = "structure-v1"
-    chunk_policy_version: str = "structure-v1"
+    retrieval_algorithm_version: str = "hybrid-rrf-v2"
+    chunker_version: str = "structure-v2"
+    chunk_policy_version: str = "structure-v2"
     parent_window_size: int = 3
     parser_version: str = "pdf-auto-v1"
     index_version: str = "pgvector-fts-v1"
     expected_vector_dimensions: int = 1536
     require_ann_index: bool = False
+    pgvector_iterative_scan: bool = False
     exact_vector_fallback_max_rows: int = 5000
     retrieval_cache_artifact_version: str = "v2"
+    max_document_pages: int = 2000
+    max_document_characters: int = 5_000_000
+    max_ingestion_chunks: int = 2000
+    max_ingestion_tokens: int = 1_000_000
 
     @property
     def parsing(self) -> ParsingConfig:
@@ -127,6 +136,7 @@ class RagConfig:
             self.parent_context_enabled,
             self.retrieval_branch_concurrency,
             self.query_variant_concurrency,
+            self.pgvector_iterative_scan,
         )
 
     @property
@@ -136,6 +146,9 @@ class RagConfig:
             self.rerank_heuristic_enabled,
             self.rerank_max_depth,
             intent_depth_overrides=self.rerank_intent_depth_overrides,
+            mode=self.rerank_mode,
+            model=self.rerank_model,
+            timeout_seconds=self.rerank_timeout_seconds,
         )
 
     @property
@@ -180,6 +193,9 @@ class RagConfig:
             rerank_enabled=settings.RAG_RERANK_ENABLED,
             rerank_heuristic_enabled=settings.RAG_RERANK_HEURISTIC_ENABLED,
             rerank_max_depth=max(0, settings.RAG_RERANK_MAX_DEPTH),
+            rerank_mode=settings.RAG_RERANK_MODE,
+            rerank_model=settings.RAG_RERANK_MODEL.strip(),
+            rerank_timeout_seconds=settings.RAG_RERANK_TIMEOUT_SECONDS,
             context_overlap_dedupe_threshold=min(
                 1.0, max(0.0, settings.RAG_CONTEXT_OVERLAP_DEDUPE_THRESHOLD)
             ),
@@ -197,7 +213,9 @@ class RagConfig:
             ),
             text_decode_max_replacement_ratio=float(settings.RAG_TEXT_DECODE_MAX_REPLACEMENT_RATIO),
             unicode_normalization="NFC",
-            rerank_intent_depth_overrides={
+            rerank_intent_depth_overrides=None
+            if settings.RAG_RERANK_MODE == "provider"
+            else {
                 "fact": 0,
                 "definition": 0,
                 "evidence": min(20, max(0, settings.RAG_RERANK_MAX_DEPTH)),
@@ -238,8 +256,13 @@ class RagConfig:
             index_version=settings.RAG_INDEX_VERSION,
             expected_vector_dimensions=settings.RAG_EXPECTED_VECTOR_DIMENSIONS,
             require_ann_index=settings.RAG_REQUIRE_ANN_INDEX,
+            pgvector_iterative_scan=settings.RAG_PGVECTOR_ITERATIVE_SCAN,
             exact_vector_fallback_max_rows=max(1, settings.RAG_EXACT_VECTOR_FALLBACK_MAX_ROWS),
             retrieval_cache_artifact_version=settings.RAG_RETRIEVAL_CACHE_ARTIFACT_VERSION,
+            max_document_pages=settings.RAG_MAX_DOCUMENT_PAGES,
+            max_document_characters=settings.RAG_MAX_DOCUMENT_CHARACTERS,
+            max_ingestion_chunks=settings.RAG_MAX_INGESTION_CHUNKS,
+            max_ingestion_tokens=settings.RAG_MAX_INGESTION_TOKENS,
         )
 
 
@@ -248,6 +271,7 @@ def validate_rag_config(config: RagConfig | None = None) -> None:
     resolved = config or RagConfig.from_settings()
     if not resolved.enabled:
         return
+    _validate_ranking(resolved)
     if resolved.vector_backend not in SUPPORTED_VECTOR_BACKENDS:
         supported = ", ".join(sorted(SUPPORTED_VECTOR_BACKENDS))
         raise RuntimeError(
@@ -266,8 +290,7 @@ def validate_rag_config(config: RagConfig | None = None) -> None:
             f"RAG_PDF_PARSER={resolved.pdf_parser!r} is not supported. "
             f"Supported parsers: {supported}."
         )
-    if resolved.pdf_parser == "docling" and not resolved.docling_enabled:
-        raise RuntimeError("RAG_PDF_PARSER=docling requires RAG_DOCLING_ENABLED=true")
+    _validate_docling_selection(resolved)
     if resolved.malware_scanner not in {"none", "clamd"}:
         raise RuntimeError("RAG_MALWARE_SCANNER must be 'none' or 'clamd'")
     if resolved.malware_scan_required and not resolved.malware_scan_enabled:
@@ -282,6 +305,32 @@ def validate_rag_config(config: RagConfig | None = None) -> None:
             f"schema contract RAG_EXPECTED_VECTOR_DIMENSIONS="
             f"{resolved.expected_vector_dimensions}. "
             "Changing embedding dimensionality requires an explicit re-index migration."
+        )
+
+
+def _validate_ranking(config: RagConfig) -> None:
+    from backend.modules.rag.application.reranker_port import resolve_reranker_mode
+
+    if not -1 <= config.score_threshold <= 1:
+        raise RuntimeError("RAG_SCORE_THRESHOLD must be between -1 and 1")
+    mode = resolve_reranker_mode(config)
+    if mode == "provider" and (
+        not config.rerank_model or not settings.RAG_COHERE_API_KEY.get_secret_value().strip()
+    ):
+        raise RuntimeError("Provider reranking requires RAG_RERANK_MODEL and RAG_COHERE_API_KEY")
+
+
+def _validate_docling_selection(config: RagConfig) -> None:
+    if config.pdf_parser != "docling":
+        return
+    if not config.docling_enabled:
+        raise RuntimeError("RAG_PDF_PARSER=docling requires RAG_DOCLING_ENABLED=true")
+    if (
+        importlib.util.find_spec("docling") is None
+        or importlib.util.find_spec("docling.document_converter") is None
+    ):
+        raise RuntimeError(
+            "RAG_PDF_PARSER=docling requires the optional 'docling' package in this runtime"
         )
 
 

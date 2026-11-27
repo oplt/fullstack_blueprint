@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from backend.api.deps.auth import get_current_user
 from backend.core.config import settings
+from backend.dependencies.auth import get_current_user
 from backend.observability.schemas import ObservabilityLinks, ObservabilityStatus
 from backend.observability.service import ObservabilityService
 

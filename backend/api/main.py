@@ -33,10 +33,11 @@ from .v1.health import health_router
 setup_logging()
 
 logger = logging.getLogger("backend.startup")
+_STARTUP_CHECK_TIMEOUT_SECONDS = 10.0
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     logger.info(
         "Application startup app=%s env=%s log_level=%s",
         settings.APP_NAME,
@@ -66,17 +67,20 @@ async def lifespan(app: FastAPI):
 
             validate_memory_config()
         if settings.STORAGE_BUCKET:
-            await object_storage.ensure_bucket()
-        await ping_redis()
+            async with asyncio.timeout(_STARTUP_CHECK_TIMEOUT_SECONDS):
+                await object_storage.ensure_bucket()
+        async with asyncio.timeout(_STARTUP_CHECK_TIMEOUT_SECONDS):
+            await ping_redis()
         logger.info("Redis connection established url=%s", redact_url(settings.REDIS_URL))
-        async with SessionLocal() as db:
-            await PlatformConfigService(db).ensure_defaults()
-            if settings.RAG_ENABLED:
-                from backend.modules.rag.infrastructure.rag_config import (
-                    validate_rag_index_health,
-                )
+        async with asyncio.timeout(_STARTUP_CHECK_TIMEOUT_SECONDS):
+            async with SessionLocal() as db:
+                await PlatformConfigService(db).ensure_defaults()
+                if settings.RAG_ENABLED:
+                    from backend.modules.rag.infrastructure.rag_config import (
+                        validate_rag_index_health,
+                    )
 
-                await validate_rag_index_health(db)
+                    await validate_rag_index_health(db)
         logger.info("Application startup complete")
         try:
             yield
@@ -89,6 +93,7 @@ app = FastAPI(
     title=settings.APP_NAME,
     docs_url="/docs" if settings.APP_ENV != "production" else None,
     redoc_url="/redoc" if settings.APP_ENV != "production" else None,
+    openapi_url="/openapi.json" if settings.APP_ENV != "production" else None,
     lifespan=lifespan,
 )
 

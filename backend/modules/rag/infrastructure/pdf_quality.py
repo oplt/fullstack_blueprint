@@ -5,6 +5,9 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
+MIN_HEADER_FOOTER_PAGE_COUNT = 3
+MAX_HEADER_FOOTER_LINE_CHARS = 120
+
 
 @dataclass(frozen=True, slots=True)
 class PdfTextQuality:
@@ -62,7 +65,7 @@ def decide_ocr(
 def suppress_repeated_headers_footers(
     page_texts: list[str],
     *,
-    min_pages: int = 3,
+    min_pages: int = MIN_HEADER_FOOTER_PAGE_COUNT,
     min_repetition_ratio: float = 0.6,
 ) -> list[str]:
     """Drop short lines that repeat across most pages (simple header/footer heuristic)."""
@@ -74,7 +77,7 @@ def suppress_repeated_headers_footers(
         unique_lines = {
             line.strip()
             for line in (text or "").splitlines()
-            if line.strip() and len(line.strip()) <= 120
+            if line.strip() and len(line.strip()) <= MAX_HEADER_FOOTER_LINE_CHARS
         }
         for line in unique_lines:
             line_page_counts[line] += 1

@@ -5,8 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
+
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 from backend.blueprint.environment import environment_for
 from backend.blueprint.profiles import PROFILES, Profile
 from backend.modules.capabilities import CAPABILITY_REGISTRY

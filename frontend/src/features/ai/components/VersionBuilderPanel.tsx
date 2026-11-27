@@ -127,18 +127,13 @@ export function VersionBuilderPanel({ m }: { m: AiStudioModel }) {
                         {Array.from({ length: 2 }).map((_: any, index: any) => (
                             <div
                                 key={index}
-                                style={{ borderRadius: 12 }}
                                 className="animate-pulse rounded-md bg-muted" />
                         ))}
                     </div>
                 ) : selectedTemplateVersions.length > 0 ? (
                     <div className="flex gap-2.5">
                         {selectedTemplateVersions.map((version) => (
-                            <div key={version.id} style={({
-                                padding: 16,
-                                borderRadius: 16,
-                                border: `1px solid ${"var(--border)"}`
-                            })}>
+                            <div key={version.id} className="rounded-lg border border-border p-4">
                                 <div className="flex gap-2">
                                     <div className="flex flex-col sm:flex-row gap-2 justify-between">
                                         <p>

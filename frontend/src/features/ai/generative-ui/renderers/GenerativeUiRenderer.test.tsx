@@ -14,4 +14,21 @@ describe("GenerativeUiRenderer", () => {
         expect(screen.getByRole("alert")).toHaveTextContent("could not be displayed safely");
         expect(document.querySelector("img")).toBeNull();
     });
+
+    it("renders generated data tables with shared semantic table markup", () => {
+        render(<GenerativeUiRenderer payload={{
+            version: 1,
+            components: [{
+                type: "data_table",
+                id: "tasks",
+                title: "Tasks",
+                columns: [{ key: "name", label: "Name" }],
+                rows: [{ name: "Review design" }],
+            }],
+        }} />);
+
+        expect(screen.getByRole("table", { name: "Tasks" })).toBeInTheDocument();
+        expect(screen.getByRole("columnheader", { name: "Name" })).toBeInTheDocument();
+        expect(screen.getByRole("cell", { name: "Review design" })).toBeInTheDocument();
+    });
 });

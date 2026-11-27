@@ -27,7 +27,10 @@ async def run(report_path: Path, *, generate: bool) -> dict:
     config = replace(RagConfig.from_settings(), enabled=True)
     try:
         async with async_sessionmaker(engine, expire_on_commit=False)() as db:
-            user = User(email=f"rag-benchmark-{uuid4()}@example.invalid", password_hash="disabled")
+            user = User(
+                email=f"rag-benchmark-{uuid4()}@example.invalid",
+                password_hash="disabled",  # noqa: S106 - unusable synthetic hash
+            )
             db.add(user)
             await db.commit()
             index = await ingest_fixture_corpus(
@@ -62,8 +65,8 @@ async def run(report_path: Path, *, generate: bool) -> dict:
                 embedding_model=config.embedding_model,
                 fixture_mapping=index.source_coordinates,
             )
-            report_path.parent.mkdir(parents=True, exist_ok=True)
-            report_path.write_text(json.dumps(report, indent=2))
+            await asyncio.to_thread(report_path.parent.mkdir, parents=True, exist_ok=True)
+            await asyncio.to_thread(report_path.write_text, json.dumps(report, indent=2))
             return report
     finally:
         await engine.dispose()

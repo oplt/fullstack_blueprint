@@ -22,11 +22,11 @@ export function ErrorState({
     <section
       role="alert"
       className={cn(
-        "flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-center",
+        "flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive-soft p-6 text-center",
         className,
       )}
     >
-      <AlertTriangleIcon className="size-5 text-destructive" aria-hidden="true" />
+      <AlertTriangleIcon className="size-5 text-destructive-deep" aria-hidden="true" />
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       <p className="max-w-md text-sm text-muted-foreground">{description}</p>
       {onRetry && (

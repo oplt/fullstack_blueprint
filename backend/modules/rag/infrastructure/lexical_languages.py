@@ -6,6 +6,8 @@ POSTGRES_TEXT_SEARCH_CONFIGS = {
     "en": "english",
     "de": "german",
     "fr": "french",
+    "nl": "dutch",
+    "tr": "turkish",
 }
 
 

@@ -24,7 +24,7 @@ def environment_for(config: BlueprintConfig, capabilities: set[str]) -> dict[str
         "DATABASE_URL": "postgresql+asyncpg://app:change-me@localhost:5432/app",
         "INTEGRATIONS_ENABLED": str("reusable_capabilities" in capabilities).lower(),
         "JWT_ALGORITHM": "HS256",
-        "JWT_SECRET": "replace-in-local-secret-storage",
+        "JWT_SECRET": "local-dev-only-change-me-not-for-production-use",
         "MEMORY_ENABLED": str("memory" in capabilities).lower(),
         "MEM0_MODE": "oss" if "memory" in capabilities else "hosted",
         "OBSERVABILITY_ENABLED": str(config.deployment.observability == "standard").lower(),

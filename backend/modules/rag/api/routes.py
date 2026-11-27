@@ -1,11 +1,21 @@
 import asyncio
 import json
+from contextlib import suppress
+from dataclasses import replace
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.auth import get_current_user
-from backend.api.deps.db import get_db
 from backend.core.config import settings
 from backend.core.pagination import (
     PaginatedResponse,
@@ -13,7 +23,10 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
+from backend.core.storage import ObjectStorageError, object_storage
 from backend.core.text_snippet import text_snippet
+from backend.dependencies.auth import get_current_user
+from backend.dependencies.db import get_db
 from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
 from backend.modules.identity_access.models import User
 from backend.modules.rag.api.schemas import (
@@ -21,18 +34,25 @@ from backend.modules.rag.api.schemas import (
     RagAskResponse,
     RagChunkResponse,
     RagCitationResponse,
+    RagClaimResponse,
+    RagCompareRequest,
+    RagCompareResponse,
     RagCoverageResponse,
     RagDocumentResponse,
     RagDocumentUploadResponse,
     RagIngestionJobResponse,
     RagQueryResponse,
+    RagRetrievalDiagnostics,
     RagRetrievedChunkResponse,
     RagRetrieveRequest,
     RagRetrieveResponse,
+    RagSourcePreviewResponse,
 )
 from backend.modules.rag.application.document_ingestion_service import DocumentIngestionService
 from backend.modules.rag.application.rag_answer_service import RagAnswerService
 from backend.modules.rag.application.retrieval_service import RetrievalService
+from backend.modules.rag.domain.models import RetrievalOutcome
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
 from backend.modules.rag.workers import queue_document_indexing
@@ -54,7 +74,7 @@ def _document_to_response(document) -> RagDocumentResponse:
         filename=document.filename,
         original_filename=document.original_filename,
         content_type=document.content_type,
-        storage_path=document.storage_path,
+        storage_path=None,
         status=document.status,
         source_type=document.source_type,
         current_revision_id=document.current_revision_id,
@@ -221,17 +241,55 @@ async def retrieve_chunks(
 ):
     _require_rag_enabled()
     service = RetrievalService(db)
-    filters: dict | None = {"owner_scoped": True}
+    filters: dict[str, object] = {"owner_scoped": True, "retrieval_mode": payload.retrieval_mode}
     if payload.document_ids is not None:
         filters["document_ids"] = payload.document_ids
-    outcome = await service.retrieve(
-        payload.query,
-        user_id=current_user.id,
-        project_id=payload.project_id,
-        top_k=payload.top_k,
-        filters=filters,
-        intent=payload.intent,
-        persist_trace=False,
+    try:
+        outcome = await service.retrieve(
+            RetrievalRequest(
+                query=payload.query,
+                user_id=current_user.id,
+                project_id=payload.project_id,
+                top_k=payload.top_k,
+                filters=filters,
+                metadata=payload.metadata_filter,
+                intent=payload.intent,
+                persist_trace=False,
+            )
+        )
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="RAG retrieval timed out") from exc
+    return _retrieval_response(outcome, service.config)
+
+
+def _retrieval_response(
+    outcome: RetrievalOutcome, config: RagConfig, *, preview: bool = False
+) -> RagRetrieveResponse:
+    provenance = outcome.retrieval_provenance
+    profile = provenance.get("retrieval_profile") or {}
+    timing = provenance.get("trace") or {}
+    method = outcome.fusion_method or ""
+    if method == "rrf" or method.startswith("multi_query_rrf:"):
+        score_kind = "rrf"
+    elif method == "dense_only":
+        score_kind = "cosine"
+    elif method == "lexical_only":
+        score_kind = "lexical_rank"
+    else:
+        score_kind = "none"
+    diagnostics = RagRetrievalDiagnostics(
+        score_kind=score_kind,
+        cache="bypassed" if preview else "hit" if outcome.cache_hit else "miss",
+        min_cosine=config.score_threshold,
+        rrf_k=config.rrf_k,
+        dense_pool=profile.get("dense_candidates", 0),
+        lexical_pool=profile.get("lexical_candidates", 0),
+        rerank_window=(provenance.get("reranking") or {}).get("candidate_count", 0),
+        dense_candidates=outcome.dense_candidate_count,
+        lexical_candidates=outcome.lexical_candidate_count,
+        fused_candidates=outcome.fused_candidate_count,
+        stage_timings_ms=timing.get("stage_timings_ms", {}),
+        branch_status=timing.get("branch_status", {}),
     )
     coverage = None
     if outcome.coverage is not None:
@@ -261,6 +319,7 @@ async def retrieve_chunks(
                 offset_scope=(chunk.metadata or {}).get("offset_scope"),
                 offset_scope_id=(chunk.metadata or {}).get("offset_scope_id"),
                 source_spans=(chunk.metadata or {}).get("source_spans"),
+                retrieval_sources=list(chunk.retrieval_sources),
             )
             for chunk in outcome.chunks
         ],
@@ -270,10 +329,105 @@ async def retrieve_chunks(
         injection_chunks_filtered=outcome.injection_chunks_filtered,
         intent=outcome.intent.value if outcome.intent else None,
         fusion_method=outcome.fusion_method,
+        reranker=outcome.retrieval_provenance.get("reranker"),
+        reranking_status=(outcome.retrieval_provenance.get("reranking") or {}).get("status"),
         coverage=coverage,
         retrieval_trace_id=outcome.retrieval_trace_id,
         index_revision_ids=outcome.index_revision_ids,
+        diagnostics=diagnostics,
     )
+
+
+MAX_PREVIEW_DOCUMENTS = 500
+
+
+async def _cancel_on_disconnect(request: Request, operation) -> RagCompareResponse:
+    task = asyncio.create_task(operation)
+    try:
+        while not task.done():
+            done, _ = await asyncio.wait({task}, timeout=0.1)
+            if not done and await request.is_disconnected():
+                raise HTTPException(status_code=499, detail="Retrieval comparison cancelled")
+        return await task
+    finally:
+        if not task.done():
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+
+@router.post("/retrieve/compare", response_model=RagCompareResponse)
+async def compare_retrieval(
+    payload: RagCompareRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(enforce_ai_generation_rate_limit),
+) -> RagCompareResponse:
+    _require_rag_enabled()
+    repo = RagRepository(db)
+    scope = await repo.list_preview_revisions(
+        user_id=current_user.id, project_id=payload.project_id, document_ids=payload.document_ids
+    )
+    if len(scope) > MAX_PREVIEW_DOCUMENTS:
+        raise HTTPException(status_code=422, detail="Select a smaller document scope")
+    if payload.document_ids and set(payload.document_ids) != {document for document, _ in scope}:
+        raise HTTPException(status_code=404, detail="A selected document has no accessible index")
+    document_ids = [document for document, _ in scope]
+    revisions = list(dict.fromkeys(revision for _, revision in scope))
+    baseline = RagConfig.from_settings()
+    draft = payload.draft
+    candidate = replace(
+        baseline,
+        score_threshold=baseline.score_threshold if draft.min_cosine is None else draft.min_cosine,
+        dense_candidates=draft.candidate_pool or baseline.dense_candidates,
+        lexical_candidates=draft.candidate_pool or baseline.lexical_candidates,
+        rrf_k=draft.rrf_k or baseline.rrf_k,
+        rerank_mode=baseline.rerank_mode if draft.reranker == "configured" else draft.reranker,
+    )
+
+    async def compare() -> RagCompareResponse:
+        async def run(config: RagConfig, mode: str) -> RagRetrieveResponse:
+            outcome = await RetrievalService(db, config).retrieve(
+                RetrievalRequest(
+                    query=payload.query,
+                    user_id=current_user.id,
+                    project_id=payload.project_id,
+                    top_k=payload.top_k,
+                    intent=payload.intent,
+                    metadata=payload.metadata_filter,
+                    filters={
+                        "owner_scoped": True,
+                        "document_ids": document_ids,
+                        "index_revision_ids": revisions,
+                        "retrieval_mode": mode,
+                    },
+                    preview=True,
+                )
+            )
+            return _retrieval_response(outcome, config, preview=True)
+
+        baseline_result = await run(baseline, payload.baseline_mode)
+        candidate_result = await run(candidate, payload.retrieval_mode)
+        if document_ids and scope != await repo.list_preview_revisions(
+            user_id=current_user.id,
+            project_id=payload.project_id,
+            document_ids=document_ids,
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail="Indexed documents changed. Run the comparison again",
+            )
+        return RagCompareResponse(
+            baseline=baseline_result,
+            candidate=candidate_result,
+            document_count=len(document_ids),
+            index_revision_ids=revisions,
+        )
+
+    try:
+        return await _cancel_on_disconnect(request, compare())
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="Retrieval comparison timed out") from exc
 
 
 @router.post("/ask", response_model=RagAskResponse)
@@ -331,6 +485,7 @@ async def ask_rag(
                 offset_scope=c.offset_scope,
                 offset_scope_id=c.offset_scope_id,
                 source_spans=c.source_spans,
+                index_revision_id=c.index_revision_id,
             )
             for c in result.citations
         ],
@@ -347,7 +502,58 @@ async def ask_rag(
         evidence_revision_hash=result.evidence_revision_hash,
         index_revision_ids=result.index_revision_ids,
         citation_validation_failed=result.citation_validation_failed,
+        citation_validation_status=result.citation_validation_status,
+        claims=[RagClaimResponse.model_validate(claim) for claim in result.claims],
         coverage=coverage,
+    )
+
+
+@router.get(
+    "/documents/{document_id}/chunks/{chunk_id}/source",
+    response_model=RagSourcePreviewResponse,
+)
+async def get_citation_source(
+    document_id: str,
+    chunk_id: str,
+    response: Response,
+    revision_id: str | None = Query(default=None, max_length=80),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RagSourcePreviewResponse:
+    _require_rag_enabled()
+    repo = RagRepository(db)
+    rows = await repo.get_chunks_by_ids_for_scope(
+        [chunk_id],
+        user_id=current_user.id,
+        project_id=None,
+        document_ids=[document_id],
+        current_only=True,
+    )
+    if not rows or rows[0].revision_id != revision_id or rows[0].chunk_index < 0:
+        raise HTTPException(status_code=404, detail="Citation source is unavailable")
+    row = rows[0]
+    metadata = json.loads(row.metadata_json or "{}")
+    pdf_url = None
+    if revision_id and object_storage.is_configured:
+        storage_key = await repo.get_current_pdf_source_key(
+            document_id=document_id, revision_id=revision_id, user_id=current_user.id
+        )
+        if storage_key:
+            with suppress(ObjectStorageError):
+                pdf_url = await object_storage.presigned_download_url(storage_key, expires_in=60)
+    response.headers["Cache-Control"] = "private, no-store"
+    return RagSourcePreviewResponse(
+        document_id=row.document_id,
+        chunk_id=row.id,
+        revision_id=row.revision_id,
+        content=row.content,
+        page_number=metadata.get("page_number"),
+        section_heading=metadata.get("section_heading"),
+        sheet_id=metadata.get("sheet_id"),
+        table_row_start=metadata.get("table_row_start"),
+        table_row_end=metadata.get("table_row_end"),
+        source_spans=metadata.get("source_spans"),
+        original_pdf_url=pdf_url,
     )
 
 

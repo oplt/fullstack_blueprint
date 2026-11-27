@@ -37,7 +37,10 @@ class OutboxRepository:
         )
         inserted_id = (await self.db.execute(statement)).scalar_one_or_none()
         if inserted_id is not None:
-            return await self.db.get(OutboxEvent, inserted_id)
+            inserted_event = await self.db.get(OutboxEvent, inserted_id)
+            if inserted_event is None:
+                raise RuntimeError("Inserted outbox event could not be loaded")
+            return inserted_event
 
         conditions = [OutboxEvent.event_id == event.event_id]
         if event.dedupe_key:

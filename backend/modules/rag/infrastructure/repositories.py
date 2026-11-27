@@ -1,18 +1,16 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from typing import cast
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import JSON, Table, and_, delete, or_, select, update
+from sqlalchemy import cast as sql_cast
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
 from backend.lib.vector_search import store_chunk_embeddings_batch
-from backend.modules.rag.domain.enums import DocumentStatus, IngestionJobStatus
-from backend.modules.rag.infrastructure.repository_scope import (
-    _IN_CLAUSE_BATCH,
-    _owned_document_scope,
-)
+from backend.modules.rag.domain.enums import DocumentStatus, IngestionErrorCode, IngestionJobStatus
 from backend.modules.rag.infrastructure.models import (
     RagChunk,
     RagDocument,
@@ -20,6 +18,10 @@ from backend.modules.rag.infrastructure.models import (
     RagIngestionJob,
     RagQueryRecord,
     RagRetrievalTrace,
+)
+from backend.modules.rag.infrastructure.repository_scope import (
+    _IN_CLAUSE_BATCH,
+    _owned_document_scope,
 )
 
 
@@ -57,13 +59,20 @@ class RagRepository:
         return row
 
     async def get_document(
-        self, document_id: str, *, user_id: str | None = None
+        self,
+        document_id: str,
+        *,
+        user_id: str | None = None,
+        for_update: bool = False,
+        include_deleted: bool = False,
     ) -> RagDocument | None:
-        stmt = select(RagDocument).where(
-            RagDocument.id == document_id, RagDocument.deleted_at.is_(None)
-        )
+        stmt = select(RagDocument).where(RagDocument.id == document_id)
+        if not include_deleted:
+            stmt = stmt.where(RagDocument.deleted_at.is_(None))
         if user_id is not None:
             stmt = stmt.where(*_owned_document_scope(user_id))
+        if for_update:
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -181,6 +190,7 @@ class RagRepository:
         embedding_dimensions: int | None,
         embedding_preprocessing_version: str | None,
         embedding_model_id: str | None = None,
+        revision_id: str | None = None,
     ) -> RagDocumentRevision:
         revision = RagDocumentRevision(
             document_id=document.id,
@@ -195,6 +205,8 @@ class RagRepository:
             embedding_preprocessing_version=embedding_preprocessing_version,
             embedding_model_id=embedding_model_id,
         )
+        if revision_id is not None:
+            revision.id = revision_id
         self.db.add(revision)
         await self.db.flush()
         return revision
@@ -202,6 +214,8 @@ class RagRepository:
     async def activate_document_revision(
         self, document: RagDocument, revision: RagDocumentRevision
     ) -> None:
+        if document.deleted_at is not None or revision.document_id != document.id:
+            raise ValueError("Invalid document revision activation")
         document.current_revision_id = revision.id
         await self.db.flush()
 
@@ -268,7 +282,7 @@ class RagRepository:
         await self.db.flush()
         await store_chunk_embeddings_batch(
             self.db,
-            table="rag_chunks",
+            table=cast(Table, RagChunk.__table__),
             items=[
                 (row.id, item.get("embedding") or [])
                 for row, item in zip(rows, chunks, strict=True)
@@ -276,6 +290,17 @@ class RagRepository:
         )
         await self.db.flush()
         return rows
+
+    async def has_live_storage_reference(self, storage_path: str) -> bool:
+        result = await self.db.execute(
+            select(RagDocument.id)
+            .where(
+                RagDocument.storage_path == storage_path,
+                RagDocument.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None
 
     async def delete_chunks_for_document(self, document_id: str) -> None:
         await self.db.execute(delete(RagChunk).where(RagChunk.document_id == document_id))
@@ -324,6 +349,24 @@ class RagRepository:
             )
         )
 
+    async def list_preview_revisions(
+        self, *, user_id: str, project_id: str | None, document_ids: list[str] | None
+    ) -> list[tuple[str, str]]:
+        if document_ids == []:
+            return []
+        statement = select(RagDocument.id, RagDocument.current_revision_id).where(
+            *_owned_document_scope(user_id),
+            RagDocument.deleted_at.is_(None),
+            RagDocument.status == DocumentStatus.INDEXED.value,
+            RagDocument.current_revision_id.is_not(None),
+        )
+        if project_id is not None:
+            statement = statement.where(RagDocument.project_id == project_id)
+        if document_ids is not None:
+            statement = statement.where(RagDocument.id.in_(document_ids))
+        result = await self.db.execute(statement.order_by(RagDocument.id).limit(501))
+        return [(document_id, revision) for document_id, revision in result if revision is not None]
+
     async def list_chunks_for_document(
         self,
         document_id: str,
@@ -362,8 +405,13 @@ class RagRepository:
         await self.db.flush()
         return job
 
-    async def get_ingestion_job(self, job_id: str) -> RagIngestionJob | None:
-        result = await self.db.execute(select(RagIngestionJob).where(RagIngestionJob.id == job_id))
+    async def get_ingestion_job(
+        self, job_id: str, *, for_update: bool = False
+    ) -> RagIngestionJob | None:
+        stmt = select(RagIngestionJob).where(RagIngestionJob.id == job_id)
+        if for_update:
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
+        result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_active_ingestion_job(self, document_id: str) -> RagIngestionJob | None:
@@ -375,28 +423,153 @@ class RagRepository:
                     [IngestionJobStatus.PENDING.value, IngestionJobStatus.RUNNING.value]
                 ),
             )
-            .order_by(RagIngestionJob.created_at.desc())
+            .order_by(RagIngestionJob.created_at.desc(), RagIngestionJob.id.desc())
+            .limit(1)
+            .execution_options(populate_existing=True)
         )
         return result.scalar_one_or_none()
 
-    async def claim_ingestion_job(self, job_id: str) -> bool:
-        now = datetime.now(UTC)
+    async def get_latest_ingestion_job(self, document_id: str) -> RagIngestionJob | None:
         result = await self.db.execute(
+            select(RagIngestionJob)
+            .where(RagIngestionJob.document_id == document_id)
+            .order_by(RagIngestionJob.created_at.desc(), RagIngestionJob.id.desc())
+            .limit(1)
+            .execution_options(populate_existing=True)
+        )
+        return result.scalar_one_or_none()
+
+    async def has_published_content(self, document: RagDocument) -> bool:
+        if document.current_revision_id or document.status == DocumentStatus.INDEXED.value:
+            return True
+        # Legacy documents may have searchable chunks without a revision ID.
+        result = await self.db.execute(
+            select(RagChunk.id)
+            .where(RagChunk.document_id == document.id, RagChunk.revision_id.is_(None))
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None
+
+    @staticmethod
+    def is_ingestion_job_expired(job: RagIngestionJob, *, lease_seconds: int = 120) -> bool:
+        if job.status != IngestionJobStatus.RUNNING.value:
+            return False
+        heartbeat = job.last_heartbeat_at or job.started_at or job.created_at
+        if heartbeat.tzinfo is None:
+            heartbeat = heartbeat.replace(tzinfo=UTC)
+        return heartbeat <= datetime.now(UTC) - timedelta(seconds=lease_seconds)
+
+    async def claim_ingestion_job(self, job_id: str, *, lease_seconds: int = 120) -> bool:
+        """Claim under document->job lock order; started_at fences each attempt.
+
+        Reclaim expired jobs on redelivery. A separate scheduler is needed to
+        redispatch abandoned jobs that never receive another delivery.
+        """
+        job = await self.get_ingestion_job(job_id)
+        if job is None:
+            return False
+        document = await self.get_document(job.document_id, for_update=True)
+        if document is None:
+            return False
+        job = await self.get_ingestion_job(job_id, for_update=True)
+        if job is None:
+            return False
+        latest = await self.get_latest_ingestion_job(document.id)
+        if latest is None or latest.id != job.id:
+            return False
+        if job.project_id != document.project_id or job.user_id != document.user_id:
+            return False
+        now = datetime.now(UTC)
+        if job.status == IngestionJobStatus.RUNNING.value:
+            if not self.is_ingestion_job_expired(job, lease_seconds=lease_seconds):
+                return False
+        elif job.status == IngestionJobStatus.FAILED.value:
+            if job.error_code not in {
+                IngestionErrorCode.STORAGE_UNAVAILABLE.value,
+                IngestionErrorCode.SCAN_UNAVAILABLE.value,
+                IngestionErrorCode.EMBEDDING_FAILED.value,
+                IngestionErrorCode.DATABASE_UNAVAILABLE.value,
+                IngestionErrorCode.WORKER_CANCELLED.value,
+            }:
+                return False
+        elif job.status != IngestionJobStatus.PENDING.value:
+            return False
+        if job.status != IngestionJobStatus.PENDING.value:
+            if job.retry_count >= job.max_retries:
+                if job.status == IngestionJobStatus.RUNNING.value:
+                    await self.update_ingestion_job(
+                        job,
+                        status=IngestionJobStatus.FAILED,
+                        finished=True,
+                        error_code=IngestionErrorCode.WORKER_LEASE_LOST.value,
+                        error_message="Indexing worker expired; retry limit reached.",
+                    )
+                    await self.update_document_status(
+                        document,
+                        DocumentStatus.INDEXED
+                        if await self.has_published_content(document)
+                        else DocumentStatus.FAILED,
+                    )
+                return False
+            job.retry_count += 1
+        job.status = IngestionJobStatus.RUNNING.value
+        # Preserve a distinct fencing value even if the local clock moves back.
+        previous_start = job.started_at
+        if previous_start is not None:
+            if previous_start.tzinfo is None:
+                previous_start = previous_start.replace(tzinfo=UTC)
+            now = max(now, previous_start + timedelta(microseconds=1))
+        job.started_at = now
+        job.last_heartbeat_at = now
+        job.finished_at = None
+        job.error_code = None
+        job.error_message = None
+        job.progress_percent = 0
+        job.malware_scan_status = "pending"
+        await self.db.flush()
+        return True
+
+    async def lock_ingestion_attempt(
+        self, *, document_id: str, job_id: str, started_at: datetime
+    ) -> tuple[RagDocument, RagIngestionJob] | None:
+        """Lock and reload the current attempt before any state mutation."""
+        document = await self.get_document(document_id, for_update=True)
+        if document is None:
+            return None
+        job = await self.get_ingestion_job(job_id, for_update=True)
+        if (
+            job is None
+            or job.document_id != document.id
+            or job.user_id != document.user_id
+            or job.project_id != document.project_id
+            or job.status != IngestionJobStatus.RUNNING.value
+            or job.started_at != started_at
+        ):
+            return None
+        latest = await self.get_latest_ingestion_job(document.id)
+        if latest is None or latest.id != job.id:
+            return None
+        return document, job
+
+    async def cancel_active_ingestion_jobs(self, document_id: str) -> None:
+        await self.db.execute(
             update(RagIngestionJob)
             .where(
-                RagIngestionJob.id == job_id,
+                RagIngestionJob.document_id == document_id,
                 RagIngestionJob.status.in_(
-                    [IngestionJobStatus.PENDING.value, IngestionJobStatus.FAILED.value]
+                    [
+                        IngestionJobStatus.PENDING.value,
+                        IngestionJobStatus.RUNNING.value,
+                    ]
                 ),
             )
             .values(
-                status=IngestionJobStatus.RUNNING.value,
-                started_at=now,
-                last_heartbeat_at=now,
+                status=IngestionJobStatus.CANCELLED.value,
+                finished_at=datetime.now(UTC),
+                error_code=IngestionErrorCode.DOCUMENT_DELETED.value,
+                error_message="Document deleted.",
             )
-            .returning(RagIngestionJob.id)
         )
-        return result.scalar_one_or_none() is not None
 
     async def update_ingestion_job(
         self,
@@ -544,3 +717,64 @@ class RagRepository:
             return []
         result = await self.db.execute(select(RagChunk).where(RagChunk.id.in_(chunk_ids)))
         return list(result.scalars().all())
+
+    async def get_chunks_by_ids_for_scope(
+        self,
+        chunk_ids: list[str],
+        *,
+        user_id: str,
+        project_id: str | None,
+        document_ids: list[str] | None,
+        current_only: bool = False,
+    ) -> list[RagChunk]:
+        if not chunk_ids or document_ids == []:
+            return []
+        stmt = (
+            select(RagChunk)
+            .join(RagDocument, RagDocument.id == RagChunk.document_id)
+            .where(
+                RagChunk.id.in_(chunk_ids),
+                *_owned_document_scope(user_id),
+                RagDocument.deleted_at.is_(None),
+            )
+        )
+        if project_id is not None:
+            stmt = stmt.where(RagDocument.project_id == project_id)
+        if document_ids is not None:
+            stmt = stmt.where(RagDocument.id.in_(document_ids))
+        if current_only:
+            stmt = stmt.where(
+                RagDocument.status == DocumentStatus.INDEXED.value,
+                or_(
+                    RagDocument.current_revision_id == RagChunk.revision_id,
+                    and_(RagDocument.current_revision_id.is_(None), RagChunk.revision_id.is_(None)),
+                ),
+            ).execution_options(populate_existing=True)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_current_pdf_source_key(
+        self, *, document_id: str, revision_id: str, user_id: str
+    ) -> str | None:
+        """Return the original PDF object only when its bytes match the current revision."""
+        checksum = sql_cast(RagDocument.metadata_json, JSON).op("->>")("checksum_sha256")
+        stmt = (
+            select(RagDocument.storage_path)
+            .join(
+                RagDocumentRevision,
+                and_(
+                    RagDocumentRevision.id == RagDocument.current_revision_id,
+                    RagDocumentRevision.document_id == RagDocument.id,
+                ),
+            )
+            .where(
+                RagDocument.id == document_id,
+                RagDocumentRevision.id == revision_id,
+                *_owned_document_scope(user_id),
+                RagDocument.deleted_at.is_(None),
+                RagDocument.status == DocumentStatus.INDEXED.value,
+                RagDocument.content_type == "application/pdf",
+                RagDocumentRevision.source_content_hash == checksum,
+            )
+        )
+        return await self.db.scalar(stmt)

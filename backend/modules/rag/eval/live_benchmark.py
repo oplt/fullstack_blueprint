@@ -20,11 +20,14 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.modules.identity_access.models import User
 from backend.modules.rag.application.retrieval_service import RetrievalService
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
 from backend.modules.rag.eval.load_benchmark import DEFAULT_SCALES
 from backend.modules.rag.eval.pgvector_benchmark import measure_pgvector_search
 from backend.modules.rag.infrastructure.models import RagChunk  # noqa: F401
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
+
+MIN_BENCHMARK_RECALL = 0.5
 
 
 def seeded_vector(seed: int) -> list[float]:
@@ -42,7 +45,10 @@ async def run(scale_index: int, output: Path, samples: int = 20) -> dict:
         async with async_sessionmaker(engine, expire_on_commit=False)() as db:
             if (await db.execute(text("SELECT count(*) FROM rag_documents"))).scalar_one():
                 raise ValueError("Benchmark requires an empty disposable RAG database")
-            user = User(email=f"benchmark-{uuid4()}@example.invalid", password_hash="disabled")
+            user = User(
+                email=f"benchmark-{uuid4()}@example.invalid",
+                password_hash="disabled",  # noqa: S106 - unusable synthetic hash
+            )
             db.add(user)
             await db.flush()
             repo = RagRepository(db)
@@ -151,11 +157,13 @@ async def run(scale_index: int, output: Path, samples: int = 20) -> dict:
             for index in range(samples):
                 started = perf_counter()
                 outcome = await retrieval.retrieve(
-                    f"research evidence {scale.chunks + index}",
-                    user_id=user.id,
-                    project_id=None,
-                    top_k=10,
-                    filters={"document_ids": documents, "index_revision_ids": revisions},
+                    RetrievalRequest(
+                        query=f"research evidence {scale.chunks + index}",
+                        user_id=user.id,
+                        project_id=None,
+                        top_k=10,
+                        filters={"document_ids": documents, "index_revision_ids": revisions},
+                    )
                 )
                 if outcome.degraded:
                     raise AssertionError("Hybrid measurement degraded; refusing latency report")
@@ -197,11 +205,14 @@ async def run(scale_index: int, output: Path, samples: int = 20) -> dict:
                     "production_plan_warning": None if report["ann_index_used"] else "exact_scan",
                 }
             )
-            output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(json.dumps(report, indent=2))
-            if not forced["ann_index_used"] or forced["recall_at_10"] < 0.5:
+            await asyncio.to_thread(output.parent.mkdir, parents=True, exist_ok=True)
+            await asyncio.to_thread(output.write_text, json.dumps(report, indent=2))
+            if not forced["ann_index_used"] or forced["recall_at_10"] < MIN_BENCHMARK_RECALL:
                 raise AssertionError(f"ANN diagnostic failed; inspect {output}")
-            if report["recall_at_10"] < 0.5 or filtered["recall_at_10"] < 0.5:
+            if (
+                report["recall_at_10"] < MIN_BENCHMARK_RECALL
+                or filtered["recall_at_10"] < MIN_BENCHMARK_RECALL
+            ):
                 raise AssertionError(f"Recall below conservative 0.5 threshold; inspect {output}")
             return report
     finally:

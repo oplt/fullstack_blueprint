@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.admin import get_admin_user
-from backend.api.deps.db import get_db
+from backend.dependencies.admin import get_admin_user
+from backend.dependencies.db import get_db
 from backend.modules.audit.request_logging import log_request_audit_event
 from backend.modules.identity_access.models import User
 from backend.modules.platform.config_service import PlatformConfigService
@@ -12,10 +12,11 @@ from backend.modules.platform.schemas import (
     PlatformMetadataResponse,
 )
 
+metadata_router = APIRouter()
 router = APIRouter()
 
 
-@router.get("/metadata", response_model=PlatformMetadataResponse)
+@metadata_router.get("/metadata", response_model=PlatformMetadataResponse)
 async def get_platform_metadata(db: AsyncSession = Depends(get_db)):
     service = PlatformConfigService(db)
     return await service.get_platform_metadata()

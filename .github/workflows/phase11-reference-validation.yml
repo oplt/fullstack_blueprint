@@ -3,7 +3,7 @@ name: Phase 11 reference validation
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -22,6 +22,8 @@ jobs:
       REFERENCE_ROOT: /tmp/fullstack-blueprint-phase11-reference-apps
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: "0.10.0"
@@ -39,12 +41,23 @@ jobs:
             uv lock --check --project "$REFERENCE_ROOT/$app/backend"
             uv sync --locked --all-extras --project "$REFERENCE_ROOT/$app/backend"
             (cd "$REFERENCE_ROOT/$app/backend" && uv run --locked --all-extras pytest . -q)
+            (
+            cd "$REFERENCE_ROOT/$app/backend"
+
+              JWT_SECRET="$(python3 -c \
+              'import secrets; print(secrets.token_hex(32))')"
+              export JWT_SECRET
+
+            uv run --locked --all-extras \
+            --env-file ../.env.generated \
+            python scripts/export_openapi.py \
+            --profile runtime \
+            --output "/tmp/$app-openapi.json"
+            )
             (cd "$REFERENCE_ROOT/$app/backend" && uv run --locked --all-extras \
-              python scripts/export_openapi.py --profile runtime --output "/tmp/$app-openapi.json")
-            (cd "$REFERENCE_ROOT/$app/backend" && uv run --locked --all-extras \
-              python scripts/validate_openapi.py --input "/tmp/$app-openapi.json")
+            python scripts/validate_openapi.py --input "/tmp/$app-openapi.json")
             docker compose -f "$REFERENCE_ROOT/$app/deployment/docker-compose.yml" config --quiet
-          done
+            done
       - name: Build generated API and worker images
         run: |
           for app in traditional-saas ai-knowledge-platform agent-automation-platform; do

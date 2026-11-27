@@ -14,9 +14,12 @@ export function ActivityTimeline({ items }: { items: ActivityItem[] }) {
             {items.map((item) => (
                 <li key={item.id} className="relative flex gap-3">
                     <span className="mt-0.5 text-muted-foreground">
-                        {item.status === "complete" ? <CheckCircle2 className="size-4 text-success" />
-                            : item.status === "active" ? <Clock3 className="size-4 text-primary" />
-                                : <Circle className="size-4" />}
+                        <span className="sr-only">
+                            {item.status === "complete" ? "Complete" : item.status === "active" ? "Active" : "Pending"}
+                        </span>
+                        {item.status === "complete" ? <CheckCircle2 aria-hidden="true" className="size-4 text-success-deep" />
+                            : item.status === "active" ? <Clock3 aria-hidden="true" className="size-4 text-success-deep" />
+                                : <Circle aria-hidden="true" className="size-4" />}
                     </span>
                     <div className="min-w-0">
                         <p className="font-medium">{item.title}</p>

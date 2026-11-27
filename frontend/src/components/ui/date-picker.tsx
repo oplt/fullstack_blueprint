@@ -48,7 +48,7 @@ export function DatePicker({
             disabled={disabled}
             aria-label={ariaLabel}
             className={cn(
-              "w-[240px] justify-start text-left font-normal",
+              "w-[240px] justify-start rounded-sm bg-card text-left font-normal",
               !value && "text-muted-foreground",
               className,
             )}

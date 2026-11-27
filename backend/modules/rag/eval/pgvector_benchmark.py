@@ -2,18 +2,52 @@
 
 from __future__ import annotations
 
+import asyncio
 import math
-import subprocess
+import shutil
 from collections.abc import Callable
 from datetime import UTC, datetime
 from time import perf_counter
 from typing import Any
 
-from sqlalchemy import text
+from sqlalchemy import bindparam, cast, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.lib.vectors import vector_literal
+from backend.modules.rag.domain.retrieval_scope import RetrievalScope
+from backend.modules.rag.infrastructure.models import RagChunk, RagDocument
 from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
+
+MIN_TOP_K_FOR_RECALL_AT_10 = 10
+MAX_QUERY_PLANS = 3
+P99_LATENCY_PERCENTILE = 99
+MIN_P99_SAMPLE_COUNT = 100
+
+
+async def _git_revision() -> str:
+    executable = shutil.which("git")
+    if executable is None:
+        raise RuntimeError("Git executable is unavailable for benchmark metadata")
+    process = await asyncio.create_subprocess_exec(
+        executable,
+        "rev-parse",
+        "HEAD",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+    try:
+        stdout, _ = await asyncio.wait_for(process.communicate(), timeout=5)
+    except asyncio.CancelledError:
+        process.kill()
+        await process.wait()
+        raise
+    except TimeoutError as exc:
+        process.kill()
+        await process.wait()
+        raise RuntimeError("Git revision lookup timed out") from exc
+    if process.returncode != 0:
+        raise RuntimeError("Git revision lookup failed")
+    return stdout.decode().strip()
 
 
 def recall_at_k(exact_ids: list[str], ann_ids: list[str], *, k: int) -> float:
@@ -115,19 +149,23 @@ async def measure_pgvector_search(
     Use a dedicated benchmark session: planner changes are transaction-local.
     Input vectors must come from a reproducible fixture or a declared model.
     """
-    if not queries or k < 10:
+    if not queries or k < MIN_TOP_K_FOR_RECALL_AT_10:
         raise ValueError("Provide queries and k >= 10 for Recall@10")
     repo = RagSearchRepository(db)
     samples = []
     plans = []
     options = dict(
-        user_id=user_id,
-        project_id=project_id,
-        document_ids=document_ids,
-        index_revision_ids=index_revision_ids,
+        scope=RetrievalScope(
+            user_id=user_id,
+            project_id=project_id,
+            document_ids=tuple(document_ids) if document_ids is not None else None,
+            owner_scoped=False,
+            index_revision_ids=(
+                tuple(index_revision_ids) if index_revision_ids is not None else None
+            ),
+        ),
         top_k=k,
         score_threshold=-1.0,
-        owner_scoped=False,
     )
     for query in queries:
         async with db.begin_nested():
@@ -172,34 +210,26 @@ async def measure_pgvector_search(
                     "candidate_count": len(ann_ids),
                 }
             )
-            if len(plans) < 3:
+            if len(plans) < MAX_QUERY_PLANS:
                 params = {"query_vec": vector_literal(query), "top_k": k, "score_threshold": -1.0}
                 filters = repo._retrieval_scope_filters(
-                    user_id=user_id,
-                    project_id=project_id,
-                    document_ids=document_ids,
-                    owner_scoped=False,
-                    params=params,
-                    index_revision_ids=index_revision_ids,
+                    options["scope"],
                 )
-                where = " AND ".join(
-                    [
-                        *(filters if filters is not None else ["FALSE"]),
-                        "c.embedding IS NOT NULL",
-                        "(1 - (c.embedding <=> CAST(:query_vec AS vector))) >= :score_threshold",
-                    ]
+                query_vector = cast(bindparam("query_vec"), RagChunk.embedding.type)
+                distance = RagChunk.embedding.op("<=>")(query_vector)
+                statement = (
+                    select(RagChunk.id)
+                    .join(RagDocument, RagDocument.id == RagChunk.document_id)
+                    .where(
+                        *(filters or [False]),
+                        RagChunk.embedding.is_not(None),
+                        1 - distance >= bindparam("score_threshold"),
+                    )
+                    .order_by(distance)
+                    .limit(bindparam("top_k"))
+                    .prefix_with("EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)")
                 )
-                plan = await db.execute(
-                    text(
-                        "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) "
-                        "SELECT c.id FROM rag_chunks c "
-                        "JOIN rag_documents d ON d.id=c.document_id "
-                        f"WHERE {where} "
-                        "ORDER BY c.embedding <=> CAST(:query_vec AS vector) "
-                        "LIMIT :top_k"
-                    ),
-                    params,
-                )
+                plan = await db.execute(statement, params)
                 plans.append(plan.scalar_one())
     latencies = sorted(sample["latency_ms"] for sample in samples)
     sizes = (
@@ -234,14 +264,17 @@ async def measure_pgvector_search(
     def percentile(values, percent):
         return (
             values[math.ceil(len(values) * percent / 100) - 1]
-            if (values and (percent != 99 or len(values) >= 100))
+            if (
+                values
+                and (percent != P99_LATENCY_PERCENTILE or len(values) >= MIN_P99_SAMPLE_COUNT)
+            )
             else None
         )
 
     ann_used = bool(ann_indexes & used_indexes)
     return {
         "measurement": "MEASURED",
-        "git_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "git_sha": await _git_revision(),
         "timestamp": datetime.now(UTC).isoformat(),
         "database_version": (await db.execute(text("SHOW server_version"))).scalar_one(),
         "pgvector_version": (
@@ -270,7 +303,10 @@ async def measure_pgvector_search(
         "plans": plans,
         "latency": {
             f"p{percent}_ms": latencies[math.ceil(len(latencies) * percent / 100) - 1]
-            if latencies and (percent != 99 or len(latencies) >= 100)
+            if (
+                latencies
+                and (percent != P99_LATENCY_PERCENTILE or len(latencies) >= MIN_P99_SAMPLE_COUNT)
+            )
             else None
             for percent in (50, 95, 99)
         },

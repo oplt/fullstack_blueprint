@@ -13,6 +13,7 @@ from backend.modules.ai.agent_contracts import (
     AgentRunState,
     ToolApprovalRequired,
     ToolExecutionContext,
+    ToolExecutionDenied,
     ToolExecutionResult,
     ToolSideEffect,
     TypedToolRegistry,
@@ -256,10 +257,13 @@ class AgentRuntime:
         definition: AgentDefinitionConfig,
         context: ToolExecutionContext,
     ) -> ToolExecutionResult:
+        tool_identifier = tool_call["name"]
+        if tool_identifier not in definition.tool_ids:
+            raise ToolExecutionDenied("Tool is not allowed for this agent")
         parameters = tool_call.get("arguments", {})
-        registered = self.tools.get(tool_call["name"])
+        registered = self.tools.get(tool_identifier)
         idempotency_key = immutable_action_hash(
-            tool_identifier=tool_call["name"],
+            tool_identifier=tool_identifier,
             tool_version=registered.definition.version,
             parameters=parameters,
             tenant_id=context.tenant_id,
@@ -274,7 +278,7 @@ class AgentRuntime:
             try:
                 result = await asyncio.wait_for(
                     self.tools.execute(
-                        tool_call["name"],
+                        tool_identifier,
                         parameters,
                         context,
                         idempotency_key=idempotency_key,
@@ -293,7 +297,8 @@ class AgentRuntime:
                     or not self._is_retryable_tool_error(exc, registered.definition.retry_policy)
                 ):
                     raise
-        assert result is not None
+        if result is None:
+            raise RuntimeError("Tool execution completed without a result")
         await self.ledger.put(result)
         if self.audit_sink is not None:
             await self.audit_sink.record(result, context)

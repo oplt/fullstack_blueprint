@@ -1,37 +1,76 @@
-# Backend agent instructions
+# Backend Agent Instructions
 
-## Stack and architecture
-- Use the installed Python, FastAPI, Pydantic Settings, async SQLAlchemy, PostgreSQL/pgvector, Alembic, Redis and Celery stack. Follow `pyproject.toml`, `uv.lock` and repository conventions.
-- Maintain a modular monolith: routers handle HTTP; services coordinate use cases; repositories/ports abstract persistence and integrations; infrastructure implements adapters.
-- Keep domain/application logic independent of HTTP, ORM and provider details where existing boundaries permit. Avoid adding layers to trivial CRUD without a reason.
-- Place domain features under `backend/modules`; use `api` for composition, `core`, `db`, and `lib` for genuinely shared infrastructure, and `workers` for job entry points.
-- Use `backend.*` imports, explicit type annotations and existing dependency injection. Avoid circular dependencies, module-internal imports across feature boundaries and catch-all helpers.
-- Reuse existing schemas, repositories, ports, services and error handling before adding another implementation. Extract shared code only when ownership and semantics align.
+## Stack and Architecture
+
+- Use the existing Python, FastAPI, Pydantic Settings, async SQLAlchemy, PostgreSQL/pgvector, Alembic, Redis and Celery stack.
+- Maintain the modular monolith:
+  - Routers handle HTTP.
+  - Services coordinate use cases.
+  - Repositories and ports define persistence and integration boundaries.
+  - Infrastructure implements adapters.
+- Keep domain features under backend/modules.
+- Use api for composition, core/db/lib for shared infrastructure and workers for job entry points.
+- Use backend.* imports, explicit typing and existing dependency injection.
+- Avoid circular dependencies, internal cross-module imports and unnecessary layers for simple CRUD.
 
 ## Persistence and API
-- Use request-scoped AsyncSession instances; do not share a session across concurrent tasks. Parallel persistence tasks must own separate sessions.
-- Define clear transaction boundaries; prevent partial writes and N+1 queries. Use bounded pagination and parameterized queries.
-- Keep persistence models distinct from public request/response schemas. Validate inputs with Pydantic and use established API error contracts.
-- Register new SQLAlchemy models in `alembic/env.py`, routers in `api/router.py`, and schema changes in an Alembic revision.
-- Do not edit applied migrations; test upgrade and schema consistency with disposable PostgreSQL/pgvector. Preserve compatibility or document authorized breaking changes.
-- Keep OpenAPI contracts synchronized with all consumers and validators.
 
-## Security and reliability
-- Enforce authentication, CSRF on cookie-authenticated writes, and resource authorization server-side for every operation; honor project owner/editor/viewer roles and tenant boundaries.
-- Validate resource ownership and project membership in queries, retrieval, ingestion and background operations. Never trust client-supplied identity or permissions.
-- Centralize typed settings and feature gates; protect secrets and PII in logs, prompts and traces.
-- Use existing job/queue conventions; make side effects retry-safe and enqueue after successful persistence when appropriate. Add bounded retries/timeouts and idempotency where warranted.
-- Preserve structured logging, observability and sanitized errors; never swallow failures or add silent fallbacks.
+- Use request-scoped AsyncSession instances; never share sessions across concurrent tasks.
+- Maintain explicit transaction boundaries, bounded pagination and parameterized queries.
+- Avoid N+1 queries and partial writes.
+- Separate persistence models from public API schemas.
+- Use Pydantic validation and existing API error contracts.
+- Register new models in alembic/env.py and routers in api/router.py.
+- Create Alembic revisions for schema changes; never modify applied migrations.
+- Preserve API compatibility unless breaking changes are authorized.
 
-## AI, agents, RAG and memory
-- Prefer deterministic logic over LLM calls when sufficient. Keep provider adapters, prompts, model configuration, tool definitions, orchestration and business rules separate.
-- Reuse existing generation ports and adapters; validate structured outputs and streamed events. Use explicit tool allowlists, least privilege, approval controls and bounded execution.
-- Treat user/retrieved content as untrusted; prevent prompt injection, cross-tenant leakage and unauthorized tool actions.
-- RAG owns document ingestion and index revisions; enforce document access at ingestion, indexing and retrieval. Keep embedding dimensions and index metadata consistent; migrate/reindex explicitly if they change.
-- Respect optional feature flags, provider configuration and disabled-feature behavior. Do not silently substitute heuristic or mock output for production results.
-- Evaluate meaningful AI changes with representative cases, including failures and adversarial inputs; monitor latency, token cost and retrieval quality without logging sensitive content.
+## Security and Reliability
 
-## Checks
-- From repository root: `make test-backend`; run targeted pytest tests using `backend/.venv/bin/python -m pytest <path>`.
-- Run `backend/.venv/bin/ruff check backend` and `backend/.venv/bin/ruff format --check backend`; use `make check` for broader changes.
-- Verify authorization, tenant isolation, transactions, job retries and API compatibility when affected; use real disposable infrastructure for integration coverage.
+- Enforce authentication, CSRF for cookie-authenticated writes, resource authorization and tenant isolation.
+- Respect project owner/editor/viewer permissions.
+- Validate ownership and membership in queries, ingestion, retrieval and background jobs.
+- Never trust client-provided identity or permissions.
+- Preserve typed settings, feature gates, structured logging and sanitized errors.
+- Use retry-safe background jobs and enqueue after successful persistence where appropriate.
+
+## AI, Agents, RAG and Memory
+
+Apply this section only when changing AI-related functionality.
+
+- Prefer deterministic logic when sufficient.
+- Reuse existing generation ports, providers and adapters.
+- Separate prompts, tools, orchestration, provider configuration and business rules.
+- Validate structured outputs and streamed events.
+- Use explicit tool allowlists, bounded execution and existing approval controls.
+- Protect against prompt injection, unauthorized tool actions and cross-tenant data leakage.
+- Preserve document authorization throughout ingestion, indexing and retrieval.
+- Keep embedding dimensions and index metadata consistent; migrate or reindex explicitly when needed.
+- Respect optional features and provider configuration.
+- Evaluate affected AI behavior with representative failure and adversarial cases.
+- Do not silently substitute mock or heuristic results for production behavior.
+
+## Validation
+
+Apply the global validation policy.
+
+Available commands from the repository root:
+
+- Targeted tests:
+  backend/.venv/bin/python -m pytest <test-path>
+
+- Lint changed Python files:
+  backend/.venv/bin/ruff check <changed-paths>
+
+- Check formatting:
+  backend/.venv/bin/ruff format --check <changed-paths>
+
+Run broader checks only when justified:
+
+- make test-backend: broad backend changes.
+- make check: cross-module or contract changes.
+- Migration tests: schema or migration changes.
+- Integration tests: affected authorization, tenancy, persistence or job behavior.
+
+Use existing environments.
+Do not start PostgreSQL, Redis, Celery or Docker services for tasks that do not require them.
+Do not run live LLM evaluations for unrelated backend changes.

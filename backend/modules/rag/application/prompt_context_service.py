@@ -9,12 +9,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.modules.memory.application.memory_service import MemoryService
 from backend.modules.memory.domain.models import MemoryItem, MemorySearchRequest
 from backend.modules.memory.infrastructure.memory_config import MemoryConfig
-from backend.modules.rag.application.rag_context_builder import RagContextBuilder
+from backend.modules.rag.application.rag_context_builder import (
+    RagContextBuilder,
+    render_reference_data,
+)
 from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.domain.models import RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 
 logger = logging.getLogger(__name__)
+PROMPT_MEMORY_RESULT_FIELDS = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,7 +104,9 @@ class PromptContextService:
         )
         document_context = self.context_builder.build_document_context_block(bounded_chunks)
         system_context = self.context_builder.assemble_agent_system_context(
-            memory_context=memory_context or None,
+            memory_context=render_reference_data("untrusted_memory", memory_context)
+            if memory_context
+            else None,
             document_context=document_context or None,
         )
         reason = retrieval.degradation_reason
@@ -133,11 +140,13 @@ class PromptContextService:
         if document_ids is not None:
             filters = {"document_ids": document_ids, "owner_scoped": True}
         return await self.retrieval.retrieve(
-            query,
-            user_id=user_id,
-            project_id=project_id,
-            top_k=top_k,
-            filters=filters,
+            RetrievalRequest(
+                query=query,
+                user_id=user_id,
+                project_id=project_id,
+                top_k=top_k,
+                filters=filters,
+            )
         )
 
     async def _recall_memory(
@@ -167,7 +176,7 @@ class PromptContextService:
     @staticmethod
     def _normalize_retrieval(result: object, *, user_id: str) -> RetrievalOutcome:
         if isinstance(result, BaseException):
-            logger.error("Prompt retrieval degraded user=%s: %s", user_id, result)
+            logger.error("Prompt retrieval degraded user=%s: %s", user_id, type(result).__name__)
             return RetrievalOutcome(
                 chunks=[],
                 degraded=True,
@@ -189,9 +198,11 @@ class PromptContextService:
         run_id: str | None,
     ) -> tuple[str, list[MemoryItem], bool]:
         if isinstance(result, BaseException):
-            logger.error("Prompt memory degraded user=%s run=%s: %s", user_id, run_id, result)
+            logger.error(
+                "Prompt memory degraded user=%s run=%s: %s", user_id, run_id, type(result).__name__
+            )
             return "", [], True
-        if isinstance(result, tuple) and len(result) == 3:
+        if isinstance(result, tuple) and len(result) == PROMPT_MEMORY_RESULT_FIELDS:
             context, memories, degraded = result
             return str(context), list(memories), bool(degraded)
         return "", [], True

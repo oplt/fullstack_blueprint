@@ -7,7 +7,7 @@ import type { ConfigDraft } from "../platformAdminModel";
 
 export function AdminPlatformStats({ config, plans, flags, templates }: { config: ConfigDraft; plans: SubscriptionPlan[]; flags: FeatureFlag[]; templates: EmailTemplate[] }) {
     return (
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+        <div className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
             <StatCard label="Enabled modules" value={Object.values(config.module_states).filter(Boolean).length} description="Modules currently exposed by the selected pack and overrides" icon={<Puzzle />} />
             <StatCard label="Subscription plans" value={plans.length} description="Commercial tiers available across the platform" icon={<Tag />} color="secondary" />
             <StatCard label="Feature flags" value={flags.length} description="Flags available for rollout and experimentation" icon={<FlagIcon />} color="success" />

@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.admin import get_admin_user
-from backend.api.deps.auth import get_current_user
-from backend.api.deps.db import get_db
+from backend.dependencies.admin import get_admin_user
+from backend.dependencies.auth import get_current_user
+from backend.dependencies.db import get_db
 from backend.modules.audit.request_logging import log_request_audit_event
 from backend.modules.identity_access.models import User
 from backend.modules.platform.billing_service import BillingService
@@ -82,7 +82,8 @@ async def select_subscription_plan(
     service = BillingService(db)
     subscription = await service.select_plan_for_user(current_user, payload.plan_code)
     plan = await service.repo.get_plan_by_id(subscription.plan_id)
-    assert plan is not None
+    if plan is None:
+        raise HTTPException(status_code=500, detail="Selected subscription plan is unavailable")
     return _subscription_to_response(subscription, plan)
 
 

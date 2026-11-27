@@ -15,7 +15,7 @@ import {
     type VisibilityState,
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight, Download, Search, SlidersHorizontal } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 import { Button } from "./button";
@@ -23,6 +23,7 @@ import { EmptyState } from "./EmptyState";
 import { Input } from "./input";
 import { Checkbox } from "./checkbox";
 import { NativeSelect } from "./native-select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
 
 export type AdvancedDataTableProps<T> = {
     columns: ColumnDef<T, unknown>[];
@@ -209,27 +210,29 @@ export function AdvancedDataTable<T>({
                     {csvFileName || onExport ? <Button variant="outline" onClick={exportRows} type="button"><Download className="mr-2 size-4" />Export CSV</Button> : null}
                 </div>
             </div>
-            {error ? <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
-            {loading ? <div className="space-y-2" aria-busy="true"><div className="animate-pulse rounded-md bg-muted h-10 w-full rounded-lg" /><div className="animate-pulse rounded-md bg-muted h-52 w-full rounded-lg" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={emptyIcon ?? <span aria-hidden="true">∅</span>} /> : <div className="overflow-x-auto rounded-lg border border-border">
-                <table className={`w-full border-collapse text-sm ${density === "compact" ? "[&_td]:py-0.5 [&_th]:py-1" : "[&_td]:py-1.5 [&_th]:py-1.5"}`} aria-label={ariaLabel} aria-busy={loading}>
-                    <thead className={stickyHeader ? "sticky top-0 z-10 bg-muted/95" : "bg-muted/60"}><tr>
-                        {enableExpanding ? <th scope="col" className="w-10 p-2" /> : null}
-                        {enableRowSelection ? <th scope="col" className="w-10 p-2"><Checkbox aria-label="Select all rows" checked={table.getIsAllRowsSelected()} indeterminate={table.getIsSomeRowsSelected()} onCheckedChange={(checked) => table.toggleAllRowsSelected(checked)} /></th> : null}
-                        {table.getHeaderGroups().map((group) => group.headers.map((header) => <th key={header.id} scope="col" className={`relative whitespace-nowrap border-b border-border px-3 text-left font-semibold ${stickyFirstColumn && header.column.getIndex() === 0 ? "sticky left-0 z-10 bg-muted" : ""}`} style={{ width: header.getSize() }}>{header.isPlaceholder ? null : <div className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined} onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === "asc" ? " ↑" : header.column.getIsSorted() === "desc" ? " ↓" : null}</div>}{enableColumnResizing && header.column.getCanResize() ? <span onMouseDown={header.getResizeHandler()} onTouchStart={header.getResizeHandler()} className="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary" aria-hidden="true" /> : null}</th>))}
-                    </tr></thead>
-                    <tbody>{table.getRowModel().rows.map((row) => <>
-                        <tr key={row.id} onClick={(event) => { if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea, label")) return; onRowClick?.(row.original); }} className={selectedRowId === row.id ? "border-b border-border bg-primary/10" : "border-b border-border hover:bg-muted/30"} aria-selected={selectedRowId === row.id || row.getIsSelected()}>
-                            {enableExpanding ? <td className="p-2"><Button variant="ghost" size="icon-sm" aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"} onClick={row.getToggleExpandedHandler()} type="button">{row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}</Button></td> : null}
-                            {enableRowSelection ? <td className="p-2"><Checkbox aria-label={`Select row ${row.id}`} checked={row.getIsSelected()} disabled={!row.getCanSelect()} onCheckedChange={(checked) => row.toggleSelected(checked)} /></td> : null}
-                            {row.getVisibleCells().map((cell) => <td key={cell.id} className={`px-3 align-top ${stickyFirstColumn && cell.column.getIndex() === 0 ? "sticky left-0 bg-card" : ""}`}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}
-                        </tr>
-                        {row.getIsExpanded() ? <tr key={`${row.id}-expanded`}><td colSpan={colSpan} className="bg-muted/20 p-3">{renderSubComponent?.(row.original)}</td></tr> : null}
-                    </>)}</tbody>
-                </table>
+            {error ? <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-sm text-destructive-deep">{error}</div> : null}
+            {loading ? <div className="space-y-2" aria-busy="true"><div className="animate-pulse rounded-md bg-muted h-10 w-full rounded-lg" /><div className="animate-pulse rounded-md bg-muted h-52 w-full rounded-lg" /></div> : !hasRows ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} icon={emptyIcon ?? <span aria-hidden="true">∅</span>} /> : <div className="overflow-x-auto rounded-md border border-border">
+                <Table density={density} aria-label={ariaLabel} aria-busy={loading}>
+                    <TableHeader className={stickyHeader ? "sticky top-0 z-(--z-sticky) bg-muted/95" : "bg-muted/60"}>
+                        <TableRow>
+                            {enableExpanding ? <TableHead scope="col" className="w-10 px-2" /> : null}
+                            {enableRowSelection ? <TableHead scope="col" className="w-10 px-2"><Checkbox aria-label="Select all rows" checked={table.getIsAllRowsSelected()} indeterminate={table.getIsSomeRowsSelected()} onCheckedChange={(checked) => table.toggleAllRowsSelected(checked)} /></TableHead> : null}
+                            {table.getHeaderGroups().map((group) => group.headers.map((header) => <TableHead key={header.id} scope="col" className={`relative font-semibold text-foreground ${stickyFirstColumn && header.column.getIndex() === 0 ? "sticky left-0 z-(--z-sticky) bg-muted" : ""}`} style={{ width: header.getSize() }}>{header.isPlaceholder ? null : <div className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined} onClick={header.column.getToggleSortingHandler()}>{flexRender(header.column.columnDef.header, header.getContext())}{header.column.getIsSorted() === "asc" ? " ↑" : header.column.getIsSorted() === "desc" ? " ↓" : null}</div>}{enableColumnResizing && header.column.getCanResize() ? <span onMouseDown={header.getResizeHandler()} onTouchStart={header.getResizeHandler()} className="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none hover:bg-primary" aria-hidden="true" /> : null}</TableHead>))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>{table.getRowModel().rows.map((row) => <Fragment key={row.id}>
+                        <TableRow key={row.id} onClick={(event) => { if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea, label")) return; onRowClick?.(row.original); }} className={selectedRowId === row.id ? "border-b border-border bg-primary/10" : "border-b border-border hover:bg-muted/30"} aria-selected={selectedRowId === row.id || row.getIsSelected()}>
+                            {enableExpanding ? <TableCell className="px-2"><Button variant="ghost" size="icon-sm" aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"} onClick={row.getToggleExpandedHandler()} type="button">{row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}</Button></TableCell> : null}
+                            {enableRowSelection ? <TableCell className="px-2"><Checkbox aria-label={`Select row ${row.id}`} checked={row.getIsSelected()} disabled={!row.getCanSelect()} onCheckedChange={(checked) => row.toggleSelected(checked)} /></TableCell> : null}
+                            {row.getVisibleCells().map((cell) => <TableCell key={cell.id} className={stickyFirstColumn && cell.column.getIndex() === 0 ? "sticky left-0 bg-card" : "align-top"}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>)}
+                        </TableRow>
+                        {row.getIsExpanded() ? <TableRow key={`${row.id}-expanded`}><TableCell colSpan={colSpan} className="bg-muted/20 p-3">{renderSubComponent?.(row.original)}</TableCell></TableRow> : null}
+                    </Fragment>)}</TableBody>
+                </Table>
             </div>}
             <div className="flex flex-col justify-between gap-2 text-sm sm:flex-row sm:items-center">
                 <span className="text-muted-foreground">{table.getFilteredRowModel().rows.length} result{table.getFilteredRowModel().rows.length === 1 ? "" : "s"}</span>
-                <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows <NativeSelect value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="min-h-8 px-1 py-1">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</NativeSelect></label><Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()} type="button">Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} type="button">Next</Button></div>
+                <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows <NativeSelect value={pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))} className="md:h-8 md:[--control-padding-x:var(--space-xxs)] md:[--control-padding-y:var(--space-xxs)]">{pageSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}</NativeSelect></label><Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()} type="button">Previous</Button><span>Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}</span><Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} type="button">Next</Button></div>
             </div>
         </section>
     );

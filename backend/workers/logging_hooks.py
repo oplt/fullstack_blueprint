@@ -95,7 +95,7 @@ def attach_correlation_and_enqueue_time(
 
 
 @task_prerun.connect
-def log_task_start(task_id=None, task=None, **kwargs) -> None:
+def log_task_start(task_id=None, task=None, **_kwargs) -> None:
     if task_id is None:
         return
     _task_started_at[task_id] = perf_counter()

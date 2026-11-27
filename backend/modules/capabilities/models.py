@@ -35,6 +35,12 @@ class StorageObject(Base):
 
 class IntegrationDefinition(Base):
     __tablename__ = "integration_definitions"
+    __table_args__ = (
+        UniqueConstraint(
+            "key",
+            name="uq_integration_definitions_key",
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
     key: Mapped[str] = mapped_column(String(128), unique=True, index=True)

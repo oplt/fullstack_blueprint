@@ -31,7 +31,10 @@ async def run(scale: LoadScale, report_path: Path, *, samples: int = 100) -> dic
     started = perf_counter()
     try:
         async with async_sessionmaker(engine, expire_on_commit=False)() as db:
-            user = User(email=f"pgvector-load-{uuid4()}@example.invalid", password_hash="disabled")
+            user = User(
+                email=f"pgvector-load-{uuid4()}@example.invalid",
+                password_hash="disabled",  # noqa: S106 - unusable synthetic hash
+            )
             db.add(user)
             await db.commit()
             repo = RagRepository(db)
@@ -109,8 +112,8 @@ async def run(scale: LoadScale, report_path: Path, *, samples: int = 100) -> dic
                     document_ids=selected,
                     index_revision_ids=revisions,
                 )
-            report_path.parent.mkdir(parents=True, exist_ok=True)
-            report_path.write_text(json.dumps(report, indent=2))
+            await asyncio.to_thread(report_path.parent.mkdir, parents=True, exist_ok=True)
+            await asyncio.to_thread(report_path.write_text, json.dumps(report, indent=2))
             print(
                 json.dumps(
                     {

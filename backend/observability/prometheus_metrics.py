@@ -67,6 +67,18 @@ database_query_duration_seconds = Histogram(
     ["role"],
     buckets=(0.0005, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
 )
+database_request_query_count = Histogram(
+    "database_request_query_count",
+    "SQL statements executed during one API request",
+    ["role", "route"],
+    buckets=(0, 1, 2, 5, 10, 20, 50, 100, 250, 500),
+)
+database_connection_hold_seconds = Histogram(
+    "database_connection_hold_seconds",
+    "Time a SQLAlchemy connection remains checked out",
+    ["role", "route"],
+    buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 15.0),
+)
 
 # Cache and worker observability
 worker_task_queue_delay_seconds = Histogram(

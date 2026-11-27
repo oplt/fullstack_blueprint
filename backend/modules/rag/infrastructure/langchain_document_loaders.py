@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import asyncio
 import logging
+import re
 import tempfile
 import unicodedata
 from pathlib import Path
@@ -47,28 +47,35 @@ def _parse_markdown(content: bytes) -> list[ParsedDocument]:
     if not text:
         return []
     sections: list[ParsedDocument] = []
-    heading: str | None = None
+    heading_levels: dict[int, str] = {}
     body: list[str] = []
 
     def flush() -> None:
         section = "\n".join(body).strip()
         if section:
+            section_path = tuple(heading_levels[level] for level in sorted(heading_levels))
             sections.append(
                 ParsedDocument(
                     content=section,
                     metadata={
                         "format": "markdown",
-                        "section_heading": heading,
+                        "section_heading": section_path[-1] if section_path else None,
+                        "section_path": section_path,
                         **decode_metadata,
                     },
                 )
             )
 
     for line in text.splitlines():
-        if line.lstrip().startswith("#"):
+        heading_match = re.match(r"^\s*(#{1,6})\s+(.+)$", line)
+        if heading_match:
             flush()
+            level = len(heading_match.group(1))
+            heading_levels = {
+                depth: value for depth, value in heading_levels.items() if depth < level
+            }
+            heading_levels[level] = heading_match.group(2).strip()
             body = [line]
-            heading = line.lstrip("#").strip() or None
         else:
             body.append(line)
     flush()
@@ -128,6 +135,8 @@ def _parse_csv(content: bytes) -> list[ParsedDocument]:
                     "format": "csv",
                     "row_number": row_number,
                     "headers": headers if has_header else None,
+                    "rows": [cells],
+                    "table_headers": headers if has_header else [],
                     "column_count": len(cells),
                     "parser": "csv-row-v1",
                     "header_detected": has_header,
@@ -156,18 +165,20 @@ def _parse_docx(content: bytes) -> list[ParsedDocument]:
 
     document = docx.Document(io.BytesIO(content))
     sections: list[ParsedDocument] = []
-    heading: str | None = None
+    heading_levels: dict[int, str] = {}
     paragraphs: list[str] = []
 
     def flush() -> None:
         text = "\n".join(paragraphs).strip()
         if text:
+            section_path = tuple(heading_levels[level] for level in sorted(heading_levels))
             sections.append(
                 ParsedDocument(
                     content=text,
                     metadata={
                         "format": "docx",
-                        "section_heading": heading,
+                        "section_heading": section_path[-1] if section_path else None,
+                        "section_path": section_path,
                         "unicode_normalization": "NFC",
                         "normalization_version": "unicode-nfc-v1",
                         "parser": "docx-section-v1",
@@ -180,10 +191,15 @@ def _parse_docx(content: bytes) -> list[ParsedDocument]:
         if not text:
             continue
         style_name = getattr(paragraph.style, "name", "") or ""
-        if style_name.lower().startswith("heading"):
+        heading_match = re.match(r"heading\s+(\d+)", style_name.lower())
+        if heading_match:
             flush()
+            level = int(heading_match.group(1))
+            heading_levels = {
+                depth: value for depth, value in heading_levels.items() if depth < level
+            }
+            heading_levels[level] = text
             paragraphs = [text]
-            heading = text
         else:
             paragraphs.append(text)
     flush()
@@ -200,7 +216,20 @@ def _parse_docx(content: bytes) -> list[ParsedDocument]:
                         "format": "docx",
                         "parsed_block_type": "table",
                         "table_index": table_index,
-                        "section_heading": heading,
+                        "table": {
+                            "rows": rows,
+                            "cells": [
+                                {"row": row_index, "column": column_index}
+                                for row_index, row in enumerate(rows)
+                                for column_index, _cell in enumerate(row)
+                            ],
+                        },
+                        "section_path": tuple(
+                            heading_levels[level] for level in sorted(heading_levels)
+                        ),
+                        "section_heading": (
+                            heading_levels[max(heading_levels)] if heading_levels else None
+                        ),
                         "unicode_normalization": "NFC",
                         "normalization_version": "unicode-nfc-v1",
                         "parser": "docx-table-v1",
@@ -238,7 +267,7 @@ def _parse_with_langchain_loader(file_path: str, loader_name: str) -> list[Parse
         return []
 
 
-def _parse_bytes_sync(
+def parse_documents_from_bytes(
     *,
     content: bytes,
     filename: str,
@@ -268,18 +297,3 @@ def _parse_bytes_sync(
         return _parse_with_langchain_loader(tmp_path, suffix)
     finally:
         Path(tmp_path).unlink(missing_ok=True)
-
-
-async def load_documents_from_bytes(
-    *,
-    content: bytes,
-    filename: str,
-    content_type: str,
-) -> list[ParsedDocument]:
-    """Parse file bytes into ParsedDocument list off the event loop thread."""
-    return await asyncio.to_thread(
-        _parse_bytes_sync,
-        content=content,
-        filename=filename,
-        content_type=content_type,
-    )

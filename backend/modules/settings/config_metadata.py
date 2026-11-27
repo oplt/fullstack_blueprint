@@ -220,7 +220,7 @@ TYPE_LABELS = {
     bool: "boolean",
 }
 
-REDACTED_SECRET = "********"
+REDACTED_SECRET = "********"  # noqa: S105 - display-only redaction marker
 
 SENSITIVE_KEY_MARKERS = (
     "SECRET",

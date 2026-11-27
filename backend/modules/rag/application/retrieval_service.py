@@ -5,13 +5,16 @@ import hashlib
 import json
 import logging
 from contextlib import asynccontextmanager
+from dataclasses import dataclass, replace
 from time import perf_counter
 
 from opentelemetry import trace
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from backend.core.config import settings
 from backend.lib.retrieval_cache import get_cached_retrieval, set_cached_retrieval
 from backend.lib.vectors import can_index_embedding
+from backend.modules.rag.application.context_selection import select_context_chunks
 from backend.modules.rag.application.document_scope import document_ids_is_empty_allow_list
 from backend.modules.rag.application.embedding_service import EmbeddingService
 from backend.modules.rag.application.evidence_revision import (
@@ -37,31 +40,84 @@ from backend.modules.rag.application.source_diversifier import (
 from backend.modules.rag.application.trace_context import RagTraceContext, traced
 from backend.modules.rag.domain.enums import RetrievalIntent
 from backend.modules.rag.domain.models import RetrievalCoverage, RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
+from backend.modules.rag.domain.retrieval_scope import RetrievalScope
 from backend.modules.rag.infrastructure import metrics
-from backend.modules.rag.infrastructure.pgvector_adapter import _parse_scope
+from backend.modules.rag.infrastructure.pgvector_adapter import _parse_scope, build_vector_store
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
 from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
-from backend.modules.rag.infrastructure.pgvector_adapter import build_vector_store
 
 logger = logging.getLogger(__name__)
 
 
-async def _completed_branch() -> tuple[list[RetrievedChunk], bool, str | None]:
+@dataclass(frozen=True, slots=True)
+class RetrievalBranchResult:
+    chunks: list[RetrievedChunk]
+    succeeded: bool
+    error: str | None
+    duration_ms: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalBranchRequest:
+    scope: RetrievalScope
+    query: str
+    top_k: int
+    query_embedding: list[float] | None = None
+    embedding_task: asyncio.Task[list[list[float]]] | None = None
+    phrase_boost: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalTraceData:
+    query: str
+    user_id: str
+    project_id: str | None
+    conversation_id: str | None
+    document_ids: list[str] | None
+    latency_ms: int
+    query_variants: list[dict] | None = None
+    branch_errors: list[str] | None = None
+
+
+async def _completed_branch() -> RetrievalBranchResult:
     """Represent a deduplicated lexical branch without widening retrieval results."""
-    return [], True, None
+    return RetrievalBranchResult(chunks=[], succeeded=True, error=None)
+
+
+async def _limited_branch(branch, semaphore, *, enabled: bool):
+    if not enabled:
+        return await branch
+    async with semaphore:
+        started = perf_counter()
+        result = await branch
+        if isinstance(result, RetrievalBranchResult):
+            return replace(result, duration_ms=int((perf_counter() - started) * 1000))
+        return result
+
+
+async def _embed_query_variants(
+    embeddings: EmbeddingService, texts: list[str]
+) -> dict[str, list[float]]:
+    unique_texts = list(dict.fromkeys(texts))
+    vectors = await embeddings.embed_texts(unique_texts)
+    if len(vectors) != len(unique_texts):
+        raise ValueError("embedding provider returned an unexpected vector count")
+    return dict(zip(unique_texts, vectors, strict=True))
 
 
 def _coerce_branch_result(
     result: object,
-) -> tuple[list[RetrievedChunk], bool, str | None]:
+) -> RetrievalBranchResult:
     """Normalize gather outcomes, including unexpected exceptions."""
+    if isinstance(result, asyncio.CancelledError):
+        raise result
+    if isinstance(result, RetrievalBranchResult):
+        return result
     if isinstance(result, Exception):
-        return [], False, type(result).__name__
-    if isinstance(result, tuple) and len(result) == 3 and isinstance(result[1], bool):
-        chunks, ok, err = result
-        return list(chunks or []), bool(ok), err
-    return [], False, "invalid_branch_result"
+        return RetrievalBranchResult(chunks=[], succeeded=False, error=type(result).__name__)
+    return RetrievalBranchResult(chunks=[], succeeded=False, error="invalid_branch_result")
 
 
 def scope_hash_for_document_ids(document_ids: list[str] | None) -> str | None:
@@ -69,6 +125,20 @@ def scope_hash_for_document_ids(document_ids: list[str] | None) -> str | None:
         return None
     payload = json.dumps(sorted(document_ids), separators=(",", ":"))
     return hashlib.sha256(payload.encode()).hexdigest()[:32]
+
+
+def _coverage_for_chunks(
+    chunks: list[RetrievedChunk], document_ids: list[str] | None
+) -> RetrievalCoverage:
+    documents_in_scope = len(document_ids) if document_ids is not None else 0
+    documents_with_evidence = len({chunk.document_id for chunk in chunks})
+    coverage_ratio = documents_with_evidence / documents_in_scope if documents_in_scope else 0.0
+    return RetrievalCoverage(
+        documents_in_scope=documents_in_scope,
+        documents_with_retrieved_evidence=documents_with_evidence,
+        retrieved_passage_count=len(chunks),
+        coverage_ratio=coverage_ratio,
+    )
 
 
 def _assign_evidence_revision_hash(
@@ -122,8 +192,8 @@ def _actual_fusion_method(
     *,
     dense_ok: bool,
     lexical_ok: bool,
-    dense: list[RetrievedChunk],
-    lexical: list[RetrievedChunk],
+    dense_count: int,
+    lexical_count: int,
     planned_dense: int,
     planned_lexical: int,
 ) -> str:
@@ -132,11 +202,11 @@ def _actual_fusion_method(
         return "lexical_only"
     if planned_lexical <= 0 and planned_dense > 0:
         return "dense_only"
-    if dense and lexical and dense_ok and lexical_ok:
+    if dense_count and lexical_count and dense_ok and lexical_ok:
         return "rrf"
-    if dense and dense_ok and (not lexical_ok or not lexical):
+    if dense_count and dense_ok:
         return "dense_only"
-    if lexical and lexical_ok and (not dense_ok or not dense):
+    if lexical_count and lexical_ok:
         return "lexical_only"
     return "none"
 
@@ -162,7 +232,7 @@ def _retrieval_provenance(
         "query_analysis": query_analysis.to_dict(),
         "retrieval_profile": plan.to_dict(),
         "retrieval_algorithm_version": getattr(
-            config, "retrieval_algorithm_version", "hybrid-rrf-v1"
+            config, "retrieval_algorithm_version", "hybrid-rrf-v2"
         ),
         "fusion_method": fusion_method,
         "dense_candidate_count": dense_candidate_count,
@@ -191,57 +261,63 @@ class RetrievalService:
         self.config = config or RagConfig.from_settings()
         self.vector_store = build_vector_store(db, self.config)
         self.embeddings = EmbeddingService(self.config)
-        self.ranker = build_reranker(
-            enabled=bool(getattr(self.config, "rerank_enabled", False)),
-            heuristic=bool(getattr(self.config, "rerank_heuristic_enabled", False)),
-        )
+        self.ranker = build_reranker(config=self.config)
         self.repo = RagRepository(db)
         self.search_repo = RagSearchRepository(db)
         self.query_expansion = QueryExpansionService()
         self._db_branch_lock = asyncio.Lock()
+        bind = db.bind if isinstance(db, AsyncSession) else None
+        self._branch_session_factory = (
+            async_sessionmaker(bind, expire_on_commit=False)
+            if isinstance(bind, AsyncEngine)
+            else None
+        )
 
     @asynccontextmanager
     async def _database_branch(self):
-        # AsyncSession owns one transaction/connection and cannot run simultaneous
-        # statements. Embedding work may still overlap the lexical database call.
+        if self._branch_session_factory is not None:
+            async with self._branch_session_factory() as branch_db:
+                yield branch_db
+            return
+
+        # Connection-bound test sessions cannot create an independent session.
+        # Keep those serialized; production engine-bound sessions use fresh sessions.
         if isinstance(self.db, AsyncSession):
-            async with self._db_branch_lock:
-                yield
+            async with self._db_branch_lock, self.db.begin_nested():
+                yield self.db
         else:
-            yield
+            yield self.db
 
     @traced("rag.retrieval")
-    async def retrieve(
-        self,
-        query: str,
-        *,
-        user_id: str,
-        project_id: str | None,
-        top_k: int | None = None,
-        filters: dict | None = None,
-        intent: RetrievalIntent | str | None = None,
-        conversation_id: str | None = None,
-        persist_trace: bool = False,
-        evidence_revision_hash: str | None = None,
-    ) -> RetrievalOutcome:
+    async def retrieve(self, request: RetrievalRequest) -> RetrievalOutcome:
+        async with asyncio.timeout(max(0.1, float(settings.RAG_RETRIEVAL_TIMEOUT_SECONDS))):
+            return await self._retrieve(request)
+
+    async def _retrieve(self, request: RetrievalRequest) -> RetrievalOutcome:
+        query = request.query
+        user_id = request.user_id
+        project_id = request.project_id
+        top_k = request.top_k
+        filters = request.filters
+        intent = request.intent
+        conversation_id = request.conversation_id
+        persist_trace = request.persist_trace and not request.preview
+        evidence_revision_hash = request.evidence_revision_hash
         trace_context = RagTraceContext()
         if not self.config.enabled:
             return RetrievalOutcome(chunks=[], no_matches=True, request_id=trace_context.request_id)
 
-        document_ids, owner_scoped = _parse_scope(filters)
+        document_ids, owner_scoped = _parse_scope(dict(filters) if filters is not None else None)
         index_revision_ids = (filters or {}).get("index_revision_ids")
         retrieval_mode = str((filters or {}).get("retrieval_mode") or "hybrid").lower()
         with trace.get_tracer("backend.rag").start_as_current_span(
             "rag.query_analysis", record_exception=False, set_status_on_exception=False
         ):
-            query_analysis = (
-                analyze_query(query)
-                if intent is None
-                else QueryAnalysis(
-                    intent=RetrievalIntent(intent),
-                    reasons=("caller_override",),
+            query_analysis = analyze_query(query)
+            if intent is not None:
+                query_analysis = replace(
+                    query_analysis, intent=RetrievalIntent(intent), reasons=("caller_override",)
                 )
-            )
             plan = plan_retrieval(
                 query_analysis.intent,
                 self.config,
@@ -259,7 +335,21 @@ class RetrievalService:
                 "retrieval.reranker": self.ranker.name,
             }
         )
-        exclude_parents = bool(getattr(self.config, "parent_context_enabled", False))
+        parent_context_enabled = (
+            bool(getattr(self.config, "parent_context_enabled", False)) and request.metadata is None
+        )
+        prefer_coverage = plan.intent in {RetrievalIntent.COMPARISON, RetrievalIntent.SYNTHESIS}
+        retrieval_scope = RetrievalScope(
+            user_id=user_id,
+            project_id=project_id,
+            document_ids=tuple(document_ids) if document_ids is not None else None,
+            owner_scoped=owner_scoped,
+            exclude_parents=True,
+            index_revision_ids=(
+                tuple(index_revision_ids) if index_revision_ids is not None else None
+            ),
+            metadata=request.metadata,
+        )
 
         # I1: explicit empty allow-list → zero evidence, never widen.
         if document_ids_is_empty_allow_list(document_ids):
@@ -288,12 +378,14 @@ class RetrievalService:
             if persist_trace:
                 outcome = await self._persist_trace(
                     outcome,
-                    query=query,
-                    user_id=user_id,
-                    project_id=project_id,
-                    conversation_id=conversation_id,
-                    document_ids=document_ids,
-                    latency_ms=0,
+                    RetrievalTraceData(
+                        query=query,
+                        user_id=user_id,
+                        project_id=project_id,
+                        conversation_id=conversation_id,
+                        document_ids=document_ids,
+                        latency_ms=0,
+                    ),
                 )
             return outcome
 
@@ -304,18 +396,23 @@ class RetrievalService:
             retrieval_mode=retrieval_mode,
             index_revision_ids=index_revision_ids,
         )
+        if request.metadata is not None:
+            cache_filters["metadata"] = request.metadata.model_dump(mode="json", exclude_none=True)
         cache_identity = {
             "artifact_version": getattr(self.config, "retrieval_cache_artifact_version", "v2"),
             "evidence_revision_hash": evidence_revision_hash,
             "index_revision_ids": sorted(index_revision_ids or []),
             "planner": plan.to_dict(),
             "retrieval_algorithm_version": getattr(
-                self.config, "retrieval_algorithm_version", "hybrid-rrf-v1"
+                self.config, "retrieval_algorithm_version", "hybrid-rrf-v2"
             ),
             "index_version": getattr(self.config, "index_version", "pgvector-fts-v1"),
             "rrf_k": getattr(self.config, "rrf_k", 60),
             "reranker": f"{self.ranker.name}:{self.ranker.version}",
-            "parent_context_enabled": exclude_parents,
+            "parent_context_enabled": parent_context_enabled,
+            "ranking_policy": "evidence-v2",
+            "dense_min_cosine": getattr(self.config, "score_threshold", None),
+            "dedupe_threshold": getattr(self.config, "context_overlap_dedupe_threshold", 0.8),
             "retrieval_fingerprint": (
                 self.config.retrieval.fingerprint() if hasattr(self.config, "retrieval") else None
             ),
@@ -324,36 +421,44 @@ class RetrievalService:
             ),
         }
         cache_variant = (
-            f"{getattr(self.config, 'retrieval_algorithm_version', 'hybrid-rrf-v1')}"
+            f"{getattr(self.config, 'retrieval_algorithm_version', 'hybrid-rrf-v2')}"
             f":{getattr(self.config, 'index_version', 'pgvector-fts-v1')}"
             f":rerank={self.ranker.name}:{self.ranker.version}"
             f":mode={retrieval_mode}"
-            f":parent={int(exclude_parents)}"
+            f":children-only:parent={int(parent_context_enabled)}"
             f":xq={QUERY_EXPANSION_VERSION if plan.multi_query else 'none'}"
         )
         started = perf_counter()
         query_variants_meta: list[dict] = []
         try:
             cache_started = trace_context.measure("cache_lookup")
-            cached = await get_cached_retrieval(
-                user_id=user_id,
-                project_id=project_id,
-                query=query,
-                top_k=plan.top_k,
-                filters=cache_filters,
-                variant=cache_variant,
-                identity=cache_identity,
-                expected_revision_ids=index_revision_ids,
+            cached = (
+                None
+                if request.preview
+                else await get_cached_retrieval(
+                    user_id=user_id,
+                    project_id=project_id,
+                    query=query,
+                    top_k=plan.top_k,
+                    filters=cache_filters,
+                    variant=cache_variant,
+                    identity=cache_identity,
+                    expected_revision_ids=index_revision_ids,
+                )
             )
             if cached is not None and owner_scoped and cached.chunks:
                 document_set = {chunk.document_id for chunk in cached.chunks}
-                allowed = await self.repo.filter_document_ids_for_user(
-                    user_id, list(document_set), project_id=project_id
-                )
+                async with self._database_branch() as branch_db:
+                    repo = self.repo if branch_db is self.db else RagRepository(branch_db)
+                    allowed = await repo.filter_document_ids_for_user(
+                        user_id, list(document_set), project_id=project_id
+                    )
                 if set(allowed) != document_set:
                     cached = None
             trace_context.complete(
-                "cache_lookup", cache_started, status="hit" if cached is not None else "miss"
+                "cache_lookup",
+                cache_started,
+                status="bypassed" if request.preview else "hit" if cached is not None else "miss",
             )
             span.set_attribute("retrieval.cache_hit", cached is not None)
             if cached is not None:
@@ -371,24 +476,20 @@ class RetrievalService:
                         limit=plan.top_k,
                         max_per_document=plan.max_per_document,
                         documents_in_scope=len(document_ids) if document_ids is not None else 0,
+                        prefer_coverage=prefer_coverage,
                     )
                 else:
-                    coverage = RetrievalCoverage(
-                        documents_in_scope=len(document_ids) if document_ids is not None else 0,
-                        documents_with_retrieved_evidence=len({c.document_id for c in filtered}),
-                        retrieved_passage_count=len(filtered),
-                        coverage_ratio=0.0,
-                    )
-                    if coverage.documents_in_scope:
-                        coverage.coverage_ratio = (
-                            coverage.documents_with_retrieved_evidence / coverage.documents_in_scope
-                        )
+                    coverage = _coverage_for_chunks(filtered, document_ids)
                 if removed:
                     metrics.rag_injection_chunks_filtered_total.inc(removed)
                 metrics.rag_retrieved_chunks.observe(len(filtered))
-                if exclude_parents and filtered:
+                if parent_context_enabled and filtered:
                     filtered = await expand_parent_chunks(
-                        filtered, repo=self.repo, document_ids=document_ids
+                        filtered,
+                        repo=self.repo,
+                        user_id=user_id,
+                        project_id=project_id,
+                        document_ids=document_ids,
                     )
                     filtered = filter_to_allow_list(filtered, document_ids)
                 outcome = RetrievalOutcome(
@@ -427,13 +528,15 @@ class RetrievalService:
                 if persist_trace:
                     outcome = await self._persist_trace(
                         outcome,
-                        query=query,
-                        user_id=user_id,
-                        project_id=project_id,
-                        conversation_id=conversation_id,
-                        document_ids=document_ids,
-                        latency_ms=int((perf_counter() - started) * 1000),
-                        query_variants=cached.provenance.get("query_variants", []),
+                        RetrievalTraceData(
+                            query=query,
+                            user_id=user_id,
+                            project_id=project_id,
+                            conversation_id=conversation_id,
+                            document_ids=document_ids,
+                            latency_ms=int((perf_counter() - started) * 1000),
+                            query_variants=cached.provenance.get("query_variants", []),
+                        ),
                     )
                 return outcome
 
@@ -443,6 +546,8 @@ class RetrievalService:
             ranked_lists: list[list[RetrievedChunk]] = []
             total_dense = 0
             total_lexical = 0
+            dense_work_ms = 0
+            lexical_work_ms = 0
             any_dense_ok = False
             any_lexical_ok = False
             dense_attempted = plan.dense_candidates > 0
@@ -476,10 +581,16 @@ class RetrievalService:
                 max(1, int(getattr(self.config, "retrieval_branch_concurrency", 2)))
             )
 
-            async def limited_branch(branch):
-                async with branch_semaphore:
-                    return await branch
-
+            dense_texts = (
+                list(dict.fromkeys(variant.dense_text or variant.text for variant in variants))
+                if dense_attempted
+                else []
+            )
+            embedding_batch_task = (
+                asyncio.create_task(_embed_query_variants(self.embeddings, dense_texts))
+                if dense_texts
+                else None
+            )
             embedding_tasks: dict[str, asyncio.Task[list[list[float]]]] = {}
             embedding_guard = asyncio.Lock()
 
@@ -487,7 +598,13 @@ class RetrievalService:
                 async with embedding_guard:
                     task = embedding_tasks.get(text)
                     if task is None:
-                        task = asyncio.create_task(self.embeddings.embed_texts([text]))
+
+                        async def get_vector() -> list[list[float]]:
+                            if embedding_batch_task is None:
+                                raise RuntimeError("dense embedding batch was not scheduled")
+                            return [(await embedding_batch_task)[text]]
+
+                        task = asyncio.create_task(get_vector())
                         embedding_tasks[text] = task
                     return task
 
@@ -502,52 +619,73 @@ class RetrievalService:
                         else None
                     )
                     dense_task = self._dense_branch(
-                        dense_text,
-                        user_id=user_id,
-                        project_id=project_id,
-                        document_ids=document_ids,
-                        index_revision_ids=index_revision_ids,
-                        owner_scoped=owner_scoped,
-                        top_k=plan.dense_candidates,
-                        exclude_parents=exclude_parents,
-                        embedding_task=embedding_task,
+                        RetrievalBranchRequest(
+                            scope=retrieval_scope,
+                            query=dense_text,
+                            top_k=plan.dense_candidates,
+                            embedding_task=embedding_task,
+                        )
                     )
                     if run_lexical_flags[index]:
                         lexical_task = self._lexical_branch(
-                            lexical_query,
-                            user_id=user_id,
-                            project_id=project_id,
-                            document_ids=document_ids,
-                            index_revision_ids=index_revision_ids,
-                            top_k=plan.lexical_candidates,
-                            owner_scoped=owner_scoped,
-                            exclude_parents=exclude_parents,
-                            phrase_boost=plan.lexical_phrase_boost,
+                            RetrievalBranchRequest(
+                                scope=retrieval_scope,
+                                query=lexical_query,
+                                top_k=plan.lexical_candidates,
+                                phrase_boost=plan.lexical_phrase_boost,
+                            )
                         )
                     else:
                         lexical_task = _completed_branch()
                     dense_raw, lexical_raw = await asyncio.gather(
-                        limited_branch(dense_task),
-                        limited_branch(lexical_task),
+                        _limited_branch(
+                            dense_task, branch_semaphore, enabled=plan.dense_candidates > 0
+                        ),
+                        _limited_branch(
+                            lexical_task,
+                            branch_semaphore,
+                            enabled=(run_lexical_flags[index] and plan.lexical_candidates > 0),
+                        ),
                         return_exceptions=True,
                     )
                     return index, dense_raw, lexical_raw
 
-            variant_outcomes = await asyncio.gather(
-                *[run_variant(index) for index in range(len(variants))]
-            )
+            variant_tasks = [
+                asyncio.create_task(run_variant(index)) for index in range(len(variants))
+            ]
+            try:
+                variant_outcomes = await asyncio.gather(*variant_tasks)
+            except BaseException:
+                for task in variant_tasks:
+                    task.cancel()
+                if embedding_batch_task is not None:
+                    embedding_batch_task.cancel()
+                await asyncio.gather(
+                    *variant_tasks,
+                    *([embedding_batch_task] if embedding_batch_task is not None else []),
+                    return_exceptions=True,
+                )
+                raise
             for _index, dense_raw, lexical_raw in sorted(
                 variant_outcomes, key=lambda item: item[0]
             ):
-                dense, dense_ok, dense_err = _coerce_branch_result(dense_raw)
-                lexical, lexical_ok, lexical_err = _coerce_branch_result(lexical_raw)
+                dense_result = _coerce_branch_result(dense_raw)
+                lexical_result = _coerce_branch_result(lexical_raw)
+                dense = dense_result.chunks
+                dense_ok = dense_result.succeeded
+                dense_err = dense_result.error
+                lexical = lexical_result.chunks
+                lexical_ok = lexical_result.succeeded
+                lexical_err = lexical_result.error
                 if dense_err:
                     branch_errors.append(f"dense:{dense_err}")
                 if lexical_err:
                     branch_errors.append(f"lexical:{lexical_err}")
-                if dense_ok:
+                dense_work_ms += dense_result.duration_ms
+                lexical_work_ms += lexical_result.duration_ms
+                if dense_attempted and dense_ok:
                     any_dense_ok = True
-                if lexical_ok:
+                if lexical_attempted and run_lexical_flags[_index] and lexical_ok:
                     any_lexical_ok = True
                 dense = filter_to_allow_list(dense, document_ids)
                 lexical = filter_to_allow_list(lexical, document_ids)
@@ -562,17 +700,24 @@ class RetrievalService:
                     ranked_lists.append(lexical)
 
             trace_context.complete(
-                "dense_branch", dense_started, status="ok" if any_dense_ok else "failed"
+                "dense_branch",
+                dense_started,
+                status=("ok" if any_dense_ok else "failed") if dense_attempted else "skipped",
             )
             trace_context.complete(
-                "lexical_branch", lexical_started, status="ok" if any_lexical_ok else "failed"
+                "lexical_branch",
+                lexical_started,
+                status=("ok" if any_lexical_ok else "failed") if lexical_attempted else "skipped",
+            )
+            trace_context.stage_timings_ms.update(
+                dense_work=dense_work_ms, lexical_work=lexical_work_ms
             )
             fusion_started = trace_context.measure("fusion")
             if len(ranked_lists) > 1:
                 fused = reciprocal_rank_fusion(
                     ranked_lists,
                     k=getattr(self.config, "rrf_k", 60),
-                    limit=max(plan.top_k * 3, plan.top_k),
+                    limit=max(plan.top_k * 3, plan.rerank_depth),
                 )
             elif ranked_lists:
                 fused = ranked_lists[0]
@@ -584,10 +729,8 @@ class RetrievalService:
             fusion_method = _actual_fusion_method(
                 dense_ok=any_dense_ok,
                 lexical_ok=any_lexical_ok,
-                dense=[c for lst in ranked_lists for c in lst if "dense" in c.retrieval_sources]
-                or ([] if not any_dense_ok else fused),
-                lexical=[c for lst in ranked_lists for c in lst if "lexical" in c.retrieval_sources]
-                or ([] if not any_lexical_ok else fused),
+                dense_count=total_dense,
+                lexical_count=total_lexical,
                 planned_dense=plan.dense_candidates,
                 planned_lexical=plan.lexical_candidates,
             )
@@ -626,31 +769,38 @@ class RetrievalService:
             if removed:
                 metrics.rag_injection_chunks_filtered_total.inc(removed)
 
-            if exclude_parents and filtered:
-                parent_started = trace_context.measure("parent_expand")
-                filtered = await expand_parent_chunks(
-                    filtered, repo=self.repo, document_ids=document_ids
-                )
-                filtered = filter_to_allow_list(filtered, document_ids)
-                trace_context.complete("parent_expand", parent_started)
-
+            rerank_state = {"status": "skipped", "applied": "noop:v1", "candidate_count": 0}
             if filtered and plan.rerank_depth:
                 rerank_started = perf_counter()
-                rerank_result = apply_rerank_policy(
+                rerank_result = await apply_rerank_policy(
                     self.ranker,
                     query,
                     filtered,
                     depth=plan.rerank_depth,
+                    timeout_seconds=getattr(self.config, "rerank_timeout_seconds", 2.0),
                 )
                 metrics.rag_rerank_latency_ms.observe((perf_counter() - rerank_started) * 1000)
-                trace_context.complete("rerank", rerank_started)
                 filtered = rerank_result.chunks
-                filtered = filter_to_allow_list(filtered, document_ids)
+                rerank_state["candidate_count"] = rerank_result.candidate_count
                 if rerank_result.failed:
+                    rerank_state.update(status="fallback", reason=rerank_result.fallback_reason)
+                    if not degraded:
+                        metrics.rag_retrieval_degraded_total.inc()
                     degraded = True
                     degradation_reason = ";".join(
                         reason for reason in (degradation_reason, "reranker_failed") if reason
                     )
+                elif rerank_result.attempted:
+                    rerank_state.update(
+                        status="applied", applied=f"{self.ranker.name}:{self.ranker.version}"
+                    )
+                trace_context.complete("rerank", rerank_started, status=rerank_state["status"])
+
+            selection = select_context_chunks(
+                [replace(chunk, rank=rank) for rank, chunk in enumerate(filtered, start=1)],
+                overlap_threshold=getattr(self.config, "context_overlap_dedupe_threshold", 0.8),
+            )
+            filtered = selection.chunks
 
             if plan.diversify:
                 filtered, coverage = diversify_by_document(
@@ -658,21 +808,24 @@ class RetrievalService:
                     limit=plan.top_k,
                     max_per_document=plan.max_per_document,
                     documents_in_scope=len(document_ids) if document_ids is not None else 0,
+                    prefer_coverage=prefer_coverage,
                 )
             else:
                 filtered = filtered[: plan.top_k]
                 for idx, chunk in enumerate(filtered, start=1):
                     chunk.rank = idx
-                coverage = RetrievalCoverage(
-                    documents_in_scope=len(document_ids) if document_ids is not None else 0,
-                    documents_with_retrieved_evidence=len({c.document_id for c in filtered}),
-                    retrieved_passage_count=len(filtered),
-                    coverage_ratio=0.0,
+                coverage = _coverage_for_chunks(filtered, document_ids)
+
+            if parent_context_enabled and filtered:
+                parent_started = trace_context.measure("parent_expand")
+                filtered = await expand_parent_chunks(
+                    filtered,
+                    repo=self.repo,
+                    user_id=user_id,
+                    project_id=project_id,
+                    document_ids=document_ids,
                 )
-                if coverage.documents_in_scope:
-                    coverage.coverage_ratio = (
-                        coverage.documents_with_retrieved_evidence / coverage.documents_in_scope
-                    )
+                trace_context.complete("parent_expand", parent_started)
 
             outcome = RetrievalOutcome(
                 chunks=filtered,
@@ -707,6 +860,12 @@ class RetrievalService:
                 "stage_timings_ms": trace_context.stage_timings_ms,
                 "branch_status": trace_context.branch_status,
             }
+            outcome.retrieval_provenance["reranker"] = rerank_state["applied"]
+            outcome.retrieval_provenance["reranking"] = {
+                **rerank_state,
+                "configured": f"{self.ranker.name}:{self.ranker.version}",
+            }
+            outcome.retrieval_provenance["deduplicated_chunk_ids"] = selection.removed_chunk_ids
             _assign_evidence_revision_hash(
                 outcome,
                 evidence_revision_hash=evidence_revision_hash,
@@ -719,7 +878,7 @@ class RetrievalService:
                 outcome.degradation_reason = "injection_filtered_all_matches"
                 outcome.degraded = True
 
-            if removed == 0 and not degraded:
+            if not request.preview and removed == 0 and not degraded:
                 await set_cached_retrieval(
                     user_id=user_id,
                     project_id=project_id,
@@ -738,14 +897,16 @@ class RetrievalService:
             if persist_trace:
                 outcome = await self._persist_trace(
                     outcome,
-                    query=query,
-                    user_id=user_id,
-                    project_id=project_id,
-                    conversation_id=conversation_id,
-                    document_ids=document_ids,
-                    latency_ms=int((perf_counter() - started) * 1000),
-                    query_variants=query_variants_meta,
-                    branch_errors=branch_errors,
+                    RetrievalTraceData(
+                        query=query,
+                        user_id=user_id,
+                        project_id=project_id,
+                        conversation_id=conversation_id,
+                        document_ids=document_ids,
+                        latency_ms=int((perf_counter() - started) * 1000),
+                        query_variants=query_variants_meta,
+                        branch_errors=branch_errors,
+                    ),
                 )
             return outcome
         except StaleEvidenceRevisionError:
@@ -775,13 +936,15 @@ class RetrievalService:
                 try:
                     outcome = await self._persist_trace(
                         outcome,
-                        query=query,
-                        user_id=user_id,
-                        project_id=project_id,
-                        conversation_id=conversation_id,
-                        document_ids=document_ids,
-                        latency_ms=int((perf_counter() - started) * 1000),
-                        query_variants=query_variants_meta,
+                        RetrievalTraceData(
+                            query=query,
+                            user_id=user_id,
+                            project_id=project_id,
+                            conversation_id=conversation_id,
+                            document_ids=document_ids,
+                            latency_ms=int((perf_counter() - started) * 1000),
+                            query_variants=query_variants_meta,
+                        ),
                     )
                 except Exception:
                     logger.exception("Failed to persist degraded retrieval trace")
@@ -791,102 +954,77 @@ class RetrievalService:
             metrics.rag_retrieval_latency_ms.observe((perf_counter() - started) * 1000)
 
     @traced("rag.dense")
-    async def _dense_branch(
-        self,
-        query: str,
-        *,
-        user_id: str,
-        project_id: str | None,
-        document_ids: list[str] | None,
-        index_revision_ids: list[str] | None,
-        owner_scoped: bool,
-        top_k: int,
-        exclude_parents: bool,
-        query_embedding: list[float] | None = None,
-        embedding_task: asyncio.Task[list[list[float]]] | None = None,
-    ) -> tuple[list[RetrievedChunk], bool, str | None]:
-        if top_k <= 0:
-            return [], True, None
+    async def _dense_branch(self, branch: RetrievalBranchRequest) -> RetrievalBranchResult:
+        if branch.top_k <= 0:
+            return RetrievalBranchResult(chunks=[], succeeded=True, error=None)
         try:
+            query_embedding = branch.query_embedding
             if query_embedding is None:
-                if embedding_task is not None:
-                    query_embedding = (await embedding_task)[0]
+                if branch.embedding_task is not None:
+                    query_embedding = (await branch.embedding_task)[0]
                 else:
-                    query_embedding = (await self.embeddings.embed_texts([query]))[0]
+                    query_embedding = (await self.embeddings.embed_texts([branch.query]))[0]
             if not can_index_embedding(
                 query_embedding,
                 expected_dimensions=self.config.embedding_dimensions,
             ):
-                return [], False, "embedding_dimension_mismatch"
+                return RetrievalBranchResult(
+                    chunks=[], succeeded=False, error="embedding_dimension_mismatch"
+                )
             search_filters: dict = {
-                "owner_scoped": owner_scoped,
-                "exclude_parents": exclude_parents,
+                "owner_scoped": branch.scope.owner_scoped,
+                "exclude_parents": branch.scope.exclude_parents,
             }
-            if document_ids is not None:
-                search_filters["document_ids"] = document_ids
-            if index_revision_ids is not None:
-                search_filters["index_revision_ids"] = index_revision_ids
-            async with self._database_branch():
-                dense = await self.vector_store.similarity_search(
-                    query,
-                    user_id=user_id,
-                    project_id=project_id,
-                    top_k=top_k,
+            if branch.scope.document_ids is not None:
+                search_filters["document_ids"] = list(branch.scope.document_ids)
+            if branch.scope.index_revision_ids is not None:
+                search_filters["index_revision_ids"] = list(branch.scope.index_revision_ids)
+            if branch.scope.metadata is not None:
+                search_filters["metadata"] = branch.scope.metadata
+            async with self._database_branch() as branch_db:
+                vector_store = (
+                    self.vector_store
+                    if branch_db is self.db
+                    else build_vector_store(branch_db, self.config)
+                )
+                dense = await vector_store.similarity_search(
+                    branch.query,
+                    user_id=branch.scope.user_id,
+                    project_id=branch.scope.project_id,
+                    top_k=branch.top_k,
                     filters=search_filters,
                     query_embedding=query_embedding,
                 )
-            return dense or [], True, None
+            return RetrievalBranchResult(chunks=dense or [], succeeded=True, error=None)
         except Exception as exc:
             logger.exception("Dense retrieval branch failed")
-            return [], False, type(exc).__name__
+            return RetrievalBranchResult(chunks=[], succeeded=False, error=type(exc).__name__)
 
     @traced("rag.lexical")
-    async def _lexical_branch(
-        self,
-        query: str,
-        *,
-        user_id: str,
-        project_id: str | None,
-        document_ids: list[str] | None,
-        index_revision_ids: list[str] | None,
-        owner_scoped: bool,
-        top_k: int,
-        exclude_parents: bool,
-        phrase_boost: bool = False,
-    ) -> tuple[list[RetrievedChunk], bool, str | None]:
-        if top_k <= 0:
-            return [], True, None
+    async def _lexical_branch(self, branch: RetrievalBranchRequest) -> RetrievalBranchResult:
+        if branch.top_k <= 0:
+            return RetrievalBranchResult(chunks=[], succeeded=True, error=None)
         try:
-            async with self._database_branch():
-                lexical = await self.search_repo.lexical_search(
-                    user_id=user_id,
-                    project_id=project_id,
-                    document_ids=document_ids,
-                    query=query,
-                    top_k=top_k,
-                    owner_scoped=owner_scoped,
-                    exclude_parents=exclude_parents,
-                    index_revision_ids=index_revision_ids,
-                    phrase_boost=phrase_boost,
+            async with self._database_branch() as branch_db:
+                search_repo = (
+                    self.search_repo if branch_db is self.db else RagSearchRepository(branch_db)
                 )
-            return lexical, True, None
+                lexical = await search_repo.lexical_search(
+                    scope=branch.scope,
+                    query=branch.query,
+                    top_k=branch.top_k,
+                    phrase_boost=branch.phrase_boost,
+                )
+            return RetrievalBranchResult(chunks=lexical, succeeded=True, error=None)
         except Exception as exc:
             logger.exception("Lexical retrieval branch failed")
-            return [], False, type(exc).__name__
+            return RetrievalBranchResult(chunks=[], succeeded=False, error=type(exc).__name__)
 
     @traced("rag.persistence")
     async def _persist_trace(
         self,
         outcome: RetrievalOutcome,
-        *,
-        query: str,
-        user_id: str,
-        project_id: str | None,
-        conversation_id: str | None,
-        document_ids: list[str] | None,
-        latency_ms: int,
-        query_variants: list[dict] | None = None,
-        branch_errors: list[str] | None = None,
+        data: RetrievalTraceData,
     ) -> RetrievalOutcome:
         chunk_revision_ids = list(
             dict.fromkeys(
@@ -896,22 +1034,22 @@ class RetrievalService:
         outcome.index_revision_ids = (
             chunk_revision_ids
             or outcome.retrieval_provenance.get("index_revision_ids", [])
-            or await self.repo.list_current_revision_ids(document_ids)
+            or await self.repo.list_current_revision_ids(data.document_ids)
         )
         coverage = outcome.coverage
         provenance = dict(outcome.retrieval_provenance)
         trace_diagnostics = provenance.get("trace") or {}
         trace = await self.repo.create_retrieval_trace(
-            user_id=user_id,
-            project_id=project_id,
-            conversation_id=conversation_id,
-            query=query,
+            user_id=data.user_id,
+            project_id=data.project_id,
+            conversation_id=data.conversation_id,
+            query=data.query,
             request_id=outcome.request_id or trace_diagnostics.get("request_id"),
             intent=outcome.intent.value if outcome.intent else None,
             scope_hash=outcome.scope_hash,
             evidence_revision_hash=outcome.evidence_revision_hash,
             index_revision_ids=outcome.index_revision_ids,
-            document_ids=document_ids,
+            document_ids=data.document_ids,
             retrieved_chunks=[
                 {
                     "chunk_id": c.chunk_id,
@@ -954,7 +1092,7 @@ class RetrievalService:
                 "fusion_method": outcome.fusion_method,
                 "retrieval_algorithm_version": provenance.get(
                     "retrieval_algorithm_version",
-                    getattr(self.config, "retrieval_algorithm_version", "hybrid-rrf-v1"),
+                    getattr(self.config, "retrieval_algorithm_version", "hybrid-rrf-v2"),
                 ),
                 "index_version": getattr(self.config, "index_version", "pgvector-fts-v1"),
                 "dense_candidate_count": provenance.get(
@@ -967,24 +1105,24 @@ class RetrievalService:
                     "fused_candidate_count", outcome.fused_candidate_count
                 ),
                 "reranker": provenance.get("reranker", f"{self.ranker.name}:{self.ranker.version}"),
-                "query_variants": provenance.get("query_variants", query_variants or []),
+                "query_variants": provenance.get("query_variants", data.query_variants or []),
                 "query_expansion_version": (
                     provenance.get("query_expansion_version")
                     if provenance
                     else (
                         QUERY_EXPANSION_VERSION
-                        if query_variants and len(query_variants) > 1
+                        if data.query_variants and len(data.query_variants) > 1
                         else None
                     )
                 ),
-                "branch_errors": branch_errors or [],
-                "original_query": query,
+                "branch_errors": data.branch_errors or [],
+                "original_query": data.query,
             },
             degraded=outcome.degraded,
             degradation_reason=outcome.degradation_reason,
             no_matches=outcome.no_matches,
             injection_chunks_filtered=outcome.injection_chunks_filtered,
-            latency_ms=latency_ms,
+            latency_ms=data.latency_ms,
             stage_timings=trace_diagnostics.get("stage_timings_ms"),
             branch_status=trace_diagnostics.get("branch_status"),
         )

@@ -16,6 +16,10 @@ class OutboxEvent(Base):
     __table_args__ = (
         Index("ix_outbox_events_ready", "status", "available_at"),
         Index("ix_outbox_events_aggregate", "aggregate_type", "aggregate_id"),
+        UniqueConstraint(
+            "event_id",
+            name="uq_outbox_events_event_id",
+        ),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))

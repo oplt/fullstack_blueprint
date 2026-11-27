@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from contextvars import ContextVar, Token
 from time import monotonic
 from typing import Any, Literal
@@ -15,6 +16,7 @@ from backend.core.config import settings
 from backend.db.pool_observability import instrument_engine
 
 DatabaseRole = Literal["api", "worker"]
+logger = logging.getLogger(__name__)
 
 
 def database_engine_kwargs(*, role: DatabaseRole = "api") -> dict[str, Any]:
@@ -109,8 +111,8 @@ def observe_session_duration(*, role: DatabaseRole, started_at: float) -> None:
         from backend.observability.prometheus_metrics import database_session_duration_seconds
 
         database_session_duration_seconds.labels(role=role).observe(monotonic() - started_at)
-    except Exception:
-        pass
+    except (ImportError, AttributeError, ValueError) as exc:
+        logger.debug("Session duration metrics unavailable error_type=%s", type(exc).__name__)
 
 
 _default_sessionmaker = async_sessionmaker(

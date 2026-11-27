@@ -14,6 +14,9 @@ from backend.modules.platform.config_service import PlatformConfigService
 from backend.modules.platform.models import FeatureFlag
 from backend.modules.platform.schemas import EffectiveFeatureFlagResponse
 
+FULL_ROLLOUT_PERCENTAGE = 100
+ROLLOUT_BUCKET_COUNT = 100
+
 
 class FeatureFlagService(PlatformConfigService):
     async def list_feature_flags(self) -> list[FeatureFlag]:
@@ -100,10 +103,10 @@ class FeatureFlagService(PlatformConfigService):
             return False
         if flag.module_key and flag.module_key not in enabled_modules:
             return False
-        if flag.rollout_percentage >= 100:
+        if flag.rollout_percentage >= FULL_ROLLOUT_PERCENTAGE:
             return True
         if flag.rollout_percentage <= 0:
             return False
         digest = hashlib.sha256(f"{flag.key}:{user_id}".encode()).hexdigest()
-        bucket = int(digest[:8], 16) % 100
+        bucket = int(digest[:8], 16) % ROLLOUT_BUCKET_COUNT
         return bucket < flag.rollout_percentage

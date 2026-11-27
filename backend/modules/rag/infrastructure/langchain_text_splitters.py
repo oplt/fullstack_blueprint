@@ -1,159 +1,345 @@
-"""Structure-aware chunking: section/paragraph boundaries before token constraints."""
+"""Pack sections and table rows while retaining original parser coordinates."""
 
 from __future__ import annotations
 
 import hashlib
-import json
 import re
+from bisect import bisect_left
+from collections import defaultdict
+from collections.abc import Callable, Iterator
+from dataclasses import dataclass, field
 
 from backend.lib.vectors import estimate_tokens
-from backend.modules.rag.domain.models import ParsedDocument
+from backend.modules.rag.domain.models import ParsedBlock, ParsedDocument
 from backend.modules.rag.domain.source_coordinates import SourceCoordinate
+from backend.modules.rag.infrastructure.table_chunking import table_groups
 
-_HEADING_RE = re.compile(
-    r"^(?:#{1,6}\s+\S.+|(?:.|\n){1,80}\n[=-]{3,}\s*)$",
-    re.MULTILINE,
+CHUNKER_VERSION = "structure-v2"
+_COORDINATES = "unicode_code_points_zero_based_end_exclusive"
+_HEADINGS = re.compile(r"^ {0,3}(?:(#{1,6})[ \t]+([^\n]+)|([^\n]+)\n(={3,}|-{3,})[ \t]*$)", re.M)
+_FENCES = re.compile(r"^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^ {0,3}\1[ \t]*$|\Z)", re.M)
+_PARAGRAPH_BREAK = re.compile(r"\n[ \t\r]*\n")
+_SENTENCE_BREAK = re.compile(
+    r"""[.!?…]["'”\u2019)]*(?=\s|$)|[。\uff01\uff1f؟\u06d4]["'”\u2019\uff09]*"""
 )
-_ATX_HEADING = re.compile(r"^(#{1,6})\s+(.+)$")
-_SETEXT_HEADING = re.compile(r"^(.+)\n([=-]){3,}\s*$", re.MULTILINE)
-_PARAGRAPH_SPLIT = re.compile(r"\n\s*\n+")
+_CODE_BOUNDARY = re.compile(r"(?m)^(?:async[ \t]+)?(?:def|class|function|func)[ \t]")
+_WS = re.compile(r"\s+")
+Span = tuple[int, int]
 
 
-def _content_hash(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:32]
+@dataclass(frozen=True, slots=True)
+class Region:
+    start: int
+    end: int
+    section: tuple[str, ...]
+    block: ParsedBlock | None = None
+    is_code: bool = False
 
 
-def _stable_source_id(
-    *,
-    document_revision: str,
-    page_number: int | None,
-    section_heading: str | None,
-    char_start: int,
-    char_end: int,
-    content: str,
-) -> str:
-    """Return an ID for one source unit, stable across overlapping chunks."""
-    payload = json.dumps(
-        {
-            "document_revision": document_revision,
-            "page_number": page_number,
-            "section_heading": section_heading,
-            "char_start": char_start,
-            "char_end": char_end,
-            "content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
-        },
-        sort_keys=True,
-        separators=(",", ":"),
-    )
-    return f"source-{hashlib.sha256(payload.encode('utf-8')).hexdigest()[:32]}"
+def _hash(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()[:32]
 
 
-def _split_paragraphs(text: str) -> list[str]:
-    parts = [p.strip() for p in _PARAGRAPH_SPLIT.split(text) if p.strip()]
-    return parts or ([text.strip()] if text.strip() else [])
+def _spans(text: str, start: int, end: int, cuts: Iterator[int]) -> Iterator[Span]:
+    for cut in cuts:
+        yield from _trimmed_span(text, start, cut)
+        start = cut
+    yield from _trimmed_span(text, start, end)
 
 
-def _extract_units_with_headings(text: str) -> list[tuple[str, str | None]]:
-    """Split into paragraph units, tracking nearest preceding heading via _HEADING_RE."""
-    if not text.strip():
-        return []
-    headings = list(_HEADING_RE.finditer(text))
-    paragraphs = _split_paragraphs(text)
-    if not headings:
-        return [(p, None) for p in paragraphs]
+def _trimmed_span(text: str, start: int, end: int) -> Iterator[Span]:
+    value = text[start:end]
+    stripped = value.strip()
+    if stripped:
+        start += len(value) - len(value.lstrip())
+        yield start, start + len(stripped)
 
-    # Map char offsets of paragraphs in original text for heading association.
-    units: list[tuple[str, str | None]] = []
+
+def _prose_regions(text: str, start: int, end: int, section: tuple[str, ...]) -> Iterator[Region]:
+    path = dict(enumerate(section, start=1))
+    for heading in _HEADINGS.finditer(text, start, end):
+        if heading.start() > start:
+            yield Region(start, heading.start(), tuple(path.values()))
+        level = len(heading[1]) if heading[1] else (1 if heading[4].startswith("=") else 2)
+        path = {depth: title for depth, title in path.items() if depth < level}
+        path[level] = (heading[2] or heading[3]).strip()
+        start = heading.start()
+    if start < end:
+        yield Region(start, end, tuple(path.values()))
+
+
+def _text_regions(text: str, start: int, end: int, section: tuple[str, ...]) -> Iterator[Region]:
+    for fence in _FENCES.finditer(text, start, end):
+        for region in _prose_regions(text, start, fence.start(), section):
+            section = region.section
+            yield region
+        yield Region(fence.start(), fence.end(), section, is_code=True)
+        start = fence.end()
+    yield from _prose_regions(text, start, end, section)
+
+
+def _regions(doc: ParsedDocument) -> Iterator[Region]:
+    text = doc.content
+    section = tuple(doc.metadata.get("section_path") or ())
+    if not section and (heading := doc.metadata.get("section_heading")):
+        section = (heading,)
     cursor = 0
-    for para in paragraphs:
-        idx = text.find(para, cursor)
-        if idx < 0:
-            units.append((para, None))
+    for block in doc.source_blocks:
+        start, end = block.source_span.get("start"), block.source_span.get("end")
+        if (
+            not isinstance(start, int)
+            or not isinstance(end, int)
+            or not cursor <= start < end <= len(text)
+        ):
             continue
-        current_heading: str | None = None
-        for match in headings:
-            if match.start() <= idx:
-                raw = match.group(0).strip()
-                atx = _ATX_HEADING.match(raw.split("\n", 1)[0])
-                if atx:
-                    current_heading = atx.group(2).strip()
-                else:
-                    setext = _SETEXT_HEADING.match(raw)
-                    current_heading = (
-                        setext.group(1).strip() if setext else raw.split("\n", 1)[0].strip()
-                    )
+        if block.source_span.get("aligned") is False:
+            continue
+        special = block.kind in {"table", "table_row", "figure", "code"}
+        if special or block.section_path != section:
+            yield from _text_regions(text, cursor, start, section)
+            section = block.section_path or section
+            cursor = start
+        if special:
+            yield Region(start, end, section, block, is_code=block.kind == "code")
+            cursor = end
+    yield from _text_regions(text, cursor, len(text), section)
+
+
+def _bounded_span(
+    text: str, start: int, end: int, limit: int, count: Callable[[str], int]
+) -> Iterator[Span]:
+    """Split an overlong sentence or line without changing any source characters."""
+    while start < end:
+        low, high = start + 1, min(end, start + limit * 16)
+        cut = start
+        while low <= high:
+            middle = (low + high) // 2
+            if count(text[start:middle]) <= limit:
+                cut, low = middle, middle + 1
             else:
-                break
-        units.append((para, current_heading))
-        cursor = idx + len(para)
-    return units
+                high = middle - 1
+        if cut == start:
+            raise ValueError("One source character exceeds the chunk token limit")
+        if (
+            cut < end
+            and (space := max(text.rfind(" ", start, cut), text.rfind("\t", start, cut))) > start
+        ):
+            cut = space
+        yield from _trimmed_span(text, start, cut)
+        start = cut
+        if whitespace := _WS.match(text, start, end):
+            start = whitespace.end()
 
 
-def _pack_units(
-    units: list[str],
+def _units(text: str, region: Region, limit: int, count: Callable[[str], int]) -> Iterator[Span]:
+    start, end = region.start, region.end
+    if region.block is not None and count(text[start:end]) <= limit:
+        yield start, end
+        return
+    cuts = (
+        (match.start() for match in _CODE_BOUNDARY.finditer(text, start, end))
+        if region.is_code
+        else (match.end() for match in _PARAGRAPH_BREAK.finditer(text, start, end))
+    )
+    for left, right in _spans(text, start, end, cuts):
+        if count(text[left:right]) <= limit:
+            yield left, right
+            continue
+        boundaries = (
+            re.finditer(r"\n", text[left:right])
+            if region.is_code
+            else _SENTENCE_BREAK.finditer(text, left, right)
+        )
+        offset = left if region.is_code else 0
+        for first, last in _spans(text, left, right, (m.end() + offset for m in boundaries)):
+            if count(text[first:last]) <= limit:
+                yield first, last
+            else:
+                yield from _bounded_span(text, first, last, limit, count)
+
+
+def _pack(
+    text: str, units: Iterator[Span], limit: int, overlap: int, count: Callable[[str], int]
+) -> Iterator[list[Span]]:
+    current: list[Span] = []
+    for start, end in units:
+        if current and count(text[current[0][0] : end]) > limit:
+            yield current
+            keep = len(current)
+            while keep > 0 and overlap > 0:
+                candidate = current[keep - 1][0]
+                if (
+                    count(text[candidate : current[-1][1]]) > overlap
+                    or count(text[candidate:end]) > limit
+                ):
+                    break
+                keep -= 1
+            current = current[keep:]
+        current.append((start, end))
+    if current:
+        yield current
+
+
+@dataclass(slots=True)
+class Source:
+    document: ParsedDocument
+    revision: str
+    scope_type: str
+    scope_id: str
+    layout: list[tuple[int, int, dict]] = field(init=False, default_factory=list)
+    starts: list[int] = field(init=False, default_factory=list)
+    ends: list[int] = field(init=False, default_factory=list)
+
+    def __post_init__(self) -> None:
+        for block in self.document.source_blocks:
+            left, right = block.source_span.get("start"), block.source_span.get("end")
+            if (
+                isinstance(left, int)
+                and isinstance(right, int)
+                and block.source_span.get("aligned") is not False
+            ):
+                self.layout.append(
+                    (left, max(left + 1, right), block.to_dict(include_table_data=False))
+                )
+        self.layout.sort(key=lambda item: item[0])
+        for left, right, _ in self.layout:
+            self.starts.append(left)
+            self.ends.append(max(self.ends[-1], right) if self.ends else right)
+
+    def layout_for(self, start: int, end: int) -> list[dict]:
+        first = bisect_left(self.ends, start + 1)
+        last = bisect_left(self.starts, end)
+        return [item for _, right, item in self.layout[first:last] if right > start]
+
+    def metadata(self, content: str, spans: list[Span], region: Region) -> dict:
+        block_kind = region.block.kind if region.block else "prose"
+        coordinates = []
+        for start, end in spans:
+            coordinate: dict[str, object] = {
+                **SourceCoordinate(
+                    scope_type=self.scope_type,
+                    scope_id=self.scope_id,
+                    coordinate_system=_COORDINATES,
+                    start=start,
+                    end=end,
+                    source_span_id=f"source-{_hash(f'{self.scope_id}:{start}:{end}')}",
+                ).to_dict()
+            }
+            matching = self.layout_for(start, end)
+            if matching:
+                coordinate["layout_blocks"] = matching
+            coordinates.append(coordinate)
+        ids = [coordinate["source_span_id"] for coordinate in coordinates]
+        return {
+            **{
+                key: value
+                for key, value in self.document.metadata.items()
+                if key not in {"blocks", "table", "rows"}
+            },
+            "content_hash": _hash(content),
+            "chunker_strategy": CHUNKER_VERSION,
+            "document_revision": self.revision,
+            "offset_scope": self.scope_type,
+            "offset_scope_id": self.scope_id,
+            "offset_coordinate_system": _COORDINATES,
+            "char_start": spans[0][0],
+            "char_end": spans[-1][1],
+            "source_spans": coordinates,
+            "source_span_ids": ids,
+            "source_unit_ids": ids,
+            "block_ids": list(
+                dict.fromkeys(
+                    block["block_id"]
+                    for coordinate in coordinates
+                    for block in coordinate.get("layout_blocks", [])
+                )
+            )
+            or ids,
+            "section_path": list(region.section),
+            "section_heading": region.section[-1] if region.section else None,
+            "structural_parent_id": f"{self.scope_id}:{region.start}:{block_kind}",
+        }
+
+
+def _table_chunks(
+    source: Source, region: Region, block: ParsedBlock, limit: int, count: Callable[[str], int]
+) -> Iterator[tuple[str, dict]]:
+    document = source.document
+    raw = document.content[region.start : region.end]
+    cells_by_row: dict[int, list[dict]] = defaultdict(list)
+    header_cells = []
+    for cell in block.table_cells:
+        if cell.get("is_column_header"):
+            header_cells.append(cell)
+        elif isinstance(cell.get("row"), int):
+            row = document.metadata.get("row_number", cell["row"])
+            cells_by_row[row].append(cell)
+    for content, row_start, row_end in table_groups(
+        block,
+        source=raw,
+        csv_row_number=document.metadata.get("row_number"),
+        limit=limit,
+        count=count,
+    ):
+        meta = source.metadata(content, [(region.start, region.end)], region)
+        meta.update(
+            table_block_id=block.block_id,
+            table_row_start=row_start,
+            table_row_end=row_end,
+            table_row_coordinate_system="parser_rows_zero_based_end_exclusive",
+            table_headers=list(block.table_headers),
+            table_cells=header_cells
+            + [cell for index in range(row_start, row_end) for cell in cells_by_row[index]],
+            source_text_exact=content == raw,
+        )
+        yield content, meta
+
+
+def iter_document_chunks(
+    source: Source, *, chunk_size: int, chunk_overlap: int, token_count: Callable[[str], int]
+) -> Iterator[tuple[str, dict]]:
+    text = source.document.content
+    for region in _regions(source.document):
+        block = region.block
+        if block and block.kind in {"table", "table_row"} and block.table_rows:
+            yield from _table_chunks(source, region, block, chunk_size, token_count)
+            continue
+        units = _units(text, region, chunk_size, token_count)
+        for spans in _pack(
+            text, units, chunk_size, chunk_overlap if block is None else 0, token_count
+        ):
+            content = text[spans[0][0] : spans[-1][1]]
+            yield content, source.metadata(content, spans, region)
+
+
+def iter_chunks(
+    documents: list[ParsedDocument],
     *,
     chunk_size: int,
     chunk_overlap: int,
-) -> list[tuple[str, list[int], tuple[int, int] | None]]:
-    """Greedy pack paragraph units; return (chunk_text, source_unit_indexes)."""
-    if not units:
-        return []
-    packed: list[tuple[str, list[int], tuple[int, int] | None]] = []
-    current: list[str] = []
-    current_idxs: list[int] = []
-    current_tokens = 0
-
-    def flush() -> None:
-        nonlocal current, current_idxs, current_tokens
-        if not current:
-            return
-        packed.append(("\n\n".join(current), list(current_idxs), None))
-        if chunk_overlap > 0 and current:
-            overlap_units: list[str] = []
-            overlap_idxs: list[int] = []
-            overlap_tokens = 0
-            for unit, idx in zip(reversed(current), reversed(current_idxs), strict=True):
-                t = estimate_tokens(unit)
-                if overlap_units and overlap_tokens + t > chunk_overlap:
-                    break
-                overlap_units.insert(0, unit)
-                overlap_idxs.insert(0, idx)
-                overlap_tokens += t
-            current = overlap_units
-            current_idxs = overlap_idxs
-            current_tokens = overlap_tokens
-        else:
-            current = []
-            current_idxs = []
-            current_tokens = 0
-
-    for unit_index, unit in enumerate(units):
-        unit_tokens = estimate_tokens(unit)
-        if unit_tokens > chunk_size:
-            flush()
-            from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-            splitter = RecursiveCharacterTextSplitter(
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap,
-                length_function=estimate_tokens,
+    document_revision: str | None = None,
+    token_count: Callable[[str], int] = estimate_tokens,
+    document_index_start: int = 0,
+) -> Iterator[tuple[str, dict]]:
+    if chunk_size < 1 or not 0 <= chunk_overlap < chunk_size:
+        raise ValueError("Chunk overlap must be nonnegative and smaller than the chunk size")
+    for index, doc in enumerate(documents, start=document_index_start):
+        revision = str(
+            document_revision
+            or doc.metadata.get("document_revision")
+            or doc.metadata.get("checksum_sha256")
+            or _hash(doc.content)
+        )
+        page = doc.page_number if doc.page_number is not None else doc.metadata.get("page_number")
+        scope_type = "page" if page is not None else "parsed_document"
+        scope_id = f"{doc.metadata.get('offset_scope_id') or scope_type}:{revision}:{page}:{index}"
+        source = Source(doc, revision, scope_type, scope_id)
+        for pack_index, (content, meta) in enumerate(
+            iter_document_chunks(
+                source, chunk_size=chunk_size, chunk_overlap=chunk_overlap, token_count=token_count
             )
-            piece_cursor = 0
-            for piece in splitter.split_text(unit):
-                piece_start = unit.find(piece, piece_cursor)
-                if piece_start < 0:
-                    raise ValueError("Recursive splitter produced a non-source substring")
-                piece_end = piece_start + len(piece)
-                packed.append((piece, [unit_index], (piece_start, piece_end)))
-                piece_cursor = piece_start + 1
-            continue
-        if current and current_tokens + unit_tokens > chunk_size:
-            flush()
-        current.append(unit)
-        current_idxs.append(unit_index)
-        current_tokens += unit_tokens
-    flush()
-    return packed
+        ):
+            yield content, {**meta, "pack_index": pack_index, "page_number": page}
 
 
 def split_documents(
@@ -162,124 +348,14 @@ def split_documents(
     chunk_size: int,
     chunk_overlap: int,
     document_revision: str | None = None,
+    token_count: Callable[[str], int] = estimate_tokens,
 ) -> list[tuple[str, dict]]:
-    """Structure-aware split with deterministic source provenance.
-
-    ``char_start`` and ``char_end`` are zero-based Python string offsets into
-    the parser output for the document (Unicode code points, end-exclusive).
-
-    CPU-bound: call only via ``asyncio.to_thread`` (see ``ChunkingService.chunk``).
-    """
-    results: list[tuple[str, dict]] = []
-    for document_index, doc in enumerate(documents):
-        base_meta = {**doc.metadata}
-        if doc.page_number is not None:
-            base_meta.setdefault("page_number", doc.page_number)
-        full_text = doc.content or ""
-        unit_pairs = _extract_units_with_headings(full_text)
-        units = [u for u, _ in unit_pairs]
-        headings = [h for _, h in unit_pairs]
-        # Absolute char offsets of each paragraph unit in the source document.
-        unit_spans: list[tuple[int, int]] = []
-        cursor = 0
-        for unit in units:
-            start = full_text.find(unit, cursor)
-            if start < 0:
-                start = cursor
-            end = start + len(unit)
-            unit_spans.append((start, end))
-            cursor = end
-
-        source_revision = str(
-            document_revision
-            or base_meta.get("document_revision")
-            or base_meta.get("checksum_sha256")
-            or hashlib.sha256(full_text.encode("utf-8")).hexdigest()
+    return list(
+        iter_chunks(
+            documents,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            document_revision=document_revision,
+            token_count=token_count,
         )
-        scope_type = "page" if base_meta.get("page_number") is not None else "parsed_document"
-        scope_prefix = "ocr" if base_meta.get("ocr_transformed_extract") else "page"
-        scope_id = str(
-            base_meta.get("offset_scope_id")
-            or (
-                f"{scope_prefix}:{source_revision}:{base_meta['page_number']}"
-                if scope_type == "page"
-                else f"parsed-document:{source_revision}:{document_index}"
-            )
-        )
-        packed = _pack_units(units, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-        for pack_index, (piece, source_idxs, piece_span) in enumerate(packed):
-            section = base_meta.get("section_heading")
-            for idx in source_idxs:
-                if idx < len(headings) and headings[idx]:
-                    section = headings[idx]
-                    break
-            source_unit_ids = [
-                _stable_source_id(
-                    document_revision=source_revision,
-                    page_number=base_meta.get("page_number"),
-                    section_heading=(headings[idx] if idx < len(headings) else section),
-                    char_start=unit_spans[idx][0],
-                    char_end=unit_spans[idx][1],
-                    content=units[idx],
-                )
-                for idx in source_idxs
-            ]
-            if piece_span is not None and source_idxs:
-                unit_start = unit_spans[source_idxs[0]][0]
-                chunk_start = unit_start + piece_span[0]
-                chunk_end = unit_start + piece_span[1]
-            else:
-                chunk_start = unit_spans[source_idxs[0]][0] if source_idxs else None
-                chunk_end = unit_spans[source_idxs[-1]][1] if source_idxs else None
-            char_start = chunk_start
-            char_end = chunk_end
-            source_spans = []
-            for unit_position, source_index in enumerate(source_idxs):
-                start, end = unit_spans[source_index]
-                if piece_span is not None and unit_position == 0:
-                    if char_start is None or char_end is None:
-                        raise ValueError("Chunk span is missing for a split source unit")
-                    start, end = char_start, char_end
-                source_spans.append(
-                    SourceCoordinate(
-                        scope_type=scope_type,
-                        scope_id=scope_id,
-                        coordinate_system="unicode_code_points_zero_based_end_exclusive",
-                        start=start,
-                        end=end,
-                        source_span_id=source_unit_ids[unit_position],
-                    ).to_dict()
-                )
-            # Packed chunks reference constituent source paragraphs — do not call
-            # the pack counter ``paragraph_index``.
-            meta = {
-                **base_meta,
-                "source_paragraph_indexes": list(source_idxs),
-                "pack_index": pack_index,
-                "content_hash": _content_hash(piece),
-                "chunker_strategy": "structure-v1",
-                "char_start": char_start,
-                "char_end": char_end,
-                "source_unit_ids": source_unit_ids,
-                "source_span_ids": source_unit_ids,
-                "block_ids": source_unit_ids,
-                "document_revision": source_revision,
-                "offset_coordinate_system": "unicode_code_points_zero_based_end_exclusive",
-                "offset_scope": scope_type,
-                "offset_scope_id": scope_id,
-                "source_spans": source_spans,
-                "structural_parent_id": "|".join(
-                    [
-                        scope_id,
-                        str(section or ""),
-                        str(base_meta.get("parsed_block_type") or "prose"),
-                    ]
-                ),
-            }
-            if section:
-                meta["section_heading"] = section
-            # Legacy key only when a packed chunk is a single source paragraph.
-            if len(source_idxs) == 1:
-                meta["paragraph_index"] = source_idxs[0]
-            results.append((piece, meta))
-    return results
+    )

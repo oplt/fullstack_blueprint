@@ -7,9 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.auth import get_current_user
-from backend.api.deps.db import get_db
 from backend.core.config import settings
+from backend.dependencies.auth import get_current_user
+from backend.dependencies.db import get_db
 from backend.modules.ai.contracts import (
     AiMessage,
     AiMessageRole,
@@ -54,7 +54,10 @@ async def stream_ai_run(
             AiErrorKind.BUDGET_EXCEEDED: 429,
             AiErrorKind.CONFIGURATION: 422,
         }.get(exc.kind, 503)
-        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status_code,
+            detail="AI provider request could not be routed",
+        ) from exc
     service = AiStreamService(db)
     run = await service.create_run(
         current_user,
@@ -73,7 +76,11 @@ async def stream_ai_run(
         ],
         response_format=payload.response_format,
         temperature=payload.temperature,
-        max_output_tokens=payload.max_output_tokens,
+        max_output_tokens=min(
+            payload.max_output_tokens or settings.AI_MAX_OUTPUT_TOKENS,
+            model_spec.max_output_tokens,
+        ),
+        timeout_seconds=settings.AI_REQUEST_TIMEOUT_SECONDS,
         tools=payload.tools,
         metadata={"run_id": run.id, "user_id": current_user.id, "provider_key": provider.key},
     )
@@ -116,18 +123,13 @@ async def stream_ai_run(
             raise
         except Exception as exc:
             error_type = exc.kind.value if isinstance(exc, AiProviderError) else "provider"
-            safe_message = (
-                str(exc) if isinstance(exc, AiProviderError) else "AI provider execution failed"
-            )
+            safe_message = "AI provider execution failed"
             yield sse_encode(
                 AiRunFailedEvent(
                     run_id=run.id,
                     sequence=last_sequence + 1,
                     error_type=error_type,
                     message=safe_message,
-                    provider_request_id=(
-                        exc.provider_request_id if isinstance(exc, AiProviderError) else None
-                    ),
                 )
             )
             await service.complete_run(
@@ -139,7 +141,6 @@ async def stream_ai_run(
                 status="failed",
                 error_message=safe_message,
             )
-            raise
 
     return StreamingResponse(
         generate(),

@@ -8,6 +8,10 @@ correctness — all metric updates are best-effort.
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar, Token
+from dataclasses import dataclass
 from time import monotonic
 from typing import Any, Literal
 
@@ -18,6 +22,49 @@ DatabaseRole = Literal["api", "worker"]
 
 _INSTRUMENTED_POOLS: set[int] = set()
 _INSTRUMENTED_ENGINES: set[int] = set()
+
+
+@dataclass(slots=True)
+class DatabaseRequestMetrics:
+    role: DatabaseRole
+    route: str
+    query_count: int = 0
+
+
+_CURRENT_DATABASE_REQUEST: ContextVar[DatabaseRequestMetrics | None] = ContextVar(
+    "current_database_request_metrics",
+    default=None,
+)
+
+
+@contextmanager
+def observe_database_request(*, role: DatabaseRole, route: str) -> Iterator[DatabaseRequestMetrics]:
+    """Collect bounded route-level SQL counts for one request scope."""
+    request_metrics = DatabaseRequestMetrics(role=role, route=route)
+    token: Token[DatabaseRequestMetrics | None] = _CURRENT_DATABASE_REQUEST.set(request_metrics)
+    try:
+        yield request_metrics
+    finally:
+        metrics = _safe_metrics()
+        if metrics is not None:
+            with contextlib.suppress(Exception):
+                metrics.database_request_query_count.labels(role=role, route=route).observe(
+                    request_metrics.query_count
+                )
+        _CURRENT_DATABASE_REQUEST.reset(token)
+
+
+def _record_connection_hold(*, role: DatabaseRole, connection_record: Any) -> None:
+    started_at = connection_record.info.pop("db_pool_checkout_started_at", None)
+    route = connection_record.info.pop("db_pool_checkout_route", "background")
+    if started_at is None:
+        return
+    metrics = _safe_metrics()
+    if metrics is not None:
+        with contextlib.suppress(Exception):
+            metrics.database_connection_hold_seconds.labels(role=role, route=route).observe(
+                monotonic() - started_at
+            )
 
 
 def _safe_metrics():
@@ -88,15 +135,22 @@ def instrument_pool(*, role: DatabaseRole, pool: Any) -> None:
     pool._do_get = _do_get_instrumented  # type: ignore[method-assign]
 
     @event.listens_for(pool, "checkout")
-    def _on_checkout(*_args: Any) -> None:
+    def _on_checkout(_dbapi_connection: Any, connection_record: Any, *_args: Any) -> None:
+        request_metrics = _CURRENT_DATABASE_REQUEST.get()
+        connection_record.info["db_pool_checkout_started_at"] = monotonic()
+        connection_record.info["db_pool_checkout_route"] = (
+            request_metrics.route if request_metrics is not None else "background"
+        )
         update_pool_gauges(role=role, pool=pool)
 
     @event.listens_for(pool, "checkin")
-    def _on_checkin(*_args: Any) -> None:
+    def _on_checkin(_dbapi_connection: Any, connection_record: Any) -> None:
+        _record_connection_hold(role=role, connection_record=connection_record)
         update_pool_gauges(role=role, pool=pool)
 
     @event.listens_for(pool, "invalidate")
-    def _on_invalidate(*_args: Any) -> None:
+    def _on_invalidate(_dbapi_connection: Any, connection_record: Any, _exception: Any) -> None:
+        _record_connection_hold(role=role, connection_record=connection_record)
         metrics = _safe_metrics()
         if metrics is not None:
             with contextlib.suppress(Exception):
@@ -126,6 +180,9 @@ def instrument_engine(*, role: DatabaseRole, sync_engine: Engine) -> None:
         _executemany: Any,
     ) -> None:
         conn.info["db_query_started_at"] = monotonic()
+        request_metrics = _CURRENT_DATABASE_REQUEST.get()
+        if request_metrics is not None:
+            request_metrics.query_count += 1
 
     @event.listens_for(sync_engine, "after_cursor_execute")
     def _after_cursor_execute(

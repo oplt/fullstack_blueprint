@@ -64,6 +64,49 @@ class RagAnswerPromptTest(unittest.IsolatedAsyncioTestCase):
 
 
 class AiRunServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
+    async def test_shared_retrieved_context_stays_out_of_system_and_stored_prompts(self):
+        service = AiRunService(AsyncMock())
+        service._resolve_prompt_version = AsyncMock(
+            return_value=(
+                None,
+                SimpleNamespace(
+                    id="prompt",
+                    provider_key="local",
+                    model_name="model",
+                    response_format="text",
+                    system_prompt="System policy. {{retrieval_context}}",
+                    user_prompt_template="{{query}}",
+                ),
+            )
+        )
+        service.repo = MagicMock()
+        service.repo.create_run = AsyncMock(return_value=SimpleNamespace(id="run-1"))
+        service._finalize_run_generation = AsyncMock()
+        user = User(id="user-1", email="a@example.com", password_hash="x")
+
+        await service.run_prompt(
+            user,
+            prompt_template_key=None,
+            prompt_version_id="prompt",
+            variables={
+                "query": "Find the limit",
+                "retrieval_context": "reserved variable evidence",
+            },
+            retrieval_query=None,
+            document_ids=[],
+            top_k=5,
+            review_required=False,
+            additional_system_context="<untrusted_documents>private source</untrusted_documents>",
+        )
+
+        generated = service._finalize_run_generation.await_args.kwargs
+        stored = service.repo.create_run.await_args.kwargs
+        for marker in ("private source", "reserved variable evidence"):
+            self.assertIn(marker, generated["rendered_user_prompt"])
+            self.assertNotIn(marker, generated["rendered_system_prompt"])
+            self.assertNotIn(marker, str(stored["input_messages_json"]))
+            self.assertNotIn(marker, str(stored["variables_json"]))
+
     @patch("backend.modules.ai.run_service.resolve_rag_answer_prompt")
     async def test_run_rag_answer_creates_run_with_retrieved_chunk_ids(self, resolve_prompt):
         db = AsyncMock()
@@ -99,7 +142,7 @@ class AiRunServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
         run = await service.run_rag_answer(
             user,
             query="What is Postgres?",
-            combined_context="User question:\nWhat is Postgres?",
+            combined_context="<untrusted_documents>private source</untrusted_documents>",
             retrieved_chunk_ids=["chunk-1"],
             retrieval_degraded=True,
             memory_degraded=True,
@@ -118,7 +161,12 @@ class AiRunServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(create_kwargs["input_messages_json"][0]["role"], "system")
         self.assertIn("What is Postgres?", create_kwargs["input_messages_json"][1]["content"])
         self.assertNotIn("User question:", create_kwargs["input_messages_json"][1]["content"])
+        self.assertNotIn("private source", str(create_kwargs["input_messages_json"]))
         service._finalize_run_generation.assert_awaited_once()
+        generation = service._finalize_run_generation.await_args.kwargs
+        self.assertIn("private source", generation["rendered_user_prompt"])
+        self.assertNotIn("private source", generation["rendered_system_prompt"])
+        self.assertEqual(generation["output_capture"], [])
 
 
 class AiRunProviderContractTest(unittest.IsolatedAsyncioTestCase):

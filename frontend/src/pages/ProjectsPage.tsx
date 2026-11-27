@@ -1,5 +1,9 @@
 import { notify } from "../lib/notify";
-import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { colorMix } from "@/lib/color";import { useState } from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-field";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -114,18 +118,9 @@ export default function ProjectsPage() {
                     errorFallback={`Failed to load ${coreDomainPlural.toLowerCase()}.`}
                     onRetry={() => void refetch()}
                     loadingFallback={
-                        <div
-                            style={{
-                                display: "grid",
-                                gap: 12,
-                                gridTemplateColumns: "1fr",
-                            }}
-                        >
-                            {Array.from({ length: 4 }).map((_: any, index: any) => (
-                                <div
-                                    key={index}
-                                    style={{ borderRadius: 16 }}
-                                    className="animate-pulse rounded-md bg-muted" />
+                        <div className="grid min-w-0 gap-3">
+                            {Array.from({ length: 4 }, (_, index) => (
+                                <Skeleton key={index} className="h-24 w-full" />
                             ))}
                         </div>
                     }
@@ -146,76 +141,40 @@ export default function ProjectsPage() {
                         />
                     }
                 >
-                    <div
-                        style={{
-                            display: "grid",
-                            gap: 12,
-                            gridTemplateColumns: "1fr",
-                        }}
-                    >
+                    <div className="grid min-w-0 gap-3">
                         {projects?.map((project) => (
-                            <div
-                                key={project.id}
-                                style={({
-                                    padding: 20,
-                                    borderRadius: 16,
-                                    border: `1px solid ${"var(--border)"}`,
-                                    backgroundColor: "var(--card)"
-                                })}
-                            >
-                                <div className="flex gap-2.5">
-                                    <div className="flex flex-row gap-2.5 items-center">
-                                        <div
-                                            style={({
-                                                width: 42,
-                                                height: 42,
-                                                borderRadius: 12,
-                                                display: "grid",
-                                                placeItems: "center",
-                                                color: "var(--primary)",
-                                                backgroundColor: colorMix("var(--primary)", 0.13)
-                                            })}
-                                        >
-                                            <FolderOpenIcon />
+                            <Card key={project.id} className="min-w-0 p-6">
+                                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <div className="grid size-11 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                                            <FolderOpenIcon aria-hidden="true" />
                                         </div>
-                                        <div>
-                                            <p>
-                                                {project.name}
-                                            </p>
-                                            <span className="text-muted-foreground">
+                                        <div className="min-w-0">
+                                            <p className="font-medium">{project.name}</p>
+                                            <span className="text-sm text-muted-foreground">
                                                 Created {formatDate(project.created_at)}
                                             </span>
                                         </div>
                                     </div>
-                                    <p className="text-muted-foreground">
+                                    <p className="min-w-0 flex-1 text-sm text-muted-foreground">
                                         {project.description ||
                                             `No description yet for this ${coreDomainSingular.toLowerCase()}.`}
                                     </p>
-                                    <div>
-                                        <Button
-                                            variant="ghost"
-                                            onClick={() => navigate(projectPath(project.id))}
-                                            type="button">Open workspace
-                                                                                    <ArrowRight /></Button>
-                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => navigate(projectPath(project.id))}
+                                        type="button"
+                                        className="shrink-0"
+                                    >Open workspace<ArrowRight /></Button>
                                 </div>
-                            </div>
+                            </Card>
                         ))}
                     </div>
                 </QueryBoundary>
             </SectionCard>
 
             <div>
-                <div
-                    style={{
-                        padding: 20,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 16,
-                        height: "100%",
-                        overflow: "auto",
-                    }}
-                >
+                <div className="flex h-full min-w-0 flex-col gap-4 overflow-auto p-6">
                     <div className="flex flex-row items-center justify-between">
                         <h6>Create {coreDomainSingular}</h6>
                         <Button size="icon"

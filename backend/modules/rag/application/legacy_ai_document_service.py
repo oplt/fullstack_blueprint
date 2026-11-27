@@ -13,6 +13,7 @@ from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.modules.rag.application.document_ingestion_service import DocumentIngestionService
 from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.domain.enums import DocumentStatus
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
 from backend.modules.rag.infrastructure.models import RagDocument
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
@@ -176,27 +177,25 @@ class LegacyAiDocumentService:
         document_ids: list[str],
         top_k: int,
     ) -> list[dict[str, Any]]:
-        candidate_ids: list[str] | None
-        if document_ids:
-            allowed = await self.repo.filter_document_ids_for_user(user_id, document_ids)
-            if len(allowed) != len(document_ids):
-                raise HTTPException(status_code=404, detail="One or more documents were not found")
-            candidate_ids = document_ids
-        else:
-            candidate_ids = None
+        if not document_ids:
+            return []
 
-        filters = {"document_ids": candidate_ids} if candidate_ids else None
+        allowed = await self.repo.filter_document_ids_for_user(user_id, document_ids)
+        if len(allowed) != len(document_ids):
+            raise HTTPException(status_code=404, detail="One or more documents were not found")
+
         outcome = await self.retrieval.retrieve(
-            query,
-            user_id=user_id,
-            project_id=None,
-            top_k=top_k,
-            filters=filters,
+            RetrievalRequest(
+                query=query,
+                user_id=user_id,
+                project_id=None,
+                top_k=top_k,
+                filters={"document_ids": document_ids},
+            )
         )
 
         title_ids = {match.document_id for match in outcome.chunks}
-        if document_ids:
-            title_ids.update(document_ids)
+        title_ids.update(document_ids)
         documents = await self.repo.get_documents_by_ids(list(title_ids), user_id=user_id)
         documents_by_id = {doc.id: doc for doc in documents}
 

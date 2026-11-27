@@ -126,6 +126,17 @@ def test_generation_artifacts_are_deterministic_and_update_is_safe(tmp_path: Pat
     assert not (output / ".pnpm-store").exists()
 
 
+def test_generation_ignores_local_codegraph_state(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    codegraph = source / ".codegraph"
+    codegraph.mkdir(parents=True)
+    (codegraph / "index.json").write_text("local state", encoding="utf-8")
+    output = tmp_path / "generated"
+    BlueprintGenerator(source).generate(config(), output)
+
+    assert not (output / ".codegraph").exists()
+
+
 def test_generated_compose_uses_generated_environment_and_root_infra(tmp_path: Path) -> None:
     source = tmp_path / "source"
     (source / "infra").mkdir(parents=True)

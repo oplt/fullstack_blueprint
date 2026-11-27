@@ -150,11 +150,11 @@ class TypedToolRegistry:
         return tool
 
     def schemas(self, identifiers: list[str] | None = None) -> list[dict[str, Any]]:
-        allowed = set(identifiers or [])
+        allowed = set(identifiers) if identifiers is not None else None
         tools = [
             tool
             for tool in self._tools.values()
-            if not allowed or tool.definition.identifier in allowed
+            if allowed is None or tool.definition.identifier in allowed
         ]
         return [
             {

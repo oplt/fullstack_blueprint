@@ -10,12 +10,17 @@ logger = logging.getLogger(__name__)
 _configured = False
 _libraries_instrumented = False
 _SIGNALS = {"traces", "metrics", "logs"}
+OTLP_SIGNAL_ENDPOINT_COMPONENTS = 2
 
 
 def _signal_endpoint(signal: str, base_endpoint: str) -> str:
     endpoint = base_endpoint.rstrip("/")
     parts = endpoint.split("/")
-    if len(parts) >= 2 and parts[-2] == "v1" and parts[-1] in _SIGNALS:
+    if (
+        len(parts) >= OTLP_SIGNAL_ENDPOINT_COMPONENTS
+        and parts[-2] == "v1"
+        and parts[-1] in _SIGNALS
+    ):
         return "/".join([*parts[:-1], signal])
     return f"{endpoint}/v1/{signal}"
 

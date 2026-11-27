@@ -137,7 +137,9 @@ class RagEmbeddingModel(Base):
 
     __tablename__ = "rag_embedding_models"
     __table_args__ = (
-        UniqueConstraint("provider", "model", "model_version", name="uq_rag_embedding_model"),
+        UniqueConstraint(
+            "provider", "key", "model", "model_version", name="uq_rag_embedding_model"
+        ),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))

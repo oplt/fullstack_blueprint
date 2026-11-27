@@ -13,6 +13,7 @@ EXTRACT_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"(?i)(for project .{3,60},? (the )?(chosen|using|db is) .{3,80})"),
     re.compile(r"(?i)(current plan|next step|working on task)[:.]? .{5,120}"),
 )
+MIN_DURABLE_MEMORY_SENTENCE_CHARS = 12
 
 
 @dataclass(slots=True)
@@ -39,7 +40,7 @@ class MemoryExtractor:
         for text in (user_message, assistant_message):
             for match in self._iter_sentences(text):
                 normalized = match.strip()
-                if len(normalized) < 12:
+                if len(normalized) < MIN_DURABLE_MEMORY_SENTENCE_CHARS:
                     continue
                 if contains_secret(normalized):
                     continue

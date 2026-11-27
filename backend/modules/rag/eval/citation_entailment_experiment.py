@@ -9,6 +9,9 @@ import json
 from pathlib import Path
 from typing import Any
 
+from backend.modules.rag.application.citation_validation_service import CitationValidationService
+from backend.modules.rag.domain.models import RetrievedChunk
+
 FIXTURES = Path(__file__).with_name("fixtures") / "citation_entailment_pairs.json"
 
 
@@ -43,6 +46,8 @@ def run_citation_entailment_experiment(
     pairs = pairs if pairs is not None else load_entailment_pairs()
     scores = []
     supported = 0
+    true_positive = false_positive = false_negative = 0
+    validator = CitationValidationService()
     for pair in pairs:
         score = lexical_entailment_score(str(pair["claim"]), str(pair["evidence"]))
         scores.append(score)
@@ -50,6 +55,19 @@ def run_citation_entailment_experiment(
         predicted = score >= threshold
         if predicted == label:
             supported += 1
+        source = RetrievedChunk("source", "doc", str(pair["evidence"]), 1.0, "fixture.txt", 0)
+        candidate = json.dumps(
+            {
+                "claims": [{"text": pair["claim"], "chunk_ids": [source.chunk_id]}],
+                "no_evidence": False,
+            }
+        )
+        exact = not validator.validate(
+            raw_output=candidate, retrieved_chunks=[source]
+        ).citation_validation_failed
+        true_positive += int(exact and label)
+        false_positive += int(exact and not label)
+        false_negative += int(not exact and label)
     return {
         "schema_version": 1,
         "enabled": True,
@@ -59,6 +77,9 @@ def run_citation_entailment_experiment(
             "mean_overlap": (sum(scores) / len(scores)) if scores else 0.0,
             "agreement_rate": (supported / len(pairs)) if pairs else 1.0,
             "threshold": threshold,
+            "extractive_precision": true_positive / max(1, true_positive + false_positive),
+            "extractive_recall": true_positive / max(1, true_positive + false_negative),
+            "extractive_false_accepts": false_positive,
         },
     }
 

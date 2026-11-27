@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { colorMix } from "@/lib/color";import { RotateCcw as RestartIcon, Settings2 as SettingsIcon, HardDrive as StorageIcon } from "lucide-react";
+import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";
+import { RotateCcw as RestartIcon, Settings2 as SettingsIcon, HardDrive as StorageIcon } from "lucide-react";
 import type { ConfigSettingsResponse, DatabaseSetting } from "../../../api/settings";
 import { SettingsTabs } from "../../../components/layout/SettingsTabs";
 import { PageShell } from "../../../components/ui/PageShell";
@@ -21,26 +21,40 @@ export function AdminSettingsContent(props: Props) {
     return (
         <PageShell width="wide">
             <SettingsTabs />
-            <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+            <div className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                 <StatCard label="Config variables" value={props.configData.items.length} description="Environment-backed values available in the settings file" icon={<SettingsIcon />} />
                 <StatCard label="Restart-sensitive" value={props.configData.items.filter((item) => item.requires_restart).length} description="Values likely to require a backend restart after saving" icon={<RestartIcon />} color="warning" />
                 <StatCard label="Runtime database settings" value={props.databaseSettings.length} description="Key/value records stored in the database for live updates" icon={<StorageIcon />} color="secondary" />
             </div>
             {props.hasConfigError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{props.configErrorMessage}</div>}
             {props.hasDatabaseError && <div role="alert" className="rounded-lg border border-border p-3 text-sm">{props.databaseErrorMessage}</div>}
-            <div style={({
-                padding: 8,
-                borderRadius: 16,
-                border: `1px solid ${"var(--border)"}`,
-                backgroundColor: colorMix("var(--card)", 0.82)
-            })}>
-                <div role="tablist" className="flex gap-1 overflow-x-auto">
-                    {model.configGroups.map((group) => <Button key={group.id} variant={model.activeConfigGroup?.id === group.id ? "default" : "outline"} size="sm" onClick={() => props.onTabChange(group.id as SettingsTabValue)} type="button">{group.label}</Button>)}
-                </div>
-            </div>
-            {model.activeConfigGroup
-                ? <ConfigSettingsSection configData={props.configData} model={model} />
-                : <DatabaseSettingsSections settings={props.databaseSettings} model={model} />}
+            <Tabs
+                value={props.activeTab}
+                onValueChange={(value) => {
+                    const nextTab = value === "database"
+                        ? value
+                        : model.configGroups.find((group) => group.id === value)?.id;
+                    if (nextTab) props.onTabChange(nextTab);
+                }}
+                className="min-w-0"
+            >
+                <TabsList variant="line" aria-label="Settings category" className="mb-4 max-w-full overflow-x-auto border-b border-border">
+                    {model.configGroups.map((group) => (
+                        <TabsTrigger key={group.id} value={group.id} className="shrink-0 px-3 py-2">
+                            {group.label}
+                        </TabsTrigger>
+                    ))}
+                    <TabsTrigger value="database" className="shrink-0 px-3 py-2">Database</TabsTrigger>
+                </TabsList>
+                {model.configGroups.map((group) => (
+                    <TabsPanel key={group.id} value={group.id}>
+                        {props.activeTab === group.id ? <ConfigSettingsSection configData={props.configData} model={model} /> : null}
+                    </TabsPanel>
+                ))}
+                <TabsPanel value="database">
+                    {props.activeTab === "database" ? <DatabaseSettingsSections settings={props.databaseSettings} model={model} /> : null}
+                </TabsPanel>
+            </Tabs>
         </PageShell>
     );
 }

@@ -1,3 +1,4 @@
+import { Card, CardContent } from "@/components/ui/card";
 
 type Highlight = {
     value: string;
@@ -27,36 +28,41 @@ export function AuthMarketingPanel({
             <div className="flex w-full min-w-0 flex-col gap-8">
 
                 <header className="flex w-full min-w-0 flex-col gap-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    <p className="font-mono text-mono-eyebrow font-medium uppercase text-muted-foreground">
                         {eyebrow}
                     </p>
 
-                    <h1 className="w-full max-w-[640px] text-4xl font-semibold leading-tight tracking-tight xl:text-5xl">
+                    <h1 className="w-full max-w-[640px] text-display-lg font-semibold xl:text-display-xl">
                         {title}
                     </h1>
 
-                    <p className="w-full max-w-[560px] text-base leading-relaxed text-muted-foreground">
+                    <p className="w-full max-w-[560px] text-body-lg text-muted-foreground">
                         {description}
                     </p>
                 </header>
 
                 {highlights.length > 0 && (
-                    <dl className="grid w-full grid-cols-1 gap-4 xl:grid-cols-3">
+                    <div className="grid w-full grid-cols-1 gap-4 xl:grid-cols-3">
                         {highlights.map((item) => (
-                            <div
+                            <Card
                                 key={item.label}
-                                className="min-w-0 rounded-lg border border-border bg-background/60 p-4"
+                                size="sm"
+                                className="min-w-0 bg-background/60"
                             >
-                                <dt className="text-sm text-muted-foreground">
-                                    {item.label}
-                                </dt>
+                                <CardContent>
+                                    <dl>
+                                        <dt className="text-body-sm text-muted-foreground">
+                                            {item.label}
+                                        </dt>
 
-                                <dd className="mt-1 text-2xl font-semibold tracking-tight">
-                                    {item.value}
-                                </dd>
-                            </div>
+                                        <dd className="mt-1 break-words text-display-md font-semibold">
+                                            {item.value}
+                                        </dd>
+                                    </dl>
+                                </CardContent>
+                            </Card>
                         ))}
-                    </dl>
+                    </div>
                 )}
 
                 {points.length > 0 && (
@@ -64,7 +70,7 @@ export function AuthMarketingPanel({
                         {points.map((point) => (
                             <li
                                 key={point}
-                                className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground"
+                                className="flex items-start gap-3 text-body-md text-muted-foreground"
                             >
                                 <span
                                     aria-hidden="true"
@@ -80,7 +86,7 @@ export function AuthMarketingPanel({
             </div>
 
             <footer className="w-full border-t border-border pt-6">
-                <p className="text-sm font-semibold">
+                <p className="text-label-sm font-medium">
                     {appName}
                 </p>
             </footer>

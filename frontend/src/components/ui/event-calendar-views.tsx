@@ -42,7 +42,7 @@ const dayRowCommonClasses: CalendarOptions = {
   ),
   listItemEventTitleClass: (info) => cn(
     info.isNarrow ? 'px-0.5' : 'px-1',
-    'font-bold whitespace-nowrap overflow-hidden shrink-100',
+    'font-semibold whitespace-nowrap overflow-hidden shrink-100',
   ),
 
   /* Day Row > Row Event
@@ -102,7 +102,7 @@ export function EventCalendarViews({
       eventContrastColor='var(--primary-foreground)'
       eventClass={(info) => cn(
         info.isSelected
-          ? ['outline-3', info.isDragging ? 'shadow-lg' : 'shadow-md']
+          ? ['outline-3', info.isDragging ? 'shadow-overlay' : 'shadow-raised']
           : 'focus-visible:outline-3',
         'outline-ring/50',
       )}
@@ -111,7 +111,7 @@ export function EventCalendarViews({
       ----------------------------------------------------------------------------------------- */
 
       backgroundEventColor='var(--chart-3)'
-      backgroundEventClass='not-print:bg-[color-mix(in_oklab,var(--fc-event-color)_10%,transparent)] print:border-1 print:border-(--fc-event-color)'
+      backgroundEventClass='not-print:bg-(--calendar-event-background) print:bg-(--calendar-print-background) print:border-1 print:border-(--fc-event-color)'
       backgroundEventTitleClass={(info) => cn(
         'opacity-50 italic',
         info.isNarrow
@@ -135,11 +135,11 @@ export function EventCalendarViews({
       ----------------------------------------------------------------------------------------- */
 
       blockEventClass={(info) => cn(
-        'group relative border-transparent print:border-(--fc-event-color) bg-(--fc-event-color) hover:bg-[color-mix(in_oklab,var(--fc-event-color)_92%,var(--fc-event-contrast-color))] print:bg-white',
-        info.isInteractive && 'active:bg-[color-mix(in_oklab,var(--fc-event-color)_85%,var(--fc-event-contrast-color))]',
+        'group relative border-transparent print:border-(--fc-event-color) bg-(--fc-event-color) hover:bg-(--calendar-event-hover) print:bg-(--calendar-print-background)',
+        info.isInteractive && 'active:bg-(--calendar-event-active)',
         (!info.isSelected && info.isDragging) && 'opacity-75',
       )}
-      blockEventInnerClass='text-(--fc-event-contrast-color) print:text-black'
+      blockEventInnerClass='text-(--fc-event-contrast-color) print:text-(--calendar-print-foreground)'
       blockEventTimeClass='whitespace-nowrap overflow-hidden'
       blockEventTitleClass='whitespace-nowrap overflow-hidden'
 
@@ -182,7 +182,7 @@ export function EventCalendarViews({
         info.isNarrow ? xxsTextClass : 'text-xs',
       )}
       rowEventTimeClass={(info) => cn(
-        'font-bold shrink-1',
+        'font-semibold shrink-1',
         info.isNarrow ? 'ps-0.5' : 'ps-1',
       )}
       rowEventTitleClass={(info) => cn(
@@ -232,7 +232,7 @@ export function EventCalendarViews({
 
       moreLinkClass="focus-visible:outline-3 outline-ring/50"
       moreLinkInnerClass='whitespace-nowrap overflow-hidden'
-      columnMoreLinkClass="mb-px border border-transparent print:border-black rounded-sm bg-[color-mix(in_oklab,var(--foreground)_10%,var(--background))] hover:bg-[color-mix(in_oklab,var(--foreground)_13%,var(--background))] print:bg-white ring ring-background"
+      columnMoreLinkClass="mb-px border border-transparent print:border-(--calendar-print-foreground) rounded-sm bg-(--calendar-more-link-background) hover:bg-(--calendar-more-link-hover) print:bg-(--calendar-print-background) ring ring-background"
       columnMoreLinkInnerClass={(info) => (
         info.isNarrow
           ? `p-0.5 ${xxsTextClass}`
@@ -303,7 +303,7 @@ export function EventCalendarViews({
             ]
           : (info.hasNavLink && 'hover:bg-foreground/5'),
         info.isOther && 'text-muted-foreground',
-        info.monthText && 'font-bold',
+        info.monthText && 'font-semibold',
       )}
       dayCellInnerClass={(info) => cn(info.inPopover && 'p-2')}
 
@@ -311,7 +311,7 @@ export function EventCalendarViews({
       ----------------------------------------------------------------------------------------- */
 
       popoverFormat={{ day: 'numeric', weekday: 'short' }}
-      popoverClass='border rounded-md overflow-hidden shadow-lg m-1 bg-popover text-popover-foreground [--fc-popover-z:50] pointer-events-auto min-w-60'
+      popoverClass='border rounded-md overflow-hidden shadow-overlay m-1 bg-popover text-popover-foreground [--fc-popover-z:var(--z-popover)] pointer-events-auto min-w-60'
       popoverCloseClass="group absolute top-2 end-2 size-8 rounded-full items-center justify-center hover:bg-foreground/5 focus-visible:outline-3 outline-ring/50"
 
       /* Lane
@@ -377,7 +377,7 @@ export function EventCalendarViews({
         'items-center',
       )}
       singleMonthHeaderInnerClass={(info) => cn(
-        'px-3 py-1 rounded-full text-base font-bold',
+        'px-3 py-1 rounded-full text-base font-semibold',
         info.hasNavLink && 'hover:bg-foreground/5',
       )}
 
@@ -496,6 +496,8 @@ function filledRightTriangle(className?: string) {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 800 2200"
       preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
       className={className}
      >
       <polygon points="0,0 66,0 800,1100 66,2200 0,2200" fill="currentColor" />

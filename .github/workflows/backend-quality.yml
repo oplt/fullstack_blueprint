@@ -12,40 +12,67 @@ concurrency:
   group: backend-quality-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    working-directory: backend
+
 jobs:
   static:
     name: Ruff, Pyright, and architecture
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
         with:
           version: "0.10.0"
+
       - name: Install locked backend dependencies
-        run: uv sync --locked --all-extras
-        working-directory: backend
-      - name: Run backend quality gates
+        run: uv sync --locked --group dev --all-extras
+
+      - name: Verify development environment
         run: |
-          uv run ruff check .
-          uv run ruff format --check .
-          uv run pyright -p pyproject.toml
-          uv run lint-imports ../.importlinter --no-cache
-          uv run python scripts/check_architecture.py
+          uv run --no-sync python --version
+          uv run --no-sync ruff --version
+          uv run --no-sync pyright --version
+
+      - name: Ruff lint
+        run: uv run --no-sync ruff check .
+
+      - name: Ruff formatting
+        run: uv run --no-sync ruff format --check .
+
+      - name: Pyright type checking
+        run: uv run --no-sync pyright -p pyproject.toml
+
+      - name: Import architecture
+        run: uv run --no-sync lint-imports ../.importlinter --no-cache
+
+      - name: Route architecture
+        run: uv run --no-sync python scripts/check_architecture.py
+
       - name: Detect unused backend code
-        working-directory: backend
-        run: uv run --locked vulture
+        run: uv run --no-sync vulture
         continue-on-error: true
+
       - name: Validate runtime OpenAPI
         run: |
-          uv run python scripts/export_openapi.py --profile runtime --output /tmp/runtime-openapi.json
-          uv run python scripts/validate_openapi.py --input /tmp/runtime-openapi.json
-        working-directory: backend
+          uv run --no-sync python scripts/export_openapi.py \
+            --profile runtime \
+            --output /tmp/runtime-openapi.json
+
+          uv run --no-sync python scripts/validate_openapi.py \
+            --input /tmp/runtime-openapi.json
 
   tests-and-migrations:
     name: PostgreSQL tests and migration validation
     runs-on: ubuntu-latest
     timeout-minutes: 25
+
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -57,14 +84,20 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd "pg_isready -U fullstack_blueprint -d fullstack_blueprint"
-          --health-interval 5s --health-timeout 5s --health-retries 20
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
       redis:
         image: redis:7-alpine
         ports:
           - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 5s --health-timeout 5s --health-retries 20
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     env:
       APP_ENV: test
       DATABASE_URL: postgresql+asyncpg://fullstack_blueprint:fullstack_blueprint@127.0.0.1:5432/fullstack_blueprint
@@ -81,26 +114,36 @@ jobs:
       AI_ENABLED: false
       RAG_ENABLED: false
       MEMORY_ENABLED: false
+
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
         with:
           version: "0.10.0"
+
       - name: Install locked backend dependencies
-        run: uv sync --locked --all-extras
-        working-directory: backend
+        run: uv sync --locked --group dev --all-extras
+
       - name: Apply migrations to disposable PostgreSQL
-        run: uv run alembic upgrade head
-        working-directory: backend
+        run: uv run --no-sync alembic upgrade head
+
       - name: Check migration graph
-        run: uv run alembic check
-        working-directory: backend
+        run: uv run --no-sync alembic check
+
       - name: Run backend tests with coverage and JUnit output
-        run: uv run pytest . --cov=backend --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=test-results.xml
-        working-directory: backend
+        run: |
+          uv run --no-sync pytest . \
+            --cov=backend \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --junitxml=test-results.xml
+
       - name: Upload backend reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: backend-quality-reports
           if-no-files-found: ignore

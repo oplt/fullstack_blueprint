@@ -34,7 +34,8 @@ class RetryPolicy:
                 await asyncio.sleep(
                     min(self.max_delay_seconds, self.base_delay_seconds * (2 ** (attempt - 1)))
                 )
-        assert last_error is not None
+        if last_error is None:
+            raise RuntimeError("Retry policy ended without a result or error")
         raise last_error
 
 

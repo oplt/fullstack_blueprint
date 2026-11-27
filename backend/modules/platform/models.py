@@ -65,7 +65,9 @@ class ApiKey(Base):
     key_hash: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     tenant_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     scopes_json: Mapped[list[str]] = mapped_column(JSON, default=list)
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
     rotated_from_id: Mapped[str | None] = mapped_column(String, nullable=True)
     rate_limit_per_minute: Mapped[int] = mapped_column(Integer, default=60)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -1,5 +1,13 @@
 import { Button } from "@/components/ui/button";
 import {
+    AlertDialog,
+    AlertDialogClose,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
     CloudUpload as UploadIcon,
     RefreshCw as RetryIcon,
 } from "lucide-react";
@@ -20,6 +28,30 @@ import { PAGE_SIZE } from "../hooks/useRagWorkspace";
 
 type RagWorkspace = ReturnType<typeof useRagWorkspace>;
 type Props = { workspace: RagWorkspace; fileInputRef: RefObject<HTMLInputElement | null>; onTabChange: (tab: "documents" | "indexing" | "retrieval" | "evaluation" | "runs") => void };
+
+export function ConfirmDeleteDocument({ disabled, onConfirm }: { disabled: boolean; onConfirm: () => void }) {
+    return (
+        <AlertDialog>
+            <AlertDialogTrigger render={<Button variant="destructive" disabled={disabled} type="button" />}>
+                Delete
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+                <div className="space-y-2">
+                    <AlertDialogTitle>Delete this RAG document?</AlertDialogTitle>
+                    <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                </div>
+                <div className="flex justify-end gap-2">
+                    <AlertDialogClose render={<Button variant="outline" type="button" />}>
+                        Cancel
+                    </AlertDialogClose>
+                    <AlertDialogClose render={<Button variant="destructive" onClick={onConfirm} type="button" />}>
+                        Delete document
+                    </AlertDialogClose>
+                </div>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+}
 
 export function RagDocumentsPanel({ workspace, fileInputRef, onTabChange }: Props) {
     const selectedDocumentId = workspace.selectedDocumentId;
@@ -111,15 +143,10 @@ export function RagDocumentsPanel({ workspace, fileInputRef, onTabChange }: Prop
                                                         disabled={workspace.indexMutation.isPending}
                                                         onClick={() => workspace.indexMutation.mutate(row.original.id)}
                                                         type="button"><RetryIcon />Re-index</Button>
-                                                    <Button
-                                                        variant="destructive"
+                                                    <ConfirmDeleteDocument
                                                         disabled={workspace.deleteMutation.isPending}
-                                                        onClick={() => {
-                                                            if (window.confirm("Delete this RAG document?")) {
-                                                                workspace.deleteMutation.mutate(row.original.id);
-                                                            }
-                                                        }}
-                                                        type="button">Delete</Button>
+                                                        onConfirm={() => workspace.deleteMutation.mutate(row.original.id)}
+                                                    />
                                                 </div>
                                             ),
                                         },
@@ -150,7 +177,7 @@ export function RagDocumentsPanel({ workspace, fileInputRef, onTabChange }: Prop
                             </QueryBoundary>
                         )}
                         {workspace.pollJobId && workspace.jobQuery.data ? (
-                            <div style={{ marginTop: 8 }}>
+                            <div className="mt-2" >
                                 <RagIngestionStatus
                                     dense
                                     title="Ingestion job"

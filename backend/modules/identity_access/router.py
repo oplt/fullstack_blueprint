@@ -3,10 +3,10 @@ import logging
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.auth import get_authenticated_user
-from backend.api.deps.db import get_db
 from backend.core.config import settings
 from backend.core.rate_limit import (
+    auth_account_rate_limit_key,
+    auth_client_rate_limit_key,
     auth_rate_limit_key,
     check_rate_limit,
     clear_rate_limit,
@@ -14,6 +14,8 @@ from backend.core.rate_limit import (
     increment_rate_limit,
 )
 from backend.core.security import create_access_token, generate_csrf_token
+from backend.dependencies.auth import get_authenticated_user, get_current_user
+from backend.dependencies.db import get_db
 from backend.modules.identity_access.models import User
 from backend.modules.identity_access.schemas import (
     AuthSessionResponse,
@@ -141,13 +143,20 @@ async def sign_in(
         window_seconds=settings.AUTH_SIGNIN_WINDOW_SECONDS,
     )
     failure_key = auth_rate_limit_key(request, payload.email, namespace="auth_fail")
-    await enforce_rate_limit(failure_key, settings.AUTH_FAILURE_LIMIT)
+    failure_keys = (
+        failure_key,
+        auth_account_rate_limit_key(payload.email, namespace="auth_fail"),
+        auth_client_rate_limit_key(request, namespace="auth_fail"),
+    )
+    for key in failure_keys:
+        await enforce_rate_limit(key, settings.AUTH_FAILURE_LIMIT)
     service = IdentityService(db)
     try:
         result = await service.sign_in(payload.email, payload.password, payload.mfa_code)
     except HTTPException as exc:
         if exc.status_code in {401, 403}:
-            await increment_rate_limit(failure_key, settings.AUTH_FAILURE_WINDOW_SECONDS)
+            for key in failure_keys:
+                await increment_rate_limit(key, settings.AUTH_FAILURE_WINDOW_SECONDS)
             logger.warning(
                 "authentication_failed ip=%s status=%s",
                 request.client.host if request.client else "unknown",
@@ -155,7 +164,8 @@ async def sign_in(
             )
         raise
 
-    await clear_rate_limit(failure_key)
+    for key in failure_keys:
+        await clear_rate_limit(key)
     access_token = create_access_token(result["user"].id, result["session_id"])
     csrf_token = generate_csrf_token()
     _set_access_cookie(response, access_token)
@@ -262,7 +272,7 @@ async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depen
 @router.post("/mfa/enable", response_model=MfaEnableResponse)
 async def mfa_enable(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_authenticated_user),
+    current_user: User = Depends(get_current_user),
 ):
     service = IdentityService(db)
     return await service.mfa_enable(current_user)
@@ -271,9 +281,11 @@ async def mfa_enable(
 @router.post("/mfa/verify", status_code=204)
 async def mfa_verify(
     payload: MfaVerifyRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_authenticated_user),
+    current_user: User = Depends(get_current_user),
 ):
+    await _check_mfa_attempt_rate_limit(request, current_user, "verify")
     service = IdentityService(db)
     await service.mfa_verify_enable(current_user, payload.code)
 
@@ -281,8 +293,18 @@ async def mfa_verify(
 @router.post("/mfa/disable", status_code=204)
 async def mfa_disable(
     payload: MfaDisableRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_authenticated_user),
+    current_user: User = Depends(get_current_user),
 ):
+    await _check_mfa_attempt_rate_limit(request, current_user, "disable")
     service = IdentityService(db)
     await service.mfa_disable(current_user, payload.code)
+
+
+async def _check_mfa_attempt_rate_limit(request: Request, user: User, action: str) -> None:
+    for key in (
+        auth_account_rate_limit_key(user.id, namespace=f"mfa_{action}"),
+        auth_client_rate_limit_key(request, namespace=f"mfa_{action}"),
+    ):
+        await check_rate_limit(key=key, max_attempts=5, window_seconds=300)

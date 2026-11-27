@@ -3,8 +3,6 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.auth import get_current_user
-from backend.api.deps.db import get_db
 from backend.core.config import settings
 from backend.core.pagination import (
     PaginatedResponse,
@@ -12,6 +10,8 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
+from backend.dependencies.auth import get_current_user
+from backend.dependencies.db import get_db
 from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
 from backend.modules.ai.run_service import AiRunService
 from backend.modules.ai.schemas import AiRunRequest, AiRunResponse

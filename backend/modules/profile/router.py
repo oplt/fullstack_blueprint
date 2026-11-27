@@ -1,15 +1,13 @@
-import mimetypes
-from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import RedirectResponse
 
-from backend.api.deps.auth import get_current_user
-from backend.api.deps.db import get_db
 from backend.core.config import settings
 from backend.core.storage import ObjectStorageError, StorageNotConfiguredError, object_storage
+from backend.dependencies.auth import get_current_user
+from backend.dependencies.db import get_db
 from backend.modules.identity_access.models import User
 from backend.modules.profile.schemas import ProfileResponse, ProfileUpdate
 from backend.modules.profile.serializers import profile_to_response
@@ -17,12 +15,42 @@ from backend.modules.profile.service import ProfileService
 
 router = APIRouter()
 
+_AVATAR_FORMATS = {
+    "image/jpeg": (".jpg", lambda payload: payload.startswith(b"\xff\xd8\xff")),
+    "image/png": (".png", lambda payload: payload.startswith(b"\x89PNG\r\n\x1a\n")),
+    "image/gif": (".gif", lambda payload: payload.startswith((b"GIF87a", b"GIF89a"))),
+    "image/webp": (
+        ".webp",
+        lambda payload: payload[:4] == b"RIFF" and payload[8:12] == b"WEBP",
+    ),
+}
 
-def _build_avatar_object_key(user_id: str, filename: str | None, content_type: str) -> str:
-    suffix = Path(filename or "").suffix.lower()
-    if not suffix:
-        suffix = mimetypes.guess_extension(content_type) or ".bin"
+
+def _build_avatar_object_key(user_id: str, content_type: str) -> str:
+    suffix = _AVATAR_FORMATS[content_type][0]
     return f"avatars/{user_id}/{uuid4().hex}{suffix}"
+
+
+async def _read_avatar_payload(
+    file: UploadFile, content_type: str | None, *, max_bytes: int
+) -> bytes:
+    avatar_format = _AVATAR_FORMATS.get(content_type or "")
+    if avatar_format is None:
+        raise HTTPException(
+            status_code=400, detail="Avatar upload requires a supported raster image"
+        )
+
+    payload = await file.read(max_bytes + 1)
+    if not payload:
+        raise HTTPException(status_code=400, detail="Uploaded avatar file is empty")
+    if len(payload) > max_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Avatar exceeds the maximum size of {max_bytes} bytes",
+        )
+    if not avatar_format[1](payload):
+        raise HTTPException(status_code=400, detail="Avatar content does not match its image type")
+    return payload
 
 
 @router.get("", response_model=ProfileResponse)
@@ -53,29 +81,24 @@ async def upload_avatar(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Avatar upload only supports image files")
+    content_type = file.content_type or ""
+    payload = await _read_avatar_payload(
+        file,
+        content_type,
+        max_bytes=settings.STORAGE_AVATAR_MAX_BYTES,
+    )
 
-    payload = await file.read()
-    if not payload:
-        raise HTTPException(status_code=400, detail="Uploaded avatar file is empty")
-    if len(payload) > settings.STORAGE_AVATAR_MAX_BYTES:
-        raise HTTPException(
-            status_code=413,
-            detail=f"Avatar exceeds the maximum size of {settings.STORAGE_AVATAR_MAX_BYTES} bytes",
-        )
-
-    object_key = _build_avatar_object_key(current_user.id, file.filename, file.content_type)
+    object_key = _build_avatar_object_key(current_user.id, content_type)
     try:
         avatar_url = await object_storage.upload_bytes(
             object_key=object_key,
             body=payload,
-            content_type=file.content_type,
+            content_type=content_type,
         )
-    except StorageNotConfiguredError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
-    except ObjectStorageError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except StorageNotConfiguredError:
+        raise HTTPException(status_code=503, detail="Avatar storage is unavailable") from None
+    except ObjectStorageError:
+        raise HTTPException(status_code=502, detail="Avatar upload failed") from None
 
     service = ProfileService(db)
     try:

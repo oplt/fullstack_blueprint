@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.modules.rag.application.rag_context_builder import RagContextBuilder
 from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.domain.models import RetrievedChunk
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 
 logger = logging.getLogger(__name__)
@@ -36,11 +37,13 @@ async def rag_search_tool(
         filters = {"document_ids": document_ids, "owner_scoped": True}
     try:
         outcome = await retrieval.retrieve(
-            query,
-            user_id=user_id,
-            project_id=project_id,
-            top_k=top_k,
-            filters=filters,
+            RetrievalRequest(
+                query=query,
+                user_id=user_id,
+                project_id=project_id,
+                top_k=top_k,
+                filters=filters,
+            )
         )
         chunks = outcome.chunks
     except Exception:

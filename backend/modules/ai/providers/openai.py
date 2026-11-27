@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import AsyncIterator
+from http import HTTPStatus
 from typing import Any, cast
 
 from backend.core.config import settings
@@ -93,6 +94,18 @@ def _openai_messages(request: AiProviderRequest) -> list[dict[str, Any]]:
             item["tool_call_id"] = message.tool_call_id
         messages.append(item)
     return messages
+
+
+def _raise_for_stream_error(response: Any, provider_key: str) -> None:
+    if response.status_code >= HTTPStatus.BAD_REQUEST:
+        kind, retryable = classify_http_status(response.status_code)
+        raise AiProviderError(
+            "openai streaming request failed",
+            kind=kind,
+            provider_key=provider_key,
+            status_code=response.status_code,
+            retryable=retryable,
+        )
 
 
 def _openai_responses_content(content: Any) -> Any:
@@ -271,6 +284,7 @@ class OpenAIProvider(HttpAiProvider):
                     for m in request.messages
                 ],
                 "temperature": request.temperature,
+                "max_output_tokens": request.max_output_tokens or settings.AI_MAX_OUTPUT_TOKENS,
                 "stream": True,
             }
         else:
@@ -278,21 +292,14 @@ class OpenAIProvider(HttpAiProvider):
                 "model": request.model,
                 "messages": _openai_messages(request),
                 "temperature": request.temperature,
+                "max_completion_tokens": request.max_output_tokens or settings.AI_MAX_OUTPUT_TOKENS,
                 "stream": True,
             }
         sequence = 1
         async with self._client().stream(
             "POST", path, headers=self._headers(), json=payload
         ) as response:
-            if response.status_code >= 400:
-                kind, retryable = classify_http_status(response.status_code)
-                raise AiProviderError(
-                    "openai streaming request failed",
-                    kind=kind,
-                    provider_key=self.key,
-                    status_code=response.status_code,
-                    retryable=retryable,
-                )
+            _raise_for_stream_error(response, self.key)
             async for line in response.aiter_lines():
                 if not line.startswith("data:"):
                     continue

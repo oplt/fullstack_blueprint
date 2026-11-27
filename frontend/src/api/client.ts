@@ -3,6 +3,9 @@ const CSRF_HEADER_NAME = import.meta.env.VITE_CSRF_HEADER_NAME || "X-CSRF-Token"
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
 
 let refreshPromise: Promise<boolean> | null = null;
+const REFRESH_LOCK_NAME = "blueprint-auth-refresh";
+let authGeneration = 0;
+let logoutInProgress = false;
 
 export type ApiErrorDetails = {
     status: number;
@@ -50,11 +53,38 @@ function request(path: string, options: RequestInit): Promise<Response> {
     return fetch(API_BASE + path, { ...options, headers, credentials: "include" });
 }
 
-async function refreshAccessToken(): Promise<boolean> {
-    const refresh = async () => (await request("/auth/refresh", { method: "POST" })).ok;
+function cancelBody(response: Response): Promise<void> {
+    return response.body?.cancel().catch(() => undefined) ?? Promise.resolve();
+}
+
+async function hasActiveSession(): Promise<boolean> {
+    const response = await request("/auth/me", { method: "GET", cache: "no-store" });
+    const active = response.ok;
+    await cancelBody(response);
+    return active;
+}
+
+function browserLocks(): LockManager | undefined {
+    return typeof navigator !== "undefined" ? navigator.locks : undefined;
+}
+
+async function refreshAccessToken(expectedGeneration: number): Promise<boolean> {
+    const initialCsrfToken = readCookie(CSRF_COOKIE_NAME);
+    const refresh = async () => {
+        if (logoutInProgress || expectedGeneration !== authGeneration) return false;
+        if (await hasActiveSession().catch(() => false)) return true;
+        if (logoutInProgress || expectedGeneration !== authGeneration) return false;
+        if (initialCsrfToken !== readCookie(CSRF_COOKIE_NAME)) return false;
+
+        const response = await request("/auth/refresh", { method: "POST" });
+        const refreshed = response.ok;
+        await cancelBody(response);
+        if (logoutInProgress || expectedGeneration !== authGeneration) return false;
+        return refreshed || await hasActiveSession();
+    };
     try {
-        // Refresh rotates a single-use cookie. Serialize rotations across tabs.
-        return navigator.locks ? await navigator.locks.request("blueprint-auth-refresh", refresh) : await refresh();
+        const locks = browserLocks();
+        return locks ? await locks.request(REFRESH_LOCK_NAME, refresh) : await refresh();
     } catch {
         return false;
     }
@@ -62,13 +92,26 @@ async function refreshAccessToken(): Promise<boolean> {
 
 async function waitForRefresh(signal?: AbortSignal | null): Promise<boolean> {
     signal?.throwIfAborted();
-    refreshPromise ??= refreshAccessToken().finally(() => { refreshPromise = null; });
+    if (logoutInProgress) return false;
+    const expectedGeneration = authGeneration;
+    refreshPromise ??= refreshAccessToken(expectedGeneration).finally(() => { refreshPromise = null; });
     if (!signal) return refreshPromise;
     const pending = refreshPromise;
     return new Promise<boolean>((resolve, reject) => {
-        const abort = () => reject(signal.reason);
+        const cleanup = () => signal.removeEventListener("abort", abort);
+        const abort = () => {
+            cleanup();
+            reject(signal.reason ?? new DOMException("Aborted", "AbortError"));
+        };
         signal.addEventListener("abort", abort, { once: true });
-        void pending.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+        if (signal.aborted) {
+            abort();
+            return;
+        }
+        void pending.then(
+            value => { cleanup(); resolve(value); },
+            error => { cleanup(); reject(error); },
+        );
     });
 }
 
@@ -97,8 +140,14 @@ function errorFields(payload: Record<string, unknown>) {
 }
 
 async function parseApiError(response: Response, signal?: AbortSignal | null): Promise<ApiError> {
-    const json: unknown = await response.json().catch(() => undefined);
+    const body = await response.text().catch(() => "");
     signal?.throwIfAborted();
+    let json: unknown;
+    try {
+        json = body ? JSON.parse(body) : undefined;
+    } catch {
+        json = undefined;
+    }
     const payload = isRecord(json) ? json : {};
     const detail = typeof payload.detail === "string" ? payload.detail
         : Array.isArray(payload.detail) ? payload.detail.map(validationMessage).join("; ") : "Request failed";
@@ -127,25 +176,70 @@ export async function apiFetch<T>(
     retry = true
 ): Promise<T> {
     const response = await apiFetchStream(path, options, retry);
-    return response.status === 204 ? undefined as T : response.json();
+    if (response.status === 204) return undefined as T;
+    const body = await response.text();
+    if (!body.trim()) return undefined as T;
+    const contentType = response.headers.get("Content-Type")?.toLowerCase() ?? "";
+    if (!contentType.includes("/json") && !contentType.includes("+json")) return body as T;
+    return JSON.parse(body) as T;
 }
-
-const unauthenticatedRoutes = new Set([
-    "/auth/sign-in", "/auth/sign-up", "/auth/refresh", "/auth/forgot-password",
-    "/auth/reset-password", "/auth/verify-email", "/auth/resend-verification",
-]);
 
 function canRefreshRequest(path: string, options: RequestInit) {
     const route = path.split("?", 1)[0].replace(/\/$/, "");
-    return !unauthenticatedRoutes.has(route) && !(options.body instanceof ReadableStream);
+    const isReadableStream = typeof ReadableStream !== "undefined" && options.body instanceof ReadableStream;
+    if (isReadableStream) return false;
+    if (route === "/auth/me") return Boolean(readCookie(CSRF_COOKIE_NAME));
+    if (route.startsWith("/auth/")) return false;
+
+    const method = (options.method ?? "GET").toUpperCase();
+    return method === "GET" || method === "HEAD";
+}
+
+function isLogoutRequest(path: string): boolean {
+    return path.split("?", 1)[0].replace(/\/$/, "") === "/auth/logout";
+}
+
+async function requestLogout(path: string, options: RequestInit): Promise<Response> {
+    authGeneration += 1;
+    logoutInProgress = true;
+    try {
+        const sendLogout = () => request(path, options);
+        const locks = browserLocks();
+        if (locks) return await locks.request(REFRESH_LOCK_NAME, sendLogout);
+        if (refreshPromise) await refreshPromise;
+        return await sendLogout();
+    } finally {
+        logoutInProgress = false;
+    }
+}
+
+async function retryAfterRefresh(
+    response: Response,
+    path: string,
+    options: RequestInit,
+): Promise<Response> {
+    let originalError: ApiError;
+    try {
+        originalError = await parseApiError(response.clone(), options.signal);
+    } finally {
+        await cancelBody(response);
+    }
+    const requestGeneration = authGeneration;
+    if (
+        !await waitForRefresh(options.signal)
+        || requestGeneration !== authGeneration
+        || logoutInProgress
+    ) {
+        throw originalError;
+    }
+    options.signal?.throwIfAborted();
+    return request(path, options);
 }
 
 export async function apiFetchStream(path: string, options: RequestInit = {}, retry = true): Promise<Response> {
-    let response = await request(path, options);
-    if (response.status === 401 && retry && canRefreshRequest(path, options) && await waitForRefresh(options.signal)) {
-        options.signal?.throwIfAborted();
-        await response.body?.cancel();
-        response = await request(path, options);
+    let response = isLogoutRequest(path) ? await requestLogout(path, options) : await request(path, options);
+    if (response.status === 401 && retry && canRefreshRequest(path, options)) {
+        response = await retryAfterRefresh(response, path, options);
     }
     if (!response.ok) throw await parseApiError(response, options.signal);
     return response;

@@ -41,8 +41,8 @@ export default function ProjectDetailPage() {
                         }} />
                     <StatCardSkeletonGrid />
                     <div
-                        style={{ borderRadius: 12 }}
-                        className="animate-pulse rounded-md bg-muted" />
+
+                        className="animate-pulse rounded-md bg-muted rounded-md" />
                 </div>
             </PageShell>
         );
@@ -89,7 +89,7 @@ export default function ProjectDetailPage() {
 
     return (
         <PageShell width="wide">
-            <div className="flex flex-row gap-2" style={{ marginBottom: 16 }}>
+            <div className="flex flex-row gap-2 mb-4" >
                 <Button
                     variant="outline"
                     onClick={() => m.navigate(ROUTES.projects)}
@@ -98,11 +98,11 @@ export default function ProjectDetailPage() {
                                     </Button>
             </div>
 
-            <h4 style={{ marginBottom: 8 }}>
+            <h4 className="mb-2" >
                 {m.projectQuery.data.name}
             </h4>
             {m.projectQuery.data.description && (
-                <span style={{ marginBottom: 16 }} className="text-muted-foreground">
+                <span  className="text-muted-foreground mb-4">
                     {m.projectQuery.data.description}
                 </span>
             )}
@@ -138,9 +138,9 @@ export default function ProjectDetailPage() {
 
             {(m.projectQuery.error || m.tasksQuery.error) && (
                 <div
-                    style={{ marginBottom: 16 }}
+
                     role="alert"
-                    className="rounded-lg border border-border p-3 text-sm">
+                    className="rounded-lg border border-border p-3 text-sm mb-4">
                     {getQueryErrorMessage(
                         m.projectQuery.error ?? m.tasksQuery.error,
                         "Failed to load project workspace."
@@ -152,14 +152,7 @@ export default function ProjectDetailPage() {
 
             <div>
                 <div
-                    style={{
-                        padding: 20,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 16,
-                        height: "100%",
-                        overflow: "auto",
-                    }}
+                    className="p-5 gap-4" style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}
                 >
                     <div className="flex flex-row items-center justify-between">
                         <h6>

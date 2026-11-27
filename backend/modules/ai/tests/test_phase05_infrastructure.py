@@ -11,8 +11,9 @@ from backend.modules.ai.contracts import (
     AiProviderRequest,
     AiRunStartedEvent,
     AiTaskType,
+    AiTextDeltaEvent,
 )
-from backend.modules.ai.errors import AiErrorKind, classify_http_status
+from backend.modules.ai.errors import AiErrorKind, AiProviderError, classify_http_status
 from backend.modules.ai.providers import LocalHeuristicProvider
 from backend.modules.ai.routing import ModelRegistry, ModelSpec, RoutingPolicy, estimate_cost_micros
 from backend.modules.ai.streaming import AiStreamingService, sse_encode
@@ -62,6 +63,54 @@ class Phase05RoutingTests(unittest.TestCase):
 
 
 class Phase05ProviderAndStreamingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_stream_enforces_overall_timeout(self) -> None:
+        class BlockingProvider(LocalHeuristicProvider):
+            async def stream_contract(self, request):
+                yield AiRunStartedEvent(
+                    run_id="run-1", sequence=0, provider_key="local", model=request.model
+                )
+                await asyncio.Event().wait()
+
+        request = AiProviderRequest(
+            model="local-heuristic",
+            messages=[AiMessage(role=AiMessageRole.USER, content="Hello")],
+            metadata={"run_id": "run-1"},
+            timeout_seconds=0.01,
+        )
+
+        async def consume() -> None:
+            async for _ in AiStreamingService(heartbeat_seconds=0.001).stream(
+                BlockingProvider(), request
+            ):
+                pass
+
+        with self.assertRaises(AiProviderError) as error:
+            await asyncio.wait_for(consume(), timeout=0.5)
+        self.assertEqual(error.exception.kind, AiErrorKind.TIMEOUT)
+
+    async def test_stream_rejects_provider_output_over_the_configured_budget(self) -> None:
+        class OversizedProvider(LocalHeuristicProvider):
+            async def stream_contract(self, request):
+                yield AiRunStartedEvent(
+                    run_id="run-1", sequence=0, provider_key="local", model=request.model
+                )
+                yield AiTextDeltaEvent(run_id="run-1", sequence=1, delta="123456789")
+
+        request = AiProviderRequest(
+            model="local-heuristic",
+            messages=[AiMessage(role=AiMessageRole.USER, content="Hello")],
+            metadata={"run_id": "run-1"},
+            max_output_tokens=1,
+        )
+
+        with self.assertRaises(AiProviderError) as error:
+            async for _ in AiStreamingService(heartbeat_seconds=60).stream(
+                OversizedProvider(), request
+            ):
+                pass
+
+        self.assertEqual(error.exception.kind, AiErrorKind.BUDGET_EXCEEDED)
+
     async def test_local_structured_output_uses_application_contract(self) -> None:
         request = AiProviderRequest(
             model="local-heuristic",

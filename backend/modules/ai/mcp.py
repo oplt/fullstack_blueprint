@@ -6,11 +6,18 @@ import asyncio
 import json
 from collections.abc import Awaitable, Callable
 from typing import Any
-from urllib.parse import urlparse
 
+import httpx
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import (
+    SchemaError,
+    ValidationError,
+)
 from pydantic import BaseModel, Field
+from referencing import Registry
 
 from backend.core.config import settings
+from backend.core.safe_http import PinnedHttpsTransport, UnsafeTargetError, validate_url
 from backend.modules.ai.agent_contracts import ToolExecutionContext
 from backend.modules.ai.errors import AiErrorKind, AiProviderError
 
@@ -87,26 +94,18 @@ class McpServerRegistry:
 
     @staticmethod
     def validate_endpoint(endpoint: str) -> None:
-        parsed = urlparse(endpoint)
-        if parsed.scheme not in {"https", "http"} or not parsed.hostname:
+        try:
+            validate_url(
+                endpoint,
+                allowed_hosts=set(settings.AI_MCP_ALLOWED_HOSTS),
+                require_allowlist=True,
+            )
+        except UnsafeTargetError as exc:
             raise AiProviderError(
-                "MCP endpoint must be an HTTP(S) URL",
+                "MCP endpoint is not permitted",
                 kind=AiErrorKind.CONFIGURATION,
                 provider_key="mcp",
-            )
-        if settings.is_production and parsed.scheme != "https":
-            raise AiProviderError(
-                "MCP endpoints must use HTTPS in production",
-                kind=AiErrorKind.CONFIGURATION,
-                provider_key="mcp",
-            )
-        host = parsed.hostname.lower()
-        if settings.AI_MCP_ALLOWED_HOSTS and host not in settings.AI_MCP_ALLOWED_HOSTS:
-            raise AiProviderError(
-                "MCP endpoint host is not allowlisted",
-                kind=AiErrorKind.CONFIGURATION,
-                provider_key="mcp",
-            )
+            ) from exc
 
     def all(self) -> tuple[McpServerConfig, ...]:
         return tuple(sorted(self._configs.values(), key=lambda item: item.name))
@@ -133,6 +132,21 @@ class McpClientPort:
         raise NotImplementedError
 
 
+def secure_http_client_factory(
+    headers: dict[str, str] | None = None,
+    timeout: httpx.Timeout | None = None,
+    auth: httpx.Auth | None = None,
+) -> httpx.AsyncClient:
+    return httpx.AsyncClient(
+        headers=headers,
+        timeout=timeout or httpx.Timeout(30, read=300),
+        auth=auth,
+        transport=PinnedHttpsTransport(allowed_hosts=set(settings.AI_MCP_ALLOWED_HOSTS)),
+        trust_env=False,
+        follow_redirects=False,
+    )
+
+
 class StreamableHttpMcpClient(McpClientPort):
     """MCP SDK adapter. Importing the optional SDK is deferred until use."""
 
@@ -154,7 +168,11 @@ class StreamableHttpMcpClient(McpClientPort):
         headers = {}
         if server.credential_ref and self.credential_resolver:
             headers = await self.credential_resolver(tenant_id, server.credential_ref)
-        streams = streamablehttp_client(server.endpoint, headers=headers)
+        streams = streamablehttp_client(
+            server.endpoint,
+            headers=headers,
+            httpx_client_factory=secure_http_client_factory,
+        )
         return streams, ClientSession
 
     async def list_tools(self, server: McpServerConfig, tenant_id: str) -> list[McpToolDescriptor]:
@@ -263,30 +281,26 @@ class McpToolService:
         return result
 
 
-def validate_json_schema(value: dict[str, Any], schema: dict[str, Any]) -> None:
-    if schema.get("type") not in {None, "object"}:
-        raise AiProviderError(
-            "MCP input schema must be an object", kind=AiErrorKind.INVALID_REQUEST
+def validate_json_schema(
+    value: dict[str, Any],
+    schema: dict[str, Any],
+) -> None:
+    try:
+        Draft202012Validator.check_schema(schema)
+
+        validator = Draft202012Validator(
+            schema,
+            registry=Registry(),
         )
-    properties = schema.get("properties", {})
-    required = set(schema.get("required", []))
-    missing = required.difference(value)
-    if missing:
+
+        validator.validate(value)
+
+    except (ValidationError, SchemaError) as exc:
         raise AiProviderError(
-            "MCP tool input is missing required fields",
+            "Invalid MCP tool arguments or schema",
             kind=AiErrorKind.INVALID_REQUEST,
-        )
-    if schema.get("additionalProperties") is False and set(value).difference(properties):
-        raise AiProviderError("MCP tool input has unknown fields", kind=AiErrorKind.INVALID_REQUEST)
-    for name, definition in properties.items():
-        if name not in value:
-            continue
-        expected = definition.get("type")
-        actual = value[name]
-        if expected == "string" and not isinstance(actual, str):
-            raise AiProviderError("MCP tool input type mismatch", kind=AiErrorKind.INVALID_REQUEST)
-        if expected == "object" and not isinstance(actual, dict):
-            raise AiProviderError("MCP tool input type mismatch", kind=AiErrorKind.INVALID_REQUEST)
+            provider_key="mcp",
+        ) from exc
 
 
 def sanitize_untrusted_mcp_result(result: Any, *, max_chars: int = 20_000) -> dict[str, Any]:

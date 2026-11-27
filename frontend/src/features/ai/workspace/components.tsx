@@ -27,7 +27,7 @@ function CitationLink({ citation }: { citation: AiCitation }) {
     if (!href) return <span className="font-medium">{citation.title}</span>;
 
     return (
-        <a className="inline-flex min-w-0 items-center gap-1 text-primary hover:underline" href={href} target="_blank" rel="noreferrer">
+        <a className="content-link inline-flex min-w-0 items-center gap-1" href={href} target="_blank" rel="noreferrer">
             <span className="truncate">{citation.title}</span>
             <ExternalLink className="size-3 shrink-0" />
         </a>
@@ -46,11 +46,11 @@ function MessageActions({ content, onRetry, onRegenerate }: { content: string; o
 
     return (
         <div className="mt-2 flex gap-1">
-            <Button type="button" variant="ghost" aria-label="Copy message" onClick={() => void copyMessage()}>
+            <Button type="button" variant="ghost" size="icon" aria-label="Copy message" onClick={() => void copyMessage()}>
                 {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
             </Button>
-            {onRetry ? <Button type="button" variant="ghost" aria-label="Retry message" onClick={onRetry}><RefreshCw className="size-3.5" /></Button> : null}
-            {onRegenerate ? <Button type="button" variant="ghost" aria-label="Regenerate response" onClick={onRegenerate}><RefreshCw className="size-3.5" /></Button> : null}
+            {onRetry ? <Button type="button" variant="ghost" size="icon" aria-label="Retry message" onClick={onRetry}><RefreshCw className="size-3.5" /></Button> : null}
+            {onRegenerate ? <Button type="button" variant="ghost" size="icon" aria-label="Regenerate response" onClick={onRegenerate}><RefreshCw className="size-3.5" /></Button> : null}
         </div>
     );
 }
@@ -99,7 +99,7 @@ export function ToolExecutionStatus({ calls }: { calls: AiToolCall[] }) {
 }
 
 function ToolCallStatus({ call }: { call: AiToolCall }) {
-    const statusClass = call.status === "failed" ? "text-destructive" : call.status === "running" ? "text-primary" : "text-success";
+    const statusClass = call.status === "failed" ? "text-destructive-deep" : call.status === "running" ? "text-primary" : "text-success-deep";
     return (
         <div className="text-sm">
             <div className="flex items-center justify-between gap-2"><span>{call.name}</span><span className={statusClass}>{call.status}</span></div>
@@ -121,9 +121,9 @@ function ToolResult({ output }: { output?: unknown }) {
 
 export function HumanApprovalRequest({ title, description, actionLabel = "Approve", resolved, onResolve }: { title: string; description?: string; actionLabel?: string; resolved?: boolean; onResolve: (approved: boolean) => void }) {
     return (
-        <section role="alertdialog" aria-label={title} className="rounded-lg border border-warning/40 bg-warning/10 p-3">
+        <section aria-label={title} className="rounded-lg border border-warning/40 bg-warning-soft p-3">
             <div className="flex gap-2">
-                <TriangleAlert className="mt-0.5 size-4 text-warning-foreground" />
+                <TriangleAlert className="mt-0.5 size-4 text-warning-foreground" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                     <h3 className="font-semibold">{title}</h3>
                     {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
@@ -146,7 +146,7 @@ function ApprovalActions({ resolved, actionLabel, onResolve }: { resolved?: bool
 
 export function ArtifactPreview({ artifact }: { artifact: AiArtifact }) {
     const imageUrl = artifact.contentType === "image" ? safeHttpUrl(artifact.url) : null;
-    if (artifact.contentType === "image" && artifact.url && !imageUrl) return <p role="alert" className="text-sm text-destructive">Unsafe artifact URL was blocked.</p>;
+    if (artifact.contentType === "image" && artifact.url && !imageUrl) return <p role="alert" className="text-sm text-destructive-deep">Unsafe artifact URL was blocked.</p>;
     return <ArtifactContent artifact={artifact} imageUrl={imageUrl} />;
 }
 

@@ -158,7 +158,7 @@ class IdentityService:
 
     async def verify_email(self, token: str) -> None:
         key = f"verify:{_hash_token(token)}"
-        user_id = await redis_client.get(key)
+        user_id = await redis_client.getdel(key)
         if not user_id:
             raise HTTPException(status_code=400, detail="Invalid or expired verification token")
         if isinstance(user_id, bytes):
@@ -170,7 +170,6 @@ class IdentityService:
 
         user.is_verified = True
         await self.db.commit()
-        await redis_client.delete(key)
 
     async def resend_verification(self, email: str) -> None:
         if not settings.REQUIRE_EMAIL_VERIFICATION:
@@ -182,7 +181,7 @@ class IdentityService:
 
     async def _send_verification_email(self, user: User) -> None:
         token = await self._store_verification_token(user.id)
-        verification_link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+        verification_link = f"{settings.FRONTEND_URL}/verify-email#token={token}"
         app_name = await self._get_platform_app_name()
         subject, html_body, text_body = await self.platform.render_email_template(
             key="auth.verify_email",
@@ -216,7 +215,7 @@ class IdentityService:
         key = f"pwd_reset:{_hash_token(token)}"
         await redis_client.setex(key, settings.PASSWORD_RESET_TOKEN_TTL, user.id)
 
-        reset_link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+        reset_link = f"{settings.FRONTEND_URL}/reset-password#token={token}"
         app_name = await self._get_platform_app_name()
         subject, html_body, text_body = await self.platform.render_email_template(
             key="auth.reset_password",
@@ -247,7 +246,7 @@ class IdentityService:
 
     async def reset_password(self, token: str, new_password: str) -> None:
         key = f"pwd_reset:{_hash_token(token)}"
-        user_id = await redis_client.get(key)
+        user_id = await redis_client.getdel(key)
         if not user_id:
             raise HTTPException(status_code=400, detail="Invalid or expired reset token")
         if isinstance(user_id, bytes):
@@ -260,7 +259,6 @@ class IdentityService:
         user.password_hash = await hash_password_async(new_password)
         await self.repo.revoke_all_refresh_sessions_for_user(user.id)
         await self.db.commit()
-        await redis_client.delete(key)
 
     # ------------------------------------------------------------------ MFA (TOTP)
 

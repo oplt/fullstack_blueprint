@@ -100,6 +100,21 @@ class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
 
 
 class LegacyAiDocumentServiceRetrieveTest(unittest.IsolatedAsyncioTestCase):
+    async def test_empty_document_allowlist_returns_no_chunks(self):
+        db = AsyncMock()
+        service = LegacyAiDocumentService(db)
+        service.retrieval.retrieve = AsyncMock()
+
+        matches = await service.retrieve_chunks(
+            user_id="user-1",
+            query="hello",
+            document_ids=[],
+            top_k=5,
+        )
+
+        self.assertEqual(matches, [])
+        service.retrieval.retrieve.assert_not_awaited()
+
     async def test_retrieve_maps_rag_chunks(self):
         db = AsyncMock()
         service = LegacyAiDocumentService(db)

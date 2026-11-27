@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 from time import perf_counter
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -29,12 +30,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 "slow_request method=%s path=%s status=%s duration_ms=%.2f correlation_id=%s",
                 *log_args,
             )
-        elif response.status_code >= 500:
+        elif response.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR:
             logger.error(
                 "request_complete method=%s path=%s status=%s duration_ms=%.2f correlation_id=%s",
                 *log_args,
             )
-        elif response.status_code >= 400:
+        elif response.status_code >= HTTPStatus.BAD_REQUEST:
             logger.warning(
                 "request_complete method=%s path=%s status=%s duration_ms=%.2f correlation_id=%s",
                 *log_args,

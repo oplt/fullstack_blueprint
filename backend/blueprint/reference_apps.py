@@ -58,7 +58,7 @@ REFERENCE_APPLICATIONS = (
 
 
 def reference_config_root(source_root: Path) -> Path:
-    return source_root / "docs" / "validation" / "reference-apps"
+    return source_root / "backend" / "blueprint" / "reference_configs"
 
 
 def load_reference_config(source_root: Path, application: ReferenceApplication) -> BlueprintConfig:

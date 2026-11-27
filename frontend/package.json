@@ -16,6 +16,7 @@
     "storybook": "STORYBOOK=1 storybook dev -p 6006",
     "storybook:build": "STORYBOOK=1 storybook build",
     "lint": "eslint .",
+    "design:check": "node scripts/check-design-system.mjs",
     "typecheck": "tsc -b",
     "audit": "npm audit --audit-level=high",
     "api:export": "cd .. && ${BACKEND_PYTHON:-backend/.venv/bin/python} backend/scripts/export_openapi.py --output frontend/src/api/generated/openapi.json",
@@ -45,9 +46,7 @@
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "cn": "^0.5.2",
     "date-fns": "^4.4.0",
-    "dayjs": "^1.11.20",
     "i18next": "^27.2.7",
     "lucide-react": "^1.79.0",
     "qrcode": "^1.5.4",
@@ -65,6 +64,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.1",
     "@storybook/addon-a11y": "^10.6.8",
@@ -83,11 +83,17 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.8",
     "globals": "^17.14.0",
+    "jscpd": "^5.4.3",
     "jsdom": "^26.1.0",
     "knip": "^6.48.0",
+    "lighthouse": "^13.6.0",
     "msw": "^3.0.7",
     "msw-storybook-addon": "^3.0.3",
+    "purgecss": "^9.1.0",
+    "rollup-plugin-visualizer": "^7.3.0",
     "storybook": "^10.6.8",
+    "stylelint": "^18.1.0",
+    "stylelint-config-standard": "^41.1.0",
     "typescript": "6.0.2",
     "typescript-eslint": "^8.74.0",
     "vite": "^8.3.8",
@@ -95,7 +101,13 @@
     "vitest": "^5.1.1"
   },
   "overrides": {
-    "js-yaml": "5.5.0"
+    "js-yaml": "5.5.0",
+    "@joshwooding/vite-plugin-react-docgen-typescript": {
+      "glob": "^14.0.3"
+    },
+    "workbox-build": {
+      "glob": "^14.0.3"
+    }
   },
   "msw": {
     "workerDirectory": [

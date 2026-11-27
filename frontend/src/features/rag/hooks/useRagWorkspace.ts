@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listProjects } from "../../../api/projects";
 import {
     askRag, deleteRagDocument, getRagIngestionJob, indexRagDocument,
-    listRagChunks, listRagDocuments, listRagQueries, retrieveRagChunks,
-    uploadRagDocument, type RagAskResult, type RagRetrieveResult,
+    listRagChunks, listRagDocuments, listRagQueries,
+    uploadRagDocument, type RagAskResult,
 } from "../../../api/rag";
 import { queryKeys } from "../../../config/queryKeys";
 import { jobPollInterval } from "../../../config/queryTiming";
@@ -34,10 +34,7 @@ export function useRagWorkspace(activeTab: RagTab, setTab: (tab: RagTab) => void
     const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
     const [chunkOffset, setChunkOffset] = useState(0);
     const [pollJobId, setPollJobId] = useState<string | null>(null);
-    const [retrieveQuery, setRetrieveQuery] = useState("");
-    const [topK, setTopK] = useState(5);
     const [askQuery, setAskQuery] = useState("");
-    const [retrieveResult, setRetrieveResult] = useState<RagRetrieveResult | null>(null);
     const [askResult, setAskResult] = useState<RagAskResult | null>(null);
     const [historyOffset, setHistoryOffset] = useState(0);
 
@@ -152,22 +149,6 @@ export function useRagWorkspace(activeTab: RagTab, setTab: (tab: RagTab) => void
             }),
     });
 
-    const retrieveMutation = useMutation({
-        mutationFn: () =>
-            retrieveRagChunks({
-                query: retrieveQuery.trim(),
-                project_id: projectId || undefined,
-                document_ids: selectedDocumentId ? [selectedDocumentId] : undefined,
-                top_k: topK,
-            }),
-        onSuccess: (result) => setRetrieveResult(result),
-        onError: (error) =>
-            notify({
-                message: getQueryErrorMessage(error, "Retrieve failed."),
-                severity: "error",
-            }),
-    });
-
     const askMutation = useMutation({
         mutationFn: () =>
             askRag({
@@ -210,10 +191,9 @@ export function useRagWorkspace(activeTab: RagTab, setTab: (tab: RagTab) => void
     return {
         projectId, setProjectId, docOffset, setDocOffset, selectedDocumentId,
         setSelectedDocumentId, chunkOffset, setChunkOffset, pollJobId, setPollJobId,
-        retrieveQuery, setRetrieveQuery, topK, setTopK, askQuery, setAskQuery,
-        retrieveResult, askResult, historyOffset, setHistoryOffset, projectsEnabled, projectsQuery,
+        askQuery, setAskQuery, askResult, historyOffset, setHistoryOffset, projectsEnabled, projectsQuery,
         documentsQuery, chunksQuery, jobQuery, historyQuery, uploadMutation,
-        indexMutation, deleteMutation, retrieveMutation, askMutation, documents,
+        indexMutation, deleteMutation, askMutation, documents,
         selectedDocument, indexingParams, askEval, projectNameById,
     };
 }

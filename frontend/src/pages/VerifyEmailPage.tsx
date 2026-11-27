@@ -6,11 +6,11 @@ import { AuthShell } from "../components/auth/AuthShell";
 import { emailSchema } from "../features/auth/schemas";
 import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
 import { getQueryErrorMessage } from "../utils/queryErrors";
-import { parseRequiredParam } from "../app/searchParams";
+import { useOneTimeAuthToken } from "../features/auth/hooks/useOneTimeAuthToken";
 
 export default function VerifyEmailPage() {
     const [searchParams] = useSearchParams();
-    const token = parseRequiredParam(searchParams.get("token"));
+    const token = useOneTimeAuthToken();
     const [email, setEmail] = useState(searchParams.get("email")?.trim() ?? "");
     const [status, setStatus] = useState<"loading" | "success" | "error" | "no-token">(
         token ? "loading" : "no-token"
@@ -72,12 +72,12 @@ export default function VerifyEmailPage() {
                 />
             }
         >
-            <div className="flex gap-[24px]">
+            <div className="flex gap-6">
                 <div>
                     <span className="text-primary">
                         Email verification
                     </span>
-                    <h4 style={{ marginTop: 4 }}>
+                    <h4 className="mt-1" >
                         Confirm your email address
                     </h4>
                     <span className="mt-2 text-muted-foreground">
@@ -86,7 +86,7 @@ export default function VerifyEmailPage() {
                 </div>
 
                 {status === "loading" && (
-                    <div style={{ display: "grid", placeItems: "center", paddingBlock: 32 }}>
+                    <div className="py-8" style={{ display: "grid", placeItems: "center" }}>
                         <span
                             className="inline-block animate-spin rounded-full border-2 border-primary border-t-transparent"
                             role="progressbar" />

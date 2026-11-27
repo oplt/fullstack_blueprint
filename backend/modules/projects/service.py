@@ -342,7 +342,7 @@ class ProjectsService:
         previous_assignee_id: str | None,
         assignee: User | None,
     ) -> None:
-        if not assignee or assignee.id == previous_assignee_id or assignee.id == actor.id:
+        if not assignee or assignee.id in (previous_assignee_id, actor.id):
             return
 
         await self.notifications_repo.create(

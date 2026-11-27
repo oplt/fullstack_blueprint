@@ -25,12 +25,9 @@ export function RagChunksPanel({ workspace }: Props) {
                                         ) : (
                                             (workspace.chunksQuery.data?.items ?? []).map((chunk) => (
                                                 <div
-                                                    className="border-border"
+                                                    className="border-border py-2"
                                                     key={chunk.id}
-                                                    style={{
-                                                        paddingBlock: 8,
-                                                        borderBottom: 1,
-                                                    }}
+                                                    style={{ borderBottom: 1 }}
                                                 >
                                                     <span className="text-muted-foreground">
                                                         #{chunk.chunk_index} · {chunk.token_count}{" "}

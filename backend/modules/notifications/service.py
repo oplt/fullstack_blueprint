@@ -15,6 +15,8 @@ from backend.modules.notifications.models import (
 )
 from backend.modules.notifications.repository import NotificationsRepository
 
+MAX_NOTIFICATION_DELIVERY_ATTEMPTS = 5
+
 
 class NotificationsService:
     def __init__(self, db: AsyncSession):
@@ -125,7 +127,11 @@ class NotificationsService:
             try:
                 await sender(notification)
             except Exception as exc:
-                delivery.status = "retrying" if delivery.attempt_count < 5 else "dead_letter"
+                delivery.status = (
+                    "retrying"
+                    if delivery.attempt_count < MAX_NOTIFICATION_DELIVERY_ATTEMPTS
+                    else "dead_letter"
+                )
                 delivery.last_error = str(exc)[:1000]
                 notification.delivery_status = delivery.status
                 notification.last_error = delivery.last_error

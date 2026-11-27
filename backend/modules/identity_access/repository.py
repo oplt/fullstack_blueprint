@@ -18,6 +18,22 @@ class IdentityRepository:
         result = await self.db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
+    async def get_user_for_active_session(self, user_id: str, session_id: str) -> User | None:
+        now = datetime.now(UTC)
+        statement = (
+            select(User)
+            .join(RefreshSession, RefreshSession.user_id == User.id)
+            .where(
+                User.id == user_id,
+                User.is_active.is_(True),
+                RefreshSession.id == session_id,
+                RefreshSession.is_revoked.is_(False),
+                RefreshSession.expires_at > now,
+            )
+        )
+        result = await self.db.execute(statement)
+        return result.scalar_one_or_none()
+
     async def create_user(
         self,
         email: str,

@@ -18,9 +18,9 @@ function SheetContent({ side = "right", title, description, className, children 
     children: ReactNode;
 }) {
     return <DialogPrimitive.Portal>
-        <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/40 md:hidden" />
+        <DialogPrimitive.Backdrop className="fixed inset-0 z-(--z-overlay) bg-black/40 md:hidden" />
         <DialogPrimitive.Popup className={cn(
-            "fixed inset-y-0 z-50 flex w-72 flex-col border-border bg-card shadow-xl outline-none md:hidden",
+            "fixed inset-y-0 z-(--z-dialog) flex w-72 flex-col border-border bg-card shadow-overlay outline-none md:hidden",
             side === "left" ? "left-0 border-r" : "right-0 border-l", className,
         )}>
             <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>

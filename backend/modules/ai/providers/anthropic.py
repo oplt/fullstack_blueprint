@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import AsyncIterator
+from http import HTTPStatus
 from typing import Any, cast
 
 from backend.core.config import settings
@@ -160,7 +161,7 @@ class AnthropicProvider(HttpAiProvider):
         async with self._client().stream(
             "POST", "/messages", headers=self._headers(), json=payload
         ) as response:
-            if response.status_code >= 400:
+            if response.status_code >= HTTPStatus.BAD_REQUEST:
                 kind, retryable = classify_http_status(response.status_code)
                 raise AiProviderError(
                     "anthropic streaming request failed",

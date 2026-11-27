@@ -99,3 +99,13 @@ def auth_rate_limit_key(request: Request, email: str, *, namespace: str = "auth"
     client_ip = request.client.host if request.client else "unknown"
     email_hash = hashlib.sha256(email.strip().casefold().encode()).hexdigest()
     return f"rate_limit:{namespace}:{client_ip}:{email_hash}"
+
+
+def auth_account_rate_limit_key(account: str, *, namespace: str = "auth") -> str:
+    account_hash = hashlib.sha256(account.strip().casefold().encode()).hexdigest()
+    return f"rate_limit:{namespace}:account:{account_hash}"
+
+
+def auth_client_rate_limit_key(request: Request, *, namespace: str = "auth") -> str:
+    client_ip = request.client.host if request.client else "unknown"
+    return f"rate_limit:{namespace}:client:{client_ip}"

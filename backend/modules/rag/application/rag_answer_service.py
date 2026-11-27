@@ -5,20 +5,28 @@ from time import perf_counter
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.lib.generation_port import AiRunGenerationPort, GenerationPort
+from backend.lib.generation_port import (
+    RAG_MESSAGE_TOKEN_RESERVE,
+    AiRunGenerationPort,
+    GenerationPort,
+)
 from backend.lib.project_access import ProjectAccessPort, SqlAlchemyProjectAccessPort
 from backend.modules.identity_access.models import User
 from backend.modules.memory.application.memory_service import MemoryService
 from backend.modules.memory.infrastructure.memory_config import MemoryConfig
 from backend.modules.rag.application.citation_service import CitationService
 from backend.modules.rag.application.citation_validation_service import CitationValidationService
-from backend.modules.rag.application.prompt_context_service import PromptContextService
-from backend.modules.rag.application.rag_context_builder import RagContextBuilder
+from backend.modules.rag.application.evidence_access import evidence_is_current
+from backend.modules.rag.application.rag_context_builder import (
+    RagContextBuilder,
+    render_reference_data,
+)
 from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.application.trace_context import traced, tracer
 from backend.modules.rag.domain.citation_validation_context import CitationValidationContext
 from backend.modules.rag.domain.enums import RetrievalIntent
 from backend.modules.rag.domain.models import RagAnswer, RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
 from backend.modules.rag.infrastructure import metrics
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
@@ -71,22 +79,10 @@ CITATION_FAILURE_ANSWER = (
     "The retrieved evidence is shown separately below."
 )
 
-STRUCTURED_CLAIM_INSTRUCTION = (
-    "Respond with a single JSON object only, of the form:\n"
-    '{"claims":[{"text":"...","chunk_ids":["chunk-id"]}],'
-    '"no_evidence":false,"insufficient_evidence_reason":null}.\n'
-    "Every substantive answer statement must be one cited claim. "
-    "Every claim must cite chunk_ids from the provided sources. "
-    "Do not invent chunk IDs. If evidence is insufficient, set no_evidence to true, "
-    "claims to [], and explain why in insufficient_evidence_reason."
-)
-
+RETRIEVAL_FAILURE_ANSWER = "Document retrieval was unavailable. Try again."
 STRUCTURED_REPAIR_INSTRUCTION = (
-    "Your previous reply failed citation validation. "
-    "Reply again with ONLY the JSON object "
-    '{"claims":[{"text":"...","chunk_ids":["chunk-id"]}],'
-    '"no_evidence":false,"insufficient_evidence_reason":null}. '
-    "If evidence is insufficient, set no_evidence to true and claims to []."
+    "The previous response failed citation validation. Try again using complete verbatim "
+    "excerpts from the content field, or return the insufficient-evidence response."
 )
 
 
@@ -101,12 +97,6 @@ class RagAnswerService:
         self.project_access: ProjectAccessPort = SqlAlchemyProjectAccessPort(db)
         self.memory = MemoryService(db)
         self.memory_config = MemoryConfig.from_settings()
-        self.prompt_context = PromptContextService(
-            db,
-            rag_config=self.config,
-            memory=self.memory,
-            memory_config=self.memory_config,
-        )
         self.generation: GenerationPort = AiRunGenerationPort(db)
 
     @traced("rag.request")
@@ -138,13 +128,15 @@ class RagAnswerService:
             filters["document_ids"] = document_ids
 
         outcome = await self.retrieval.retrieve(
-            query,
-            user_id=user.id,
-            project_id=project_id,
-            filters=filters,
-            intent=intent,
-            conversation_id=conversation_id,
-            persist_trace=True,
+            RetrievalRequest(
+                query=query,
+                user_id=user.id,
+                project_id=project_id,
+                filters=filters,
+                intent=intent,
+                conversation_id=conversation_id,
+                persist_trace=True,
+            )
         )
         return await self.answer_from_retrieval(
             query,
@@ -183,67 +175,9 @@ class RagAnswerService:
 
         started = perf_counter()
         user_id = user.id
-        with tracer.start_as_current_span(
-            "rag.context_selection", record_exception=False, set_status_on_exception=False
-        ):
-            selection = self.context_builder.select_context_for_generation(
-                outcome.chunks,
-                max_tokens=self.config.max_context_tokens,
-                overlap_dedupe_threshold=getattr(
-                    self.config, "context_overlap_dedupe_threshold", 0.8
-                ),
-                ordering_policy=getattr(self.config, "context_ordering_policy", "relevance"),
-            )
-        bounded_chunks = selection.chunks
-        outcome.retrieval_provenance["context_selection"] = selection.provenance()
-        if outcome.retrieval_trace_id:
-            await self.repo.record_context_selection(
-                outcome.retrieval_trace_id,
-                user_id=user_id,
-                selection=selection.provenance(),
-            )
-
-        if not bounded_chunks:
-            latency_ms = int((perf_counter() - started) * 1000)
-            metrics.rag_answer_latency_ms.observe(latency_ms)
-            await self._log_query(
-                user_id=user_id,
-                project_id=project_id,
-                organization_id=organization_id,
-                query=query,
-                answer=NO_CONTEXT_ANSWER,
-                chunk_ids=[],
-                model_name="none",
-                latency_ms=latency_ms,
-            )
-            if commit:
-                await self.db.commit()
-            return RagAnswer(
-                query=query,
-                answer=NO_CONTEXT_ANSWER,
-                citations=[],
-                retrieved_chunk_ids=[],
-                model_name="none",
-                latency_ms=latency_ms,
-                no_context_found=True,
-                ai_run_id=None,
-                retrieval_degraded=outcome.degraded,
-                memory_degraded=False,
-                degradation_reason=outcome.degradation_reason,
-                injection_chunks_filtered=outcome.injection_chunks_filtered,
-                retrieval_trace_id=outcome.retrieval_trace_id,
-                coverage=outcome.coverage,
-                citation_validation_status="valid",
-                evidence_revision_hash=outcome.evidence_revision_hash,
-                resolved_retrieval_query=resolved_retrieval_query or query,
-                context_message_ids=list(context_message_ids or []),
-                index_revision_ids=list(outcome.index_revision_ids),
-            )
-
-        document_context = self.context_builder.build_document_context_block(bounded_chunks)
-        memory_context = ""
-        memory_degraded = False
-        if include_memory and self.memory_config.enabled:
+        plan = await self.generation.prepare_rag_answer(user) if outcome.chunks else None
+        memory_context, memory_degraded = "", False
+        if plan and include_memory and self.memory_config.enabled:
             try:
                 from backend.modules.memory.domain.models import MemorySearchRequest
 
@@ -259,13 +193,119 @@ class RagAnswerService:
             except Exception:
                 memory_degraded = True
 
-        system_context = self.context_builder.assemble_agent_system_context(
-            memory_context=memory_context or None,
-            document_context=document_context or None,
+        evidence_budget = 0
+        supplementary = ""
+        counter = plan.token_counter if plan else len
+        if plan:
+            evidence_budget = max(
+                0,
+                min(
+                    self.config.max_context_tokens,
+                    plan.context_window
+                    - plan.max_output_tokens
+                    - RAG_MESSAGE_TOKEN_RESERVE
+                    - counter(plan.prompt.system_prompt)
+                    - counter(query)
+                    - counter(STRUCTURED_REPAIR_INSTRUCTION)
+                    - 16,
+                ),
+            )
+            extras = [
+                render_reference_data(tag, value)
+                for tag, value in (
+                    ("untrusted_conversation", conversation_context),
+                    ("untrusted_memory", memory_context),
+                )
+                if value
+            ]
+            proposed = "\n\n".join(extras)
+            if counter(proposed) <= evidence_budget // 4:
+                supplementary = proposed
+                evidence_budget -= counter(supplementary)
+            elif memory_context:
+                memory_degraded = True
+
+        with tracer.start_as_current_span(
+            "rag.context_selection", record_exception=False, set_status_on_exception=False
+        ):
+            selection = self.context_builder.select_context_for_generation(
+                outcome.chunks,
+                max_tokens=evidence_budget,
+                reserved_tokens=0,
+                overlap_dedupe_threshold=getattr(
+                    self.config, "context_overlap_dedupe_threshold", 0.8
+                ),
+                ordering_policy=getattr(self.config, "context_ordering_policy", "relevance"),
+                token_counter=counter,
+            )
+        bounded_chunks = selection.chunks
+        selection_provenance = {
+            **selection.provenance(),
+            "tokenizer": getattr(plan, "tokenizer", None),
+            "evidence_budget": evidence_budget,
+            "reserved_answer_tokens": plan.max_output_tokens if plan else 0,
+        }
+        outcome.retrieval_provenance["context_selection"] = selection_provenance
+        if outcome.retrieval_trace_id:
+            await self.repo.record_context_selection(
+                outcome.retrieval_trace_id,
+                user_id=user_id,
+                selection=selection_provenance,
+            )
+
+        if not bounded_chunks:
+            unavailable = outcome.degraded and not outcome.chunks
+            answer = RETRIEVAL_FAILURE_ANSWER if unavailable else NO_CONTEXT_ANSWER
+            if outcome.chunks:
+                answer = "The retrieved evidence could not fit in the answer context."
+            latency_ms = int((perf_counter() - started) * 1000)
+            metrics.rag_answer_latency_ms.observe(latency_ms)
+            await self._log_query(
+                user_id=user_id,
+                project_id=project_id,
+                organization_id=organization_id,
+                query=query,
+                answer=answer,
+                chunk_ids=[],
+                model_name="none",
+                latency_ms=latency_ms,
+            )
+            if commit:
+                await self.db.commit()
+            return RagAnswer(
+                query=query,
+                answer=answer,
+                citations=[],
+                retrieved_chunk_ids=[],
+                model_name="none",
+                latency_ms=latency_ms,
+                no_context_found=not unavailable,
+                ai_run_id=None,
+                retrieval_degraded=outcome.degraded,
+                memory_degraded=False,
+                degradation_reason=outcome.degradation_reason,
+                injection_chunks_filtered=outcome.injection_chunks_filtered,
+                retrieval_trace_id=outcome.retrieval_trace_id,
+                coverage=outcome.coverage,
+                citation_validation_status="context_budget_exceeded"
+                if outcome.chunks
+                else ("retrieval_unavailable" if unavailable else "no_evidence"),
+                evidence_revision_hash=outcome.evidence_revision_hash,
+                resolved_retrieval_query=resolved_retrieval_query or query,
+                context_message_ids=list(context_message_ids or []),
+                index_revision_ids=list(outcome.index_revision_ids),
+            )
+
+        await self._ensure_current_evidence(bounded_chunks, user.id, project_id, document_ids)
+        combined = "\n\n".join(
+            filter(
+                None,
+                (
+                    self.context_builder.build_document_context_block(bounded_chunks),
+                    supplementary,
+                ),
+            )
         )
-        if conversation_context:
-            system_context = f"{system_context or ''}\n\n{conversation_context}".strip()
-        combined = f"{system_context or ''}\n\n{STRUCTURED_CLAIM_INSTRUCTION}".strip()
         chunk_ids = [c.chunk_id for c in bounded_chunks]
 
         ai_run = await self._generate(
@@ -278,7 +318,9 @@ class RagAnswerService:
             degradation_reason=outcome.degradation_reason,
             injection_chunks_filtered=outcome.injection_chunks_filtered,
             commit=commit,
+            plan=plan,
         )
+        await self._ensure_current_evidence(bounded_chunks, user.id, project_id, document_ids)
 
         citation_context = _build_citation_validation_context(
             user_id=user_id,
@@ -297,10 +339,7 @@ class RagAnswerService:
 
         # At most one bounded repair/retry for any citation-validation failure.
         if validated.citation_validation_failed:
-            repair_context = (
-                f"{combined}\n\n{STRUCTURED_REPAIR_INSTRUCTION}\n\n"
-                f"Previous invalid output:\n{(ai_run.output_text or '')[:2000]}"
-            )
+            repair_context = f"{combined}\n\n{STRUCTURED_REPAIR_INSTRUCTION}"
             ai_run = await self._generate(
                 user,
                 query=query,
@@ -311,7 +350,9 @@ class RagAnswerService:
                 degradation_reason=outcome.degradation_reason,
                 injection_chunks_filtered=outcome.injection_chunks_filtered,
                 commit=commit,
+                plan=plan,
             )
+            await self._ensure_current_evidence(bounded_chunks, user.id, project_id, document_ids)
             validated = self._validate_citations(
                 raw_output=ai_run.output_text or "",
                 retrieved_chunks=bounded_chunks,
@@ -371,6 +412,20 @@ class RagAnswerService:
             context_message_ids=list(context_message_ids or []),
             index_revision_ids=list(outcome.index_revision_ids),
         )
+
+    async def _ensure_current_evidence(
+        self,
+        chunks: list[RetrievedChunk],
+        user_id: str,
+        project_id: str | None,
+        document_ids: list[str] | None,
+    ) -> None:
+        if not await evidence_is_current(
+            self.repo, chunks, user_id=user_id, project_id=project_id, document_ids=document_ids
+        ):
+            raise HTTPException(
+                status_code=409, detail="Document evidence changed. Run retrieval again."
+            )
 
     @traced("rag.generation")
     async def _generate(self, *args, **kwargs):

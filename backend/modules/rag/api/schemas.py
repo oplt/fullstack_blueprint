@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.core.schemas import RequestModel
+from backend.modules.rag.domain.enums import RetrievalIntent
+from backend.modules.rag.domain.metadata_filters import RetrievalMetadataFilter
 
 
 class RagDocumentResponse(BaseModel):
@@ -70,7 +72,22 @@ class RagRetrieveRequest(RequestModel):
     # None = unscoped (generic /rag); [] = empty allow-list (I1); [...] = filter
     document_ids: list[str] | None = None
     top_k: int | None = Field(default=None, ge=1, le=20)
-    intent: str | None = None
+    intent: RetrievalIntent | None = None
+    retrieval_mode: Literal["hybrid", "dense", "lexical"] = "hybrid"
+    metadata_filter: RetrievalMetadataFilter | None = None
+
+
+class RagRetrievalDraft(RequestModel):
+    min_cosine: float | None = Field(default=None, ge=-1, le=1)
+    candidate_pool: int | None = Field(default=None, ge=1, le=256, strict=True)
+    rrf_k: int | None = Field(default=None, ge=1, le=256, strict=True)
+    reranker: Literal["configured", "none", "heuristic"] = "configured"
+
+
+class RagCompareRequest(RagRetrieveRequest):
+    document_ids: list[str] | None = Field(default=None, max_length=100)
+    draft: RagRetrievalDraft
+    baseline_mode: Literal["hybrid", "dense", "lexical"] = "hybrid"
 
 
 class RagRetrievedChunkResponse(BaseModel):
@@ -91,6 +108,7 @@ class RagRetrievedChunkResponse(BaseModel):
     offset_scope: str | None = None
     offset_scope_id: str | None = None
     source_spans: list[dict] | None = None
+    retrieval_sources: list[str] = Field(default_factory=list)
 
 
 class RagCoverageResponse(BaseModel):
@@ -98,6 +116,21 @@ class RagCoverageResponse(BaseModel):
     documents_with_retrieved_evidence: int = 0
     retrieved_passage_count: int = 0
     coverage_ratio: float = 0.0
+
+
+class RagRetrievalDiagnostics(BaseModel):
+    score_kind: Literal["rrf", "cosine", "lexical_rank", "none"]
+    cache: Literal["hit", "miss", "bypassed"]
+    dense_candidates: int = 0
+    lexical_candidates: int = 0
+    fused_candidates: int = 0
+    min_cosine: float | None = None
+    rrf_k: int | None = None
+    rerank_window: int = 0
+    dense_pool: int = 0
+    lexical_pool: int = 0
+    stage_timings_ms: dict[str, int] = Field(default_factory=dict)
+    branch_status: dict[str, str] = Field(default_factory=dict)
 
 
 class RagRetrieveResponse(BaseModel):
@@ -108,9 +141,19 @@ class RagRetrieveResponse(BaseModel):
     injection_chunks_filtered: int = 0
     intent: str | None = None
     fusion_method: str | None = None
+    reranker: str | None = None
+    reranking_status: Literal["skipped", "applied", "fallback"] | None = None
     coverage: RagCoverageResponse | None = None
     retrieval_trace_id: str | None = None
     index_revision_ids: list[str] = Field(default_factory=list)
+    diagnostics: RagRetrievalDiagnostics | None = None
+
+
+class RagCompareResponse(BaseModel):
+    baseline: RagRetrieveResponse
+    candidate: RagRetrieveResponse
+    document_count: int
+    index_revision_ids: list[str]
 
 
 class RagAskRequest(RequestModel):
@@ -141,6 +184,29 @@ class RagCitationResponse(BaseModel):
     offset_scope: str | None = None
     offset_scope_id: str | None = None
     source_spans: list[dict] | None = None
+    index_revision_id: str | None = None
+
+
+class RagClaimResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    text: str
+    chunk_ids: list[str]
+    citation_numbers: list[int]
+
+
+class RagSourcePreviewResponse(BaseModel):
+    document_id: str
+    chunk_id: str
+    revision_id: str | None
+    content: str
+    page_number: int | None = None
+    section_heading: str | None = None
+    sheet_id: str | None = None
+    table_row_start: int | None = None
+    table_row_end: int | None = None
+    source_spans: list[dict] | None = None
+    original_pdf_url: str | None = None
 
 
 class RagAskResponse(BaseModel):
@@ -159,6 +225,8 @@ class RagAskResponse(BaseModel):
     retrieval_trace_id: str | None = None
     evidence_revision_hash: str | None = None
     citation_validation_failed: bool = False
+    citation_validation_status: str = "no_evidence"
+    claims: list[RagClaimResponse] = Field(default_factory=list)
     coverage: RagCoverageResponse | None = None
     index_revision_ids: list[str] = Field(default_factory=list)
 

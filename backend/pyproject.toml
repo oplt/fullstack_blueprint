@@ -35,15 +35,20 @@ dependencies = [
     "pgvector",
     "cryptography>=43.0.0",
     "pyyaml>=6.0",
+    "tzdata>=2026.6",
 ]
 
 [project.optional-dependencies]
+rag-security = ["clamd"]
 memory = ["mem0ai"]
 storage = ["boto3"]
 rag = ["boto3", "langchain-community", "langchain-text-splitters", "pypdf", "python-docx"]
 rag-eval = ["simplemma"]
 ai = ["pydantic-ai-slim[openai,anthropic]>=1.0"]
-agentic = ["mcp>=1.0"]
+agentic = [
+    "mcp>=1.30.0,<2",
+    "jsonschema>=4.26,<5",
+]
 durable = ["temporalio>=1.7"]
 # pip install -e ".[dev]" (CI / local). Keep in sync with [dependency-groups].dev.
 dev = [
@@ -61,6 +66,7 @@ dev = [
     "langchain-text-splitters",
     "pypdf",
     "python-docx",
+    "vulture>=2.16",
 ]
 pdf = ["pymupdf>=1.24", "pypdf"]
 pdf-ocr = ["pymupdf>=1.24", "pypdf", "pillow>=10", "pytesseract>=0.3.13"]
@@ -114,10 +120,30 @@ select = [
 ]
 extend-select = ["C90", "PLR0912", "PLR0915", "PLR0913"]
 ignore = ["B008"]  # FastAPI Depends() in defaults
+# Turkish dotless i is intentional in multilingual RAG.
+allowed-confusables = ["ı"]
 
 [tool.ruff.lint.per-file-ignores]
-"alembic/versions/*.py" = ["E501"]
+# Applied migration files are immutable history; their generated upgrade functions
+# retain their original shape and line lengths.
+"alembic/versions/*.py" = ["E501", "PLR0915"]
 "alembic/env.py" = ["E402"]
+# Assertions and numeric fixtures are intentional in test code.
+"**/tests/**/*.py" = ["S101", "PLR2004"]
+# These commands produce their documented stdout output as part of the CLI interface.
+"blueprint/cli.py" = ["T201"]
+"scripts/check_architecture.py" = ["T201"]
+"scripts/check_db.py" = ["T201"]
+"scripts/validate_openapi.py" = ["T201"]
+"modules/rag/eval/chunking_experiments.py" = ["T201"]
+"modules/rag/eval/citation_entailment_experiment.py" = ["T201"]
+"modules/rag/eval/rerank_experiments.py" = ["T201"]
+"modules/rag/eval/retrieval_eval.py" = ["T201"]
+"modules/rag/eval/run_pgvector_load.py" = ["T201"]
+# This benchmark uses seeded pseudo-random vectors to make runs reproducible.
+"modules/rag/eval/live_benchmark.py" = ["S311"]
+# These are fake unusable hashes in one auth test fixture, not credentials.
+"modules/ai/tests/test_rag_answer_run.py" = ["S106"]
 
 [dependency-groups]
 dev = [
@@ -131,19 +157,23 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=6.0.0",
     "ruff>=0.11.2",
+    "langchain-community",
     "langchain-text-splitters",
     "pypdf",
     "python-docx",
     "vulture>=2.16",
+    "memray>=1.21.0",
+    "opentelemetry-distro>=0.66b2",
+    "opentelemetry-instrumentation-fastapi>=0.66b2",
 ]
 
-# Deterministic installs use uv sync --locked.
 [tool.uv]
 package = true
+default-groups = ["dev"]
 
 [tool.pytest.ini_options]
 faulthandler_timeout = 30
-testpaths = ["tests", "modules"]
+testpaths = ["."]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 
@@ -178,7 +208,7 @@ exclude = [
     "alembic/versions",
 ]
 extraPaths = [".."]
-pythonVersion = "3.12"
+pythonVersion = "3.14"
 typeCheckingMode = "standard"
 reportMissingTypeStubs = "none"
 reportUnknownMemberType = "none"

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from http import HTTPStatus
 from typing import Any
 
 import httpx
@@ -49,13 +50,15 @@ class BaseAiProvider:
     async def generate_contract(self, request: AiProviderRequest) -> AiProviderResponse:
         raise NotImplementedError
 
-    async def stream_contract(self, request: AiProviderRequest) -> AsyncIterator[AiStreamEvent]:
+    def stream_contract(self, _request: AiProviderRequest) -> AsyncIterator[AiStreamEvent]:
         raise AiProviderError(
             "Streaming is not supported by this provider",
             kind=AiErrorKind.INVALID_REQUEST,
             provider_key=self.key,
         )
-        yield  # pragma: no cover
+
+    def stream(self, request: AiProviderRequest) -> AsyncIterator[AiStreamEvent]:
+        return self.stream_contract(request)
 
     async def embed_texts(self, texts: list[str], model: str | None = None) -> list[list[float]]:
         raise NotImplementedError
@@ -102,7 +105,7 @@ class HttpAiProvider(BaseAiProvider):
                     provider_key=self.key,
                     retryable=True,
                 ) from exc
-            if response.status_code >= 400:
+            if response.status_code >= HTTPStatus.BAD_REQUEST:
                 kind, retryable = classify_http_status(response.status_code)
                 raise AiProviderError(
                     f"{self.key} request failed",

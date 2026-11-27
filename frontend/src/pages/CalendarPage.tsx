@@ -37,7 +37,7 @@ export default function CalendarPage() {
 
     return (
         <PageShell width="wide">
-            <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
+            <div className="flex flex-row justify-end mb-4" >
                 {projectsEnabled && <Button
                     variant="outline"
                     onClick={() => navigate(ROUTES.projects)}

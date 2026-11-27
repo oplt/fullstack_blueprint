@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -45,7 +46,7 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
-        if exc.status_code >= 500:
+        if exc.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR:
             logger.error(
                 "http_exception path=%s status=%s correlation_id=%s detail=%s",
                 request.url.path,
@@ -53,7 +54,7 @@ def register_exception_handlers(app: FastAPI) -> None:
                 getattr(request.state, "correlation_id", None),
                 str(exc.detail)[:200],
             )
-        elif exc.status_code >= 400:
+        elif exc.status_code >= HTTPStatus.BAD_REQUEST:
             logger.warning(
                 "http_exception path=%s status=%s correlation_id=%s detail=%s",
                 request.url.path,
@@ -70,7 +71,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_exception_handler(request: Request, exc: Exception):
+    async def unhandled_exception_handler(request: Request, _exc: Exception):
         logger.exception(
             "unhandled_exception path=%s correlation_id=%s",
             request.url.path,

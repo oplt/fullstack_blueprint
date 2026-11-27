@@ -13,10 +13,67 @@ from backend.modules.rag.domain.enums import (
 
 
 @dataclass(slots=True)
+class ParsedBlock:
+    """Normalized parser item provenance, scoped to one source revision."""
+
+    block_id: str
+    kind: str
+    reading_order: int
+    source_span: dict[str, Any]
+    document_id: str | None = None
+    revision_id: str | None = None
+    source_document_hash: str | None = None
+    page_start: int | None = None
+    page_end: int | None = None
+    bbox: tuple[float, float, float, float] | None = None
+    bbox_coordinate_system: str | None = None
+    section_path: tuple[str, ...] = ()
+    language: str | None = None
+    parser_name: str = "unknown"
+    parser_version: str = "unknown"
+    ocr_confidence: float | None = None
+    table_headers: tuple[str, ...] = ()
+    table_rows: tuple[tuple[str, ...], ...] = ()
+    table_cells: tuple[dict[str, Any], ...] = ()
+    media_reference: str | None = None
+
+    def to_dict(self, *, include_table_data: bool = True) -> dict[str, Any]:
+        return {
+            "block_id": self.block_id,
+            "kind": self.kind,
+            "reading_order": self.reading_order,
+            "source_span": dict(self.source_span),
+            "document_id": self.document_id,
+            "revision_id": self.revision_id,
+            "source_document_hash": self.source_document_hash,
+            "page_start": self.page_start,
+            "page_end": self.page_end,
+            "bbox": list(self.bbox) if self.bbox else None,
+            "bbox_coordinate_system": self.bbox_coordinate_system,
+            "section_path": list(self.section_path),
+            "language": self.language,
+            "parser_name": self.parser_name,
+            "parser_version": self.parser_version,
+            "ocr_confidence": self.ocr_confidence,
+            "table_headers": list(self.table_headers),
+            **(
+                {
+                    "table_rows": [list(row) for row in self.table_rows],
+                    "table_cells": [dict(cell) for cell in self.table_cells],
+                }
+                if include_table_data
+                else {}
+            ),
+            "media_reference": self.media_reference,
+        }
+
+
+@dataclass(slots=True)
 class ParsedDocument:
     content: str
     metadata: dict[str, Any] = field(default_factory=dict)
     page_number: int | None = None
+    source_blocks: list[ParsedBlock] = field(default_factory=list)
 
 
 @dataclass(slots=True)

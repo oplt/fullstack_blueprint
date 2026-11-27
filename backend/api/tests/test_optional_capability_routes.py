@@ -32,6 +32,8 @@ class OptionalCapabilityRouteTests(TestCase):
         with patch("backend.api.router.import_module", side_effect=AssertionError):
             paths = _paths(config)
 
+        self.assertIn("/api/v1/platform/metadata", paths)
+        paths.remove("/api/v1/platform/metadata")
         self.assertTrue(any(path.startswith("/api/v1/auth") for path in paths))
         self.assertTrue(any(path.startswith("/api/v1/users") for path in paths))
         self.assertTrue(any(path.startswith("/api/v1/profile") for path in paths))
@@ -56,6 +58,16 @@ class OptionalCapabilityRouteTests(TestCase):
                 for path in paths
             )
         )
+
+    def test_metadata_is_registered_exactly_once(self) -> None:
+        for enabled in (False, True):
+            with self.subTest(platform_enabled=enabled):
+                config = settings.model_copy(update={"PLATFORM_API_ENABLED": enabled})
+                router = build_api_router(config)
+                metadata_routes = [
+                    route for route in router.routes if route.path == "/api/v1/platform/metadata"
+                ]
+                self.assertEqual(len(metadata_routes), 1)
 
     def test_agents_require_ai_and_agent_flag_independently(self) -> None:
         config = settings.model_copy(update={"AI_ENABLED": True, "AI_MCP_ENABLED": False})

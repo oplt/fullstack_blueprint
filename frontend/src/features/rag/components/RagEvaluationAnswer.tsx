@@ -8,6 +8,7 @@ import type { useRagWorkspace } from "../hooks/useRagWorkspace";
 type Props = { workspace: ReturnType<typeof useRagWorkspace> };
 
 export function RagEvaluationAnswer({ workspace }: Props) {
+    if (workspace.askMutation.isPending) return <p role="status">Checking citations…</p>;
     if (!workspace.askResult || !workspace.askEval) return null;
     return (
                             
@@ -52,7 +53,23 @@ export function RagEvaluationAnswer({ workspace }: Props) {
                                     <RagDegradedNotice result={workspace.askResult} />
 
                                     <p>Answer</p>
-                                    <p>{workspace.askResult.answer}</p>
+                                    {workspace.askResult.citation_validation_status === "valid" && (
+                                        <p role="status">Citations checked against source text.</p>
+                                    )}
+                                    {workspace.askResult.claims?.length ? (
+                                        <ul className="grid gap-2">
+                                            {workspace.askResult.claims.map((claim, index) => (
+                                                <li key={`${index}:${claim.text}`} className="whitespace-pre-wrap">
+                                                    {claim.text}{" "}
+                                                    {claim.citation_numbers.map((number) => (
+                                                        <a key={number} href={`#rag-citation-${number}`}>
+                                                            [{number}]
+                                                        </a>
+                                                    ))}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : <p>{workspace.askResult.answer}</p>}
                                     <span className="text-muted-foreground">
                                         {workspace.askResult.model_name} · {workspace.askResult.latency_ms} ms
                                     </span>

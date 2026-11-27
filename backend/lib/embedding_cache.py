@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 import unicodedata
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 from time import perf_counter
 from typing import cast
+from weakref import WeakKeyDictionary
 
 from prometheus_client import Counter, Histogram
 
@@ -50,6 +52,10 @@ redis_embedding_cache_latency = Histogram(
 
 _FLIGHT_GUARD = asyncio.Lock()
 _INFLIGHT: OrderedDict[str, asyncio.Future[list[float]]] = OrderedDict()
+_PROVIDER_LIMITER_GUARD = threading.Lock()
+_PROVIDER_LIMITERS: WeakKeyDictionary[asyncio.AbstractEventLoop, dict[str, asyncio.Semaphore]] = (
+    WeakKeyDictionary()
+)
 
 
 def _flight_max() -> int:
@@ -73,6 +79,18 @@ def _batch_concurrency() -> int:
         return 2
 
 
+def _provider_semaphore(provider: str) -> asyncio.Semaphore:
+    loop = asyncio.get_running_loop()
+    key = provider.strip().lower()
+    with _PROVIDER_LIMITER_GUARD:
+        limiters = _PROVIDER_LIMITERS.setdefault(loop, {})
+        semaphore = limiters.get(key)
+        if semaphore is None:
+            semaphore = asyncio.Semaphore(_batch_concurrency())
+            limiters[key] = semaphore
+        return semaphore
+
+
 def reset_embedding_flight_locks_for_tests() -> None:
     """Test helper: clear process-local single-flight futures."""
     _INFLIGHT.clear()
@@ -92,6 +110,8 @@ def _trim_inflight() -> None:
 async def _embed_batches(
     texts: list[str],
     embed_fn: Callable[[list[str]], Awaitable[list[list[float]]]],
+    *,
+    provider: str,
 ) -> list[list[float]]:
     if not texts:
         return []
@@ -100,14 +120,7 @@ async def _embed_batches(
 
     size = _batch_size()
     batches = [texts[index : index + size] for index in range(0, len(texts), size)]
-    if len(batches) == 1:
-        provider_batch_size.observe(len(batches[0]))
-        started = perf_counter()
-        vectors = await embed_fn(batches[0])
-        embedding_provider_latency.observe(perf_counter() - started)
-        return vectors
-
-    semaphore = asyncio.Semaphore(_batch_concurrency())
+    semaphore = _provider_semaphore(provider)
     results: list[list[list[float]] | None] = [None] * len(batches)
 
     async def _run(batch_index: int, batch: list[str]) -> None:
@@ -117,7 +130,14 @@ async def _embed_batches(
             results[batch_index] = await embed_fn(batch)
             embedding_provider_latency.observe(perf_counter() - started)
 
-    await asyncio.gather(*(_run(index, batch) for index, batch in enumerate(batches)))
+    batch_tasks = [asyncio.create_task(_run(index, batch)) for index, batch in enumerate(batches)]
+    try:
+        await asyncio.gather(*batch_tasks)
+    except BaseException:
+        for task in batch_tasks:
+            task.cancel()
+        await asyncio.gather(*batch_tasks, return_exceptions=True)
+        raise
     flattened: list[list[float]] = []
     for batch_vectors in results:
         if batch_vectors is None:
@@ -229,8 +249,12 @@ async def embed_texts_with_cache(
 
     if unique_order:
         try:
-            embedded_unique = await _embed_batches(unique_order, embed_fn)
-        except Exception as exc:
+            embedded_unique = await _embed_batches(
+                unique_order,
+                embed_fn,
+                provider=provider,
+            )
+        except BaseException as exc:
             for cache_key, future in owned_futures:
                 if not future.done():
                     future.set_exception(exc)

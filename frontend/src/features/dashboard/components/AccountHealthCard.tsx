@@ -17,7 +17,7 @@ function AccountCheck({
         <div className="dashboard-health__item">
             <div className="mb-1 flex flex-row justify-between gap-2">
                 <p>{label}</p>
-                <p className={`font-medium ${active ? "text-success" : "text-warning"}`}>
+                <p className={`font-medium ${active ? "text-success-deep" : "text-warning-deep"}`}>
                     {active ? activeValue : inactiveValue}
                 </p>
             </div>

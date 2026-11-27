@@ -1,4 +1,13 @@
 import { apiFetch, type ApiRequestOptions, type Paginated } from "./client";
+import type {
+    RagAskResponse,
+    RagCitationResponse,
+    RagCompareRequest,
+    RagCompareResponse,
+    RagRetrieveRequest,
+    RagRetrieveResponse,
+    RagSourcePreviewResponse,
+} from "./generated/types";
 
 const BASE = "/rag";
 
@@ -60,17 +69,9 @@ export type RagRetrieveResult = {
     degradation_reason: string | null;
     no_matches: boolean;
     injection_chunks_filtered: number;
-};
+} & Pick<RagRetrieveResponse, "reranker" | "reranking_status">;
 
-type RagCitation = {
-    document_id: string;
-    chunk_id: string;
-    filename: string;
-    score: number;
-    snippet: string;
-    page_number: number | null;
-    chunk_index: number | null;
-};
+export type RagCitation = RagCitationResponse;
 
 export type RagAskResult = {
     query: string;
@@ -85,7 +86,19 @@ export type RagAskResult = {
     memory_degraded: boolean;
     degradation_reason: string | null;
     injection_chunks_filtered: number;
-};
+} & Pick<RagAskResponse, "claims" | "citation_validation_status" | "citation_validation_failed">;
+
+export function getRagCitationSource(citation: RagCitation): Promise<RagSourcePreviewResponse> {
+    const params = new URLSearchParams();
+    if (citation.index_revision_id != null) {
+        params.set("revision_id", citation.index_revision_id);
+    }
+    const document = encodeURIComponent(citation.document_id);
+    const chunk = encodeURIComponent(citation.chunk_id);
+    return apiFetch(`${BASE}/documents/${document}/chunks/${chunk}/source?${params}`, {
+        cache: "no-store",
+    });
+}
 
 export type RagQueryHistoryItem = {
     id: string;
@@ -147,15 +160,21 @@ export async function listRagChunks(
     return apiFetch(`${BASE}/documents/${encodeURIComponent(documentId)}/chunks?${search}`, { signal: options.signal });
 }
 
-export async function retrieveRagChunks(payload: {
-    query: string;
-    project_id?: string;
-    document_ids?: string[];
-    top_k?: number;
-}): Promise<RagRetrieveResult> {
+export async function retrieveRagChunks(payload: RagRetrieveRequest): Promise<RagRetrieveResult> {
     return apiFetch(`${BASE}/retrieve`, {
         method: "POST",
         body: JSON.stringify(payload),
+    });
+}
+
+export function compareRagRetrieval(
+    payload: RagCompareRequest,
+    signal: AbortSignal,
+): Promise<RagCompareResponse> {
+    return apiFetch(`${BASE}/retrieve/compare`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        signal,
     });
 }
 

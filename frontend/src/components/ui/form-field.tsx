@@ -18,7 +18,7 @@ type ControlProps = NativeControl & {
 function Control(props: NativeControl) {
     if (props.as === "select") {
         const { as: Select, className, ...select } = props;
-        return <Select {...select} className={cn("form-control h-10", className)} />;
+        return <Select {...select} className={cn("form-control h-(--control-height)", className)} />;
     }
     if (props.as === "textarea") {
         const { as: slot, ...textarea } = props;

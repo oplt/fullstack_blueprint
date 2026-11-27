@@ -1,9 +1,11 @@
-"""Deterministic baseline metrics for structure-v1 chunk-policy experiments."""
+"""Measure chunk-size and overlap candidates on local fixtures."""
 
 from __future__ import annotations
 
+import argparse
 import json
-from dataclasses import asdict, dataclass
+import mimetypes
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +14,8 @@ from backend.modules.rag.domain.models import ParsedDocument
 from backend.modules.rag.infrastructure.langchain_text_splitters import split_documents
 
 FIXTURE_DIR = Path(__file__).with_name("fixtures") / "corpus"
+MAX_PREVIEW_CHUNKS = 100
+MAX_PREVIEW_CHUNK_TOKENS = 8192
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,11 +25,9 @@ class ChunkingExperimentResult:
     chunk_count: int
     total_tokens: int
     duplicate_token_ratio: float
-    recall_at_k: float = 0.0
-    mrr: float = 0.0
 
 
-def measure_structure_v1(
+def measure_chunking(
     documents: list[ParsedDocument], *, chunk_size: int, chunk_overlap: int
 ) -> ChunkingExperimentResult:
     """Measure storage duplication without claiming retrieval-quality superiority."""
@@ -84,9 +86,13 @@ def run_chunking_experiment_report(
                     metadata={"format": "text", "source": path.name},
                 )
             )
-    policies = policies or [(512, 64), (768, 96), (1000, 150)]
+    policies = policies or [
+        (size, size * overlap // 100)
+        for size in (256, 512, 768, 1000)
+        for overlap in (0, 10, 15, 20)
+    ]
     results = [
-        asdict(measure_structure_v1(documents, chunk_size=size, chunk_overlap=overlap))
+        asdict(measure_chunking(documents, chunk_size=size, chunk_overlap=overlap))
         for size, overlap in policies
     ]
     ranking_reports = []
@@ -97,18 +103,13 @@ def run_chunking_experiment_report(
             k=int(item.get("k", 5)),
         )
         ranking_reports.append({**item, "metrics": metrics})
-        # Attach mean ranking metrics onto the closest default-size policy row.
-        for row in results:
-            if row["chunk_size"] == 1000:
-                row["recall_at_k"] = metrics["recall_at_k"]
-                row["mrr"] = metrics["mrr"]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "policies": results,
         "ranking_fixtures": ranking_reports,
         "default_justification": (
-            "structure-v1 defaults (1000/150) remain the prose baseline; "
-            "fixture rankings justify keeping them until live Recall@k improves."
+            "Prose defaults remain 1000/150 pending held-out retrieval measurements. "
+            "Synthetic rankings are independent of the tested policies."
         ),
     }
 
@@ -138,5 +139,71 @@ def _default_synthetic_rankings() -> list[dict[str, Any]]:
     ]
 
 
+def preview_file(path: Path, args: argparse.Namespace) -> dict[str, Any]:
+    from backend.modules.rag.application.chunking_service import ChunkingService
+    from backend.modules.rag.application.document_ingestion_service import (
+        _validate_parsed_document_limits,
+    )
+    from backend.modules.rag.application.document_parser_service import DocumentParserService
+    from backend.modules.rag.infrastructure.rag_config import RagConfig
+
+    config = replace(
+        RagConfig.from_settings(),
+        chunk_size=args.chunk_size,
+        chunk_overlap=args.chunk_overlap,
+        parent_context_enabled=args.parent_window > 0,
+        parent_window_size=args.parent_window,
+    )
+    if args.pdf_parser:
+        config = replace(config, pdf_parser=args.pdf_parser)
+    with path.open("rb") as source:
+        data = source.read(config.max_file_bytes + 1)
+    if not data or len(data) > config.max_file_bytes:
+        raise ValueError("File is empty or exceeds the configured file size limit")
+    parsed = DocumentParserService(config).parse(
+        content=data,
+        filename=path.name,
+        content_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+    )
+    _validate_parsed_document_limits(parsed, config)
+    chunks = ChunkingService(config).chunk_sync(
+        parsed, document_id="preview", user_id="preview", filename=path.name
+    )
+    return {
+        "parser": config.pdf_parser,
+        "chunk_size": config.chunk_size,
+        "chunk_overlap": config.chunk_overlap,
+        "parent_window": args.parent_window,
+        "chunk_count": len(chunks),
+        "chunks": [asdict(chunk) for chunk in chunks[: args.limit]],
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--preview-file", type=Path, help="Parse and chunk a local document")
+    parser.add_argument("--pdf-parser", choices=("auto", "pymupdf", "pypdf", "docling"))
+    parser.add_argument("--chunk-size", type=int, default=1000)
+    parser.add_argument("--chunk-overlap", type=int, default=150)
+    parser.add_argument("--parent-window", type=int, choices=range(0, 21), default=0)
+    parser.add_argument("--limit", type=int, default=20, help="Number of preview chunks to print")
+    args = parser.parse_args()
+    if (
+        not 1 <= args.chunk_size <= MAX_PREVIEW_CHUNK_TOKENS
+        or not 0 <= args.chunk_overlap < args.chunk_size
+    ):
+        parser.error("Require 1 <= chunk size <= 8192 and 0 <= overlap < chunk size")
+    if not 1 <= args.limit <= MAX_PREVIEW_CHUNKS:
+        parser.error("Require 1 <= preview limit <= 100")
+    if args.preview_file:
+        try:
+            report = preview_file(args.preview_file, args)
+        except (OSError, ValueError) as exc:
+            parser.error(str(exc))
+    else:
+        report = run_chunking_experiment_report()
+    print(json.dumps(report, indent=2, sort_keys=True))
+
+
 if __name__ == "__main__":
-    print(json.dumps(run_chunking_experiment_report(), indent=2, sort_keys=True))
+    main()

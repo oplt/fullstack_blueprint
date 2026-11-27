@@ -2,7 +2,7 @@ import logging
 
 from fastapi import Depends, HTTPException
 
-from backend.api.deps.auth import get_current_user
+from backend.dependencies.auth import get_current_user
 from backend.modules.identity_access.models import User
 
 logger = logging.getLogger("backend.authz")

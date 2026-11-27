@@ -4,8 +4,12 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.config import settings
+from backend.lib.vector_search import MAX_JSON_FALLBACK_ROWS, VectorSearchUnavailable
 from backend.modules.rag.application.document_scope import document_ids_is_empty_allow_list
+from backend.modules.rag.domain.metadata_filters import RetrievalMetadataFilter
 from backend.modules.rag.domain.models import RetrievedChunk
+from backend.modules.rag.domain.retrieval_scope import RetrievalScope
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 from backend.modules.rag.infrastructure.repositories import RagRepository
 from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
@@ -56,6 +60,7 @@ class PgVectorAdapter:
         filters: dict | None = None,
         query_embedding: list[float] | None = None,
     ) -> list[RetrievedChunk]:
+        del query
         if query_embedding is None:
             return []
 
@@ -64,19 +69,31 @@ class PgVectorAdapter:
             return []
         exclude_parents = bool((filters or {}).get("exclude_parents", False))
         index_revision_ids = (filters or {}).get("index_revision_ids")
-
-        indexed = await self.search_repo.similarity_search_indexed(
+        metadata = (filters or {}).get("metadata")
+        scope = RetrievalScope(
             user_id=user_id,
             project_id=project_id,
-            document_ids=document_ids,
+            document_ids=tuple(document_ids) if document_ids is not None else None,
+            owner_scoped=owner_scoped,
+            exclude_parents=exclude_parents,
+            index_revision_ids=(
+                tuple(index_revision_ids) if index_revision_ids is not None else None
+            ),
+            metadata=RetrievalMetadataFilter.model_validate(metadata)
+            if metadata is not None
+            else None,
+        )
+
+        indexed = await self.search_repo.similarity_search_indexed(
+            scope=scope,
             query_embedding=query_embedding,
             top_k=top_k,
             score_threshold=self.config.score_threshold,
-            owner_scoped=owner_scoped,
-            exclude_parents=exclude_parents,
-            index_revision_ids=index_revision_ids,
+            iterative_scan=getattr(self.config, "pgvector_iterative_scan", False),
         )
         if indexed is None:
+            if settings.is_production:
+                raise VectorSearchUnavailable("pgvector_required_for_production")
             from backend.modules.rag.infrastructure import metrics
 
             logger.debug(
@@ -85,58 +102,37 @@ class PgVectorAdapter:
             )
             metrics.rag_json_fallback_total.inc()
             return await self.search_repo.similarity_search_json_fallback(
-                user_id=user_id,
-                project_id=project_id,
-                document_ids=document_ids,
+                scope=scope,
                 query_embedding=query_embedding,
                 top_k=top_k,
                 score_threshold=self.config.score_threshold,
-                owner_scoped=owner_scoped,
-                exclude_parents=exclude_parents,
-                index_revision_ids=index_revision_ids,
-                exact_max_rows=getattr(self.config, "exact_vector_fallback_max_rows", 5000),
+                exact_max_rows=self._json_fallback_max_rows(),
             )
 
         if indexed:
             return indexed
 
-        relaxed_threshold = max(0.05, self.config.score_threshold * 0.5)
-        if relaxed_threshold < self.config.score_threshold:
-            relaxed = await self.search_repo.similarity_search_indexed(
-                user_id=user_id,
-                project_id=project_id,
-                document_ids=document_ids,
+        if settings.is_production:
+            fallback = []
+        else:
+            from backend.modules.rag.infrastructure import metrics
+
+            logger.debug("Indexed search returned no matches; trying JSON embedding fallback")
+            metrics.rag_json_fallback_total.inc()
+            fallback = await self.search_repo.similarity_search_json_fallback(
+                scope=scope,
                 query_embedding=query_embedding,
                 top_k=top_k,
-                score_threshold=relaxed_threshold,
-                owner_scoped=owner_scoped,
-                exclude_parents=exclude_parents,
-                index_revision_ids=index_revision_ids,
+                score_threshold=self.config.score_threshold,
+                exact_max_rows=self._json_fallback_max_rows(),
             )
-            if relaxed:
-                logger.debug(
-                    "Indexed search recovered %s chunk(s) with relaxed threshold %.2f",
-                    len(relaxed),
-                    relaxed_threshold,
-                )
-                return relaxed
+        return fallback
 
-        from backend.modules.rag.infrastructure import metrics
-
-        logger.debug("Indexed search returned no matches; trying JSON embedding fallback")
-        metrics.rag_json_fallback_total.inc()
-        return await self.search_repo.similarity_search_json_fallback(
-            user_id=user_id,
-            project_id=project_id,
-            document_ids=document_ids,
-            query_embedding=query_embedding,
-            top_k=top_k,
-            score_threshold=self.config.score_threshold,
-            owner_scoped=owner_scoped,
-            exclude_parents=exclude_parents,
-            index_revision_ids=index_revision_ids,
-            exact_max_rows=getattr(self.config, "exact_vector_fallback_max_rows", 5000),
+    def _json_fallback_max_rows(self) -> int:
+        configured = int(
+            getattr(self.config, "exact_vector_fallback_max_rows", MAX_JSON_FALLBACK_ROWS)
         )
+        return min(MAX_JSON_FALLBACK_ROWS, max(0, configured))
 
     async def delete_document(self, document_id: str, user_id: str) -> None:
         del user_id

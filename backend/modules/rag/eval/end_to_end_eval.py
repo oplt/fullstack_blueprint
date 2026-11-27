@@ -13,9 +13,12 @@ from typing import Any, Protocol
 from backend.modules.rag.application.rag_context_builder import RagContextBuilder
 from backend.modules.rag.application.retrieval_service import RetrievalService
 from backend.modules.rag.domain.models import RagAnswer, RetrievalOutcome
+from backend.modules.rag.domain.retrieval_request import RetrievalRequest
 from backend.modules.rag.eval.retrieval_eval import evaluate_ranking
 from backend.modules.rag.infrastructure.config_models import EvaluationConfig
 
+P99_LATENCY_PERCENTILE = 99
+MIN_P99_SAMPLE_COUNT = 100
 FIXTURES = Path(__file__).with_name("fixtures") / "end_to_end_qrels.json"
 REQUIRED_CATEGORIES = {
     "keyword",
@@ -104,20 +107,22 @@ async def run_end_to_end_benchmark(
     for case in cases or load_end_to_end_qrels():
         started = perf_counter()
         outcome = await retrieval.retrieve(
-            case.query,
-            user_id=user_id,
-            project_id=project_id,
-            top_k=10,
-            filters={
-                "document_ids": document_ids,
-                "owner_scoped": False,
-                **(
-                    {"index_revision_ids": index_revision_ids}
-                    if index_revision_ids is not None
-                    else {}
-                ),
-            },
-            intent=case.intent,
+            RetrievalRequest(
+                query=case.query,
+                user_id=user_id,
+                project_id=project_id,
+                top_k=10,
+                filters={
+                    "document_ids": document_ids,
+                    "owner_scoped": False,
+                    **(
+                        {"index_revision_ids": index_revision_ids}
+                        if index_revision_ids is not None
+                        else {}
+                    ),
+                },
+                intent=case.intent,
+            )
         )
         latency_ms = int((perf_counter() - started) * 1000)
         chunk_ids = [chunk.chunk_id for chunk in outcome.chunks]
@@ -206,8 +211,8 @@ async def run_end_to_end_benchmark(
         "latency": {
             "p50_ms": latencies[len(latencies) // 2] if latencies else 0,
             "p95_ms": latencies[max(0, math.ceil(len(latencies) * 0.95) - 1)] if latencies else 0,
-            "p99_ms": latencies[math.ceil(len(latencies) * 0.99) - 1]
-            if len(latencies) >= 100
+            "p99_ms": latencies[math.ceil(len(latencies) * P99_LATENCY_PERCENTILE / 100) - 1]
+            if len(latencies) >= MIN_P99_SAMPLE_COUNT
             else None,
         },
     }

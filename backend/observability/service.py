@@ -1,5 +1,7 @@
 import asyncio
+import logging
 from datetime import UTC, datetime
+from http import HTTPStatus
 from urllib.parse import urlsplit, urlunsplit
 
 import httpx
@@ -22,6 +24,7 @@ from backend.observability.schemas import (
 from backend.workers.health import healthy_worker_count, queue_depths
 
 TECHNICAL_ACCESS_REQUIRED = True
+logger = logging.getLogger(__name__)
 
 _observability_http_client: httpx.AsyncClient | None = None
 
@@ -44,13 +47,30 @@ def build_public_url(base_url: str, path: str = "") -> str | None:
     base = base_url.strip()
     if not base:
         return None
-    parts = urlsplit(base)
-    if parts.scheme not in {"http", "https"} or not parts.netloc:
+    normalized_path = path.strip()
+    if any(
+        not character.isprintable() or character == "\\" for character in base + normalized_path
+    ):
+        return None
+    try:
+        parts = urlsplit(base)
+        if (
+            parts.scheme not in {"http", "https"}
+            or not parts.hostname
+            or parts.username is not None
+            or parts.password is not None
+            or parts.query
+            or parts.fragment
+        ):
+            return None
+        _port = parts.port
+    except ValueError:
         return None
 
     normalized_base_path = parts.path.rstrip("/")
-    normalized_path = path.strip()
     if normalized_path:
+        if "?" in normalized_path or "#" in normalized_path:
+            return None
         normalized_path = "/" + normalized_path.strip("/")
     joined_path = f"{normalized_base_path}{normalized_path}" or "/"
 
@@ -170,8 +190,8 @@ class ObservabilityService:
 
                 for queue, depth in depths.items():
                     prometheus_metrics.worker_queue_depth.labels(queue=queue).set(depth)
-            except Exception:
-                pass
+            except (ImportError, AttributeError, ValueError) as exc:
+                logger.debug("Worker queue metrics unavailable error_type=%s", type(exc).__name__)
             total_depth = sum(depths.values())
             return ObservabilityStatusItem(
                 status="healthy" if count else "degraded",
@@ -235,7 +255,7 @@ class ObservabilityService:
         try:
             client = _get_observability_http_client()
             response = await client.get(url)
-            if response.status_code < 500:
+            if response.status_code < HTTPStatus.INTERNAL_SERVER_ERROR:
                 return ObservabilityStatusItem(
                     status="healthy",
                     detail=f"{service_name} is reachable",

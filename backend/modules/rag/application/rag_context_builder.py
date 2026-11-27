@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Callable
 from dataclasses import replace
 
 from backend.lib.vectors import estimate_tokens
@@ -21,6 +23,20 @@ RAG_UNTRUSTED_CONTEXT_RULE = (
 )
 
 RAG_CONTEXT_HEADER = "## Relevant document context\n"
+
+
+def render_reference_data(tag: str, value: object) -> str:
+    escaped = json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    return f"<{tag}>\n{escaped}\n</{tag}>"
+
+
+def citation_text(chunk: RetrievedChunk) -> str:
+    """Return only the citable text visible in the prompt."""
+    child_text = chunk.citation_content or chunk.content
+    if chunk.metadata.get("context_truncated"):
+        visible = chunk.context_content or ""
+        return visible if child_text.startswith(visible) else ""
+    return child_text
 
 
 class RagContextBuilder:
@@ -53,6 +69,7 @@ class RagContextBuilder:
         reserved_tokens: int = 512,
         overlap_dedupe_threshold: float = 0.8,
         ordering_policy: ContextOrderingPolicy | str = ContextOrderingPolicy.RELEVANCE,
+        token_counter: Callable[[str], int] = estimate_tokens,
     ) -> ContextSelection:
         """Deduplicate, order, and pack chunks while recording selected/removed provenance."""
         if not chunks or max_tokens <= 0:
@@ -83,39 +100,16 @@ class RagContextBuilder:
         builder = RagContextBuilder()
 
         def token_count(items: list[RetrievedChunk]) -> int:
-            return estimate_tokens(builder.build_document_context_block(items))
+            return token_counter(builder.build_document_context_block(items))
 
         for chunk in selection.chunks:
+            if token_count([*packed, chunk]) > budget and chunk.context_content is not None:
+                # Prefer the exact child anchor when the optional parent will not fit.
+                chunk = replace(chunk, context_content=None, parent_context_id=None)
             if token_count([*packed, chunk]) > budget:
-                content = (
-                    chunk.context_content if chunk.context_content is not None else chunk.content
-                )
-                low, high = 0, len(content)
-                excerpt = None
-                while low <= high:
-                    length = (low + high) // 2
-                    candidate = replace(
-                        chunk,
-                        context_content=content[:length],
-                        metadata={
-                            **chunk.metadata,
-                            "context_truncated": True,
-                            "original_context_tokens": estimate_tokens(content),
-                            "included_context_tokens": estimate_tokens(content[:length]),
-                        },
-                    )
-                    if token_count([*packed, candidate]) <= budget:
-                        excerpt = candidate if length else None
-                        low = length + 1
-                    else:
-                        high = length - 1
-                if excerpt is None:
-                    budget_removed.append(chunk.chunk_id)
-                    continue
-                chunk = excerpt
+                budget_removed.append(chunk.chunk_id)
+                continue
             packed.append(chunk)
-        if ContextOrderingPolicy(ordering_policy) == ContextOrderingPolicy.RELEVANCE:
-            packed = sorted(packed, key=lambda item: item.score, reverse=True)
         return ContextSelection(
             chunks=packed,
             removed_chunk_ids=selection.removed_chunk_ids,
@@ -129,35 +123,38 @@ class RagContextBuilder:
         if not chunks:
             return ""
 
-        lines = [RAG_CONTEXT_HEADER, RAG_UNTRUSTED_CONTEXT_RULE, ""]
-        for index, chunk in enumerate(chunks, start=1):
-            page = chunk.page_number if chunk.page_number is not None else chunk.chunk_index
-            context_content = (
-                chunk.context_content if chunk.context_content is not None else chunk.content
-            )
-            lines.extend(
-                [
-                    f"[Source {index}]",
-                    f"document_id: {chunk.document_id}",
-                    f"filename: {chunk.filename}",
-                    f"chunk_id: {chunk.chunk_id}",
-                    *(
-                        [f"parent_context_id: {chunk.parent_context_id}"]
-                        if chunk.parent_context_id
-                        else []
-                    ),
-                    f"page_number: {page}",
-                    f"content: {context_content}",
-                    *(
-                        [f"citation_content: {chunk.citation_content or chunk.content}"]
-                        if chunk.context_content is not None
-                        and not chunk.metadata.get("context_truncated")
-                        else []
-                    ),
-                    "",
-                ]
-            )
-        return "\n".join(lines).rstrip()
+        references = []
+        for chunk in chunks:
+            coordinates = {
+                key: chunk.metadata[key]
+                for key in (
+                    "section_heading",
+                    "section_path",
+                    "char_start",
+                    "char_end",
+                    "offset_scope_id",
+                    "source_span_ids",
+                    "table_headers",
+                    "table_row_start",
+                    "table_row_end",
+                    "sheet_id",
+                )
+                if key in chunk.metadata
+            }
+            entry = {
+                "document_id": chunk.document_id,
+                "chunk_id": chunk.chunk_id,
+                "revision_id": chunk.index_revision_id,
+                "filename": chunk.filename,
+                "page_number": chunk.page_number,
+                "coordinates": coordinates,
+                "content": citation_text(chunk),
+            }
+            if chunk.context_content is not None and not chunk.metadata.get("context_truncated"):
+                entry["neighboring_context"] = chunk.context_content
+            references.append(entry)
+        data = render_reference_data("untrusted_documents", references)
+        return f"{RAG_CONTEXT_HEADER}{RAG_UNTRUSTED_CONTEXT_RULE}\n{data}"
 
     def build_combined_context(
         self,

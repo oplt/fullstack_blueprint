@@ -16,10 +16,10 @@ export default function AdminSettingsPage() {
     if ((config.isLoading && !config.data) || (database.isLoading && !database.data)) {
         return (
             <PageShell width="wide"><div className="flex gap-4"><div
-                    style={{ borderRadius: 24 }}
-                    className="animate-pulse rounded-md bg-muted" /><div
-                    style={{ borderRadius: 24 }}
-                    className="animate-pulse rounded-md bg-muted" /></div></PageShell>
+
+                    className="animate-pulse rounded-md bg-muted rounded-lg" /><div
+
+                    className="animate-pulse rounded-md bg-muted rounded-lg" /></div></PageShell>
         );
     }
     if (!config.data) {

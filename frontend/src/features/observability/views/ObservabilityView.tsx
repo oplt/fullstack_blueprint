@@ -15,7 +15,7 @@ export default function ObservabilityPage() {
     return (
         <PageShell width="wide">
             <SettingsTabs />
-            <div className="flex flex-row justify-end" style={{ marginBottom: 16 }}>
+            <div className="flex flex-row justify-end mb-4" >
                 <Button
                     variant="default"
                     disabled={!model.technicalAccess || !links?.dashboards.application_overview.url}

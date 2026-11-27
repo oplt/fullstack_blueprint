@@ -1,0 +1,26 @@
+project:
+  name: Agent Automation Platform Reference
+  slug: agent-automation-reference
+profile: automation
+backend:
+  database: postgresql
+  cache: redis
+  task_queue: celery
+modules:
+  identity: true
+  organizations: true
+  ai: true
+  agents: true
+  workflows: true
+  integrations: true
+  notifications: true
+  analytics: true
+  rag: false
+  memory: false
+providers:
+  ai: [mock]
+  mcp: local-test-server
+deployment:
+  target: docker
+  observability: standard
+generation_mode: reference

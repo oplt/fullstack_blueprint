@@ -51,7 +51,7 @@ export default function AuthHomePage() {
                         {appName}
                     </p>
 
-                    <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                    <h2 className="text-page-title font-semibold sm:text-display-lg">
                         {isSignIn
                             ? "Welcome back"
                             : "Create your account"}
@@ -74,7 +74,7 @@ export default function AuthHomePage() {
                         variant={isSignIn ? "default" : "ghost"}
                         aria-pressed={isSignIn}
                         onClick={() => changeMode("signIn")}
-                        className="h-auto min-h-10 min-w-0 whitespace-normal px-2"
+                        className="h-auto min-h-(--control-height) min-w-0 whitespace-normal px-2"
                     >
                         Sign in
                     </Button>
@@ -84,7 +84,7 @@ export default function AuthHomePage() {
                         variant={!isSignIn ? "default" : "ghost"}
                         aria-pressed={!isSignIn}
                         onClick={() => changeMode("signUp")}
-                        className="h-auto min-h-10 min-w-0 whitespace-normal px-2"
+                        className="h-auto min-h-(--control-height) min-w-0 whitespace-normal px-2"
                     >
                         Create account
                     </Button>
@@ -93,7 +93,7 @@ export default function AuthHomePage() {
                 {successMsg && (
                     <div
                         role="status"
-                        className="rounded-lg border border-success/30 bg-success/10 p-3 text-sm text-success"
+                        className="rounded-lg border border-success/30 bg-success-soft p-3 text-sm text-success-deep"
                     >
                         {successMsg}
                     </div>

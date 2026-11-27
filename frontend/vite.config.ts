@@ -24,7 +24,10 @@ function manualChunk(id: string) {
     normalizedId.includes('/@full-ui/headless-calendar/') ||
     normalizedId.includes('/temporal-polyfill/')
   ) return 'calendar-runtime'
-  if (normalizedId.includes('/react/') || normalizedId.includes('/react-dom/')) return 'react'
+  if (
+    /\/node_modules\/(?:react|react-dom)\//.test(normalizedId) ||
+    /\/node_modules\/@base-ui\/(?:react|utils)\//.test(normalizedId)
+  ) return 'ui-runtime'
   if (normalizedId.includes('/react-router-dom/')) return 'router'
   if (normalizedId.includes('/@tanstack/react-query/')) return 'query'
   if (normalizedId.includes('/lucide-react/')) return 'icons'

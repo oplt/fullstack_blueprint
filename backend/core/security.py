@@ -43,7 +43,12 @@ def generate_csrf_token() -> str:
 
 
 def decode_token(token: str) -> dict:
-    return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+    return jwt.decode(
+        token,
+        settings.JWT_SECRET,
+        algorithms=[settings.JWT_ALGORITHM],
+        options={"require": ["exp", "sub", "sid", "type"]},
+    )
 
 
 def generate_refresh_token() -> str:

@@ -100,10 +100,10 @@ function RunDegradationNotice({ run }: { run: AiRun }) {
     }
 
     return (
-        <div className="flex flex-col gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
+        <div className="flex flex-col gap-2 rounded-lg border border-warning/30 bg-warning-soft p-3">
             <div className="flex flex-wrap items-center gap-2">
                 <TriangleAlert
-                    className="size-4 shrink-0 text-warning"
+                    className="size-4 shrink-0 text-warning-deep"
                     aria-hidden="true"
                 />
 
@@ -136,7 +136,7 @@ function RunOutput({ run }: { run: AiRun }) {
         return (
             <div
                 role="alert"
-                className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+                className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-sm text-destructive-deep"
             >
                 <TriangleAlert
                     className="mt-0.5 size-4 shrink-0"
@@ -287,12 +287,12 @@ function RetrievalDocumentSelector({ m }: { m: AiStudioModel }) {
                             <Button
                                 key={document.id}
                                 type="button"
-                                size="sm"
-                                variant={selected ? "default" : "outline"}
+                                size="category"
+                                variant="category"
                                 aria-pressed={selected}
                                 disabled={createRunMutation.isPending}
                                 onClick={() => toggleDocument(document.id)}
-                                className="h-auto max-w-full justify-start whitespace-normal rounded-full py-1.5 text-left"
+                                className="h-auto max-w-full justify-start py-1.5"
                             >
                                 {selected ? (
                                     <Check
@@ -485,7 +485,7 @@ function RecentRunCard({ m, run }: {
             <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
-                        <CardTitle className="break-words">
+                        <CardTitle as="h3" className="break-words">
                             {run.provider_key}/{run.model_name}
                         </CardTitle>
 

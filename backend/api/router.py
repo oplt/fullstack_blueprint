@@ -3,10 +3,11 @@ from importlib import import_module
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.db import get_db
 from backend.core.config import Settings, settings
+from backend.dependencies.db import get_db
 from backend.modules.capabilities import CAPABILITY_REGISTRY
 from backend.modules.identity_access.router import router as auth_router
+from backend.modules.platform.config_routes import metadata_router as platform_metadata_router
 from backend.modules.platform.config_service import PlatformConfigService
 from backend.modules.profile.router import router as profile_router
 from backend.modules.users.router import router as users_router
@@ -38,6 +39,7 @@ def _include_registered_router(
 def build_api_router(capability_settings: Settings = settings) -> APIRouter:
     router = APIRouter(prefix="/api/v1")
     router.include_router(auth_router, prefix="/auth", tags=["auth"])
+    router.include_router(platform_metadata_router, prefix="/platform", tags=["platform"])
     _include_registered_router(
         router,
         "ai",

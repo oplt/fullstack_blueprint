@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from backend.modules.rag.application.reranker_port import (
+    MAX_RERANK_CANDIDATES,
+    resolve_reranker_mode,
+)
 from backend.modules.rag.domain.enums import RetrievalIntent
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 
@@ -63,11 +67,11 @@ def plan_retrieval(
     dense_candidates = getattr(config, "dense_candidates", max(base_k * 3, 40))
     lexical_candidates = getattr(config, "lexical_candidates", max(base_k * 3, 40))
     max_per_document = getattr(config, "source_max_chunks_per_document", 3)
-    rerank_cap = max(0, int(getattr(config, "rerank_max_depth", 40)))
-    rerank_enabled = bool(getattr(config, "rerank_enabled", False))
-    rerank_method = (
-        "unicode_heuristic" if bool(getattr(config, "rerank_heuristic_enabled", False)) else "noop"
-    )
+    rerank_cap = min(MAX_RERANK_CANDIDATES, max(0, int(getattr(config, "rerank_max_depth", 40))))
+    reranker_mode = resolve_reranker_mode(config)
+    rerank_method = {"provider": "cohere", "heuristic": "unicode_heuristic", "none": "noop"}[
+        reranker_mode
+    ]
 
     diversify = resolved_intent in {
         RetrievalIntent.COMPARISON,
@@ -78,7 +82,7 @@ def plan_retrieval(
     multi_query = resolved_intent == RetrievalIntent.CONTRADICTION
 
     if resolved_intent in {RetrievalIntent.FACT, RetrievalIntent.DEFINITION}:
-        final_k = min(base_k, 5)
+        final_k = top_k if top_k is not None else min(base_k, 5)
         dense = min(dense_candidates, max(final_k * 3, final_k))
         lexical = min(lexical_candidates, max(final_k * 3, final_k))
     elif resolved_intent == RetrievalIntent.SEMANTIC_SEARCH:
@@ -102,14 +106,12 @@ def plan_retrieval(
     rerank_depth = 0 if resolved_intent == RetrievalIntent.FACT else rerank_cap
     overrides = getattr(config, "rerank_intent_depth_overrides", None) or {}
     if isinstance(overrides, dict) and resolved_intent.value in overrides:
-        rerank_depth = max(0, int(overrides[resolved_intent.value]))
-    if not rerank_enabled:
-        rerank_depth = 0
-    if resolved_intent == RetrievalIntent.FACT:
+        rerank_depth = min(rerank_cap, max(0, int(overrides[resolved_intent.value])))
+    if reranker_mode == "none" or resolved_intent == RetrievalIntent.FACT:
         rerank_depth = 0
 
     mode = (retrieval_mode or "hybrid").strip().lower()
-    if mode == "dense" or mode == "semantic":
+    if mode in {"dense", "semantic"}:
         lexical = 0
     elif mode == "lexical":
         dense = 0
@@ -117,7 +119,7 @@ def plan_retrieval(
 
     return RetrievalProfile(
         intent=resolved_intent,
-        top_k=final_k,
+        top_k=top_k if top_k is not None else final_k,
         dense_candidates=dense,
         lexical_candidates=lexical,
         diversify=diversify,

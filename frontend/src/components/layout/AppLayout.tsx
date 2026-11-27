@@ -16,6 +16,7 @@ import { listProjects, type Project } from "../../api/projects";
 import { queryKeys } from "../../config/queryKeys";
 import { projectPath, ROUTES } from "@/config/routes";
 import { LanguageSelector } from "../ui/LanguageSelector";
+import { Button } from "../ui/button";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { SkipToContentLink } from "../ui/SkipToContentLink";
 import { getConfiguredNavigation } from "@/config/application/configuration";
@@ -126,11 +127,11 @@ export function AppLayout() {
       <div className={collapsed ? "md:pl-[4.5rem]" : "md:pl-64"}>
         <header className="sticky top-0 z-(--z-sticky) flex h-16 items-center gap-1 border-b bg-background/90 px-2 backdrop-blur sm:gap-3 sm:px-6">
           <MobileNavigation key={location.key} {...sidebarProps} />
-          <button className="hidden rounded-md p-2 hover:bg-muted md:block"
+          <Button variant="ghost" size="icon-sm" className="hidden md:block"
             aria-label={t(collapsed ? "navigation.expandSidebar" : "navigation.collapseSidebar")}
             onClick={() => setCollapsed(value => !value)}>
-            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </button>
+            {collapsed ? <ChevronRight className="size-4" aria-hidden="true" /> : <ChevronLeft className="size-4" aria-hidden="true" />}
+          </Button>
           <div className="min-w-0 flex-1">
             <nav aria-label={t("navigation.breadcrumb")} className="hidden items-center gap-1 truncate text-xs text-muted-foreground sm:flex">
               <Link to={ROUTES.dashboard} className="hover:text-foreground">{t("navigation.workspace")}</Link>
@@ -158,9 +159,9 @@ function MobileNavigation(props: Omit<React.ComponentProps<typeof WorkspaceSideb
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return <>
-    <button className="rounded-md p-2 hover:bg-muted md:hidden" aria-label={t("navigation.openNavigation")} onClick={() => setOpen(true)}>
-      <Menu aria-hidden size={19} />
-    </button>
+    <Button variant="ghost" size="icon-sm" className="md:hidden" aria-label={t("navigation.openNavigation")} onClick={() => setOpen(true)} type="button">
+      <Menu aria-hidden="true" className="size-5" />
+    </Button>
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="left" title={t("navigation.main")} description={t("navigation.workspace")}>
         <WorkspaceSidebar {...props} collapsed={false} close={() => setOpen(false)} />

@@ -7,6 +7,7 @@ type RagCitationLike = {
     document_id: string;
     chunk_id: string;
     score: number;
+    used_in_answer?: boolean;
 };
 
 export type RagAskLike = {
@@ -16,6 +17,8 @@ export type RagAskLike = {
     retrieval_degraded: boolean;
     memory_degraded: boolean;
     injection_chunks_filtered: number;
+    citation_validation_failed?: boolean;
+    citation_validation_status?: string;
 };
 
 export type RagEvaluationSummary = {
@@ -30,17 +33,18 @@ export type RagEvaluationSummary = {
 
 export function summarizeRagAsk(result: RagAskLike): RagEvaluationSummary {
     const retrievedCount = result.retrieved_chunk_ids.length;
-    const citationCount = result.citations.length;
-    const citedIds = new Set(result.citations.map((c) => c.chunk_id));
+    const used = result.citations.filter((citation) => citation.used_in_answer !== false);
+    const citationCount = used.length;
+    const citedIds = new Set(used.map((c) => c.chunk_id));
     const covered =
         retrievedCount > 0
             ? [...citedIds].filter((id) => result.retrieved_chunk_ids.includes(id)).length /
               retrievedCount
             : null;
-    const scores = result.citations.map((c) => c.score).filter((s) => Number.isFinite(s));
+    const scores = used.map((c) => c.score).filter((s) => Number.isFinite(s));
     const meanCitationScore =
         scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
-    const distinctDocuments = new Set(result.citations.map((c) => c.document_id)).size;
+    const distinctDocuments = new Set(used.map((c) => c.document_id)).size;
 
     const groundingNotes: string[] = [];
     if (result.no_context_found) {
@@ -50,14 +54,19 @@ export function summarizeRagAsk(result: RagAskLike): RagEvaluationSummary {
         groundingNotes.push("Retrieval ran in a degraded mode — treat citations cautiously.");
     }
     if (result.memory_degraded) {
-        groundingNotes.push("Memory lookup degraded; answer may omit memory evidence.");
+        groundingNotes.push("Conversation memory was unavailable.");
     }
     if (result.injection_chunks_filtered > 0) {
         groundingNotes.push(
             `Filtered ${result.injection_chunks_filtered} injection chunk(s) before answering.`
         );
     }
-    if (citationCount === 0 && !result.no_context_found) {
+    if (result.citation_validation_failed) {
+        groundingNotes.push("Citation validation failed. Review the retrieved sources.");
+    } else if (
+        citationCount === 0 && !result.no_context_found
+        && result.citation_validation_status !== "retrieval_unavailable"
+    ) {
         groundingNotes.push("Answer returned without citations — grounding is unverified.");
     }
     if (covered != null && covered < 0.5 && citationCount > 0) {

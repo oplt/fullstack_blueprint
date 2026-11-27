@@ -317,6 +317,9 @@ export type ApiPaths = {
   "/api/v1/rag/documents/{document_id}/chunks": {
     get: {"operationId":"list_document_chunks_api_v1_rag_documents__document_id__chunks_get","tags":["rag"]};
   };
+  "/api/v1/rag/documents/{document_id}/chunks/{chunk_id}/source": {
+    get: {"operationId":"get_citation_source_api_v1_rag_documents__document_id__chunks__chunk_id__source_get","tags":["rag"]};
+  };
   "/api/v1/rag/documents/{document_id}/index": {
     post: {"operationId":"index_document_api_v1_rag_documents__document_id__index_post","tags":["rag"]};
   };
@@ -331,6 +334,9 @@ export type ApiPaths = {
   };
   "/api/v1/rag/retrieve": {
     post: {"operationId":"retrieve_chunks_api_v1_rag_retrieve_post","tags":["rag"]};
+  };
+  "/api/v1/rag/retrieve/compare": {
+    post: {"operationId":"compare_retrieval_api_v1_rag_retrieve_compare_post","tags":["rag"]};
   };
   "/api/v1/settings/config": {
     get: {"operationId":"get_config_settings_api_v1_settings_config_get","tags":["settings"]};
@@ -1448,10 +1454,10 @@ export type PlatformMetadataResponse = {
   };
 
 export type ProblemDetails = {
-    "correlation_id"?: string;
+    "correlation_id"?: unknown;
     "detail": string;
     "errors"?: Array<Record<string, unknown>>;
-    "instance"?: string;
+    "instance"?: unknown;
     "status": number;
     "title": string;
     "type": string;
@@ -1555,7 +1561,9 @@ export type RagAskResponse = {
     "ai_run_id"?: string | null;
     "answer": string;
     "citation_validation_failed"?: boolean;
+    "citation_validation_status"?: string;
     "citations": Array<RagCitationResponse>;
+    "claims"?: Array<RagClaimResponse>;
     "coverage"?: RagCoverageResponse | null;
     "degradation_reason"?: string | null;
     "evidence_revision_hash"?: string | null;
@@ -1589,6 +1597,7 @@ export type RagCitationResponse = {
     "citation_number"?: number | null;
     "document_id": string;
     "filename": string;
+    "index_revision_id"?: string | null;
     "offset_coordinate_system"?: string | null;
     "offset_scope"?: string | null;
     "offset_scope_id"?: string | null;
@@ -1600,6 +1609,31 @@ export type RagCitationResponse = {
     "source_span_ids"?: Array<string> | null;
     "source_spans"?: Array<Record<string, unknown>> | null;
     "used_in_answer"?: boolean;
+  };
+
+export type RagClaimResponse = {
+    "chunk_ids": Array<string>;
+    "citation_numbers": Array<number>;
+    "text": string;
+  };
+
+export type RagCompareRequest = {
+    "baseline_mode"?: "hybrid" | "dense" | "lexical";
+    "document_ids"?: Array<string> | null;
+    "draft": RagRetrievalDraft;
+    "intent"?: RetrievalIntent | null;
+    "metadata_filter"?: RetrievalMetadataFilter | null;
+    "project_id"?: string | null;
+    "query": string;
+    "retrieval_mode"?: "hybrid" | "dense" | "lexical";
+    "top_k"?: number | null;
+  };
+
+export type RagCompareResponse = {
+    "baseline": RagRetrieveResponse;
+    "candidate": RagRetrieveResponse;
+    "document_count": number;
+    "index_revision_ids": Array<string>;
   };
 
 export type RagCoverageResponse = {
@@ -1661,6 +1695,28 @@ export type RagQueryResponse = {
     "query": string;
   };
 
+export type RagRetrievalDiagnostics = {
+    "branch_status"?: Record<string, string>;
+    "cache": "hit" | "miss" | "bypassed";
+    "dense_candidates"?: number;
+    "dense_pool"?: number;
+    "fused_candidates"?: number;
+    "lexical_candidates"?: number;
+    "lexical_pool"?: number;
+    "min_cosine"?: number | null;
+    "rerank_window"?: number;
+    "rrf_k"?: number | null;
+    "score_kind": "rrf" | "cosine" | "lexical_rank" | "none";
+    "stage_timings_ms"?: Record<string, number>;
+  };
+
+export type RagRetrievalDraft = {
+    "candidate_pool"?: number | null;
+    "min_cosine"?: number | null;
+    "reranker"?: "configured" | "none" | "heuristic";
+    "rrf_k"?: number | null;
+  };
+
 export type RagRetrievedChunkResponse = {
     "char_end"?: number | null;
     "char_start"?: number | null;
@@ -1675,6 +1731,7 @@ export type RagRetrievedChunkResponse = {
     "offset_scope_id"?: string | null;
     "page_number"?: number | null;
     "rank"?: number | null;
+    "retrieval_sources"?: Array<string>;
     "score": number;
     "source_span_ids"?: Array<string> | null;
     "source_spans"?: Array<Record<string, unknown>> | null;
@@ -1683,9 +1740,11 @@ export type RagRetrievedChunkResponse = {
 
 export type RagRetrieveRequest = {
     "document_ids"?: Array<string> | null;
-    "intent"?: string | null;
+    "intent"?: RetrievalIntent | null;
+    "metadata_filter"?: RetrievalMetadataFilter | null;
     "project_id"?: string | null;
     "query": string;
+    "retrieval_mode"?: "hybrid" | "dense" | "lexical";
     "top_k"?: number | null;
   };
 
@@ -1694,12 +1753,29 @@ export type RagRetrieveResponse = {
     "coverage"?: RagCoverageResponse | null;
     "degradation_reason"?: string | null;
     "degraded"?: boolean;
+    "diagnostics"?: RagRetrievalDiagnostics | null;
     "fusion_method"?: string | null;
     "index_revision_ids"?: Array<string>;
     "injection_chunks_filtered"?: number;
     "intent"?: string | null;
     "no_matches"?: boolean;
+    "reranker"?: string | null;
+    "reranking_status"?: "skipped" | "applied" | "fallback" | null;
     "retrieval_trace_id"?: string | null;
+  };
+
+export type RagSourcePreviewResponse = {
+    "chunk_id": string;
+    "content": string;
+    "document_id": string;
+    "original_pdf_url"?: string | null;
+    "page_number"?: number | null;
+    "revision_id": string | null;
+    "section_heading"?: string | null;
+    "sheet_id"?: string | null;
+    "source_spans"?: Array<Record<string, unknown>> | null;
+    "table_row_end"?: number | null;
+    "table_row_start"?: number | null;
   };
 
 export type ResendVerificationRequest = {
@@ -1709,6 +1785,15 @@ export type ResendVerificationRequest = {
 export type ResetPasswordRequest = {
     "new_password": string;
     "token": string;
+  };
+
+export type RetrievalIntent = "fact" | "definition" | "evidence" | "comparison" | "synthesis" | "contradiction" | "semantic_search";
+
+export type RetrievalMetadataFilter = {
+    "formats"?: Array<"text" | "markdown" | "pdf" | "docx" | "csv" | "xlsx"> | null;
+    "languages"?: Array<string> | null;
+    "page_from"?: number | null;
+    "page_to"?: number | null;
   };
 
 export type SessionResponse = {

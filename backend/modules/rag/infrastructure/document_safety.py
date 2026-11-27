@@ -6,44 +6,84 @@ import asyncio
 import io
 import zipfile
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Protocol
 
 from backend.modules.rag.infrastructure.rag_config import RagConfig
 
 
+class MalwareScanStatus(StrEnum):
+    CLEAN = "clean"
+    INFECTED = "infected"
+    ERROR = "error"
+    UNAVAILABLE = "unavailable"
+    NOT_CONFIGURED = "not_configured"
+
+
 @dataclass(frozen=True, slots=True)
 class MalwareScanResult:
-    status: str
+    status: MalwareScanStatus
     signature: str | None = None
+
+
+class MalwareDetectedError(ValueError):
+    """The scanner detected malware."""
+
+
+class MalwareScanUnavailableError(RuntimeError):
+    """Document safety could not be verified."""
+
+    def __init__(self, status: MalwareScanStatus) -> None:
+        self.status = status
+        super().__init__("Document safety could not be verified")
 
 
 class MalwareScannerPort(Protocol):
     async def scan(self, content: bytes, *, filename: str) -> MalwareScanResult: ...
 
 
+def normalize_clamd_response(response: object) -> MalwareScanResult:
+    if not isinstance(response, dict):
+        return MalwareScanResult(MalwareScanStatus.ERROR)
+
+    entry = response.get("stream")
+    if not isinstance(entry, tuple) or len(entry) != 2:
+        return MalwareScanResult(MalwareScanStatus.ERROR)
+
+    status, signature = entry
+    if status == "OK" and signature in (None, ""):
+        return MalwareScanResult(MalwareScanStatus.CLEAN)
+    if status == "FOUND" and isinstance(signature, str) and signature:
+        return MalwareScanResult(MalwareScanStatus.INFECTED, signature)
+
+    return MalwareScanResult(MalwareScanStatus.ERROR)
+
+
 class NoopMalwareScanner:
     async def scan(self, content: bytes, *, filename: str) -> MalwareScanResult:
-        return MalwareScanResult(status="not_configured")
+        return MalwareScanResult(MalwareScanStatus.NOT_CONFIGURED)
 
 
 class ClamdMalwareScanner:
-    """Optional clamd adapter; no shell commands or network destinations are accepted."""
+    """Optional local clamd adapter."""
 
     async def scan(self, content: bytes, *, filename: str) -> MalwareScanResult:
-        try:
-            import clamd  # type: ignore[reportMissingImports]
-        except ImportError as exc:  # pragma: no cover - optional integration
-            raise RuntimeError("clamd is required for the clamd malware scanner") from exc
-
         def _scan() -> MalwareScanResult:
-            client = clamd.ClamdUnixSocket()
-            result = client.instream(io.BytesIO(content))
-            status = str(result.get("stream", ("UNKNOWN", ""))[0]).lower()
-            signature = str(result.get("stream", ("", ""))[1] or "") or None
-            return MalwareScanResult(
-                status="infected" if status == "found" else "clean",
-                signature=signature,
-            )
+            try:
+                import clamd  # type: ignore[reportMissingImports]
+            except ImportError:
+                return MalwareScanResult(MalwareScanStatus.UNAVAILABLE)
+
+            try:
+                client = clamd.ClamdUnixSocket(timeout=30)
+                response = client.instream(io.BytesIO(content))
+            except OSError:
+                return MalwareScanResult(MalwareScanStatus.UNAVAILABLE)
+            except Exception:
+                # External scanner/protocol failures must never imply a clean scan.
+                return MalwareScanResult(MalwareScanStatus.ERROR)
+
+            return normalize_clamd_response(response)
 
         return await asyncio.to_thread(_scan)
 
@@ -51,10 +91,15 @@ class ClamdMalwareScanner:
 class DocumentSafetyService:
     def __init__(self, config: RagConfig, scanner: MalwareScannerPort | None = None) -> None:
         self.config = config
-        self.scanner = scanner or (
-            ClamdMalwareScanner()
-            if config.malware_scan_enabled and config.malware_scanner == "clamd"
-            else NoopMalwareScanner()
+        if config.malware_scan_required and not config.malware_scan_enabled:
+            raise ValueError("Required malware scanning cannot be disabled")
+        if config.malware_scan_enabled and config.malware_scanner != "clamd":
+            raise ValueError("Enabled malware scanning requires a configured scanner")
+
+        self.scanner = (
+            scanner
+            if scanner is not None
+            else (ClamdMalwareScanner() if config.malware_scan_enabled else NoopMalwareScanner())
         )
 
     @staticmethod
@@ -74,10 +119,22 @@ class DocumentSafetyService:
                         raise ValueError("document archive contains an unsafe path")
 
     async def scan(self, content: bytes, *, filename: str) -> MalwareScanResult:
-        self.validate_container(content, filename=filename)
         result = await self.scanner.scan(content, filename=filename)
-        if result.status == "infected":
-            raise ValueError("malware detected in document")
-        if self.config.malware_scan_required and result.status == "not_configured":
-            raise RuntimeError("required malware scanner is not configured")
+        if not isinstance(result, MalwareScanResult) or not isinstance(
+            result.status, MalwareScanStatus
+        ):
+            raise MalwareScanUnavailableError(MalwareScanStatus.ERROR)
+
+        if result.status == MalwareScanStatus.INFECTED:
+            raise MalwareDetectedError("Malware detected in document")
+
+        explicitly_disabled = (
+            not self.config.malware_scan_enabled
+            and not self.config.malware_scan_required
+            and result.status == MalwareScanStatus.NOT_CONFIGURED
+        )
+        if result.status != MalwareScanStatus.CLEAN and not explicitly_disabled:
+            raise MalwareScanUnavailableError(result.status)
+
+        self.validate_container(content, filename=filename)
         return result

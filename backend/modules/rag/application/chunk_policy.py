@@ -1,4 +1,4 @@
-"""Small, inspectable document-type policies for structure-v1 chunking."""
+"""Small, inspectable document-type policies for structured chunking."""
 
 from __future__ import annotations
 
@@ -21,9 +21,11 @@ class ChunkPolicy:
 def resolve_chunk_policy(document: ParsedDocument, config) -> ChunkPolicy:
     """Keep prose defaults while applying PDF/page/table-aware profiles."""
     metadata = document.metadata or {}
-    version = getattr(config, "chunk_policy_version", "structure-v1")
+    version = getattr(config, "chunk_policy_version", "structure-v2")
     base_size = int(getattr(config, "chunk_size", 1000))
     base_overlap = int(getattr(config, "chunk_overlap", 150))
+    if base_size < 1 or not 0 <= base_overlap < base_size:
+        raise ValueError("Chunk overlap must be nonnegative and smaller than the chunk size")
     fmt = str(metadata.get("format") or "").lower()
     block_type = str(metadata.get("parsed_block_type") or "").lower()
 
@@ -42,7 +44,7 @@ def resolve_chunk_policy(document: ParsedDocument, config) -> ChunkPolicy:
         return ChunkPolicy(
             version=version,
             target_tokens=min(base_size, 768),
-            overlap_tokens=min(base_overlap, 96),
+            overlap_tokens=min(base_overlap, 96, base_size - 1),
             profile="pdf_page",
             respect_page_boundaries=True,
             respect_section_boundaries=True,

@@ -6196,8 +6196,10 @@
       "ProblemDetails": {
         "properties": {
           "correlation_id": {
-            "nullable": true,
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "detail": {
             "type": "string"
@@ -6209,8 +6211,10 @@
             "type": "array"
           },
           "instance": {
-            "nullable": true,
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "format": "int32",
@@ -6894,11 +6898,23 @@
             "title": "Citation Validation Failed",
             "type": "boolean"
           },
+          "citation_validation_status": {
+            "default": "no_evidence",
+            "title": "Citation Validation Status",
+            "type": "string"
+          },
           "citations": {
             "items": {
               "$ref": "#/components/schemas/RagCitationResponse"
             },
             "title": "Citations",
+            "type": "array"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/RagClaimResponse"
+            },
+            "title": "Claims",
             "type": "array"
           },
           "coverage": {
@@ -7109,6 +7125,17 @@
             "title": "Filename",
             "type": "string"
           },
+          "index_revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Revision Id"
+          },
           "offset_coordinate_system": {
             "anyOf": [
               {
@@ -7226,6 +7253,163 @@
           "snippet"
         ],
         "title": "RagCitationResponse",
+        "type": "object"
+      },
+      "RagClaimResponse": {
+        "properties": {
+          "chunk_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Chunk Ids",
+            "type": "array"
+          },
+          "citation_numbers": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Citation Numbers",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "chunk_ids",
+          "citation_numbers"
+        ],
+        "title": "RagClaimResponse",
+        "type": "object"
+      },
+      "RagCompareRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_mode": {
+            "default": "hybrid",
+            "enum": [
+              "hybrid",
+              "dense",
+              "lexical"
+            ],
+            "title": "Baseline Mode",
+            "type": "string"
+          },
+          "document_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Ids"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/RagRetrievalDraft"
+          },
+          "intent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetrievalIntent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metadata_filter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetrievalMetadataFilter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "query": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "retrieval_mode": {
+            "default": "hybrid",
+            "enum": [
+              "hybrid",
+              "dense",
+              "lexical"
+            ],
+            "title": "Retrieval Mode",
+            "type": "string"
+          },
+          "top_k": {
+            "anyOf": [
+              {
+                "maximum": 20.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top K"
+          }
+        },
+        "required": [
+          "query",
+          "draft"
+        ],
+        "title": "RagCompareRequest",
+        "type": "object"
+      },
+      "RagCompareResponse": {
+        "properties": {
+          "baseline": {
+            "$ref": "#/components/schemas/RagRetrieveResponse"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/RagRetrieveResponse"
+          },
+          "document_count": {
+            "title": "Document Count",
+            "type": "integer"
+          },
+          "index_revision_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Index Revision Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "baseline",
+          "candidate",
+          "document_count",
+          "index_revision_ids"
+        ],
+        "title": "RagCompareResponse",
         "type": "object"
       },
       "RagCoverageResponse": {
@@ -7577,6 +7761,157 @@
         "title": "RagQueryResponse",
         "type": "object"
       },
+      "RagRetrievalDiagnostics": {
+        "properties": {
+          "branch_status": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Branch Status",
+            "type": "object"
+          },
+          "cache": {
+            "enum": [
+              "hit",
+              "miss",
+              "bypassed"
+            ],
+            "title": "Cache",
+            "type": "string"
+          },
+          "dense_candidates": {
+            "default": 0,
+            "title": "Dense Candidates",
+            "type": "integer"
+          },
+          "dense_pool": {
+            "default": 0,
+            "title": "Dense Pool",
+            "type": "integer"
+          },
+          "fused_candidates": {
+            "default": 0,
+            "title": "Fused Candidates",
+            "type": "integer"
+          },
+          "lexical_candidates": {
+            "default": 0,
+            "title": "Lexical Candidates",
+            "type": "integer"
+          },
+          "lexical_pool": {
+            "default": 0,
+            "title": "Lexical Pool",
+            "type": "integer"
+          },
+          "min_cosine": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Cosine"
+          },
+          "rerank_window": {
+            "default": 0,
+            "title": "Rerank Window",
+            "type": "integer"
+          },
+          "rrf_k": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrf K"
+          },
+          "score_kind": {
+            "enum": [
+              "rrf",
+              "cosine",
+              "lexical_rank",
+              "none"
+            ],
+            "title": "Score Kind",
+            "type": "string"
+          },
+          "stage_timings_ms": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Stage Timings Ms",
+            "type": "object"
+          }
+        },
+        "required": [
+          "score_kind",
+          "cache"
+        ],
+        "title": "RagRetrievalDiagnostics",
+        "type": "object"
+      },
+      "RagRetrievalDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_pool": {
+            "anyOf": [
+              {
+                "maximum": 256.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Pool"
+          },
+          "min_cosine": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": -1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Cosine"
+          },
+          "reranker": {
+            "default": "configured",
+            "enum": [
+              "configured",
+              "none",
+              "heuristic"
+            ],
+            "title": "Reranker",
+            "type": "string"
+          },
+          "rrf_k": {
+            "anyOf": [
+              {
+                "maximum": 256.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrf K"
+          }
+        },
+        "title": "RagRetrievalDraft",
+        "type": "object"
+      },
       "RagRetrieveRequest": {
         "additionalProperties": false,
         "properties": {
@@ -7597,13 +7932,22 @@
           "intent": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/RetrievalIntent"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Intent"
+            ]
+          },
+          "metadata_filter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetrievalMetadataFilter"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "project_id": {
             "anyOf": [
@@ -7620,6 +7964,16 @@
             "maxLength": 4000,
             "minLength": 1,
             "title": "Query",
+            "type": "string"
+          },
+          "retrieval_mode": {
+            "default": "hybrid",
+            "enum": [
+              "hybrid",
+              "dense",
+              "lexical"
+            ],
+            "title": "Retrieval Mode",
             "type": "string"
           },
           "top_k": {
@@ -7677,6 +8031,16 @@
             "title": "Degraded",
             "type": "boolean"
           },
+          "diagnostics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RagRetrievalDiagnostics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "fusion_method": {
             "anyOf": [
               {
@@ -7715,6 +8079,33 @@
             "default": false,
             "title": "No Matches",
             "type": "boolean"
+          },
+          "reranker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reranker"
+          },
+          "reranking_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "skipped",
+                  "applied",
+                  "fallback"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reranking Status"
           },
           "retrieval_trace_id": {
             "anyOf": [
@@ -7844,6 +8235,13 @@
             ],
             "title": "Rank"
           },
+          "retrieval_sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Retrieval Sources",
+            "type": "array"
+          },
           "score": {
             "title": "Score",
             "type": "number"
@@ -7894,6 +8292,122 @@
         "title": "RagRetrievedChunkResponse",
         "type": "object"
       },
+      "RagSourcePreviewResponse": {
+        "properties": {
+          "chunk_id": {
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "original_pdf_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Pdf Url"
+          },
+          "page_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Number"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "section_heading": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Heading"
+          },
+          "sheet_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sheet Id"
+          },
+          "source_spans": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Spans"
+          },
+          "table_row_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Row End"
+          },
+          "table_row_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Table Row Start"
+          }
+        },
+        "required": [
+          "document_id",
+          "chunk_id",
+          "revision_id",
+          "content"
+        ],
+        "title": "RagSourcePreviewResponse",
+        "type": "object"
+      },
       "ResendVerificationRequest": {
         "additionalProperties": false,
         "properties": {
@@ -7927,6 +8441,93 @@
           "new_password"
         ],
         "title": "ResetPasswordRequest",
+        "type": "object"
+      },
+      "RetrievalIntent": {
+        "enum": [
+          "fact",
+          "definition",
+          "evidence",
+          "comparison",
+          "synthesis",
+          "contradiction",
+          "semantic_search"
+        ],
+        "title": "RetrievalIntent",
+        "type": "string"
+      },
+      "RetrievalMetadataFilter": {
+        "additionalProperties": false,
+        "properties": {
+          "formats": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "text",
+                    "markdown",
+                    "pdf",
+                    "docx",
+                    "csv",
+                    "xlsx"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 6,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formats"
+          },
+          "languages": {
+            "anyOf": [
+              {
+                "items": {
+                  "pattern": "^[a-z]{2,3}$",
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Languages"
+          },
+          "page_from": {
+            "anyOf": [
+              {
+                "maximum": 2147483647.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page From"
+          },
+          "page_to": {
+            "anyOf": [
+              {
+                "maximum": 2147483647.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page To"
+          }
+        },
+        "title": "RetrievalMetadataFilter",
         "type": "object"
       },
       "SessionResponse": {
@@ -16302,6 +16903,90 @@
         ]
       }
     },
+    "/api/v1/rag/documents/{document_id}/chunks/{chunk_id}/source": {
+      "get": {
+        "operationId": "get_citation_source_api_v1_rag_documents__document_id__chunks__chunk_id__source_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "chunk_id",
+            "required": true,
+            "schema": {
+              "title": "Chunk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision Id"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RagSourcePreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Citation Source",
+        "tags": [
+          "rag"
+        ]
+      }
+    },
     "/api/v1/rag/documents/{document_id}/index": {
       "post": {
         "operationId": "index_document_api_v1_rag_documents__document_id__index_post",
@@ -16544,6 +17229,65 @@
           }
         },
         "summary": "Retrieve Chunks",
+        "tags": [
+          "rag"
+        ]
+      }
+    },
+    "/api/v1/rag/retrieve/compare": {
+      "post": {
+        "operationId": "compare_retrieval_api_v1_rag_retrieve_compare_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "blueprint_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blueprint Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RagCompareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RagCompareResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Compare Retrieval",
         "tags": [
           "rag"
         ]

@@ -48,7 +48,7 @@ export function AgentTraceDetails({ run: selectedRun, traceSteps }: Props) {
                                                         <p>
                                                             {step.title}
                                                         </p>
-                                                        <div className="flex flex-row gap-[6px] items-center">
+                                                        <div className="flex flex-row items-center gap-1.5">
                                                             <div
                                                                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
                                                             {step.durationMs != null ? (

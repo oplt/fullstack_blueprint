@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { FormField } from "../../components/ui/form-field";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { PageShell } from "../../components/ui/PageShell";
-import { PageTabs } from "../../components/ui/PageTabs";
+import { PageTabs, TabsPanel } from "../../components/ui/PageTabs";
 import { SettingsTabs } from "../../components/layout/SettingsTabs";
 import { useTabQueryParam } from "../../hooks/useTabQueryParam";
 import { useRagWorkspace } from "./hooks/useRagWorkspace";
@@ -27,7 +27,7 @@ export default function RagView() {
             />
             <SettingsTabs />
 
-            <div className="mt-4 flex gap-4">
+            <div className="mt-4 flex flex-col gap-4">
                 <div
                     className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
                     <p className="text-muted-foreground">
@@ -62,13 +62,18 @@ export default function RagView() {
                         { value: "runs", label: "Runs" },
                     ]}
                     ariaLabel="RAG workspace"
-                />
-
-                <RagDocumentsPanel workspace={workspace} fileInputRef={fileInputRef} onTabChange={setTab} />
-                <RagIndexingPanel workspace={workspace} onTabChange={setTab} />
-                <RagRetrievalPanel workspace={workspace} />
-                <RagEvaluationPanel workspace={workspace} />
-                <RagRunsPanel workspace={workspace} />
+                    className="mb-0"
+                >
+                    <TabsPanel value="documents">
+                        <RagDocumentsPanel workspace={workspace} fileInputRef={fileInputRef} onTabChange={setTab} />
+                    </TabsPanel>
+                    <TabsPanel value="indexing">
+                        <RagIndexingPanel workspace={workspace} onTabChange={setTab} />
+                    </TabsPanel>
+                    <TabsPanel value="retrieval"><RagRetrievalPanel workspace={workspace} /></TabsPanel>
+                    <TabsPanel value="evaluation"><RagEvaluationPanel workspace={workspace} /></TabsPanel>
+                    <TabsPanel value="runs"><RagRunsPanel workspace={workspace} /></TabsPanel>
+                </PageTabs>
             </div>
         </PageShell>
     );

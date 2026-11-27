@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.api.deps.admin import get_admin_user
-from backend.api.deps.db import get_db
+from backend.dependencies.admin import get_admin_user
+from backend.dependencies.db import get_db
 from backend.modules.admin.schemas import (
     AdminUserListResponse,
     AdminUserResponse,

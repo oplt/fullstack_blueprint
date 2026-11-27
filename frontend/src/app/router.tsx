@@ -64,7 +64,7 @@ function RoutedErrorBoundary({ children }: { children: React.ReactNode }) {
 
 function NotFoundPage() {
     return (
-        <div className="flex gap-4 items-center" style={{ padding: 32 }}>
+        <div className="flex gap-4 items-center p-8" >
             <h1>Page not found</h1>
             <Button render={<Link to={ROUTES.home} />} type="button">Back to home</Button>
         </div>
@@ -77,7 +77,7 @@ function CapabilityPage({ feature, capability, children }: { feature?: string; c
     if (isPending) return <PageLoader />;
     if (isError) {
         return (
-            <div className="flex gap-4 items-center" style={{ padding: 32 }}>
+            <div className="flex gap-4 items-center p-8" >
                 <span role="alert">Could not load application settings.</span>
                 <Button onClick={() => void refetch()} type="button">Retry</Button>
             </div>

@@ -1,17 +1,20 @@
-import asyncio
-import ipaddress
 import json
 import logging
 import secrets
-import socket
 from datetime import UTC, datetime
-from urllib.parse import urlparse
+from http import HTTPStatus
 
 import httpx
 from fastapi import HTTPException
 
 from backend.core.config import settings
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
+from backend.core.safe_http import (
+    OutboundResolutionError,
+    UnsafeTargetError,
+    safe_post,
+    validate_target,
+)
 from backend.modules.identity_access.models import User
 from backend.modules.platform.config_service import PlatformConfigService
 from backend.modules.platform.models import WebhookEndpoint
@@ -105,110 +108,79 @@ class WebhookService(PlatformConfigService):
         signature_timestamp = int(datetime.now(UTC).timestamp())
         signature = sign_webhook_payload(
             webhook.secret,
-            payload,
+            raw_body,
             timestamp=signature_timestamp,
         )
-
+        status_code: int | None = None
+        error: str | None = None
         try:
-            await self._validate_webhook_target(webhook.target_url)
-            async with httpx.AsyncClient(
-                timeout=10,
-                follow_redirects=False,
-                trust_env=False,
-            ) as client:
-                response = await client.post(
-                    webhook.target_url,
-                    content=raw_body,
-                    headers={
-                        "Content-Type": "application/json",
-                        "X-Generic-App-Event": payload["event"],
-                        "X-Generic-App-Signature": signature,
-                        "X-Generic-App-Signature-Timestamp": str(signature_timestamp),
-                    },
-                )
-            webhook.last_tested_at = datetime.now(UTC)
-            webhook.last_response_status = response.status_code
-            await self.db.commit()
-            await self.db.refresh(webhook)
-            if not response.is_success:
-                logger.warning(
-                    "Webhook test delivery failed user=%s webhook=%s status=%s",
-                    user.id,
-                    webhook.id,
-                    response.status_code,
-                )
-            return {
-                "delivered": response.is_success,
-                "status_code": response.status_code,
-                "response_preview": response.text[:500] if response.text else None,
-                "error": None,
-            }
-        except httpx.HTTPError as exc:
-            webhook.last_tested_at = datetime.now(UTC)
-            webhook.last_response_status = None
-            await self.db.commit()
-            await self.db.refresh(webhook)
+            status_code = await safe_post(
+                webhook.target_url,
+                content=raw_body,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Generic-App-Event": payload["event"],
+                    "X-Generic-App-Signature": signature,
+                    "X-Generic-App-Signature-Timestamp": str(signature_timestamp),
+                },
+                allowed_hosts=set(settings.WEBHOOK_ALLOWED_HOSTS.split(",")),
+                require_allowlist=settings.is_production,
+            )
+        except UnsafeTargetError as exc:
+            error = "Webhook destination rejected"
             logger.warning(
-                "Webhook test request failed user=%s webhook=%s error_type=%s",
+                "Webhook target rejected user=%s webhook=%s error_type=%s",
                 user.id,
                 webhook.id,
                 type(exc).__name__,
             )
-            return {
-                "delivered": False,
-                "status_code": None,
-                "response_preview": None,
-                "error": str(exc),
-            }
+        except (OutboundResolutionError, httpx.HTTPError, TimeoutError) as exc:
+            error = "Webhook delivery failed"
+            logger.warning(
+                "Webhook request failed user=%s webhook=%s error_type=%s",
+                user.id,
+                webhook.id,
+                type(exc).__name__,
+            )
+
+        delivered = (
+            status_code is not None and HTTPStatus.OK <= status_code < HTTPStatus.MULTIPLE_CHOICES
+        )
+        if status_code is not None and not delivered:
+            logger.warning(
+                "Webhook test delivery failed user=%s webhook=%s status=%s",
+                user.id,
+                webhook.id,
+                status_code,
+            )
+
+        webhook.last_tested_at = datetime.now(UTC)
+        webhook.last_response_status = status_code
+        await self.db.commit()
+        await self.db.refresh(webhook)
+
+        return {
+            "delivered": delivered,
+            "status_code": status_code,
+            "response_preview": None,
+            "error": error,
+        }
 
     @staticmethod
     async def _validate_webhook_target(target_url: str) -> None:
-        parsed = urlparse(target_url)
-        host = (parsed.hostname or "").strip().lower()
-        if parsed.scheme != "https":
-            raise HTTPException(status_code=422, detail="Webhook target must use HTTPS")
-        if not host or parsed.username or parsed.password:
-            raise HTTPException(status_code=422, detail="Webhook target host is required")
-        allowed_hosts = {
-            value.strip().lower().rstrip(".")
-            for value in settings.WEBHOOK_ALLOWED_HOSTS.split(",")
-            if value.strip()
-        }
-        if (settings.is_production or allowed_hosts) and host.rstrip(".") not in allowed_hosts:
-            raise HTTPException(status_code=422, detail="Webhook target host is not allowed")
-        if host in {"localhost", "metadata.google.internal"} or host.endswith(".internal"):
-            raise HTTPException(status_code=422, detail="Webhook target host is not allowed")
-        if "." not in host and not host.startswith("["):
-            raise HTTPException(status_code=422, detail="Webhook target host is not allowed")
         try:
-            ip = ipaddress.ip_address(host.strip("[]"))
-        except ValueError:
-            try:
-                addresses = await asyncio.to_thread(
-                    socket.getaddrinfo,
-                    host,
-                    parsed.port or 443,
-                    type=socket.SOCK_STREAM,
-                )
-            except socket.gaierror as exc:
-                raise HTTPException(
-                    status_code=422,
-                    detail="Webhook target host could not be resolved",
-                ) from exc
-            resolved_ips = {str(result[4][0]) for result in addresses}
-            if not resolved_ips:
-                raise HTTPException(
-                    status_code=422,
-                    detail="Webhook target host is not allowed",
-                ) from None
-            for resolved_ip in resolved_ips:
-                WebhookService._validate_webhook_ip(resolved_ip)
-            return
-
-        WebhookService._validate_webhook_ip(str(ip))
-
-    @staticmethod
-    def _validate_webhook_ip(value: str) -> None:
-        ip = ipaddress.ip_address(value)
-        if not ip.is_global:
-            raise HTTPException(status_code=422, detail="Webhook target host is not allowed")
+            await validate_target(
+                target_url,
+                allowed_hosts=set(settings.WEBHOOK_ALLOWED_HOSTS.split(",")),
+                require_allowlist=settings.is_production,
+            )
+        except UnsafeTargetError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="Invalid or prohibited webhook destination",
+            ) from exc
+        except (OutboundResolutionError, TimeoutError) as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="Webhook target could not be resolved",
+            ) from exc

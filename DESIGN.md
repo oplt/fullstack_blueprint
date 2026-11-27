@@ -57,24 +57,26 @@ The sans stack prefers **Inter** when available and falls back to the platform U
 
 ### Hierarchy
 
-| Token                       | Size | Weight | Line Height | Letter Spacing | Use                                   |
-| --------------------------- | ---- | ------ | ----------- | -------------- | ------------------------------------- |
-| `{typography.display-xl}`   | 48px | 600    | 48px        | -2.4px         | Hero headline                         |
-| `{typography.heading-lg}`   | 32px | 600    | 40px        | -1.28px        | Major section headings                |
-| `{typography.heading-md}`   | 20px | 600    | 28px        | -0.4px         | Sub-section / card headings           |
-| `{typography.label-sm}`     | 14px | 500    | 20px        | -0.28px        | Strong labels, nav emphasis           |
-| `{typography.mono-eyebrow}` | 12px | 500    | 16px        | 0              | Uppercase Geist Mono section eyebrows |
-| `{typography.body-lg}`      | 16px | 400    | 24px        | 0              | Lead paragraphs, large body           |
-| `{typography.body-md}`      | 14px | 400    | 20px        | 0              | Default body, nav links, table cells  |
-| `{typography.body-sm}`      | 12px | 400    | 16px        | 0              | Captions, footnotes, metadata         |
-| `{typography.button-lg}`    | 16px | 500    | 20px        | 0              | Marketing pill button labels          |
-| `{typography.button-md}`    | 14px | 500    | 20px        | 0              | Nav / app button labels               |
-| `{typography.code}`         | 14px | 400    | 20px        | 0              | Code blocks, inline code (Geist Mono) |
+| Token                          | Size | Weight | Line Height | Letter Spacing | Use                                    |
+| ------------------------------ | ---- | ------ | ----------- | -------------- | -------------------------------------- |
+| `{typography.display-xl}`      | 48px | 600    | 48px        | -2.4px         | Marketing hero headline                |
+| `{typography.display-lg}`      | 32px | 600    | 40px        | -1.28px        | Major section and document headings    |
+| `{typography.page-title}`      | 24px | 600    | 32px        | -0.48px        | Application page title                 |
+| `{typography.display-md}`      | 20px | 600    | 28px        | -0.4px         | Dense page / sub-section / card titles |
+| `{typography.display-sm}`      | 16px | 600    | 24px        | 0              | Small document headings                |
+| `{typography.label-sm}`        | 14px | 500    | 20px        | -0.28px        | Strong labels, nav emphasis            |
+| `{typography.mono-eyebrow}`    | 12px | 500    | 16px        | 0              | Uppercase IBM Plex Mono section labels |
+| `{typography.body-lg}`         | 16px | 400    | 24px        | 0              | Lead paragraphs, large body            |
+| `{typography.body-md}`         | 14px | 400    | 20px        | 0              | Default body, nav links, table cells   |
+| `{typography.body-sm}`         | 12px | 400    | 16px        | 0              | Captions, footnotes, metadata          |
+| `{typography.button-lg}`       | 16px | 500    | 20px        | 0              | Marketing pill button labels           |
+| `{typography.button-md}`       | 14px | 500    | 20px        | 0              | Nav / app button labels                |
+| `{typography.code}`            | 14px | 400    | 20px        | 0              | Code blocks, inline code (IBM Plex)    |
 
 ### Principles
 - Display type is defined by tight negative tracking — the larger the heading, the tighter (-2.4px at hero scale, -1.28px at section scale). Body type sits at neutral spacing.
 - Weight is binary: 600 for headings and 500 for buttons/labels; everything else is 400. There is no light or black weight, and no italic.
-- Geist Mono is reserved for two roles only — code, and the small uppercase eyebrow labels that introduce sections like spec-sheet headers.
+- IBM Plex Mono is reserved for two roles only — code, and the small uppercase eyebrow labels that introduce technical sections.
 
 ### Note on Font Substitutes
 Inter is used when already available on the system; otherwise the UI sans stack is used. IBM Plex Mono is bundled locally for the monospace role. Keep heading weight at 600 and preserve the negative display tracking.
@@ -88,8 +90,9 @@ Inter is used when already available on the system; otherwise the UI sans stack 
 - **Button padding** is horizontal-only — marketing pills run `0px 14px`, nav buttons `0px 6px` — with height set by line-height rather than vertical padding.
 
 ### Grid & Container
-- Centered max-width container (~1200px) with comfortable gutters; the hero and CTA bands center their content.
+- Centered application content is capped at 1200px with 12px mobile gutters and 24px gutters from 640px upward. Explicit wide layouts cap at 1440px; full workspace layouts remain fluid.
 - Feature sections use 2-up, 3-up, and 4-up hairline-card grids that collapse toward 1-up on narrow widths.
+- Card grids follow the available page-content width: one column below 640px, two at 640px, three at 960px, and four at 1200px. This keeps dashboard grids responsive when a sidebar or split workspace reduces their width.
 - The pricing page uses a multi-column tier grid; the customers page a logo / case-study grid.
 
 ### Whitespace Philosophy
@@ -102,8 +105,8 @@ Whitespace is structural. The near-white canvas and generous section padding do 
 | ------- | ------- | ---------------------------------------------------------------------------------------- |
 | Mobile  | ≤ 640px | Single-column stacks; nav → menu trigger; hero type scales down; pill CTAs go full-width |
 | Tablet  | 768px   | 2-up card grids; condensed nav                                                           |
-| Laptop  | 1024px  | 3–4-up grids; full nav row                                                               |
-| Desktop | 1280px+ | Centered max-width container, full multi-column grids                                    |
+| Laptop  | 1024px  | 3-up grids; full nav row                                                                 |
+| Desktop | 1280px+ | 4-up grids when content width allows; centered 1200px application container             |
 
 #### Touch Targets
 Marketing pill CTAs (`{components.button-primary}`) and primary application controls use the 44px target. Calendar cells remain compact and retain their own accessible interaction model.
@@ -142,6 +145,10 @@ The hero **mesh gradient** is the only atmospheric element — a soft multi-stop
 | `{rounded.full}`          | 9999px | Circular icon buttons, avatars, nav ghost links |
 
 The radius language is bimodal: tight 6px squares for functional chrome, full pills for marketing CTAs and category tabs, with 12–16px on content cards in between.
+
+### Calendar Interaction Exceptions
+
+Calendar date markers, week-number labels, event color dots, and selected-event resize handles retain circular geometry because those shapes communicate date and interaction states. FullCalendar render hooks remain in place for event placement, dragging, resizing, and narrow touch targets. Calendar print output intentionally uses white paper and black text/borders for contrast, regardless of the active theme. Event and overflow-link color mixes, popover elevation, and stacking use the calendar and shared overlay tokens in `frontend/src/index.css`.
 
 ### Geometry
 Cards are rectangles at 12–16px radius; marketing buttons and category tabs are full pills; icon buttons and avatars are circular. Illustrations are line-weight vector graphics in ink on white.
@@ -193,6 +200,8 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 
 **`pricing-card`** — pricing tier card
 - Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, ink text `{colors.ink}`, type `{typography.body-md}`, rounded `{rounded.lg}`, padding `{spacing.xl}`.
+
+Shared card density follows those roles: standard cards use `{rounded.md}` (12px) and `{spacing.lg}` (24px); large cards use `{rounded.lg}` (16px) and `{spacing.xl}` (32px). Dense cards use a 12px radius and 12px padding for compact summaries such as recent-run lists. Card headings use the `heading-md` role (20px/600/28px/-0.4px); dense card headings use the body-sm role. Choose the heading level to fit the surrounding page outline.
 
 **`code-block`** — code / terminal surface
 - Background `{colors.canvas-elevated}`, ink text `{colors.ink}`, 1px hairline `{colors.hairline}`, monospace `{typography.code}`, rounded `{rounded.md}`, padding `{spacing.md}`. Syntax rendered in the ink-and-accent palette.

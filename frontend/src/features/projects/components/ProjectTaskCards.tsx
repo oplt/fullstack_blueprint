@@ -6,7 +6,7 @@ import { formatDateTime } from "../../../utils/formatters";
 import { TASK_STATUS_OPTIONS } from "../projectTaskModel";
 
 function Meta({ task }: { task: ProjectTask }) { return (
-    <div className="flex flex-row gap-[6px] flex-wrap"><div
+    <div className="flex flex-row flex-wrap gap-1.5"><div
         className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" /><div
         className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />{task.assignee && <div
         className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />}{task.due_date && <div
@@ -23,7 +23,7 @@ export function TaskBoardCard({ task, selected, isDragging, onSelect, onDragStar
             border: `1px solid ${selected ? "var(--primary)" : "var(--border)"}`,
             backgroundColor: selected ? colorMix("var(--primary)", 0.12) : "var(--card)"
         })}>
-            <div className="flex gap-2.5"><div className="flex flex-row gap-2 justify-between"><p>{task.title}</p><DragIcon fontSize="small" color="action" /></div><p className="text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
+            <div className="flex gap-2.5"><div className="flex flex-row gap-2 justify-between"><p>{task.title}</p><DragIcon aria-hidden="true" className="size-4 text-muted-foreground" /></div><p className="text-muted-foreground">{task.description || "No task notes yet."}</p><Meta task={task} />
                 <FormField
                     as="select"
                     label="Move to"

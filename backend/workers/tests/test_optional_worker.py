@@ -47,13 +47,15 @@ class OptionalWorkerTests(TestCase):
         import_module.assert_called_once_with("backend.workers.tasks")
 
     def test_queue_mode_requires_worker_task(self) -> None:
-        with patch("backend.workers.async_dispatch.settings.CELERY_TASK_ALWAYS_EAGER", False):
-            with self.assertRaisesRegex(RuntimeError, "Celery worker extra is required"):
-                dispatch_background_sync_job(
-                    target=lambda: None,
-                    kwargs={},
-                    celery_task=None,
-                    celery_kwargs={},
-                    queue="default",
-                    job_name="test",
-                )
+        with (
+            patch("backend.workers.async_dispatch.settings.CELERY_TASK_ALWAYS_EAGER", False),
+            self.assertRaisesRegex(RuntimeError, "Celery worker extra is required"),
+        ):
+            dispatch_background_sync_job(
+                target=lambda: None,
+                kwargs={},
+                celery_task=None,
+                celery_kwargs={},
+                queue="default",
+                job_name="test",
+            )

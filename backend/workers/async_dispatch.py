@@ -47,10 +47,12 @@ class _WorkerAsyncRuntime:
         self._ready.wait()
         if self._startup_error is not None:
             raise RuntimeError("Unable to initialize worker async runtime") from self._startup_error
-        assert self._loop is not None
+        if self._loop is None:
+            raise RuntimeError("Worker runtime initialized without an event loop")
 
     def _run(self) -> None:
         loop = asyncio.new_event_loop()
+        engine = None
         asyncio.set_event_loop(loop)
         try:
             from backend.db.session import create_worker_sessionmaker
@@ -85,7 +87,8 @@ class _WorkerAsyncRuntime:
                     try:
                         await self._redis.aclose()
                     finally:
-                        await engine.dispose()
+                        if engine is not None:
+                            await engine.dispose()
 
             try:
                 loop.run_until_complete(close_resources())
@@ -156,7 +159,8 @@ def _eager_executor_for_settings() -> tuple[ThreadPoolExecutor, BoundedSemaphore
                 thread_name_prefix="blueprint-eager",
             )
             _eager_slots = BoundedSemaphore(pending)
-        assert _eager_slots is not None
+        if _eager_slots is None:
+            raise RuntimeError("Eager worker slots were not initialized")
         return _eager_executor, _eager_slots
 
 

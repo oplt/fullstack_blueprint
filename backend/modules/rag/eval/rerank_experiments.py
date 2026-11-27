@@ -6,6 +6,7 @@ intents may use up to 40. Live ANN/LLM-rerank quality is NEEDS_LIVE_MEASUREMENT.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any
 
@@ -20,7 +21,7 @@ class _IdentityReranker:
     name = "fixture-reverse"
     version = "v1"
 
-    def rerank(self, query, chunks, *, limit):
+    async def rank(self, query, chunks, *, limit):
         del query
         window = list(chunks[:limit])
         window.reverse()
@@ -52,7 +53,7 @@ def compare_rerank_depths(
     baseline = _chunks_from_ids(ranked_ids)
     comparisons = []
     for depth in depths:
-        result = apply_rerank_policy(ranker, query, baseline, depth=depth)
+        result = asyncio.run(apply_rerank_policy(ranker, query, baseline, depth=depth))
         ordered_ids = [chunk.chunk_id for chunk in result.chunks]
         metrics = ranking_metrics_from_fixture(ordered_ids, relevant_ids, k=5)
         comparisons.append(

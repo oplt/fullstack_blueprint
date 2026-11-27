@@ -10,13 +10,22 @@ from backend.core.rate_limit import _build_rate_limit_exception, _increment_with
 logger = logging.getLogger("backend.rate_limit")
 
 
+async def _continue_without_public_limit(request: Request, call_next) -> Response:
+    if settings.is_production:
+        logger.error("public rate limit must be positive in production")
+        return JSONResponse(status_code=503, content={"detail": "Service unavailable"})
+    return await call_next(request)
+
+
 class PublicRateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         max_requests = settings.effective_public_rate_limit_requests
         is_probe = request.url.path in {"/health/live", "/health/ready"}
         should_limit = request.url.path.startswith(("/api/", "/health/"))
-        if max_requests <= 0 or is_probe or not should_limit:
+        if is_probe or not should_limit:
             return await call_next(request)
+        if max_requests <= 0:
+            return await _continue_without_public_limit(request, call_next)
 
         if settings.PUBLIC_RATE_LIMIT_WINDOW_SECONDS <= 0:
             logger.error("public rate limit window must be positive")

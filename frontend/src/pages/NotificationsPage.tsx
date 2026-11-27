@@ -37,11 +37,7 @@ export default function NotificationsPage() {
             {unreadCount > 0 ? <MarkAllReadButton mutation={markAllMutation} /> : null}
 
             <div
-                style={{
-                    display: "grid",
-                    gap: 16,
-                    gridTemplateColumns: "1fr",
-                }}
+                className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}
             >
                 <StatCard
                     label="Unread"
@@ -69,11 +65,7 @@ export default function NotificationsPage() {
             </div>
 
             <div
-                style={{
-                    display: "grid",
-                    gap: 16,
-                    gridTemplateColumns: "1fr",
-                }}
+                className="gap-4" style={{ display: "grid", gridTemplateColumns: "1fr" }}
             >
                 <SectionCard title="Inbox" description="Messages are sorted for fast scanning and clear read state.">
                     <QueryBoundary

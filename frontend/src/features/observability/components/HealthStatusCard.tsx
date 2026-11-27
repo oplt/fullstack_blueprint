@@ -1,12 +1,14 @@
-import { colorMix } from "@/lib/color";import type { ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { HealthStatus } from "../types";
 
-const STATUS_COLORS: Record<HealthStatus, "success" | "warning" | "error" | "default" | "info"> = {
+const STATUS_VARIANTS: Record<HealthStatus, "success" | "warning" | "destructive" | "outline" | "information"> = {
     healthy: "success",
     degraded: "warning",
-    down: "error",
-    unknown: "default",
-    not_configured: "info",
+    down: "destructive",
+    unknown: "outline",
+    not_configured: "information",
 };
 
 type HealthStatusCardProps = {
@@ -22,6 +24,7 @@ function formatCheckedAt(value?: string | null) {
     if (!value) {
         return null;
     }
+
     return new Intl.DateTimeFormat(undefined, {
         hour: "2-digit",
         minute: "2-digit",
@@ -37,56 +40,30 @@ export function HealthStatusCard({
     lastCheckedAt,
     icon,
 }: HealthStatusCardProps) {
-    const paletteColor = STATUS_COLORS[status] === "default" ? "var(--muted-foreground)" : `var(--${STATUS_COLORS[status]})`;
     const checkedAt = formatCheckedAt(lastCheckedAt);
+    const statusLabel = status.replaceAll("_", " ");
 
     return (
-        <div
-            style={({
-                padding: 16,
-                borderRadius: 4,
-                border: "none",
-                boxShadow: "none",
-                minHeight: 180,
-
-                backgroundColor: "var(--card)"
-            })}
-        >
-            <div className="flex gap-3" style={{ height: "100%" }}>
-                <div className="flex flex-row gap-3 items-start justify-between">
-                    <div style={{ minWidth: 0 }}>
-                        <p>{title}</p>
-                        <div className="mt-2 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs" />
-                    </div>
-                    <div
-                        style={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: 12,
-                            display: "grid",
-                            placeItems: "center",
-                            color: paletteColor,
-                            backgroundColor: colorMix(paletteColor, 0.1),
-                            flex: "0 0 auto",
-                        }}
-                    >
-                        {icon}
-                    </div>
+        <article className="flex min-h-44 flex-col gap-3 rounded-md border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <h3 className="text-title-md font-medium">{title}</h3>
+                    <Badge className="mt-2" variant={STATUS_VARIANTS[status]}>{statusLabel}</Badge>
                 </div>
-                {metric && (
-                    <h6 style={{ lineHeight: 1.2 }}>
-                        {metric}
-                    </h6>
-                )}
-                <p style={{ flexGrow: 1 }} className="text-muted-foreground">
-                    {detail}
-                </p>
-                {checkedAt && (
-                    <span className="text-muted-foreground">
-                        Checked {checkedAt}
-                    </span>
-                )}
+                <div className={cn(
+                    "grid size-10 shrink-0 place-items-center rounded-md",
+                    status === "healthy" && "bg-success-soft text-success-deep",
+                    status === "degraded" && "bg-warning-soft text-warning-deep",
+                    status === "down" && "bg-destructive-soft text-destructive-deep",
+                    status === "unknown" && "bg-muted text-muted-foreground",
+                    status === "not_configured" && "bg-information/10 text-information",
+                )}>
+                    {icon}
+                </div>
             </div>
-        </div>
+            {metric && <p className="text-display-sm font-semibold leading-tight">{metric}</p>}
+            <p className="flex-1 text-body-sm text-muted-foreground">{detail}</p>
+            {checkedAt && <span className="text-caption text-muted-foreground">Checked {checkedAt}</span>}
+        </article>
     );
 }

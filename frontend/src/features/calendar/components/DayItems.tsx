@@ -1,4 +1,4 @@
-import { colorMix } from "@/lib/color";
+import { Badge } from "@/components/ui/badge";
 import {
     CalendarCheck as AppointmentIcon,
     CalendarDays as EventIcon,
@@ -25,12 +25,9 @@ function ItemBadges({ item }: { item: CalendarItem }) {
     return (
         <div className="flex flex-wrap gap-1.5">
             {badges.map((badge) => (
-                <span
-                    key={badge}
-                    className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs"
-                >
+                <Badge key={badge} variant="outline">
                     {badge}
-                </span>
+                </Badge>
             ))}
         </div>
     );
@@ -54,12 +51,7 @@ export function DayItems({
             {items.map((item) => (
                 <article
                     key={item.id}
-                    className="grid gap-2 rounded-xl border border-border p-3"
-                    style={{
-                        backgroundColor: item.type === "task"
-                            ? colorMix("var(--success)", 0.12)
-                            : "var(--card)",
-                    }}
+                    className={`grid gap-2 rounded-xl border border-border p-3 ${item.type === "task" ? "bg-success-soft" : "bg-card"}`}
                 >
                     <div className="flex items-center gap-2">
                         <ItemIcon type={item.type} />

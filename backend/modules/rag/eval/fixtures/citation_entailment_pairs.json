@@ -11,6 +11,42 @@
       "claim": "Centralized control is never challenged.",
       "evidence": "Participation distributes authority and can challenge centralized control through deliberation.",
       "entailed": false
+    },
+    {
+      "id": "verbatim-quantity",
+      "claim": "The limit is 12 kg on 4 June 2025.",
+      "evidence": "The limit is 12 kg on 4 June 2025.",
+      "entailed": true
+    },
+    {
+      "id": "changed-quantity",
+      "claim": "The limit is 21 kg on 4 June 2025.",
+      "evidence": "The limit is 12 kg on 4 June 2025.",
+      "entailed": false
+    },
+    {
+      "id": "changed-unit",
+      "claim": "The limit is 12 lb on 4 June 2025.",
+      "evidence": "The limit is 12 kg on 4 June 2025.",
+      "entailed": false
+    },
+    {
+      "id": "changed-date",
+      "claim": "The limit is 12 kg on 4 June 2024.",
+      "evidence": "The limit is 12 kg on 4 June 2025.",
+      "entailed": false
+    },
+    {
+      "id": "changed-negation",
+      "claim": "The limit applies.",
+      "evidence": "The limit does not apply.",
+      "entailed": false
+    },
+    {
+      "id": "verbatim-negation",
+      "claim": "The limit does not apply.",
+      "evidence": "The limit does not apply.",
+      "entailed": true
     }
   ]
 }

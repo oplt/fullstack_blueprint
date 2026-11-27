@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 from dataclasses import dataclass, replace
@@ -44,8 +45,9 @@ async def ingest_fixture_corpus(
     chunks: dict[str, str] = {}
     coordinates: dict[str, dict] = {}
     revisions: list[str] = []
-    for path in sorted(corpus.glob("*.txt")):
-        content = path.read_bytes()
+    paths = await asyncio.to_thread(lambda: sorted(corpus.glob("*.txt")))
+    for path in paths:
+        content = await asyncio.to_thread(path.read_bytes)
         key = f"fixture-{path.stem}"
         document = await ingestion.repo.create_document(
             user_id=user_id,

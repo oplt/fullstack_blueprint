@@ -60,7 +60,7 @@ def select_context_chunks(
     removed: list[str] = []
     for chunk in sorted(chunks, key=_priority):
         duplicate_of = next(
-            (kept for kept in selected if _duplicates(chunk, kept, overlap_threshold)),
+            (kept for kept in selected if duplicates_evidence(chunk, kept, overlap_threshold)),
             None,
         )
         if duplicate_of is None:
@@ -106,8 +106,8 @@ def order_context_chunks(
     return sorted(chunks, key=_priority)
 
 
-def _priority(chunk: RetrievedChunk) -> tuple[float, int, str]:
-    return (-chunk.score, chunk.rank if chunk.rank is not None else 2**31 - 1, chunk.chunk_id)
+def _priority(chunk: RetrievedChunk) -> tuple[int, float, str]:
+    return (chunk.rank if chunk.rank is not None else 2**31 - 1, -chunk.score, chunk.chunk_id)
 
 
 def _has_chronology(chunk: RetrievedChunk) -> bool:
@@ -130,21 +130,51 @@ def _chronology_sort_key(chunk: RetrievedChunk) -> tuple[int, str]:
     return (1, "")
 
 
-def _duplicates(left: RetrievedChunk, right: RetrievedChunk, threshold: float) -> bool:
-    if left.document_id != right.document_id or _revision(left) != _revision(right):
+def duplicates_evidence(left: RetrievedChunk, right: RetrievedChunk, threshold: float) -> bool:
+    if (
+        left.document_id != right.document_id
+        or _revision(left) != _revision(right)
+        or left.page_number != right.page_number
+    ):
         return False
+    if left.chunk_id == right.chunk_id:
+        return True
+    left_table, right_table = _table_rows(left), _table_rows(right)
+    if left_table or right_table:
+        return left_table == right_table
     left_hash = left.metadata.get("content_hash")
     right_hash = right.metadata.get("content_hash")
+    left_scope = left.metadata.get("offset_scope_id")
+    if left_scope != right.metadata.get("offset_scope_id"):
+        return False
     if left_hash and left_hash == right_hash:
         return True
     left_spans, right_spans = _span_ids(left), _span_ids(right)
-    if not left_spans or not right_spans:
-        return False
-    return len(left_spans & right_spans) / len(left_spans | right_spans) >= threshold
+    return bool(
+        left_spans
+        and right_spans
+        and len(left_spans & right_spans) / len(left_spans | right_spans) >= threshold
+    )
 
 
 def _revision(chunk: RetrievedChunk) -> str | None:
-    return chunk.index_revision_id or chunk.metadata.get("revision_id")
+    return (
+        chunk.index_revision_id
+        or chunk.metadata.get("document_revision")
+        or chunk.metadata.get("revision_id")
+    )
+
+
+def _table_rows(chunk: RetrievedChunk) -> tuple | None:
+    metadata = chunk.metadata
+    if "table_block_id" not in metadata or "table_row_start" not in metadata:
+        return None
+    return (
+        metadata.get("sheet_id"),
+        metadata["table_block_id"],
+        metadata["table_row_start"],
+        metadata.get("table_row_end"),
+    )
 
 
 def _span_ids(chunk: RetrievedChunk) -> set[str]:

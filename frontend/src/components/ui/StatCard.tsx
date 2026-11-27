@@ -7,9 +7,9 @@ const iconTone = cva("grid size-10 place-items-center rounded-lg", {
         color: {
             primary: "bg-primary/10 text-primary",
             secondary: "bg-secondary text-secondary-foreground",
-            success: "bg-success/10 text-success",
-            warning: "bg-warning/10 text-warning",
-            error: "bg-destructive/10 text-destructive",
+            success: "bg-success-soft text-success-deep",
+            warning: "bg-warning-soft text-warning-deep",
+            error: "bg-destructive-soft text-destructive-deep",
             info: "bg-information/10 text-information",
         },
     },
@@ -30,7 +30,7 @@ export function StatCard({ label, value, description, icon, loading = false, col
                 </div>
             ) : (
                 <div className="mt-6 space-y-1">
-                    <div className="text-3xl font-semibold tracking-tight">{value}</div>
+                    <div className="text-display-lg font-semibold">{value}</div>
                     {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
                 </div>
             )}

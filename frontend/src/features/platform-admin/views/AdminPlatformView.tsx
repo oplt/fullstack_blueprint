@@ -17,12 +17,12 @@ export default function AdminPlatformPage() {
     const templates = useQuery({ queryKey: queryKeys.platform.admin.emailTemplates, queryFn: ({ signal }) => listAdminEmailTemplates({ signal }) });
     if ([config, plans, flags, templates].some((query) => query.isLoading)) return (
         <PageShell width="wide"><div className="flex gap-4"><div
-                style={{ borderRadius: 24 }}
-                className="animate-pulse rounded-md bg-muted" /><div
-                style={{ borderRadius: 24 }}
-                className="animate-pulse rounded-md bg-muted" /><div
-                style={{ borderRadius: 24 }}
-                className="animate-pulse rounded-md bg-muted" /></div></PageShell>
+
+                className="animate-pulse rounded-md bg-muted rounded-lg" /><div
+
+                className="animate-pulse rounded-md bg-muted rounded-lg" /><div
+
+                className="animate-pulse rounded-md bg-muted rounded-lg" /></div></PageShell>
     );
     if (!config.data || !plans.data || !flags.data || !templates.data) return (
         <PageShell width="wide"><SettingsTabs /><div className="mt-4 flex gap-4">

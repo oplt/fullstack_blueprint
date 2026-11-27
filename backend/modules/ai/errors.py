@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from http import HTTPStatus
 
 
 class AiErrorKind(StrEnum):
@@ -43,14 +44,23 @@ class AiProviderError(Exception):
 
 
 def classify_http_status(status_code: int) -> tuple[AiErrorKind, bool]:
-    if status_code == 401 or status_code == 403:
+    if status_code in {HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN}:
         return AiErrorKind.AUTHENTICATION, False
-    if status_code == 408 or status_code == 504:
+    if status_code in {HTTPStatus.REQUEST_TIMEOUT, HTTPStatus.GATEWAY_TIMEOUT}:
         return AiErrorKind.TIMEOUT, True
-    if status_code == 409 or status_code == 429:
+    if status_code in {HTTPStatus.CONFLICT, HTTPStatus.TOO_MANY_REQUESTS}:
         return AiErrorKind.RATE_LIMIT, True
-    if status_code in {400, 404, 413, 422}:
+    if status_code in {
+        HTTPStatus.BAD_REQUEST,
+        HTTPStatus.NOT_FOUND,
+        HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+        HTTPStatus.UNPROCESSABLE_ENTITY,
+    }:
         return AiErrorKind.INVALID_REQUEST, False
-    if status_code in {500, 502, 503}:
+    if status_code in {
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        HTTPStatus.BAD_GATEWAY,
+        HTTPStatus.SERVICE_UNAVAILABLE,
+    }:
         return AiErrorKind.TRANSIENT, True
-    return AiErrorKind.PROVIDER, status_code >= 500
+    return AiErrorKind.PROVIDER, status_code >= HTTPStatus.INTERNAL_SERVER_ERROR

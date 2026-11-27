@@ -1,0 +1,26 @@
+project:
+  name: Traditional SaaS Reference
+  slug: traditional-saas-reference
+profile: lean_saas
+backend:
+  database: postgresql
+  cache: redis
+  task_queue: celery
+modules:
+  identity: true
+  organizations: true
+  projects: true
+  billing: true
+  entitlements: true
+  feature_flags: true
+  notifications: true
+  analytics: true
+  ai: false
+  rag: false
+  memory: false
+providers:
+  billing: mock
+deployment:
+  target: docker
+  observability: standard
+generation_mode: reference

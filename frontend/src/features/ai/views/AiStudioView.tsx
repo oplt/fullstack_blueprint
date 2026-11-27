@@ -18,11 +18,7 @@ export default function AiStudioPage() {
     const { data: platform } = usePlatformMetadata();
     const ragEnabled = platform?.available_features?.includes("rag") ?? false;
     if (m.isLoading) return (
-        <PageShell width="wide"><SettingsTabs /><StatCardSkeletonGrid /><div className="mt-4 flex gap-4"><div className="animate-pulse rounded-md bg-muted" style={{
-            height: 320
-        }} /><div className="animate-pulse rounded-md bg-muted" style={{
-            height: 280
-        }} /></div></PageShell>
+        <PageShell width="wide"><SettingsTabs /><StatCardSkeletonGrid /><div className="mt-4 flex gap-4"><div className="h-80 w-full animate-pulse rounded-md bg-muted" /><div className="h-72 w-full animate-pulse rounded-md bg-muted" /></div></PageShell>
     );
     if (m.isError || !m.overview) return <PageShell width="wide"><SettingsTabs /><QueryErrorAlert error={m.error ?? new Error("Failed to load AI studio overview.")} fallback="Failed to load AI studio overview." onRetry={() => void m.refetch()} /></PageShell>;
     const sections = [
@@ -34,22 +30,18 @@ export default function AiStudioPage() {
     ] as const;
     return (
         <PageShell width="wide"><SettingsTabs />
-            <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+            <div className="grid gap-4">
                 <StatCard label="Prompt templates" value={m.promptTemplates.length} description="Reusable prompts with version history" icon={<PromptIcon />} />
                 {ragEnabled && <StatCard label="Documents" value={m.documents.length} description="Indexed retrieval sources" icon={<DocumentIcon />} color="secondary" />}
                 <StatCard label="Pending reviews" value={m.reviews.filter((item) => item.status === "pending").length} description="Runs waiting for human review" icon={<ReviewIcon />} color="warning" />
                 <StatCard label="Datasets" value={m.datasets.length} description="Saved evaluation datasets" icon={<DatasetIcon />} color="success" />
             </div>
-            <div
-
-                aria-label="AI Studio sections"
-                className="flex flex-row gap-2"
-                style={{ marginTop: 16, overflowX: "auto", paddingBottom: 4, display: "" }}>
+            <nav aria-label="AI Studio sections" className="mt-4 flex gap-2 overflow-x-auto pb-1">
                 {sections.map(([id, label]) => <Button key={id} variant="outline" render={<a href={`#${id}`} />}>{label}</Button>)}
-            </div>
-            <div style={{ marginTop: 16, display: "grid", gap: 16, gridTemplateColumns: "1fr", alignItems: "start" }}>
-                <div className="flex gap-4"><div id="ai-prompts" style={{ scrollMarginTop: 88 }}><PromptLibraryPanel m={m} /></div><div id="ai-runs" style={{ scrollMarginTop: 88 }}><RunPlaygroundPanel m={m} /></div></div>
-                <div className="flex gap-4"><div id="ai-versions" style={{ scrollMarginTop: 88 }}><VersionBuilderPanel m={m} /></div>{ragEnabled && <div id="ai-documents" style={{ scrollMarginTop: 88 }}><RetrievalDocumentsPanel m={m} /></div>}<div id="ai-evaluations" style={{ scrollMarginTop: 88 }}><ReviewsEvaluationsPanel m={m} /></div></div>
+            </nav>
+            <div className="mt-4 grid items-start gap-4">
+                <div className="flex gap-4"><div id="ai-prompts" className="scroll-mt-22"><PromptLibraryPanel m={m} /></div><div id="ai-runs" className="scroll-mt-22"><RunPlaygroundPanel m={m} /></div></div>
+                <div className="flex gap-4"><div id="ai-versions" className="scroll-mt-22"><VersionBuilderPanel m={m} /></div>{ragEnabled && <div id="ai-documents" className="scroll-mt-22"><RetrievalDocumentsPanel m={m} /></div>}<div id="ai-evaluations" className="scroll-mt-22"><ReviewsEvaluationsPanel m={m} /></div></div>
             </div>
         </PageShell>
     );

@@ -5,7 +5,7 @@ import logging
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from time import perf_counter
-from typing import Any
+from typing import Any, Literal
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -28,6 +28,7 @@ from backend.modules.memory.application.memory_governance import (
 from backend.modules.memory.application.memory_policy_service import MemoryPolicyService
 from backend.modules.memory.application.memory_router import MemoryRouter
 from backend.modules.memory.domain.enums import (
+    AgentScope,
     MemoryLevel,
     MemoryOperation,
     MemoryPrivacy,
@@ -48,8 +49,23 @@ from backend.modules.memory.infrastructure.memory_audit_repository import (
     MemoryRegistryRepository,
 )
 from backend.modules.memory.infrastructure.memory_config import MemoryConfig
+from backend.modules.memory.infrastructure.models import MemoryRegistry
 
 logger = logging.getLogger(__name__)
+
+
+def _agent_scope_for_level(level: MemoryLevel) -> AgentScope | None:
+    if level == MemoryLevel.AGENT:
+        return AgentScope.USER_AGENT
+    return None
+
+
+def _untrusted_metadata(metadata: dict[str, Any] | None) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in (metadata or {}).items()
+        if key not in MemoryMetadata.__dataclass_fields__
+    }
 
 
 class MemoryService:
@@ -85,36 +101,13 @@ class MemoryService:
         retention_days: int | None = None,
         skip_policy: bool = False,
     ) -> MemoryWriteResult:
-        if not self.config.enabled:
-            return MemoryWriteResult(
-                memory_id="",
-                memory_level=MemoryLevel(memory_level),
-                memory_type=MemoryType(memory_type or MemoryType.FACT.value),
-                accepted=False,
-                rejection_reason="memory_disabled",
-            )
-
-        if not self.config.write_enabled:
-            return MemoryWriteResult(
-                memory_id="",
-                memory_level=MemoryLevel(memory_level),
-                memory_type=MemoryType(memory_type or MemoryType.FACT.value),
-                accepted=False,
-                rejection_reason="memory_write_disabled",
-            )
-
         level = MemoryLevel(memory_level)
         mtype = MemoryType(memory_type or MemoryType.FACT.value)
-        privacy_level = MemoryPrivacy(privacy)
+        rejection = self._write_rejection(level, mtype, consent_status)
+        if rejection:
+            return rejection
 
-        if self.config.consent_required and consent_status != "explicit":
-            return MemoryWriteResult(
-                memory_id="",
-                memory_level=level,
-                memory_type=mtype,
-                accepted=False,
-                rejection_reason="consent_required",
-            )
+        privacy_level = MemoryPrivacy(privacy)
 
         await self._authorize_write(
             user_id=user_id,
@@ -176,6 +169,7 @@ class MemoryService:
             created_at=now,
             last_seen_at=now,
             privacy=privacy_level,
+            scope=_agent_scope_for_level(level),
         )
         if level == MemoryLevel.SESSION:
             meta.expires_at = session_expires_at(self.config.session_ttl_days)
@@ -183,6 +177,7 @@ class MemoryService:
             meta.expires_at = governance.expires_at
 
         merged_meta = {
+            **_untrusted_metadata(metadata),
             **meta.to_dict(),
             "content_hash": governance.content_hash,
             "consent_status": consent_status,
@@ -193,7 +188,6 @@ class MemoryService:
                 run_id=run_id,
                 consent_status=consent_status,
             ),
-            **(metadata or {}),
         }
         external_id = ""
         try:
@@ -222,13 +216,13 @@ class MemoryService:
         if external_id:
             await self.registry_repo.register(
                 external_memory_id=external_id,
-                user_id=user_id if level != MemoryLevel.AGENT else user_id,
+                user_id=user_id,
                 agent_id=agent_id,
                 run_id=run_id,
                 project_id=project_id,
                 memory_level=level.value,
                 memory_type=mtype.value,
-                scope=level.value,
+                scope=meta.scope.value if meta.scope else None,
                 confidence=confidence,
                 consent_status=consent_status,
                 retention_policy=merged_meta["retention_policy"],
@@ -259,6 +253,29 @@ class MemoryService:
             memory_type=mtype,
             accepted=bool(external_id),
             rejection_reason=None if external_id else "mem0_empty_response",
+        )
+
+    def _write_rejection(
+        self,
+        level: MemoryLevel,
+        memory_type: MemoryType,
+        consent_status: str,
+    ) -> MemoryWriteResult | None:
+        reason = None
+        if not self.config.enabled:
+            reason = "memory_disabled"
+        elif not self.config.write_enabled:
+            reason = "memory_write_disabled"
+        elif self.config.consent_required and consent_status != "explicit":
+            reason = "consent_required"
+        if reason is None:
+            return None
+        return MemoryWriteResult(
+            memory_id="",
+            memory_level=level,
+            memory_type=memory_type,
+            accepted=False,
+            rejection_reason=reason,
         )
 
     async def recall(
@@ -373,21 +390,12 @@ class MemoryService:
         reason: str,
         is_admin: bool = False,
     ) -> None:
-        registry = await self.registry_repo.get_by_external_id(memory_id)
-        if not registry or registry.status != "active":
-            raise HTTPException(status_code=404, detail="Memory not found")
-
-        if registry.memory_level == "agent" and registry.user_id is None and not is_admin:
-            raise HTTPException(
-                status_code=403,
-                detail="Only admins can forget global agent memory",
-            )
-
-        if registry.user_id and registry.user_id != user_id and not is_admin:
-            raise HTTPException(status_code=403, detail="You cannot forget another user's memory")
-
-        if registry.project_id:
-            await self._ensure_project_access(user_id, registry.project_id)
+        registry = await self._get_mutable_registry(
+            user_id=user_id,
+            memory_id=memory_id,
+            is_admin=is_admin,
+            operation="forget",
+        )
 
         try:
             await self.mem0.delete(memory_id)
@@ -422,13 +430,12 @@ class MemoryService:
         reason: str,
         is_admin: bool = False,
     ) -> MemoryWriteResult:
-        registry = await self.registry_repo.get_by_external_id(memory_id)
-        if not registry or registry.status != "active":
-            raise HTTPException(status_code=404, detail="Memory not found")
-        if registry.user_id and registry.user_id != user_id and not is_admin:
-            raise HTTPException(status_code=403, detail="You cannot correct another user's memory")
-        if registry.project_id:
-            await self._ensure_project_access(user_id, registry.project_id)
+        registry = await self._get_mutable_registry(
+            user_id=user_id,
+            memory_id=memory_id,
+            is_admin=is_admin,
+            operation="correct",
+        )
 
         result = await self.remember(
             user_id=user_id,
@@ -528,19 +535,18 @@ class MemoryService:
 
     async def get_memory(self, *, user_id: str, memory_id: str) -> MemoryItem:
         registry = await self.registry_repo.get_by_external_id(memory_id)
-        if registry and registry.status != "active":
+        if not registry or registry.status != "active" or registry.user_id != user_id:
             raise HTTPException(status_code=404, detail="Memory not found")
-        if registry and registry.user_id and registry.user_id != user_id:
-            raise HTTPException(status_code=403, detail="You cannot access another user's memory")
-        if registry and registry.project_id:
+        if registry.project_id:
             await self._ensure_project_access(user_id, registry.project_id)
 
         item = await self.mem0.get(memory_id)
         if not item:
             raise HTTPException(status_code=404, detail="Memory not found")
-        if not await self._authorize_read_item(user_id, item):
-            raise HTTPException(status_code=403, detail="You cannot access this memory")
-        return item
+        authorized = await self._filter_authorized_read_items(user_id, [item])
+        if not authorized:
+            raise HTTPException(status_code=404, detail="Memory not found")
+        return authorized[0]
 
     async def build_prompt_context(self, request: MemorySearchRequest) -> str:
         context, _degraded = await self.build_prompt_context_with_status(request)
@@ -619,9 +625,27 @@ class MemoryService:
                 )
             await self._ensure_project_access(user_id, project_id)
 
-    async def _authorize_read_item(self, user_id: str, item: MemoryItem) -> bool:
-        filtered = await self._filter_authorized_read_items(user_id, [item])
-        return bool(filtered)
+    async def _get_mutable_registry(
+        self,
+        *,
+        user_id: str,
+        memory_id: str,
+        is_admin: bool,
+        operation: Literal["forget", "correct"],
+    ) -> MemoryRegistry:
+        registry = await self.registry_repo.get_by_external_id(memory_id)
+        if registry is None or registry.status != "active":
+            raise HTTPException(status_code=404, detail="Memory not found")
+        if registry.user_id is None and not is_admin:
+            raise HTTPException(status_code=403, detail="Only admins can modify global memory")
+        if registry.user_id != user_id and not is_admin:
+            raise HTTPException(
+                status_code=403,
+                detail=f"You cannot {operation} another user's memory",
+            )
+        if registry.project_id:
+            await self._ensure_project_access(user_id, registry.project_id)
+        return registry
 
     async def _filter_authorized_read_items(
         self,
@@ -631,45 +655,41 @@ class MemoryService:
         if not items:
             return []
 
+        registry_rows = await self.registry_repo.get_active_by_external_ids(
+            [item.id for item in items]
+        )
+        registry_by_id = {row.external_memory_id: row for row in registry_rows}
         project_ids = {
-            item.metadata.project_id
-            for item in items
-            if item.metadata.memory_level == MemoryLevel.PROJECT
-            and item.metadata.project_id
-            and item.metadata.user_id == user_id
+            row.project_id for row in registry_rows if row.user_id == user_id and row.project_id
         }
         accessible_project_ids = await self.project_access.filter_accessible_project_ids(
             user_id,
             project_ids,
         )
-        return [
-            item
-            for item in items
-            if not item.metadata.expires_at or item.metadata.expires_at > datetime.now(UTC)
-            if self._item_authorized_for_read(user_id, item, accessible_project_ids)
-        ]
-
-    def _item_authorized_for_read(
-        self,
-        user_id: str,
-        item: MemoryItem,
-        accessible_project_ids: set[str],
-    ) -> bool:
-        level = item.metadata.memory_level
-        if level in {MemoryLevel.USER, MemoryLevel.SESSION, MemoryLevel.EPISODIC}:
-            return item.metadata.user_id == user_id
-        if level == MemoryLevel.PROJECT:
-            if item.metadata.user_id != user_id:
-                return False
-            if item.metadata.project_id:
-                return item.metadata.project_id in accessible_project_ids
-            return True
-        if level == MemoryLevel.AGENT:
-            scope = item.metadata.scope
-            if scope and scope.value == "global_agent":
-                return True
-            return item.metadata.user_id in {"", user_id}
-        return False
+        now = datetime.now(UTC)
+        authorized: list[MemoryItem] = []
+        for item in items:
+            registry = registry_by_id.get(item.id)
+            if not registry or registry.user_id != user_id:
+                continue
+            if registry.expires_at and registry.expires_at <= now:
+                continue
+            if registry.project_id and registry.project_id not in accessible_project_ids:
+                continue
+            try:
+                item.metadata.memory_level = MemoryLevel(registry.memory_level)
+            except ValueError:
+                continue
+            item.metadata.user_id = user_id
+            item.metadata.agent_id = registry.agent_id or ""
+            item.metadata.run_id = registry.run_id
+            item.metadata.project_id = registry.project_id
+            try:
+                item.metadata.scope = AgentScope(registry.scope) if registry.scope else None
+            except ValueError:
+                item.metadata.scope = None
+            authorized.append(item)
+        return authorized
 
     async def _ensure_project_access(self, user_id: str, project_id: str) -> None:
         project = await self.project_access.get_project_for_user(project_id, user_id)

@@ -13,7 +13,15 @@ def diversify_by_document(
     limit: int,
     max_per_document: int,
     documents_in_scope: int,
+    prefer_coverage: bool = False,
 ) -> tuple[list[RetrievedChunk], RetrievalCoverage]:
+    if prefer_coverage:
+        first, rest = [], []
+        seen: set[str] = set()
+        for chunk in chunks:
+            (rest if chunk.document_id in seen else first).append(chunk)
+            seen.add(chunk.document_id)
+        chunks = [*first, *rest]
     selected: list[RetrievedChunk] = []
     per_doc: dict[str, int] = {}
     for chunk in chunks:

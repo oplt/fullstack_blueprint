@@ -6,13 +6,13 @@ import type { PlatformAdminModel } from "../hooks/usePlatformAdminContent";
 export function TemplatesSection({ templates, model }: { templates: EmailTemplate[]; model: PlatformAdminModel }) {
     const n = model.newTemplate;
     return (
-        <SectionCard title="Email templates" description="Create and update reusable transactional email templates."><div className="flex gap-[20px]">
+        <SectionCard title="Email templates" description="Create and update reusable transactional email templates."><div className="flex gap-6">
                                     <div style={({
                                         padding: 20,
                                         borderRadius: 16,
                                         border: `1px solid ${"var(--border)"}`
                                     })}><div className="flex gap-3"><p>Create template</p>
-                                        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr" }}><FormField label="Key" value={n.key} onChange={(e: any) => model.setNewTemplate((v) => ({ ...v, key: e.target.value }))} /><FormField label="Name" value={n.name} onChange={(e: any) => model.setNewTemplate((v) => ({ ...v, name: e.target.value }))} /></div>
+                                        <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr" }}><FormField label="Key" value={n.key} onChange={(e: any) => model.setNewTemplate((v) => ({ ...v, key: e.target.value }))} /><FormField label="Name" value={n.name} onChange={(e: any) => model.setNewTemplate((v) => ({ ...v, name: e.target.value }))} /></div>
                                         <FormField label="Subject" value={n.subject_template} onChange={(e: any) => model.setNewTemplate((v) => ({ ...v, subject_template: e.target.value }))} /><FormField label="HTML body" value={n.html_template} onChange={(e: any) => model.setNewTemplate((v) => ({ ...v, html_template: e.target.value }))} as="textarea" rows={4} /><FormField label="Text body" value={n.text_template} onChange={(e: any) => model.setNewTemplate((v) => ({ ...v, text_template: e.target.value }))} as="textarea" rows={3} />
                                         <Switch aria-label="Activate new template" checked={n.is_active} onCheckedChange={(checked) => model.setNewTemplate((v) => ({ ...v, is_active: checked }))} /><Button
                                         variant="default"

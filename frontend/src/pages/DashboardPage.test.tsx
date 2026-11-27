@@ -10,7 +10,7 @@ import DashboardPage from "./DashboardPage";
 vi.mock("../api/projects", () => ({ listProjects: vi.fn() }));
 vi.mock("../api/notifications", () => ({ getNotifications: vi.fn() }));
 vi.mock("../hooks/usePlatformMetadata", () => ({
-    usePlatformMetadata: () => ({ data: undefined }),
+    usePlatformMetadata: () => ({ data: { available_features: ["projects"] } }),
 }));
 
 describe("minimal dashboard capability gates", () => {

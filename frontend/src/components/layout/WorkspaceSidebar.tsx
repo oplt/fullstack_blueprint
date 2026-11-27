@@ -8,8 +8,13 @@ import { ROUTES } from "@/config/routes";
 import type { Project } from "../../api/projects";
 import { getInitials } from "../../utils/formatters";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 type Page = { label: string; path: string; icon: LucideIcon };
 type SidebarProps = {
@@ -28,23 +33,22 @@ type SidebarProps = {
 
 function ProjectSelector({ projects, project, select }: Pick<SidebarProps, "projects" | "project" | "select">) {
     const { t } = useTranslation();
-    return <Popover>
-        <PopoverTrigger className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted">
+    return <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" className="mt-1 h-auto w-full justify-start gap-2 px-2 py-1.5 text-xs text-muted-foreground" />}>
             <FolderKanban aria-hidden size={14} />
             <span className="min-w-0 flex-1 truncate">{project?.name ?? t("status.selectProject")}</span>
             <ChevronRight aria-hidden size={13} />
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-64 p-1">
-            {projects.slice(0, 8).map(item => <button type="button" key={item.id} onClick={() => select(item)}
-                className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted">
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-64">
+            {projects.slice(0, 8).map(item => <DropdownMenuItem key={item.id} onClick={() => select(item)}>
                 {item.name}
-            </button>)}
-            {!projects.length && <p className="p-3 text-sm text-muted-foreground">{t("status.noProjects")}</p>}
-            <Link to={ROUTES.projects} className="block rounded-md px-3 py-2 text-sm text-primary hover:bg-muted">
+            </DropdownMenuItem>)}
+            {!projects.length && <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("status.noProjects")}</p>}
+            <DropdownMenuItem render={<Link to={ROUTES.projects} />} className="text-primary">
                 {t("status.viewAllProjects")}
-            </Link>
-        </PopoverContent>
-    </Popover>;
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>;
 }
 
 function SidebarAccount({ collapsed, signOut }: Pick<SidebarProps, "collapsed" | "signOut">) {
@@ -59,10 +63,10 @@ function SidebarAccount({ collapsed, signOut }: Pick<SidebarProps, "collapsed" |
             </Avatar>
             {!collapsed && <span className="truncate text-sm">{currentUser?.full_name ?? currentUser?.email ?? t("status.profile")}</span>}
         </Link>
-        <button type="button" onClick={signOut} aria-label={t("actions.signOut")}
-            className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted">
+        <Button variant="ghost" type="button" onClick={signOut} aria-label={t("actions.signOut")}
+            className="mt-1 h-auto w-full justify-start gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground">
             <LogOut aria-hidden size={18} />{!collapsed && t("actions.signOut")}
-        </button>
+        </Button>
     </div>;
 }
 
@@ -82,7 +86,7 @@ export function WorkspaceSidebar(props: SidebarProps) {
     return <>
         <div className="px-4">
             <div className="flex h-16 items-center justify-between">
-                <Link to={ROUTES.dashboard} aria-label={name} className="flex min-w-0 items-center gap-2 truncate font-semibold tracking-tight">
+                <Link to={ROUTES.dashboard} aria-label={name} className="flex min-w-0 items-center gap-2 truncate text-label-sm font-medium">
                     {branding.logo && <img src={branding.logo} alt={branding.logoAlt ?? name} className="h-7 w-7 shrink-0 rounded object-contain" />}
                     {collapsed ? name.slice(0, 1) : name}
                 </Link>

@@ -30,10 +30,10 @@ import {
     type SignUpValues,
 } from "../schemas";
 
-type PasswordFieldProps = Extract<
+type PasswordFieldProps = Omit<Extract<
     ComponentProps<typeof FormField>,
     { as?: "input" }
->;
+>, "as">;
 
 function PasswordField(props: PasswordFieldProps) {
     const [showPassword, setShowPassword] = useState(false);
@@ -46,7 +46,6 @@ function PasswordField(props: PasswordFieldProps) {
         id,
         className,
         disabled,
-        as: _as,
         ...inputProps
     } = props;
 
@@ -121,7 +120,7 @@ function PasswordField(props: PasswordFieldProps) {
                     className={cn(
                         "text-xs leading-relaxed",
                         error
-                            ? "text-destructive"
+                            ? "text-destructive-deep"
                             : "text-muted-foreground",
                     )}
                 >
@@ -140,7 +139,7 @@ function AuthError({ message }: { message: string }) {
     return (
         <div
             role="alert"
-            className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm leading-relaxed text-destructive"
+            className="rounded-lg border border-destructive/30 bg-destructive-soft p-3 text-sm leading-relaxed text-destructive-deep"
         >
             {message}
         </div>
@@ -155,7 +154,7 @@ function AuthSuccess({ message }: { message: string }) {
     return (
         <div
             role="status"
-            className="rounded-lg border border-success/30 bg-success/10 p-3 text-sm leading-relaxed text-success"
+            className="rounded-lg border border-success/30 bg-success-soft p-3 text-sm leading-relaxed text-success-deep"
         >
             {message}
         </div>

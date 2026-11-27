@@ -6,13 +6,13 @@ import type { PlatformAdminModel } from "../hooks/usePlatformAdminContent";
 export function FlagsSection({ flags, model }: { flags: FeatureFlag[]; model: PlatformAdminModel }) {
     const n = model.newFlag;
     return (
-        <SectionCard title="Feature flags" description="Create rollout controls and tune existing flags."><div className="flex gap-[20px]">
+        <SectionCard title="Feature flags" description="Create rollout controls and tune existing flags."><div className="flex gap-6">
                                 <div style={({
                                     padding: 20,
                                     borderRadius: 16,
                                     border: `1px solid ${"var(--border)"}`
                                 })}><div className="flex gap-3"><p>Create flag</p>
-                                    <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr" }}>
+                                    <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr" }}>
                                         <FormField label="Key" value={n.key} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, key: e.target.value }))} /><FormField label="Name" value={n.name} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, name: e.target.value }))} />
                                         <FormField label="Module key" value={n.module_key} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, module_key: e.target.value }))} /><FormField label="Rollout %" value={n.rollout_percentage} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, rollout_percentage: e.target.value }))} />
                                     </div><FormField label="Description" value={n.description} onChange={(e: any) => model.setNewFlag((v) => ({ ...v, description: e.target.value }))} /><Switch
@@ -32,7 +32,7 @@ export function FlagsSection({ flags, model }: { flags: FeatureFlag[]; model: Pl
                                         borderRadius: 16,
                                         border: `1px solid ${"var(--border)"}`
                                     })}><div className="flex gap-3"><p>{flag.key}</p>
-                                                            <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr" }}><FormField label="Name" value={d.name} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, name: e.target.value } }))} /><FormField label="Module key" value={d.module_key} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, module_key: e.target.value } }))} /><FormField label="Rollout %" value={d.rollout_percentage} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, rollout_percentage: e.target.value } }))} /></div>
+                                                            <div className="gap-3" style={{ display: "grid", gridTemplateColumns: "1fr" }}><FormField label="Name" value={d.name} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, name: e.target.value } }))} /><FormField label="Module key" value={d.module_key} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, module_key: e.target.value } }))} /><FormField label="Rollout %" value={d.rollout_percentage} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, rollout_percentage: e.target.value } }))} /></div>
                                                             <FormField label="Description" value={d.description} onChange={(e: any) => model.setFlagDrafts((v) => ({ ...v, [flag.id]: { ...d, description: e.target.value } }))} /><Switch
                                                                 aria-label={`Enable feature flag ${flag.key}`}
                                                                 checked={d.is_enabled}

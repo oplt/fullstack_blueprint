@@ -4,7 +4,7 @@ type ResponsiveCardGridProps = { children: ReactNode; columns?: ResponsiveCardCo
 export function ResponsiveCardGrid({ children, columns = 3, className }: ResponsiveCardGridProps) {
     return (
         <div
-            className={`responsive-card-grid gap-4 ${className ?? ""}`}
+            className={`responsive-card-grid ${className ?? ""}`}
             data-columns={columns}
         >
             {children}

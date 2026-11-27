@@ -16,7 +16,6 @@ from backend.core.cache import (
     set_local_cached_json,
 )
 from backend.core.config import ENV_FILE, Settings, settings
-from backend.modules.settings.env_file_store import EnvFileStore
 from backend.modules.settings.config_metadata import (
     CONFIG_FIELD_METADATA,
     CONFIG_NOTICE,
@@ -25,6 +24,7 @@ from backend.modules.settings.config_metadata import (
     SENSITIVE_KEY_MARKERS,
     TYPE_LABELS,
 )
+from backend.modules.settings.env_file_store import EnvFileStore
 from backend.modules.settings.schemas import (
     ConfigEntryResponse,
     ConfigEntryUpdate,
@@ -35,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 
 class SettingsConfigService:
-    @classmethod
     @classmethod
     async def list_config_entries(cls) -> ConfigSettingsResponse:
         cached = get_local_cached_json(SETTINGS_CONFIG_ENTRIES_CACHE_KEY)
@@ -61,9 +60,7 @@ class SettingsConfigService:
         known_fields = Settings.model_fields
         ordered_keys = list(env_entries)
 
-        for key in known_fields:
-            if key not in env_entries:
-                ordered_keys.append(key)
+        ordered_keys.extend(key for key in known_fields if key not in env_entries)
 
         for key in ordered_keys:
             if key in env_entries:

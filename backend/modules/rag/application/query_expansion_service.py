@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 
-QUERY_EXPANSION_VERSION = "contradiction-variants-v1"
+QUERY_EXPANSION_VERSION = "contradiction-variants-v2"
 
 _LANGUAGE_MARKERS = {
+    "en": {"what", "which", "the", "and", "does", "evidence", "contradicts", "against"},
     "de": {"der", "die", "das", "und", "von", "für", "widerspricht", "belege"},
     "tr": {"ve", "bu", "şu", "için", "kanıt", "destekleyen", "çelişen"},
     "fr": {"le", "la", "les", "des", "et", "pour", "preuves", "contredisent"},
+    "nl": {"de", "het", "een", "en", "van", "voor", "bewijs", "tegenspreekt"},
 }
 _POLARITY_WORDING = {
     "en": (
@@ -28,6 +31,10 @@ _POLARITY_WORDING = {
     "fr": (
         "éléments qui soutiennent ou confirment",
         "éléments qui contredisent, remettent en cause ou présentent des contre-arguments à",
+    ),
+    "nl": (
+        "Bewijs dat ondersteunt of bevestigt",
+        "Bewijs dat tegenspreekt, betwist of tegenargumenten geeft bij",
     ),
 }
 
@@ -76,17 +83,15 @@ class QueryExpansionService:
 
     def expand_if_needed(self, query: str, *, multi_query: bool) -> list[QueryVariant]:
         if not multi_query:
-            return [QueryVariant(label="original", text=(query or "").strip())]
+            text = (query or "").strip()
+            return [QueryVariant(label="original", text=text, language=_detect_language(text))]
         return self.expand_contradiction(query)
 
 
 def _detect_language(query: str) -> str:
-    lowered = query.lower()
-    if any(marker in lowered for marker in ("ı", "ğ", "ş")):
-        return "tr"
-    scores = {
-        language: sum(1 for word in re.findall(r"[\wÀ-ÿ]+", lowered) if word in markers)
-        for language, markers in _LANGUAGE_MARKERS.items()
-    }
-    language, score = max(scores.items(), key=lambda item: item[1])
-    return language if score else "en"
+    normalized = unicodedata.normalize("NFC", query).replace("İ", "i").casefold()
+    words = set(re.findall(r"[^\W\d_]+", normalized))
+    scores = {language: len(words & markers) for language, markers in _LANGUAGE_MARKERS.items()}
+    best = max(scores.values())
+    winners = [language for language, score in scores.items() if score == best]
+    return winners[0] if best and len(winners) == 1 else "en"
