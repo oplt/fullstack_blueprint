@@ -1,6 +1,6 @@
 import type { GenerativePayload } from "./schemas";
 
-/** Storybook-ready, backend-independent examples for the Phase 11 renderer. */
+/** Storybook-ready, backend-independent examples for the generative UI renderer. */
 export const generativeUiExamples: Record<string, GenerativePayload> = {
     overview: {
         version: 1,

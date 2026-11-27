@@ -1,5 +1,5 @@
 
-/** Stable identifiers used by product presets and generated applications. */
+/** Stable identifiers used by runtime capability configuration. */
 export type CapabilityId =
     | "dashboard"
     | "projects"
@@ -15,7 +15,7 @@ export type CapabilityId =
     | "admin";
 
 
-export type ConfigurationSource = "default" | "environment" | "generator" | "deployment";
+export type ConfigurationSource = "default" | "environment" | "deployment";
 export type LayoutVariant =
     | "saas-dashboard"
     | "full-width-workspace"
@@ -58,7 +58,7 @@ export type CapabilityRoute = {
     adminOnly?: boolean;
 };
 
-/** Build-time choices are owned by the generated frontend build. */
+/** Build-time choices are owned by this frontend build. */
 export type BuildConfiguration = {
     enabledCapabilities: readonly CapabilityId[];
     source: ConfigurationSource;

@@ -1,0 +1,37 @@
+Completely remove the blueprint application generator and all predefined application-generation profiles from the repository.
+
+The application must become a single, reusable, production-ready fullstack GitHub template that can be cloned and customized for any application idea.
+
+Requirements:
+
+1. Remove the entire `backend/blueprint/` package, including its generator, CLI, profiles, schemas, environment generation, reference configurations and generator-specific tests.
+
+2. Remove all eight application-generation profiles: minimal_api, lean_saas, ai_saas, knowledge_base, automation, enterprise_saas, marketplace and internal_tool.
+
+3. Remove the root `blueprint.yml`, `docs/validation/reference-apps/` and `.github/workflows/phase11-reference-validation.yml`.
+
+4. Remove generator-specific Makefile targets, commands, dependencies and PHONY declarations, including blueprint-check and phase11-check.
+
+5. Remove obsolete Ruff exceptions, imports, environment variables, documentation, configuration entries and references associated exclusively with the removed generator.
+
+6. Search the entire repository for residual generator references and resolve them. Do not blindly remove identifiers that belong to unrelated runtime functionality.
+
+7. Preserve all existing application functionality, including authentication, authorization, organizations, projects, tasks, AI, agents, RAG, memory, notifications, calendar, billing, integrations and administration.
+
+8. Preserve runtime capability management, platform module packs, feature flags, user profiles and Docker Compose profiles. They are separate from the application-generation profiles.
+
+9. Preserve all existing database models, Alembic migrations and user data. Do not regenerate, squash or delete migrations.
+
+10. Remove dependencies only if repository-wide analysis confirms they are no longer used. Regenerate affected lockfiles if necessary.
+
+11. Preserve meaningful application tests and CI/CD security checks. Transfer any important application-level regression coverage from the removed reference-application workflow into the existing validation pipelines.
+
+12. Update README.md to describe the application as a reusable GitHub template, with straightforward cloning, configuration, development and production deployment instructions.
+
+13. Do not introduce replacement generators, profile systems, unnecessary abstractions or new dependencies.
+
+14. Run backend linting, type checking, architecture validation, backend tests, frontend linting, frontend type checking, frontend tests, production build, API contract validation and Docker Compose configuration validation.
+
+15. Report all removed files, modified files, dependency changes, validation results and remaining issues. Report the tracked file count and source lines of code before and after the refactoring.
+
+The objective is to simplify the architecture without losing any actual application functionality, security controls or production readiness.

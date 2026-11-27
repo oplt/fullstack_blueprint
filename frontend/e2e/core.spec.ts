@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
-test("registers, signs in, refreshes, manages a project and signs out", async ({ page, context }) => {
+test("registers, signs in, manages a workspace and signs out", async ({ page, context }) => {
     const email = `blueprint-${randomUUID()}@example.com`;
     const password = "Blueprint-test-password-28!";
+    const apiBaseUrl = process.env.E2E_API_URL ?? "http://localhost:8000";
     const unexpectedErrors: string[] = [];
     page.on("pageerror", (error) => unexpectedErrors.push(error.message));
     page.on("response", (response) => {
@@ -26,6 +27,29 @@ test("registers, signs in, refreshes, manages a project and signs out", async ({
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("link", { name: "Skip to main content" })).toBeAttached();
+
+    const csrfCookieName = process.env.E2E_CSRF_COOKIE ?? "blueprint_csrf";
+    const csrfCookie = (await context.cookies(apiBaseUrl)).find(({ name }) => name === csrfCookieName);
+    expect(csrfCookie).toBeDefined();
+    const csrfHeaders = { "X-CSRF-Token": csrfCookie?.value ?? "" };
+    const organizationSlug = `workspace-${randomUUID()}`;
+    const organization = await context.request.post(`${apiBaseUrl}/api/v1/organizations`, {
+        data: { name: "Template workspace", slug: organizationSlug },
+        headers: csrfHeaders,
+    });
+    expect(organization).toBeOK();
+    await expect(organization.json()).resolves.toMatchObject({ slug: organizationSlug });
+
+    const subscription = await context.request.put(`${apiBaseUrl}/api/v1/platform/billing/subscription`, {
+        data: { plan_code: "free" },
+        headers: csrfHeaders,
+    });
+    expect(subscription).toBeOK();
+    await expect(subscription.json()).resolves.toMatchObject({ plan: { code: "free" } });
+
+    const entitlement = await context.request.get(`${apiBaseUrl}/api/v1/platform/entitlements/core_access`);
+    expect(entitlement).toBeOK();
+    await expect(entitlement.json()).resolves.toEqual({ key: "core_access", enabled: true });
 
     await page.getByLabel(/^language$/i).selectOption("fr");
     await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe("fr");

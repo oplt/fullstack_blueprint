@@ -34,7 +34,6 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-grpc",
     "pgvector",
     "cryptography>=43.0.0",
-    "pyyaml>=6.0",
     "tzdata>=2026.6",
 ]
 
@@ -131,7 +130,6 @@ allowed-confusables = ["ı"]
 # Assertions and numeric fixtures are intentional in test code.
 "**/tests/**/*.py" = ["S101", "PLR2004"]
 # These commands produce their documented stdout output as part of the CLI interface.
-"blueprint/cli.py" = ["T201"]
 "scripts/check_architecture.py" = ["T201"]
 "scripts/check_db.py" = ["T201"]
 "scripts/validate_openapi.py" = ["T201"]

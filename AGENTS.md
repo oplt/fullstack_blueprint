@@ -17,7 +17,7 @@
 - For cross-stack changes, apply both.
 - Consult architecture documentation only when changing architectural boundaries.
 - Read manifests, lockfiles and CI configuration only when relevant to the task.
-- Preserve the reusable blueprint structure and supported deployment configurations.
+- Preserve the reusable template structure and supported deployment configurations.
 
 ## Contracts and Dependencies
 

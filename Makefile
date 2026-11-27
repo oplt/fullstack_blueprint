@@ -259,7 +259,6 @@ _backend-check: _migration-check
 	cd backend && "$(VENV_BIN)/pyright" -p pyproject.toml
 	"$(VENV_BIN)/lint-imports" --config .importlinter $(if $(CI),--no-cache)
 	"$(BACKEND_PYTHON)" backend/scripts/check_architecture.py
-	"$(BACKEND_PYTHON)" -m backend.blueprint.cli validate --config blueprint.yml
 	cd backend && "$(VENV_BIN)/vulture" --min-confidence 100
 
 _frontend-check:
@@ -461,15 +460,6 @@ api-contract-check: ## Verify and validate the runtime OpenAPI contract.
 	cd backend && "$(BACKEND_PYTHON)" scripts/export_openapi.py --profile runtime --output /tmp/fullstack-blueprint-runtime-openapi.json
 	cd backend && "$(BACKEND_PYTHON)" scripts/validate_openapi.py --input /tmp/fullstack-blueprint-runtime-openapi.json
 
-blueprint-check: ## Validate blueprint configuration and generator tests.
-	"$(BACKEND_PYTHON)" -m backend.blueprint.cli validate --config blueprint.yml
-	"$(BACKEND_PYTHON)" -m pytest backend/blueprint/tests -q
-
-phase11-check: ## Generate isolated reference applications.
-	@reference_output=$$(mktemp -d /tmp/fullstack-blueprint-phase11.XXXXXX); \
-	 "$(BACKEND_PYTHON)" -m backend.blueprint.cli reference-apps --output "$$reference_output"; \
-	 echo "Reference applications generated at $$reference_output"
-
 coverage: test-backend ## Run backend tests with coverage.
 
 security-audit: _security-check ## Run security scanners and frontend dependency audit.
@@ -511,6 +501,6 @@ dead-code: ## Find unused frontend and backend code.
   _frontend-check _infra-check _security-check _test-ready _backend-test _frontend-build _frontend-test _container-build \
   _release-ready _production-endpoints _production-check \
   backend-sync backend-lock backend-lock-check lint format check-types typecheck \
-  architecture-check api-contract-check blueprint-check phase11-check coverage \
+  architecture-check api-contract-check coverage \
   security-audit test-load backup restore test-backend test-frontend \
   dead-code-frontend dead-code-backend dead-code-production dead-code-backend-strict dead-code
