@@ -7,7 +7,7 @@ import { getMySubscription, listSubscriptionPlans, selectMyPlan } from "@/featur
 import { listMyFeatureFlags } from "@/features/admin/featureFlagsApi";
 import { queryKeys } from "../../lib/queryKeys";
 import { useMutationErrorToast } from "../../lib/useMutationErrorToast";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
+import { usePlatformMetadata } from "../platform/hooks";
 
 const urlSchema = z.string().url("Enter a valid URL (https://...)");
 export function usePlatformView() {

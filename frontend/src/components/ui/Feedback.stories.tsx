@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, within } from "storybook/test";
 import { Button } from "./button";
 import { Alert, AlertDescription, AlertTitle } from "./alert";
-import { EmptyState } from "./EmptyState";
-import { ErrorState } from "./error-state";
-import { LoadingState } from "./loading-state";
+import { EmptyState } from "../Feedback";
+import { ErrorState } from "../Feedback";
+import { LoadingState } from "../Feedback";
 
 const meta = { title: "Blueprint/UI/Feedback states", component: LoadingState, tags: ["autodocs"] } satisfies Meta<typeof LoadingState>;
 export default meta;

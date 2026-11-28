@@ -1,5 +1,5 @@
-import { ErrorState } from "./error-state";
-import { LoadingState } from "./loading-state";
+import { ErrorState } from "../Feedback";
+import { LoadingState } from "../Feedback";
 import { Skeleton } from "./skeleton";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 type QueryBoundaryProps = { isLoading?: boolean; isError?: boolean; error?: unknown; isEmpty?: boolean; errorFallback?: string; errorTitle?: string; severity?: "error" | "warning" | "info" | "success"; onRetry?: () => void; loadingFallback?: React.ReactNode; emptyFallback?: React.ReactNode; variant?: "inline" | "page"; children: React.ReactNode };

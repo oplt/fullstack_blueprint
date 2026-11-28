@@ -19,6 +19,7 @@ from backend.modules.ai.contracts import (
 from backend.modules.ai.errors import AiErrorKind, AiProviderError
 from backend.modules.ai.providers import AiProviderRegistry, BaseAiProvider
 from backend.modules.ai.routing import ModelRegistry, ModelSpec, RoutingPolicy
+from backend.modules.ai.schemas import AiProviderDescriptor
 from backend.modules.ai.streaming import AiStreamingService
 
 
@@ -33,6 +34,12 @@ class AiModelGateway:
     ) -> None:
         self.providers = providers or AiProviderRegistry()
         self.models = models or ModelRegistry()
+
+    @staticmethod
+    def list_provider_descriptors() -> list[AiProviderDescriptor]:
+        return [
+            AiProviderDescriptor(**descriptor) for descriptor in AiProviderRegistry().descriptors()
+        ]
 
     def select(
         self,

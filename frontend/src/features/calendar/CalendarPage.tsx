@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "../../lib/routes";
+import { ROUTES } from "../../app/routes";
 import { listProjects } from "@/features/projects/api";
 import { queryKeys } from "../../lib/queryKeys";
 import { DashboardCalendar } from "../dashboard/DashboardCalendar";
-import { PageShell } from "../../components/ui/PageShell";
+import { PageShell } from "../../components/PageLayout";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
-import { useApplicationConfiguration } from "../../lib/useConfiguration";
+import { usePlatformMetadata } from "../platform/hooks";
+import { useApplicationConfiguration } from "../../app/configuration";
 import { capabilityAvailability, serverStateFromPlatformMetadata } from "../../lib/capabilities";
 
 export default function CalendarPage() {

@@ -14,7 +14,7 @@ from backend.core.pagination import (
 from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
 from backend.modules.ai.runs import AiRunService
 from backend.modules.ai.schemas import AiRunRequest, AiRunResponse
-from backend.modules.ai.serializers import run_to_response
+from backend.modules.ai.schemas import run_to_response
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 

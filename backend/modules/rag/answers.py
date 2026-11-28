@@ -10,26 +10,32 @@ from backend.modules.memory.config import MemoryConfig
 from backend.modules.memory.domain import MemorySearchRequest
 from backend.modules.memory.service import MemoryService
 from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
-from backend.modules.rag import metrics
-from backend.modules.rag.citation_validation import CitationValidationService
-from backend.modules.rag.citation_validation_context import CitationValidationContext
-from backend.modules.rag.citations import CitationService
+from backend.modules.rag import telemetry as metrics
+from backend.modules.rag.citations import (
+    CitationService,
+    CitationValidationContext,
+    CitationValidationService,
+)
 from backend.modules.rag.config import RagConfig
 from backend.modules.rag.context import (
     RagContextBuilder,
     render_reference_data,
 )
-from backend.modules.rag.domain import RagAnswer, RetrievalOutcome, RetrievedChunk
-from backend.modules.rag.enums import RetrievalIntent
-from backend.modules.rag.evidence_access import evidence_is_current
-from backend.modules.rag.generation_port import (
+from backend.modules.rag.contracts import (
     RAG_MESSAGE_TOKEN_RESERVE,
     AiRunGenerationPort,
     GenerationPort,
 )
+from backend.modules.rag.domain import (
+    RagAnswer,
+    RetrievalIntent,
+    RetrievalOutcome,
+    RetrievalRequest,
+    RetrievedChunk,
+)
 from backend.modules.rag.repository import RagRepository
 from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.retrieval_request import RetrievalRequest
+from backend.modules.rag.scope import evidence_is_current
 from backend.modules.rag.telemetry import traced, tracer
 
 

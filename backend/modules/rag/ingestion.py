@@ -16,17 +16,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.config import settings
 from backend.core.storage import ObjectStorageError, StorageNotConfiguredError
 from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
-from backend.modules.rag import metrics
+from backend.modules.rag import telemetry as metrics
 from backend.modules.rag.chunking import ChunkingService
 from backend.modules.rag.config import RagConfig
-from backend.modules.rag.domain import DocumentChunk, ParsedDocument
-from backend.modules.rag.embeddings import EmbeddingService
-from backend.modules.rag.enums import (
+from backend.modules.rag.domain import (
+    DocumentChunk,
     DocumentStatus,
     IngestionErrorCode,
     IngestionJobStatus,
     IngestionStage,
+    ParsedDocument,
 )
+from backend.modules.rag.embeddings import EmbeddingService
 from backend.modules.rag.jobs import queue_document_cleanup, queue_document_indexing
 from backend.modules.rag.parsing import DocumentParserService
 from backend.modules.rag.policies import RagPolicyService

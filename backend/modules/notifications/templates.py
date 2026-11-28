@@ -10,8 +10,8 @@ from backend.core.cache import (
     invalidate_platform_email_template_cache,
 )
 from backend.core.config import settings
-from backend.modules.admin.platform.models import EmailTemplate
-from backend.modules.admin.platform_configuration import PlatformConfigService
+from backend.modules.platform.models import EmailTemplate
+from backend.modules.platform.service import PlatformConfigService
 
 PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*([a-zA-Z0-9_]+)\s*\}\}")
 

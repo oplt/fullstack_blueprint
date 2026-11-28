@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.modules.agents.service import AgentService
-from backend.modules.ai.context import (
+from backend.modules.agents.context import (
     AgentPromptContext,
     AgentPromptContextBuilder,
 )
@@ -30,7 +30,7 @@ class AgentPromptContextBuilderTest(unittest.IsolatedAsyncioTestCase):
         )
 
     @patch(
-        "backend.modules.ai.context.RagConfig.from_settings",
+        "backend.modules.agents.context.RagConfig.from_settings",
         return_value=SimpleNamespace(enabled=True),
     )
     async def test_single_memory_recall_and_assembled_context(self, _rag_config):
@@ -59,7 +59,7 @@ class AgentPromptContextBuilderTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("document block", context.additional_system_context or "")
 
     @patch(
-        "backend.modules.ai.context.RagConfig.from_settings",
+        "backend.modules.agents.context.RagConfig.from_settings",
         return_value=SimpleNamespace(enabled=False),
     )
     async def test_legacy_retrieval_when_rag_disabled(self, _rag_config):

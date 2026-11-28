@@ -13,7 +13,7 @@ from backend.core.security import (
     hash_refresh_token,
     verify_password_async,
 )
-from backend.modules.admin.platform.platform_read_port import (
+from backend.modules.platform.platform_read_port import (
     PlatformReadPort,
     PlatformServiceReadPort,
 )

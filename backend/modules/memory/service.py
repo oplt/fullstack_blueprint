@@ -11,22 +11,22 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import MAX_PAGE_LIMIT
-from backend.modules.memory import metrics
+from backend.modules.memory import telemetry
 from backend.modules.memory.cache import (
     get_cached_memory_search,
     invalidate_memory_search_cache,
     set_cached_memory_search,
 )
 from backend.modules.memory.config import MemoryConfig
-from backend.modules.memory.consolidation import MemoryConsolidator
-from backend.modules.memory.context import MemoryContextBuilder
+from backend.modules.memory.processing import MemoryConsolidator
+from backend.modules.memory.retrieval import MemoryContextBuilder
 from backend.modules.memory.domain import (
     MemoryItem,
     MemoryMetadata,
     MemorySearchRequest,
     MemoryWriteResult,
 )
-from backend.modules.memory.enums import (
+from backend.modules.memory.domain import (
     AgentScope,
     MemoryLevel,
     MemoryOperation,
@@ -34,7 +34,7 @@ from backend.modules.memory.enums import (
     MemorySource,
     MemoryType,
 )
-from backend.modules.memory.extraction import MemoryExtractor
+from backend.modules.memory.processing import MemoryExtractor
 from backend.modules.memory.governance import (
     evaluate_memory_governance,
     provenance_payload,
@@ -46,7 +46,7 @@ from backend.modules.memory.repository import (
     MemoryAuditRepository,
     MemoryRegistryRepository,
 )
-from backend.modules.memory.routing import MemoryRouter
+from backend.modules.memory.processing import MemoryRouter
 from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,7 @@ class MemoryService:
                 privacy=privacy_level,
             )
             if not decision.allowed:
-                metrics.rejected_memory_count.labels(reason=decision.reason or "unknown").inc()
+                telemetry.rejected_memory_count.labels(reason=decision.reason or "unknown").inc()
                 return MemoryWriteResult(
                     memory_id="",
                     memory_level=level,
@@ -199,9 +199,9 @@ class MemoryService:
                 metadata=merged_meta,
             )
             external_id = self._extract_memory_id(result)
-            metrics.memory_add_success.inc()
+            telemetry.memory_add_success.inc()
         except Exception:
-            metrics.memory_add_failure.inc()
+            telemetry.memory_add_failure.inc()
             logger.exception("Mem0 add failed for user=%s level=%s", user_id, level.value)
             return MemoryWriteResult(
                 memory_id="",
@@ -334,14 +334,14 @@ class MemoryService:
             for level_items in level_results:
                 collected.extend(level_items)
             collected = await self._filter_authorized_read_items(user_id, collected)
-            metrics.memory_search_success.inc()
+            telemetry.memory_search_success.inc()
         except Exception:
-            metrics.memory_search_failure.inc()
+            telemetry.memory_search_failure.inc()
             logger.exception("Mem0 search failed for user=%s", user_id)
             return []
         finally:
             elapsed_ms = (perf_counter() - started) * 1000
-            metrics.memory_search_latency_ms.observe(elapsed_ms)
+            telemetry.memory_search_latency_ms.observe(elapsed_ms)
 
         logger.debug(
             "Memory search completed user=%s results=%s duration_ms=%.2f",

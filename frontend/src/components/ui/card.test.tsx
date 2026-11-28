@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { Card, CardTitle } from "./card";
-import { SectionCard } from "./SectionCard";
+import { SectionCard } from "../Section";
 
 describe("card sizing and heading semantics", () => {
     it("uses the CSS-owned spacing token for standard, large and dense sizes", () => {

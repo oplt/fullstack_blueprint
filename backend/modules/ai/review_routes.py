@@ -16,7 +16,7 @@ from backend.modules.ai.schemas import (
     AiReviewDecision,
     AiReviewItemResponse,
 )
-from backend.modules.ai.serializers import _feedback_to_response, _review_to_response
+from backend.modules.ai.schemas import _feedback_to_response, _review_to_response
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 

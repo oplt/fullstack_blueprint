@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Bot } from "lucide-react";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { EmptyState } from "../../components/Feedback";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { RunStatusBadge } from "../../components/ui/RunStatusBadge";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { RunStatusBadge } from "../../components/RunStatus";
+import { SectionCard } from "../../components/Section";
 import { formatElapsed } from "./agentTraceModel";
 import type { useAgentWorkspace } from "./useAgentWorkspace";
 type Workspace = ReturnType<typeof useAgentWorkspace>;

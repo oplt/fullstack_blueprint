@@ -5,8 +5,8 @@ import type {
     CapabilityRoute,
     NavigationEntry,
     ServerCapabilityState
-} from "./configurationTypes";
-import type {PlatformMetadata} from "./platformApi";
+} from "../app/configuration";
+import type {PlatformMetadata} from "../features/platform/api";
 
 export type CapabilityManifest = {
     id: CapabilityId;
@@ -315,7 +315,7 @@ export function capabilityAvailability(
 
 export function visibleNavigation(
     navigation: readonly NavigationEntry[],
-    configuration: Pick<import("./configurationTypes").ApplicationConfiguration, "build" | "deployment">,
+    configuration: Pick<import("../app/configuration").ApplicationConfiguration, "build" | "deployment">,
     server: ServerCapabilityState = {},
 ): NavigationEntry[] {
     return navigation

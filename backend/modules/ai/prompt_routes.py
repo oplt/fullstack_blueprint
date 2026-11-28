@@ -17,7 +17,7 @@ from backend.modules.ai.schemas import (
     AiPromptVersionResponse,
     AiPromptVersionUpdate,
 )
-from backend.modules.ai.serializers import _prompt_template_to_response, _prompt_version_to_response
+from backend.modules.ai.schemas import _prompt_template_to_response, _prompt_version_to_response
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 

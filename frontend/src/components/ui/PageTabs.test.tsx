@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PageTabs } from "./PageTabs";
-import { useTabQueryParam } from "../../lib/useTabQueryParam";
+import { PageTabs } from "../PageLayout";
+import { useTabQueryParam } from "../../app/searchParams";
 
 const TABS = ["dataset", "train", "evaluate"] as const;
 

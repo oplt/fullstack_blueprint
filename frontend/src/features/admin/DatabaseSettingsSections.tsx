@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
 import { HardDrive } from "lucide-react";
 import type { DatabaseSetting } from "@/features/admin/settingsApi";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { EmptyState } from "../../components/Feedback";
+import { SectionCard } from "../../components/Section";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 import type { AdminSettingsModel } from "./useAdminSettingsContent";
 import { DatabaseSettingEditor } from "./SettingEditors";

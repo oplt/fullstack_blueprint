@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from fastapi import HTTPException
 
-from backend.modules.identity.profile_routes import _read_avatar_payload
+from backend.modules.identity.router import _read_avatar_payload
 
 
 class _Upload:

@@ -15,7 +15,7 @@ from uuid import uuid4
 
 from backend.core.cache import create_redis_client, redis_client_override
 from backend.core.config import settings
-from backend.core.logging.log_context import get_correlation_id
+from backend.core.observability.logging import get_correlation_id
 
 logger = logging.getLogger(__name__)
 

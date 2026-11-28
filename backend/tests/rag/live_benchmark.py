@@ -23,7 +23,7 @@ from backend.modules.rag.config import RagConfig
 from backend.modules.rag.models import RagChunk  # noqa: F401
 from backend.modules.rag.repository import RagRepository
 from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.retrieval_request import RetrievalRequest
+from backend.modules.rag.domain import RetrievalRequest
 from backend.tests.rag.load_benchmark import DEFAULT_SCALES
 from backend.tests.rag.pgvector_benchmark import measure_pgvector_search
 

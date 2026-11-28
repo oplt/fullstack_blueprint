@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FolderOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
-import { SectionCard } from "./SectionCard";
-import { StatCard } from "./StatCard";
+import { SectionCard } from "../Section";
+import { StatCard } from "../Metrics";
 import { ComparisonCard } from "./ComparisonCard";
 import { Button } from "./button";
 import { FormField } from "./form-field";
 import { Badge } from "./badge";
-import { ResponsiveCardGrid } from "./ResponsiveCardGrid";
-import { PageShell } from "./PageShell";
+import { ResponsiveCardGrid } from "../Section";
+import { PageShell } from "../PageLayout";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { LineChartCard } from "./charts";

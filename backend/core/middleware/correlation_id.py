@@ -5,7 +5,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from backend.core.logging.log_context import reset_correlation_id, set_correlation_id
+from backend.core.observability.logging import reset_correlation_id, set_correlation_id
 
 CORRELATION_ID_HEADER = "X-Correlation-ID"
 REQUEST_ID_HEADER = "X-Request-ID"

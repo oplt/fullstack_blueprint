@@ -15,7 +15,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.modules.identity.models import User
-from backend.modules.rag.enums import DocumentStatus
+from backend.modules.rag.domain import DocumentStatus
 from backend.modules.rag.repository import RagRepository
 from backend.tests.rag.load_benchmark import DEFAULT_SCALES, LoadScale
 from backend.tests.rag.pgvector_benchmark import measure_pgvector_search

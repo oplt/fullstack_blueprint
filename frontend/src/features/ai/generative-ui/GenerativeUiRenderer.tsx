@@ -4,7 +4,7 @@ import { ActivityTimeline } from "@/components/ui/ActivityTimeline";
 import { ComparisonCard } from "@/components/ui/ComparisonCard";
 import { LazyChart } from "@/components/ui/LazyChart";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
-import { StatCard } from "@/components/ui/StatCard";
+import { StatCard } from "@/components/Metrics";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

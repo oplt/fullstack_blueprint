@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.db.vector_search import store_chunk_embeddings_batch
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
-from backend.modules.rag.enums import DocumentStatus, IngestionErrorCode, IngestionJobStatus
+from backend.modules.rag.domain import DocumentStatus, IngestionErrorCode, IngestionJobStatus
 from backend.modules.rag.models import (
     RagChunk,
     RagDocument,
@@ -19,7 +19,7 @@ from backend.modules.rag.models import (
     RagQueryRecord,
     RagRetrievalTrace,
 )
-from backend.modules.rag.repository_scope import (
+from backend.modules.rag.scope import (
     _IN_CLAUSE_BATCH,
     _owned_document_scope,
 )

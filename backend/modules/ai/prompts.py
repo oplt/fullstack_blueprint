@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import HTTPException
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT
-from backend.modules.ai.base_service import AiBaseService
+from backend.modules.ai.service import AiBaseService
 from backend.modules.ai.models import AiPromptTemplate, AiPromptVersion
 from backend.modules.identity.models import User
 

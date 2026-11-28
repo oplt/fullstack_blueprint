@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { AuthMarketingPanel } from "../../features/identity/AuthMarketingPanel";
 import { MarkdownRenderer } from "./MarkdownRenderer";
-import { PageHeader } from "./PageHeader";
+import { PageHeader } from "../PageLayout";
 
 describe("semantic typography roles", () => {
     it("uses page-title and dense heading roles in PageHeader", () => {

@@ -1,7 +1,7 @@
 import {Button} from "@/components/ui/button";
 import {FormField} from "@/components/ui/form-field";
 import {CircleCheck} from "lucide-react";
-import {EmptyState} from "../../components/ui/EmptyState";
+import {EmptyState} from "../../components/Feedback";
 import {QueryErrorAlert} from "../../components/ui/QueryBoundary";
 import type {AiStudioModel} from "./useAiStudioView";
 import {Badge} from "@/components/ui/badge";

@@ -15,7 +15,7 @@ from backend.modules.ai.schemas import (
     AiDocumentResponse,
     AiRetrieveRequest,
 )
-from backend.modules.ai.serializers import _document_to_response
+from backend.modules.ai.schemas import _document_to_response
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 

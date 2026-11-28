@@ -11,7 +11,7 @@ from typing import Any, Protocol
 
 from backend.core.config import settings
 from backend.modules.rag.domain import ParsedDocument
-from backend.modules.rag.pdf_quality import (
+from backend.modules.rag.parsers.pdf_quality import (
     decide_ocr,
     suppress_repeated_headers_footers,
 )

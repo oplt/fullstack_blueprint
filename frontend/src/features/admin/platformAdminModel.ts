@@ -1,6 +1,6 @@
 import type { EmailTemplate } from "@/features/notifications/emailTemplatesApi";
 import type { FeatureFlag } from "@/features/admin/featureFlagsApi";
-import type { PlatformConfig } from "@/lib/platformApi";
+import type { PlatformConfig } from "@/features/platform/api";
 import type { SubscriptionPlan } from "@/features/billing/api";
 import type { FlagDraft, PlanDraft, TemplateDraft } from "./usePlatformAdminMutations";
 

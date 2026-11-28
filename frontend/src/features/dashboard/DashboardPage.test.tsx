@@ -9,7 +9,7 @@ import DashboardPage from "./DashboardPage";
 
 vi.mock("@/features/projects/api", () => ({ listProjects: vi.fn() }));
 vi.mock("@/features/notifications/api", () => ({ getNotifications: vi.fn() }));
-vi.mock("../../lib/usePlatformMetadata", () => ({
+vi.mock("../platform/hooks", () => ({
     usePlatformMetadata: () => ({ data: { available_features: ["projects"] } }),
 }));
 

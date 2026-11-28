@@ -75,11 +75,12 @@ def naming_violations(path: Path) -> list[str]:
 
 
 def route_files() -> list[Path]:
-    return sorted(
+    module_routes = (
         path
         for path in (BACKEND / "modules").rglob("*.py")
         if path.name in ROUTE_PATTERNS or path.name.endswith("_routes.py")
     )
+    return sorted([*module_routes, BACKEND / "api" / "observability.py"])
 
 
 def check_file(path: Path) -> list[str]:

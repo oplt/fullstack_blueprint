@@ -8,7 +8,7 @@ import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Download, Search, Slider
 import { Fragment, useState, type ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
-import { EmptyState } from "./EmptyState";
+import { EmptyState } from "../Feedback";
 import { Input } from "./input";
 import { Checkbox } from "./checkbox";
 import { NativeSelect } from "./native-select";

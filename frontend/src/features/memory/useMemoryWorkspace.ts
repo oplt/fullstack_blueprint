@@ -12,7 +12,7 @@ import {
 import { queryKeys } from "../../lib/queryKeys";
 import { notify } from "../../lib/notify";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
-import { useProjectsQuery } from "../../lib/useProjectsQuery";
+import { useProjectsQuery } from "../projects/hooks";
 
 const PAGE_SIZE = 20;
 export const MEMORY_LEVELS = ["working", "episodic", "semantic", "procedural"] as const;

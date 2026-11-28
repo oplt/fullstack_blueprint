@@ -4,10 +4,10 @@ import logging
 from datetime import datetime
 from typing import Any, Protocol
 
-from backend.modules.memory import metrics
+from backend.modules.memory import telemetry
 from backend.modules.memory.config import MemoryConfig
 from backend.modules.memory.domain import MemoryItem, MemoryMetadata
-from backend.modules.memory.enums import MemoryLevel
+from backend.modules.memory.domain import MemoryLevel
 
 logger = logging.getLogger(__name__)
 
@@ -145,25 +145,25 @@ class NullMem0Adapter:
         return False
 
     async def add(self, **_kwargs: Any) -> dict[str, Any]:
-        metrics.mem0_unavailable_count.inc()
+        telemetry.mem0_unavailable_count.inc()
         logger.warning("Mem0 unavailable on add: %s", self._reason)
         raise MemoryProviderUnavailableError("Mem0 is unavailable for writes")
 
     async def search(self, **_kwargs: Any) -> list[MemoryItem]:
-        metrics.mem0_unavailable_count.inc()
+        telemetry.mem0_unavailable_count.inc()
         logger.warning("Mem0 unavailable on search: %s", self._reason)
         return []
 
     async def get(self, memory_id: str) -> MemoryItem | None:  # noqa: ARG002 - protocol signature
-        metrics.mem0_unavailable_count.inc()
+        telemetry.mem0_unavailable_count.inc()
         return None
 
     async def get_all(self, **_kwargs: Any) -> list[MemoryItem]:
-        metrics.mem0_unavailable_count.inc()
+        telemetry.mem0_unavailable_count.inc()
         return []
 
     async def delete(self, memory_id: str) -> None:  # noqa: ARG002 - protocol signature
-        metrics.mem0_unavailable_count.inc()
+        telemetry.mem0_unavailable_count.inc()
         logger.warning("Mem0 unavailable on delete: %s", self._reason)
         raise MemoryProviderUnavailableError("Mem0 is unavailable for deletes")
 

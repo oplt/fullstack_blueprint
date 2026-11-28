@@ -6,8 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modules.rag.config import RagConfig
 from backend.modules.rag.context import RagContextBuilder
-from backend.modules.rag.domain import RetrievedChunk
-from backend.modules.rag.retrieval_request import RetrievalRequest
+from backend.modules.rag.domain import RetrievalRequest, RetrievedChunk
 from backend.modules.rag.service import RagPipelineService
 
 logger = logging.getLogger(__name__)

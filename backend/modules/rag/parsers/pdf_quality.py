@@ -1,94 +1,63 @@
-"""Deterministic page-level quality signals for native PDF text extraction."""
+"""Deterministic PDF text-quality and repeated-header helpers."""
 
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import dataclass
 
-MIN_HEADER_FOOTER_PAGE_COUNT = 3
-MAX_HEADER_FOOTER_LINE_CHARS = 120
-
-
-@dataclass(frozen=True, slots=True)
-class PdfTextQuality:
-    score: float
-    printable_ratio: float
-    replacement_ratio: float
-    character_count: int
-    is_low_quality: bool
+MIN_HEADER_FOOTER_REPEAT_COUNT = 2
 
 
 @dataclass(frozen=True, slots=True)
 class OcrDecision:
     should_ocr: bool
+    quality: float
     reason: str
-    quality: PdfTextQuality
-
-
-def assess_pdf_text_quality(text: str, *, threshold: float = 0.65) -> PdfTextQuality:
-    text = text or ""
-    character_count = len(text)
-    if not character_count:
-        return PdfTextQuality(0.0, 0.0, 0.0, 0, True)
-    printable_ratio = sum(char.isprintable() or char.isspace() for char in text) / character_count
-    replacement_ratio = text.count("\ufffd") / character_count
-    # Very short native extracts are a practical scanned-page signal. The
-    # score deliberately remains inspectable rather than pretending to detect
-    # every layout defect.
-    density_score = min(1.0, character_count / 80)
-    score = max(0.0, min(1.0, printable_ratio * density_score * (1 - replacement_ratio)))
-    return PdfTextQuality(
-        score=score,
-        printable_ratio=printable_ratio,
-        replacement_ratio=replacement_ratio,
-        character_count=character_count,
-        is_low_quality=score < threshold,
-    )
 
 
 def decide_ocr(
     text: str,
     *,
-    ocr_enabled: bool = False,
-    quality_threshold: float = 0.65,
-    min_text_chars: int = 40,
+    ocr_enabled: bool,
+    quality_threshold: float,
+    min_text_chars: int,
 ) -> OcrDecision:
-    """Conservative OCR gate: never OCR by default; only flag poor native text."""
-    quality = assess_pdf_text_quality(text, threshold=quality_threshold)
+    normalized = " ".join(text.split())
     if not ocr_enabled:
-        return OcrDecision(False, "ocr_disabled", quality)
-    if quality.character_count < max(1, min_text_chars) or quality.is_low_quality:
-        return OcrDecision(True, "low_quality_or_sparse_native_text", quality)
-    return OcrDecision(False, "native_text_sufficient", quality)
+        return OcrDecision(False, _quality(normalized), "ocr_disabled")
+    if len(normalized) < min_text_chars:
+        return OcrDecision(True, _quality(normalized), "text_below_minimum")
+    quality = _quality(normalized)
+    return OcrDecision(quality < quality_threshold, quality, "quality_below_threshold")
 
 
-def suppress_repeated_headers_footers(
-    page_texts: list[str],
-    *,
-    min_pages: int = MIN_HEADER_FOOTER_PAGE_COUNT,
-    min_repetition_ratio: float = 0.6,
-) -> list[str]:
-    """Drop short lines that repeat across most pages (simple header/footer heuristic)."""
-    if len(page_texts) < min_pages:
-        return list(page_texts)
+def suppress_repeated_headers_footers(page_texts: list[str]) -> list[str]:
+    """Remove identical first/last lines repeated across at least two pages."""
 
-    line_page_counts: Counter[str] = Counter()
-    for text in page_texts:
-        unique_lines = {
-            line.strip()
-            for line in (text or "").splitlines()
-            if line.strip() and len(line.strip()) <= MAX_HEADER_FOOTER_LINE_CHARS
-        }
-        for line in unique_lines:
-            line_page_counts[line] += 1
-
-    threshold = max(2, int(len(page_texts) * min_repetition_ratio))
-    repeated = {line for line, count in line_page_counts.items() if count >= threshold}
-    if not repeated:
-        return list(page_texts)
-
+    lines_by_page = [
+        [line.strip() for line in text.splitlines() if line.strip()] for text in page_texts
+    ]
+    candidates: dict[str, int] = {}
+    for lines in lines_by_page:
+        for line in {lines[0], lines[-1]} if lines else set():
+            candidates[line] = candidates.get(line, 0) + 1
+    repeated = {
+        line for line, count in candidates.items() if count >= MIN_HEADER_FOOTER_REPEAT_COUNT
+    }
     cleaned: list[str] = []
-    for text in page_texts:
-        kept = [line for line in (text or "").splitlines() if line.strip() not in repeated]
-        cleaned.append("\n".join(kept).strip())
+    for lines in lines_by_page:
+        while lines and lines[0] in repeated:
+            lines.pop(0)
+        while lines and lines[-1] in repeated:
+            lines.pop()
+        cleaned.append("\n".join(lines))
     return cleaned
+
+
+def _quality(text: str) -> float:
+    if not text:
+        return 0.0
+    printable = sum(character.isprintable() for character in text)
+    return printable / len(text)
+
+
+__all__ = ["OcrDecision", "decide_ocr", "suppress_repeated_headers_footers"]

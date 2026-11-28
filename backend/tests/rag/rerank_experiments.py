@@ -11,7 +11,7 @@ import json
 from typing import Any
 
 from backend.modules.rag.domain import RetrievedChunk
-from backend.modules.rag.rerank_policy import apply_rerank_policy
+from backend.modules.rag.ranking import apply_rerank_policy
 from backend.tests.rag.chunking_experiments import ranking_metrics_from_fixture
 
 

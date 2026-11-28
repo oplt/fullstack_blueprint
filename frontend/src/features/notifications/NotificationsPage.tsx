@@ -6,15 +6,15 @@ import {
 import { NotificationListItem } from "./NotificationListItem";
 import { NotificationPreferencesForm } from "./NotificationPreferencesForm";
 import { MarkAllReadButton } from "./MarkAllReadButton";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { EmptyState } from "../../components/Feedback";
 import { useNotificationPreferences } from "./useNotificationPreferences";
 import { useNotifications } from "./useNotifications";
 import { useNotificationMutations } from "./useNotificationMutations";
-import { PageShell } from "../../components/ui/PageShell";
-import { MetricGrid } from "../../components/ui/MetricGrid";
+import { PageShell } from "../../components/PageLayout";
+import { MetricGrid } from "../../components/Metrics";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
-import { StatCard } from "../../components/ui/StatCard";
+import { SectionCard } from "../../components/Section";
+import { StatCard } from "../../components/Metrics";
 import { WorkspaceSplit } from "../../components/ui/WorkspaceSplit";
 
 export default function NotificationsPage() {

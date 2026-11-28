@@ -1,4 +1,4 @@
-import { RunStatusPanel } from "@/components/ui/RunStatusPanel";
+import { RunStatusPanel } from "@/components/RunStatus";
 import type { RagIngestionJob } from "@/features/rag/api";
 
 type Props = {

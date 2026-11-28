@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ROUTES } from "../../lib/routes";
+import { ROUTES } from "../../app/routes";
 import { cn } from "@/lib/utils";
 
 import {

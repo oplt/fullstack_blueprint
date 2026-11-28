@@ -1,6 +1,6 @@
 import {PaginationControls} from "../../components/ui/pagination";
 import {QueryBoundary} from "../../components/ui/QueryBoundary";
-import {SectionCard} from "../../components/ui/SectionCard";
+import {SectionCard} from "../../components/Section";
 import {PAGE_SIZE} from "./useRagWorkspace";
 import type {useRagWorkspace} from "./useRagWorkspace";
 

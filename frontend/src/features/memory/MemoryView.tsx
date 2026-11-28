@@ -1,7 +1,7 @@
 import { FormField } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
 import { useMemoryWorkspace } from "./useMemoryWorkspace";
-import { PageShell } from "../../components/ui/PageShell";
+import { PageShell } from "../../components/PageLayout";
 import { SettingsTabs } from "../../app/SettingsTabs";
 import { MemoryDetail } from "./MemoryDetail";
 import { MemoryAuditPanel } from "./MemoryAuditPanel";

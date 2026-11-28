@@ -1,7 +1,7 @@
 import { Bell, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { ROUTES } from "../lib/routes";
+import { ROUTES } from "./routes";
 import { useAuth } from "../features/identity/useAuth";
 import { useNotifications } from "../features/notifications/useNotifications";
 import { getInitials } from "@/lib/formatters";

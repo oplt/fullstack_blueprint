@@ -2,7 +2,7 @@ import {Button} from "@/components/ui/button";
 import {FormField} from "@/components/ui/form-field";
 import {Switch} from "@/components/ui/switch";
 import type {FeatureFlag} from "@/features/admin/featureFlagsApi";
-import {SectionCard} from "../../components/ui/SectionCard";
+import {SectionCard} from "../../components/Section";
 import type {PlatformAdminModel} from "./usePlatformAdminContent";
 
 export function FlagsSection({flags, model}: { flags: FeatureFlag[]; model: PlatformAdminModel }) {

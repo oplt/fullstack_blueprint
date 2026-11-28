@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { RunStatusBadge } from "./RunStatusBadge";
-import { RunStatusPanel } from "./RunStatusPanel";
+import { RunStatusBadge } from "../RunStatus";
+import { RunStatusPanel } from "../RunStatus";
 import {
     formatRunDurationMs,
     isActiveCanonicalStatus,
     normalizeRunStatus,
     runStatusLabel,
     runStatusTone,
-} from "./runStatusModel";
+} from "../runStatusModel";
 
 describe("runStatusModel", () => {
     it("normalizes backend aliases to canonical statuses", () => {

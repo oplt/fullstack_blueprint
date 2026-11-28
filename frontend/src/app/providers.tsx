@@ -16,9 +16,9 @@ import { Toaster } from "../components/ui/sonner";
 import { I18nextProvider } from "react-i18next";
 import { i18nInstance, setLanguage } from "../i18n/config";
 import { useLanguage } from "../i18n/useLanguage";
-import { ApplicationConfigurationProvider } from "@/lib/ConfigurationProvider";
-import { useApplicationConfiguration } from "../lib/useConfiguration";
-import type { ApplicationConfiguration, ApplicationConfigurationInput } from "@/lib/configurationTypes";
+import { ApplicationConfigurationProvider } from "@/app/ConfigurationProvider";
+import { useApplicationConfiguration } from "./configuration";
+import type { ApplicationConfiguration, ApplicationConfigurationInput } from "@/app/configuration";
 
 export function AppProviders({ children, configuration }: PropsWithChildren<{ configuration?: ApplicationConfiguration | ApplicationConfigurationInput }>) {
     return <ApplicationConfigurationProvider configuration={configuration}><ConfiguredProviders>{children}</ConfiguredProviders></ApplicationConfigurationProvider>;

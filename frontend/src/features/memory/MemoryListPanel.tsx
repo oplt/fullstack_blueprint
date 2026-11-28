@@ -1,8 +1,8 @@
 import {Button} from "@/components/ui/button";
 import {Brain, Trash2} from "lucide-react";
-import {EmptyState} from "../../components/ui/EmptyState";
+import {EmptyState} from "../../components/Feedback";
 import {QueryBoundary, QueryErrorAlert} from "../../components/ui/QueryBoundary";
-import {SectionCard} from "../../components/ui/SectionCard";
+import {SectionCard} from "../../components/Section";
 import {PaginationControls} from "../../components/ui/pagination";
 import type {useMemoryWorkspace} from "./useMemoryWorkspace";
 import {Badge} from "@/components/ui/badge";

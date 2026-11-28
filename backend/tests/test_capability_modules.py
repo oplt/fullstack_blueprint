@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from backend.modules.admin.analytics import sanitize_properties
-from backend.modules.admin.platform import (
+from backend.modules.platform import (
     sign_webhook_payload,
     verify_webhook_signature,
 )

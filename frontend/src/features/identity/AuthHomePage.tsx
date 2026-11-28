@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 import { AuthMarketingPanel } from "./AuthMarketingPanel";
 import { AuthShell } from "./AuthShell";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
+import { usePlatformMetadata } from "../platform/hooks";
 import {
     SignInForm,
     SignUpForm,

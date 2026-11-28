@@ -2,8 +2,8 @@ import { Puzzle, Flag, Mail, Tag } from "lucide-react";
 import type { EmailTemplate } from "@/features/notifications/emailTemplatesApi";
 import type { FeatureFlag } from "@/features/admin/featureFlagsApi";
 import type { SubscriptionPlan } from "@/features/billing/api";
-import { MetricGrid } from "../../components/ui/MetricGrid";
-import { StatCard } from "../../components/ui/StatCard";
+import { MetricGrid } from "../../components/Metrics";
+import { StatCard } from "../../components/Metrics";
 import type { ConfigDraft } from "./platformAdminModel";
 
 export function AdminPlatformStats({ config, plans, flags, templates }: { config: ConfigDraft; plans: SubscriptionPlan[]; flags: FeatureFlag[]; templates: EmailTemplate[] }) {

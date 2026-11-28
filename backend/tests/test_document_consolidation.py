@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, patch
 
 from backend.modules.ai.document_service import AiDocumentService
 from backend.modules.rag.domain import RetrievalOutcome, RetrievedChunk
-from backend.modules.rag.enums import DocumentStatus
-from backend.modules.rag.legacy_ai_document_service import (
+from backend.modules.rag.domain import DocumentStatus
+from backend.modules.rag.service import (
     AiDocumentView,
-    LegacyAiDocumentService,
+    RagDocumentService,
     rag_document_to_ai_view,
 )
 
@@ -35,13 +35,13 @@ class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
         self.db = AsyncMock()
         self.user = SimpleNamespace(id="user-1")
 
-    @patch("backend.modules.ai.document_service.LegacyAiDocumentService")
     @patch("backend.modules.ai.document_service.settings")
     async def test_list_documents_delegates_when_rag_enabled(
-        self, mock_settings, legacy_service_cls
+        self, mock_settings
     ):
         mock_settings.RAG_ENABLED = True
-        legacy_service_cls.return_value.list_documents = AsyncMock(
+        documents_port = AsyncMock()
+        documents_port.list_documents = AsyncMock(
             return_value=(
                 [
                     AiDocumentView(
@@ -61,21 +61,21 @@ class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
                 1,
             )
         )
-        service = AiDocumentService(self.db)
+        service = AiDocumentService(self.db, retrieval_factory=lambda db: SimpleNamespace(documents=documents_port))
 
         documents, _ = await service.list_documents(self.user)
         self.assertEqual(documents[0].id, "doc-1")
-        legacy_service_cls.return_value.list_documents.assert_awaited_once_with(
+        documents_port.list_documents.assert_awaited_once_with(
             "user-1", limit=50, offset=0
         )
 
-    @patch("backend.modules.ai.document_service.LegacyAiDocumentService")
     @patch("backend.modules.ai.document_service.settings")
     async def test_retrieve_chunks_delegates_when_rag_enabled(
-        self, mock_settings, legacy_service_cls
+        self, mock_settings
     ):
         mock_settings.RAG_ENABLED = True
-        legacy_service_cls.return_value.retrieve_chunks = AsyncMock(
+        documents_port = AsyncMock()
+        documents_port.retrieve_chunks = AsyncMock(
             return_value=[
                 {
                     "document_id": "doc-1",
@@ -87,7 +87,7 @@ class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
                 }
             ]
         )
-        service = AiDocumentService(self.db)
+        service = AiDocumentService(self.db, retrieval_factory=lambda db: SimpleNamespace(documents=documents_port))
 
         matches = await service.retrieve_chunks(
             self.user,
@@ -96,13 +96,13 @@ class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
             top_k=3,
         )
         self.assertEqual(matches[0]["chunk_id"], "chunk-1")
-        legacy_service_cls.return_value.retrieve_chunks.assert_awaited_once()
+        documents_port.retrieve_chunks.assert_awaited_once()
 
 
-class LegacyAiDocumentServiceRetrieveTest(unittest.IsolatedAsyncioTestCase):
+class RagDocumentServiceRetrieveTest(unittest.IsolatedAsyncioTestCase):
     async def test_empty_document_allowlist_returns_no_chunks(self):
         db = AsyncMock()
-        service = LegacyAiDocumentService(db)
+        service = RagDocumentService(db)
         service.retrieval.retrieve = AsyncMock()
 
         matches = await service.retrieve_chunks(
@@ -117,7 +117,7 @@ class LegacyAiDocumentServiceRetrieveTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_retrieve_maps_rag_chunks(self):
         db = AsyncMock()
-        service = LegacyAiDocumentService(db)
+        service = RagDocumentService(db)
         service.repo.filter_document_ids_for_user = AsyncMock(return_value=["doc-1"])
         service.repo.get_documents_by_ids = AsyncMock(
             return_value=[

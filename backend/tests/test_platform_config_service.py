@@ -1,7 +1,7 @@
 import pytest
 
 from backend.core.config import settings
-from backend.modules.admin.platform import PlatformConfigService
+from backend.modules.platform import PlatformConfigService
 
 
 def test_module_pack_resolves_its_catalog_modules(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -4,8 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { runStatusAriaLabel } from "../../lib/a11y";
 import { SkipToContentLink } from "./SkipToContentLink";
-import { RunStatusBadge } from "./RunStatusBadge";
-import { RunStatusPanel } from "./RunStatusPanel";
+import { RunStatusBadge } from "../RunStatus";
+import { RunStatusPanel } from "../RunStatus";
 import { AdvancedSettings } from "./AdvancedSettings";
 
 function wrap(ui: React.ReactElement) {

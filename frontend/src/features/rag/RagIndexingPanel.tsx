@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { EmptyState } from "../../components/Feedback";
+import { SectionCard } from "../../components/Section";
 import type { useRagWorkspace } from "./useRagWorkspace";
 import { RagIndexingConfiguration } from "./RagIndexingConfiguration";
 import { RagChunksPanel } from "./RagChunksPanel";

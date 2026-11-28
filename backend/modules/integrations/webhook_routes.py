@@ -8,7 +8,7 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
-from backend.modules.admin.platform.schemas import (
+from backend.modules.platform.schemas import (
     WebhookEndpointCreate,
     WebhookEndpointCreateResponse,
     WebhookEndpointResponse,

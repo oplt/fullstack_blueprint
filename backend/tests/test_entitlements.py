@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from backend.modules.admin.platform import EntitlementService
+from backend.modules.platform import EntitlementService
 
 
 class FakePlatformRepository:

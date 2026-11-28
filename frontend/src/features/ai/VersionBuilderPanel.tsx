@@ -2,7 +2,7 @@ import {Button} from "@/components/ui/button";
 import {FormField} from "@/components/ui/form-field";
 import {Switch} from "@/components/ui/switch";
 import {QueryErrorAlert} from "../../components/ui/QueryBoundary";
-import {SectionCard} from "../../components/ui/SectionCard";
+import {SectionCard} from "../../components/Section";
 import type {AiStudioModel} from "./useAiStudioView";
 import {firstSchemaError, promptVersionDraftSchema} from "./studioUtils";
 import {Badge} from "@/components/ui/badge";

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from backend.modules.memory.enums import MemoryLevel
+from backend.modules.memory.domain import MemoryLevel
 from backend.modules.memory.policies import contains_secret
 
 _SENSITIVE_PATTERNS = (

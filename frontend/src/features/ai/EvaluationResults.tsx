@@ -1,8 +1,8 @@
 import { AdvancedSettings } from "../../components/ui/AdvancedSettings";
-import { JsonBlock } from "../../components/ui/JsonBlock";
-import { KeyValueList } from "../../components/ui/KeyValueList";
+import { JsonBlock } from "../../components/JsonBlock";
+import { KeyValueList } from "../../components/KeyValueList";
 import { QueryErrorAlert } from "../../components/ui/QueryBoundary";
-import { recordToKeyValueItems } from "../../components/ui/jsonDisplay";
+import { recordToKeyValueItems } from "../../components/jsonDisplay";
 import { formatDateTime } from "@/lib/formatters";
 import type { AiStudioModel } from "./useAiStudioView";
 

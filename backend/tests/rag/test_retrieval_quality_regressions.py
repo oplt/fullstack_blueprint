@@ -4,12 +4,12 @@ from unittest.mock import AsyncMock
 import pytest
 
 from backend.modules.rag.domain import ParsedDocument, RetrievedChunk
-from backend.modules.rag.enums import RetrievalIntent
+from backend.modules.rag.domain import RetrievalIntent
 from backend.modules.rag.parsing import DocumentParserService
 from backend.modules.rag.query import analyze_query, quoted_phrase
-from backend.modules.rag.query_expansion import QueryExpansionService
-from backend.modules.rag.rerank_policy import apply_rerank_policy
-from backend.modules.rag.retrieval_fusion import reciprocal_rank_fusion
+from backend.modules.rag.query import QueryExpansionService
+from backend.modules.rag.ranking import apply_rerank_policy
+from backend.modules.rag.ranking import reciprocal_rank_fusion
 from backend.modules.rag.retrieval_planner import plan_retrieval
 from backend.modules.rag.vector_store import PgVectorAdapter
 

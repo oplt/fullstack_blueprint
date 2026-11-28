@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { ADMIN_ROUTES, FEATURE_ROUTES, ROUTES, projectPath } from "../lib/routes";
+import { ADMIN_ROUTES, FEATURE_ROUTES, ROUTES, projectPath } from "./routes";
 import {
     CAPABILITY_MANIFESTS,
     capabilityAvailability,
     visibleNavigation,
 } from "../lib/capabilities";
-import type { CapabilityId, NavigationEntry } from "../lib/configurationTypes";
+import type { CapabilityId, NavigationEntry } from "./configuration";
 import { parseEnumParam, parsePositiveIntParam, parseRequiredParam } from "./searchParams";
 
 const ALL_CAPABILITIES = Object.keys(CAPABILITY_MANIFESTS) as CapabilityId[];

@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FormField } from "@/components/ui/form-field";
 import { FormGrid } from "@/components/ui/FormGrid";
 import { Label } from "@/components/ui/label";
-import { SectionCard } from "@/components/ui/SectionCard";
+import { SectionCard } from "@/components/Section";
 import { useRetrievalComparison } from "./useRetrievalComparison";
 import type { useRagWorkspace } from "./useRagWorkspace";
 import { RetrievalComparisonResults } from "./RetrievalComparisonResults";

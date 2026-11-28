@@ -12,7 +12,7 @@ from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 from backend.modules.memory.config import MemoryConfig
 from backend.modules.memory.domain import MemoryItem, MemorySearchRequest
-from backend.modules.memory.enums import MemoryLevel
+from backend.modules.memory.domain import MemoryLevel
 from backend.modules.memory.schemas import (
     MemoryAuditLogResponse,
     MemoryCorrectionRequest,

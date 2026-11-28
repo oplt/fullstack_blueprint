@@ -25,7 +25,7 @@ provider behavior. They must not become general-purpose dumping grounds.
 - Infrastructure must not import application layers.
 - Production code must not import tests or offline evaluation runners.
 
-Composition roots such as `backend.main`, `backend.router`, migrations, and
+Composition roots such as `backend.api.main`, `backend.api.router`, migrations, and
 worker registration may wire modules explicitly. Cross-module private
 repositories remain prohibited; expose a service or public port instead.
 
@@ -33,6 +33,10 @@ repositories remain prohibited; expose a service or public port instead.
 the in-progress agent-workflow reorganization. The architecture checker keeps
 reporting it and fails on any new violation; move that operation into the
 workflow service when that module migration is completed.
+
+Shared telemetry and health probes live in `core/observability`. The API owns the
+authenticated observability routes and OpenAPI construction. See the
+[core migration decisions](../docs/architecture/core-decisions.md).
 
 ## Review thresholds
 

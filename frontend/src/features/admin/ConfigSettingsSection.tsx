@@ -1,6 +1,6 @@
 import {Button} from "@/components/ui/button";
 import type {ConfigSettingsResponse} from "@/features/admin/settingsApi";
-import {SectionCard} from "../../components/ui/SectionCard";
+import {SectionCard} from "../../components/Section";
 import {getQueryErrorMessage} from "../../lib/queryErrors";
 import type {AdminSettingsModel} from "./useAdminSettingsContent";
 import {ConfigEntryEditor} from "./SettingEditors";

@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { Switch } from "@/components/ui/switch";import { Zap, Flag, KeyRound, Link, Webhook } from "lucide-react";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { EmptyState } from "../../components/Feedback";
 import { FormGrid } from "../../components/ui/FormGrid";
 import { QueryErrorAlert } from "../../components/ui/QueryBoundary";
-import { ResponsiveCardGrid } from "../../components/ui/ResponsiveCardGrid";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { ResponsiveCardGrid } from "../../components/Section";
+import { SectionCard } from "../../components/Section";
 import { Skeleton } from "../../components/ui/skeleton";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import type { PlatformModel } from "./usePlatformView";

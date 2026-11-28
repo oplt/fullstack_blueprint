@@ -14,11 +14,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from backend.modules.rag.citation_validation import CitationValidationService
+from backend.modules.rag.citations import CitationValidationService
 from backend.modules.rag.domain import RetrievedChunk
 from backend.modules.rag.ranking import HybridRetrievalRanker
-from backend.modules.rag.retrieval_fusion import reciprocal_rank_fusion
-from backend.modules.rag.source_diversifier import diversify_by_document
+from backend.modules.rag.ranking import reciprocal_rank_fusion
+from backend.modules.rag.ranking import diversify_by_document
 
 FIXTURES = Path(__file__).with_name("fixtures") / "retrieval_qrels.json"
 REQUIRED_CATEGORIES = {

@@ -5,26 +5,26 @@ import { Link, matchPath, Outlet, useLocation, useNavigate } from "react-router-
 import { useQuery } from "@tanstack/react-query";
 import { Bell, Bot, CalendarDays, ChevronLeft, ChevronRight, FolderKanban, LayoutDashboard, Menu, Search, Settings, ShieldCheck, UserRound } from "lucide-react";
 import { useAuth } from "../features/identity/useAuth";
-import { usePlatformMetadata } from "../lib/usePlatformMetadata";
+import { usePlatformMetadata } from "../features/platform/hooks";
 import { useIsMobile } from "../lib/use-mobile";
 import { PageSearch } from "./PageSearch";
 import { WorkspaceSidebar } from "./WorkspaceSidebar";
 import { NotificationMenu, ProfileMenu } from "./WorkspaceMenus";
 import { ThemeSelector } from "./ThemeSelector";
-import { useSettingsTabs, getSettingsHubLabel } from "../lib/useSettingsTabs";
+import { useSettingsTabs, getSettingsHubLabel } from "./useSettingsTabs";
 import { layoutContentClass, layoutVariantForPath } from "./layoutVariants";
 import { listProjects, type Project } from "@/features/projects/api";
 import { queryKeys } from "../lib/queryKeys";
-import { projectPath, ROUTES } from "../lib/routes";
-import { LanguageSelector } from "../components/ui/LanguageSelector";
+import { projectPath, ROUTES } from "./routes";
+import { LanguageSelector } from "../i18n/LanguageSelector";
 import { Button } from "../components/ui/button";
 import { Sheet, SheetContent } from "../components/ui/sheet";
 import { SkipToContentLink } from "../components/ui/SkipToContentLink";
 import { RouteErrorBoundary } from "./RouteErrorBoundary";
-import { getConfiguredNavigation } from "../lib/configuration";
+import { getConfiguredNavigation } from "./configuration";
 import { serverStateFromPlatformMetadata, visibleNavigation } from "../lib/capabilities";
-import { useApplicationConfiguration } from "../lib/useConfiguration";
-import type { NavigationIcon } from "@/lib/configurationTypes";
+import { useApplicationConfiguration } from "./configuration";
+import type { NavigationIcon } from "@/app/configuration";
 
 const NAV_ICONS: Record<NavigationIcon, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard, projects: FolderKanban, calendar: CalendarDays, ai: Bot, search: Search,

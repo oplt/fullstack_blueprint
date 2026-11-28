@@ -1,4 +1,4 @@
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import type { useAgentWorkspace } from "./useAgentWorkspace";
 type Workspace = ReturnType<typeof useAgentWorkspace>;
 type AgentRun = NonNullable<Workspace["selectedRunQuery"]["data"]>;

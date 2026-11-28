@@ -1,10 +1,10 @@
 import {Button} from "@/components/ui/button";
 import {AdvancedSettings} from "../../components/ui/AdvancedSettings";
-import {JsonBlock} from "../../components/ui/JsonBlock";
-import {KeyValueList} from "../../components/ui/KeyValueList";
-import {RunStatusBadge} from "../../components/ui/RunStatusBadge";
-import {SectionCard} from "../../components/ui/SectionCard";
-import {recordToKeyValueItems} from "../../components/ui/jsonDisplay";
+import {JsonBlock} from "../../components/JsonBlock";
+import {KeyValueList} from "../../components/KeyValueList";
+import {RunStatusBadge} from "../../components/RunStatus";
+import {SectionCard} from "../../components/Section";
+import {recordToKeyValueItems} from "../../components/jsonDisplay";
 import type {useAgentWorkspace} from "./useAgentWorkspace";
 import {Badge} from "@/components/ui/badge";
 

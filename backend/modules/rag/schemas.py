@@ -6,8 +6,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.core.schemas import RequestModel
-from backend.modules.rag.enums import RetrievalIntent
-from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
+from backend.modules.rag.domain import RetrievalIntent
+from backend.modules.rag.filters import RetrievalMetadataFilter
 
 
 class RagDocumentResponse(BaseModel):

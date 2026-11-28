@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import { FormField } from "../../components/ui/form-field";
-import { PageHeader } from "../../components/ui/PageHeader";
-import { PageShell } from "../../components/ui/PageShell";
-import { PageTabs, TabsPanel } from "../../components/ui/PageTabs";
+import { PageHeader } from "../../components/PageLayout";
+import { PageShell } from "../../components/PageLayout";
+import { PageTabs, TabsPanel } from "../../components/PageLayout";
 import { SettingsTabs } from "../../app/SettingsTabs";
-import { useTabQueryParam } from "../../lib/useTabQueryParam";
+import { useTabQueryParam } from "../../app/searchParams";
 import { useRagWorkspace } from "./useRagWorkspace";
 import { RagDocumentsPanel } from "./RagDocumentsPanel";
 import { RagIndexingPanel } from "./RagIndexingPanel";

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
-from backend.modules.ai.provider_service import AiProviderService
+from backend.modules.ai.gateway import AiModelGateway
 from backend.modules.ai.runs import AiRunService
 from backend.modules.identity.models import User
 
@@ -26,7 +26,7 @@ class AiOverviewService:
             user.id, limit=DEFAULT_PAGE_LIMIT, offset=0
         )
         return {
-            "providers": AiProviderService.list_provider_descriptors(),
+            "providers": AiModelGateway.list_provider_descriptors(),
             "prompt_templates": prompt_templates,
             "recent_runs": recent_runs,
             "documents": documents,

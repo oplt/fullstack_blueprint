@@ -23,7 +23,7 @@ from backend.modules.ai.schemas import (
     AiWorkflowRunCreate,
     AiWorkflowRunResponse,
 )
-from backend.modules.ai.serializers import (
+from backend.modules.ai.schemas import (
     agent_definition_to_response,
     run_to_response,
     workflow_run_to_response,

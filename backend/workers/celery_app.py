@@ -1,7 +1,7 @@
 from celery import Celery
 
 from backend.core.config import settings
-from backend.core.logging import setup_logging
+from backend.core.observability.logging import setup_logging
 
 setup_logging()
 

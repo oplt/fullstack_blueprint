@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
 import { Trash2 } from "lucide-react";
 import { QueryErrorAlert } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import { formatDateTime } from "@/lib/formatters";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 import type { ProjectDetailModel } from "./useProjectDetail";

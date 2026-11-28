@@ -15,7 +15,7 @@ from backend.core.resource_cache import (
     set_cached_model_list,
 )
 from backend.modules.identity.models import User
-from backend.modules.identity.user_repository import UsersRepository
+from backend.modules.identity.repository import UsersRepository
 from backend.modules.notifications.repository import NotificationsRepository
 from backend.modules.projects.models import Project, ProjectTask
 from backend.modules.projects.repository import ProjectsRepository

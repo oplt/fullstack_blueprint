@@ -3,7 +3,8 @@ from datetime import UTC, datetime
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.identity.models import RefreshSession, User
+from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
+from backend.modules.identity.models import RefreshSession, User, UserProfile
 
 
 class IdentityRepository:
@@ -118,3 +119,62 @@ class IdentityRepository:
         if session.expires_at <= datetime.now(UTC):
             return None
         return session
+
+
+class UsersRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def update_profile(self, user: User, full_name: str | None) -> User:
+        user.full_name = full_name
+        await self.db.flush()
+        return user
+
+    async def list_active_users(
+        self,
+        *,
+        limit: int = DEFAULT_PAGE_LIMIT,
+        offset: int = 0,
+    ) -> tuple[list[User], int]:
+        stmt = (
+            select(User)
+            .where(User.is_active.is_(True))
+            .order_by(
+                User.full_name.is_(None),
+                User.full_name.asc(),
+                User.email.asc(),
+            )
+        )
+        return await paginate_scalars(self.db, stmt, limit=limit, offset=offset)
+
+    async def get_active_user_by_id(self, user_id: str) -> User | None:
+        result = await self.db.execute(
+            select(User).where(User.id == user_id, User.is_active.is_(True))
+        )
+        return result.scalar_one_or_none()
+
+
+class ProfileRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_by_user_id(self, user_id: str) -> UserProfile | None:
+        result = await self.db.execute(
+            select(UserProfile).where(UserProfile.user_id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_or_create(self, user_id: str) -> UserProfile:
+        profile = await self.get_by_user_id(user_id)
+        if not profile:
+            profile = UserProfile(user_id=user_id)
+            self.db.add(profile)
+            await self.db.flush()
+        return profile
+
+    async def update(self, profile: UserProfile, **kwargs) -> UserProfile:
+        for key, value in kwargs.items():
+            if value is not None or key in kwargs:
+                setattr(profile, key, value)
+        await self.db.flush()
+        return profile

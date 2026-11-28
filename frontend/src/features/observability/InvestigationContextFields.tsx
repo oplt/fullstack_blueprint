@@ -1,5 +1,5 @@
 import { FormField } from "@/components/ui/form-field";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import { ENVIRONMENTS, SERVICES, TIME_RANGES } from "./observabilityModel";
 import type { ObservabilityViewModel } from "./useObservabilityView";
 

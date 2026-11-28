@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { EventCalendar } from "../../components/ui/event-calendar";
+import { EventCalendar } from "./event-calendar";
 import frLocale from "@fullcalendar/react/locales/fr";
 import nlLocale from "@fullcalendar/react/locales/nl";
 import { languageDirection } from "@/i18n/config";

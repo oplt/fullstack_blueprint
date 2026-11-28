@@ -1,4 +1,4 @@
-import { SectionCard } from "@/components/ui/SectionCard";
+import { SectionCard } from "@/components/Section";
 import { QueryErrorAlert } from "@/components/ui/QueryBoundary";
 import { CalendarCanvas } from "../calendar/CalendarCanvas";
 import { CalendarItemDrawer } from "../calendar/CalendarItemDrawer";

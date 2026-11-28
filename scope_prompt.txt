@@ -1,0 +1,365 @@
+Act as a senior software architect, full-stack engineer, database performance engineer, AI engineer, and security specialist.
+
+Perform a comprehensive technical audit of the latest state of the `fullstack_blueprint` repository. This application is intended to serve as a reusable, lightweight, scalable, secure, and production-ready foundation for different application ideas.
+
+Analyze the actual implementation, dependencies, configuration, architecture, database models, migrations, frontend, backend, AI modules, tests, and deployment infrastructure.
+
+The primary objectives are:
+
+- Eliminate bugs, errors, bottlenecks, and unnecessary complexity.
+- Increase execution speed and application responsiveness.
+- Reduce CPU, RAM, network, and database resource consumption.
+- Reduce unnecessary lines of code and dependencies.
+- Improve scalability, maintainability, security, and production readiness.
+
+### 1. Bugs, errors and reliability
+
+Identify and propose the best solutions for:
+
+- Runtime and logical errors.
+- Race conditions, deadlocks, and concurrency issues.
+- Memory leaks and unmanaged resources.
+- Incorrect exception handling.
+- Blocking operations in asynchronous functions.
+- Missing timeouts, cancellation, retries, and resource cleanup.
+- Incorrect API responses and validation.
+- Database transaction and session management problems.
+- Frontend rendering, state management, and lifecycle issues.
+- Dependency incompatibilities and configuration inconsistencies.
+- Edge cases and missing error recovery mechanisms.
+
+### 2. Performance and resource optimization
+
+Identify operations unnecessarily consuming CPU, RAM, disk I/O, or network bandwidth.
+
+Recommend improvements involving:
+
+- More efficient algorithms and data structures.
+- Lazy loading and lazy initialization.
+- Caching and memoization.
+- Batch processing and bulk operations.
+- Generators, iterators, and streaming.
+- Efficient serialization and deserialization.
+- Reduced object creation and data copying.
+- Elimination of redundant computations and API calls.
+- Efficient file processing and large-data handling.
+- Dependency and application startup optimization.
+- Appropriate compression and connection reuse.
+
+Analyze algorithmic time and space complexity where relevant.
+
+Prioritize measurable performance improvements rather than speculative micro-optimizations.
+
+### 3. Concurrency and parallel processing
+
+Analyze which operations would benefit from:
+
+- `asyncio` and asynchronous I/O.
+- `asyncio.TaskGroup` and structured concurrency.
+- `asyncio.Queue` and bounded concurrency.
+- Semaphores and backpressure.
+- `asyncio.to_thread()`.
+- `ThreadPoolExecutor`.
+- `ProcessPoolExecutor`.
+- Background workers and task queues.
+- Database and HTTP connection pools.
+- Multiple application workers.
+- Parallel and batch processing.
+
+Distinguish between:
+
+- I/O-bound operations.
+- CPU-bound operations.
+- Memory-intensive operations.
+- GPU-bound operations.
+- Long-running background tasks.
+
+For each recommendation, explain:
+
+- Which existing operation should change.
+- Which concurrency model is most appropriate.
+- Recommended concurrency limits and how to determine them.
+- Expected impact on throughput, latency, CPU, and RAM.
+- Potential synchronization and resource-management risks.
+
+Avoid unnecessary threads, processes, workers, and external infrastructure. Consider worker memory duplication, Python runtime behavior, scheduling overhead, database connection limits, and container resource limits.
+
+Do not introduce Redis, Celery, distributed workers, or multiprocessing unless their benefits justify the additional complexity.
+
+### 4. Database performance
+
+Perform an in-depth audit of PostgreSQL, SQLAlchemy, Alembic, and database access patterns.
+
+Identify and optimize:
+
+- Slow and redundant SQL queries.
+- N+1 query problems.
+- Missing, inefficient, and redundant indexes.
+- Full-table scans.
+- Inefficient joins and subqueries.
+- Excessive ORM object loading.
+- Unnecessary database round trips.
+- Connection pooling and pool exhaustion.
+- Database session lifecycle.
+- Transaction scope and locking.
+- Bulk insert, update, and delete operations.
+- Eager and lazy loading strategies.
+- Offset versus cursor-based pagination.
+- Query result caching and invalidation.
+- Database constraints and schema design.
+- JSONB and vector operations, where applicable.
+- PostgreSQL configuration and resource allocation.
+- Autovacuum, table bloat, and query statistics.
+- Migration safety and backward compatibility.
+
+Use `EXPLAIN`, `EXPLAIN ANALYZE`, `BUFFERS`, and `pg_stat_statements` where available and safe.
+
+Recommend exact query changes, indexes, ORM improvements, and migration requirements.
+
+Do not introduce unnecessary indexes or caching that would negatively affect write performance, consistency, or storage consumption.
+
+### 5. Code reduction and simplification
+
+Reduce the overall codebase size without sacrificing functionality, readability, maintainability, type safety, or security.
+
+Identify:
+
+- Duplicate code and repeated logic.
+- Unnecessary classes, functions, wrappers, and abstractions.
+- Dead code and unused imports.
+- Unused dependencies.
+- Redundant utility functions.
+- Overengineered design patterns.
+- Excessive architectural layers.
+- Unnecessary file and folder separation.
+- Repeated validation and transformation logic.
+- Custom implementations that can be replaced with reliable standard-library or existing framework functionality.
+- Legacy implementations and compatibility layers that are no longer needed.
+
+Recommend which files, functions, classes, and directories should be merged, simplified, replaced, or removed.
+
+Prefer native language and framework capabilities before introducing additional libraries.
+
+Do not reduce lines of code by minifying source code, sacrificing readability, removing necessary tests, or combining unrelated responsibilities.
+
+### 6. Libraries and technology stack
+
+Review all backend and frontend dependencies.
+
+Determine whether each significant dependency is:
+
+- Necessary.
+- Actively maintained.
+- Secure.
+- Lightweight.
+- Compatible with the existing stack.
+- Suitable for production.
+- Performing better than reasonable alternatives.
+
+Recommend alternative libraries only when they provide meaningful improvements in performance, resource consumption, code reduction, security, or maintainability.
+
+For proposed replacements, explain the benefits, migration effort, compatibility risks, and dependency footprint.
+
+Do not recommend replacing technologies merely because newer alternatives exist.
+
+### 7. Backend optimization
+
+Review and optimize:
+
+- API routing and middleware.
+- Request and response processing.
+- Dependency injection.
+- Pydantic validation and serialization.
+- Authentication and authorization.
+- Asynchronous HTTP clients.
+- External service integrations.
+- File uploads and downloads.
+- Background tasks.
+- WebSockets and SSE.
+- Application startup and shutdown.
+- Configuration and environment variables.
+- Logging and exception handling.
+- Service boundaries and reusable modules.
+
+Ensure resources such as HTTP clients, database engines, connection pools, and AI clients are reused and closed correctly.
+
+### 8. Frontend optimization
+
+Analyze and improve:
+
+- React component rendering.
+- Unnecessary re-renders.
+- State management.
+- React hooks and dependency arrays.
+- API request duplication.
+- Server-state caching.
+- Request cancellation and deduplication.
+- Bundle size and tree shaking.
+- Dynamic imports and code splitting.
+- Route-level lazy loading.
+- Large-list virtualization.
+- Asset loading and optimization.
+- Unnecessary third-party components.
+- Repeated CSS styles and design tokens.
+- Accessibility and responsive design.
+
+Apply memoization only where it provides measurable benefits.
+
+Ensure `design.md` remains the authoritative design specification and `index.css` remains the central application stylesheet.
+
+Identify conflicting design implementations, legacy MUI remnants, duplicated components, and unnecessary custom icons that can be replaced with existing shadcn/ui components or Lucide icons.
+
+### 9. AI, LLM and RAG optimization
+
+Where applicable, analyze:
+
+- LLM request latency.
+- Token consumption and unnecessary context.
+- Prompt construction and context management.
+- Streaming responses.
+- Model loading and reuse.
+- Embedding generation and batching.
+- Document parsing and chunking.
+- Vector search performance.
+- Hybrid search and reranking.
+- Retrieval quality.
+- Semantic caching.
+- Parallel tool execution.
+- Agent execution loops.
+- Local LLM CPU, RAM, and GPU consumption.
+- AI provider connection management.
+- Timeout, cancellation, retry, and fallback mechanisms.
+
+Recommend improvements that balance response quality, execution speed, resource consumption, and operational cost.
+
+Prevent unnecessary LLM calls, duplicate embeddings, unbounded agent loops, and repeated document processing.
+
+### 10. Architecture and scalability
+
+Evaluate the repository structure and architectural boundaries.
+
+Identify:
+
+- Circular dependencies.
+- Tight coupling.
+- Unnecessary abstraction layers.
+- Excessive directory depth.
+- Inconsistent module structures.
+- Incorrect separation of responsibilities.
+- Shared modules containing unrelated functionality.
+- Features that should be optional or independently enabled.
+- Unnecessary startup dependencies.
+- Components that prevent horizontal scaling.
+
+Prefer a clean, modular monolith unless there is concrete evidence that separate services are necessary.
+
+Preserve the application's purpose as a generic, reusable blueprint. Avoid introducing business-specific logic into the core application.
+
+### 11. Security and production readiness
+
+Identify security vulnerabilities and production risks involving:
+
+- Authentication and authorization.
+- Tenant and organization isolation.
+- SQL injection, XSS, CSRF, SSRF, and CORS.
+- Secrets and credential management.
+- Dependency vulnerabilities.
+- File upload validation.
+- Rate limiting and resource exhaustion.
+- Sensitive information exposure.
+- AI prompt injection and unsafe tool execution.
+- Docker and container configuration.
+- Health and readiness checks.
+- Graceful shutdown.
+- Database backups and recovery.
+- CI/CD pipelines.
+- Logging, monitoring, and observability.
+
+Recommend the simplest reliable production solution for each identified issue.
+
+### 12. Testing, profiling and benchmarking
+
+Run available tests, linters, type checkers, builds, and security scans.
+
+Use appropriate profiling and benchmarking tools where available, such as:
+
+- `cProfile`, `py-spy`, and `Scalene`.
+- `tracemalloc` and `Memray`.
+- `pytest-benchmark`.
+- `k6` or `Locust`.
+- PostgreSQL query execution plans.
+- React Profiler.
+- Lighthouse.
+- Browser Performance and Memory tools.
+- Frontend bundle analyzers.
+- Dependency and vulnerability scanners.
+
+Establish a baseline for relevant metrics:
+
+- API response latency: p50, p95, and p99.
+- Requests per second.
+- CPU utilization.
+- RAM consumption.
+- Database query latency and query count.
+- Database connection utilization.
+- Application startup time.
+- Frontend bundle size.
+- Core Web Vitals.
+- LLM latency and token consumption.
+- Total source lines and dependency count.
+
+Clearly distinguish measured results from estimated improvements.
+
+### 13. Required output
+
+Report only actual problems, justified improvements, and actionable solutions. Do not populate the report with generic best practices or descriptions of correctly implemented functionality.
+
+Classify findings by priority:
+
+- **P0 — Critical:** Security vulnerabilities, crashes, data loss, broken functionality.
+- **P1 — High:** Major performance, reliability, architecture, and scalability issues.
+- **P2 — Medium:** Maintainability, code reduction, and resource optimization.
+- **P3 — Low:** Minor improvements and optional optimizations.
+
+For every finding, provide:
+
+1. Unique issue ID and priority.
+2. Exact affected file paths, functions, classes, and line numbers.
+3. Existing problem and supporting evidence.
+4. Root cause.
+5. Best recommended solution.
+6. Files to modify, merge, create, or remove.
+7. Concise implementation example where necessary.
+8. Expected impact on performance, CPU, RAM, database load, or code size.
+9. Implementation complexity and potential regression risks.
+10. Acceptance criteria and verification commands.
+
+Finish with:
+
+- A prioritized implementation roadmap.
+- A table summarizing all findings.
+- The highest-impact performance improvements.
+- The highest-impact code reduction opportunities.
+- Recommended concurrency and worker configuration.
+- Recommended database optimization plan.
+- Dependencies to add, replace, or remove.
+- Files and directories to merge or delete.
+- A concise, ordered set of implementation instructions for Codex.
+
+### Mandatory constraints
+
+- Inspect the actual repository before making recommendations.
+- Trace execution paths rather than analyzing files in isolation.
+- Do not invent problems, file paths, benchmark results, or performance percentages.
+- Verify dependency compatibility before recommending replacements.
+- Prefer simpler solutions with fewer dependencies and less operational overhead.
+- Preserve existing functionality, API contracts, security boundaries, and data integrity.
+- Avoid premature optimization and unnecessary architectural complexity.
+- Do not recommend concurrency without identifying the actual bottleneck.
+- Do not trade correctness or security for performance.
+- Do not execute destructive database operations.
+- Clearly identify anything that cannot be verified.
+- Consolidate overlapping findings instead of reporting the same root cause multiple times.
+- Perform the audit and prepare the implementation plan only. Do not modify the repository until the recommendations are approved.
+
+The final objective is to achieve the maximum practical performance, reliability, scalability, and maintainability with the minimum necessary code, dependencies, infrastructure, CPU usage, and memory consumption.

@@ -6,13 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
 from backend.core.db.vector_search import MAX_JSON_FALLBACK_ROWS, VectorSearchUnavailable
-from backend.modules.rag import metrics
+from backend.modules.rag import telemetry as metrics
 from backend.modules.rag.config import RagConfig
-from backend.modules.rag.document_scope import document_ids_is_empty_allow_list
 from backend.modules.rag.domain import RetrievedChunk
-from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
+from backend.modules.rag.filters import RetrievalMetadataFilter
 from backend.modules.rag.repository import RagRepository
-from backend.modules.rag.scope import RetrievalScope
+from backend.modules.rag.scope import RetrievalScope, document_ids_is_empty_allow_list
 from backend.modules.rag.search_repository import RagSearchRepository
 
 logger = logging.getLogger(__name__)

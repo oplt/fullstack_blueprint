@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from backend.modules.memory.enums import MemoryLevel, MemoryPrivacy, MemoryType
+from backend.modules.memory.domain import MemoryLevel, MemoryPrivacy, MemoryType
 
 SECRET_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"(?i)\b(password|passwd|pwd)\s*[:=]\s*\S+"),

@@ -1,0 +1,311 @@
+# Fullstack Blueprint — Architecture Simplification
+
+Act as a senior software architect and AI engineer. Refactor the repository to reduce file fragmentation, unnecessary nesting, duplicate implementations and unclear module ownership.
+
+Preserve the modular monolith, existing functionality, API compatibility, security and performance.
+
+## 1. Backend RAG
+
+Under `backend/modules/rag/`, apply the following consolidation targets:
+
+| Merge                                                                                          | Destination     |
+| ---------------------------------------------------------------------------------------------- | --------------- |
+| `config.py`, `config_models.py`                                                                | `config.py`     |
+| `domain.py`, `enums.py`, `value_objects.py`                                                    | `domain.py`     |
+| `chunking.py`, `chunk_policy.py`, `chunk_tokenizers.py`                                        | `chunking.py`   |
+| `embeddings.py`, `embedding_provider.py`, `embedding_registry.py`                              | `embeddings.py` |
+| `query.py`, `query_expansion.py`                                                               | `query.py`      |
+| `filters.py`, `metadata_filters.py`                                                            | `filters.py`    |
+| `ranking.py`, `rerank_policy.py`, `source_diversifier.py`                                      | `ranking.py`    |
+| `context.py`, `context_selection.py`, `parent_context_service.py`, `prompt_context_service.py` | `context.py`    |
+| `citations.py`, `citation_validation.py`, `citation_validation_context.py`                     | `citations.py`  |
+| `provenance.py`, `source_coordinates.py`, `evidence_revision.py`                               | `provenance.py` |
+| `metrics.py`, `telemetry.py`                                                                   | `telemetry.py`  |
+| `generation_port.py`, `reranker_port.py`                                                       | `contracts.py`  |
+
+**Explicit decisions:**
+
+- Keep `retrieval_planner.py` separate from `retrieval.py`: planning and execution are distinct responsibilities.
+- Merge `retrieval_request.py` into `schemas.py` if it defines API schemas; otherwise, use `domain.py`.
+- Merge `retrieval_fusion.py` into `ranking.py`.
+- Keep `structured_chunking.py` separate from generic chunking.
+- Keep `langchain_text_splitters.py` separate as a third-party adapter.
+- Keep `embedding_cache.py` and `retrieval_cache.py` separate because their cache keys, invalidation and lifecycle policies may differ. Reuse core cache infrastructure.
+- Consolidate document, repository and evidence authorization logic into `scope.py` without weakening enforcement at any entry point.
+- Keep `repository.py`, `search_repository.py` and `vector_store.py` separate where they own distinct persistence responsibilities.
+- Keep parsing providers inside `parsers/`.
+- Make `parsers/pdf_quality.py` the canonical PDF quality implementation.
+- Remove `legacy_ai_document_service.py` after migrating all callers.
+- Remove `eval/` only if empty and unused.
+
+Preserve hybrid retrieval, structured chunking, citation validation, provenance, tenant isolation and RAG evaluation quality.
+
+## 2. Backend AI
+
+Under `backend/modules/ai/`:
+
+| Merge                                     | Destination                                  |
+| ----------------------------------------- | -------------------------------------------- |
+| `base_service.py`, `orchestration.py`     | `service.py`                                 |
+| `provider_service.py`, `gateway.py`       | `gateway.py`                                 |
+| `stream_service.py`, `streaming.py`       | `streaming.py`                               |
+| `evaluation_scoring.py`, `evaluations.py` | `evaluations.py`                             |
+| `overview_routes.py`, `overview.py`       | Route in `router.py`; logic in `overview.py` |
+
+**Explicit decisions:**
+
+- Keep `routing.py` separate from `reliability.py`: model selection and failure handling are distinct responsibilities.
+- Keep `runs.py`, `prompts.py`, `reviews.py` and `evaluations.py` separate.
+- Consolidate small route files into `router.py`. Retain substantial endpoint groups and streaming routes separately.
+- Move pure response serialization into `schemas.py`; keep database-dependent transformations outside schemas.
+- Transfer document-management logic to RAG. Preserve existing public API paths through thin forwarding handlers where needed.
+- Keep individual provider adapters under `providers/`.
+- Establish one canonical AI gateway for LLM execution.
+- Prevent RAG, memory and agents from directly accessing provider SDKs.
+
+The AI module must not depend on concrete RAG, memory or agent implementations. Inject optional capabilities through contracts.
+
+## 3. Backend memory
+
+Under `backend/modules/memory/`:
+
+| Merge                                    | Destination              |
+| ---------------------------------------- | ------------------------ |
+| `domain.py`, `enums.py`                  | `domain.py`              |
+| `extraction.py`, `consolidation.py`      | `processing.py`          |
+| `ranking.py`, `routing.py`, `context.py` | `retrieval.py`           |
+| `policies.py`, `policy_service.py`       | `policies.py`            |
+| `metrics.py`                             | Rename to `telemetry.py` |
+
+**Explicit decisions:**
+
+- Keep `governance.py` separate for consent, retention, deletion and auditing.
+- Keep `provider.py` as a memory-specific adapter consuming public AI contracts.
+- Keep memory-specific cache policies in `cache.py`.
+- Do not merge memory with RAG.
+
+## 4. Backend identity
+
+Under `backend/modules/identity/`:
+
+| Merge                                                          | Destination     |
+| -------------------------------------------------------------- | --------------- |
+| `models.py`, `user_models.py`, `profile_models.py`             | `models.py`     |
+| `repository.py`, `user_repository.py`, `profile_repository.py` | `repository.py` |
+| `schemas.py`, `user_schemas.py`, `profile_schemas.py`          | `schemas.py`    |
+| `users.py`, `profile.py`                                       | `service.py`    |
+| `user_routes.py`, `profile_routes.py`                          | `router.py`     |
+
+Move pure schema serialization from `profile_serializers.py` into `schemas.py`.
+
+**Keep separate:**
+
+- `auth.py`
+- `auth_routes.py`
+- `dependencies.py`
+- `organizations/`
+
+Authentication and multi-tenancy are independent security boundaries. Preserve all existing authorization, MFA and session-revocation behavior.
+
+## 5. Admin, platform and billing ownership
+
+Remove unrelated business-domain ownership from admin.
+
+- Move `admin/billing/` to `modules/billing/`.
+- Move `admin/platform/` to `modules/platform/`.
+- Move platform configuration and feature flags into `modules/platform/`.
+- Move platform settings into platform; keep personal settings within identity.
+- Move `config_metadata.py` into `platform/configuration.py`.
+- Move `feature_flags.py` into `platform/flags.py`.
+- Consolidate platform-specific routes, services and schemas under their new owner.
+- Keep admin-specific analytics, user administration and operational aggregation in admin.
+- Inspect `admin/lifecycle.py`; move application startup/shutdown logic to `api/lifecycle.py`, but retain administrative lifecycle operations in admin.
+- Prevent `env_file_store.py` from modifying deployment environment files through production API endpoints.
+
+Admin must access other domains through public interfaces, not private repositories.
+
+## 6. Backend core
+
+Consolidate shared infrastructure as follows:
+
+| Merge                                                                     | Destination                  |
+| ------------------------------------------------------------------------- | ---------------------------- |
+| `logging/log_context.py`, `logging/logging.py`, `logging/log_handlers.py` | `observability/logging.py`   |
+| `logging/log_redaction.py`                                                | `observability/redaction.py` |
+| `logging/log_timing.py`                                                   | `observability/timing.py`    |
+| `observability/instruments.py`, `metrics.py`, `prometheus_metrics.py`     | `observability/metrics.py`   |
+| `observability/otel.py`, `tracing.py`                                     | `observability/tracing.py`   |
+| `observability/setup.py`, `observability/config.py`                       | `observability/setup.py`     |
+| `core/health.py`                                                          | `observability/health.py`    |
+
+**Explicit decisions:**
+
+- Keep `sentry.py` separate as a provider-specific adapter.
+- Keep `cache.py` for generic cache infrastructure and `resource_cache.py` for resource-specific invalidation if it has distinct responsibilities. Remove duplicated cache mechanisms.
+- Keep one request-logging middleware and separate audit persistence.
+- Keep generic vector calculations in `core/vectors.py`.
+- Keep database vector operations in `core/db/vector_search.py`.
+- Keep RAG-specific vector persistence in `modules/rag/vector_store.py`.
+- Move `core/openapi.py` into `api/openapi.py`.
+- Move operational observability routes into `api/` or `core/observability/`, provided core remains independent of business modules.
+
+Core must never import business modules.
+
+## 7. Application entry points
+
+Establish one canonical application composition structure:
+
+```
+backend/api/
+├── main.py
+├── router.py
+├── lifecycle.py
+├── capabilities.py
+└── openapi.py
+```
+
+- Move root-level application composition into `api/`.
+- Remove redundant `main.py` and `router.py` implementations.
+- Keep temporary compatibility shims only when existing deployment entry points require them.
+- Update Docker, workers, tests, scripts and deployment configuration.
+
+## 8. Frontend feature fragmentation
+
+Consolidate the following page/component pairs when one is only a forwarding wrapper:
+
+| Merge                                        | Destination                                    |
+| -------------------------------------------- | ---------------------------------------------- |
+| `AdminPlatformPage`, `AdminPlatformContent`  | `AdminPlatformPage.tsx`                        |
+| `AdminSettingsPage`, `AdminSettingsContent`  | `AdminSettingsPage.tsx`                        |
+| `AiStudioPage`, `AiStudioView`               | `AiStudioPage.tsx`                             |
+| `ProfilePage`, `ProfileView`                 | `ProfilePage.tsx`                              |
+| `PlatformPage`, `PlatformView`               | `IntegrationsPage.tsx` if integration-specific |
+| `ObservabilityPage`, `ObservabilityView`     | `ObservabilityPage.tsx`                        |
+| `ProjectDetailPage`, `ProjectDetailView`     | `ProjectDetailPage.tsx`                        |
+| `DashboardCalendarSlot`, `DashboardCalendar` | `DashboardCalendar.tsx`                        |
+
+**Explicit decisions:**
+
+- Preserve separate components that provide meaningful lazy loading, reuse, authorization or error boundaries.
+- Consolidate small resource-specific API files into feature-local `api.ts`.
+- Keep authentication API code separate if required by session refresh and authentication lifecycle.
+- Keep large AI API groups separate if merging introduces unnecessary dependencies.
+- Consolidate related hooks into `hooks.ts`, but keep independent complex hooks separate.
+- Merge `projectTaskModel.ts` and `projectTaskOptions.ts`.
+- Keep AI `generative-ui/` and `workspace/` as independent subsystems.
+- Keep small features flat; do not create generic subdirectories for every file type.
+
+## 9. Frontend shared UI
+
+Reserve `components/ui/` for canonical UI primitives and move reusable composite components directly into `components/`.
+
+| Merge                                            | Destination        |
+| ------------------------------------------------ | ------------------ |
+| `PageShell`, `PageHeader`, `PageTabs`            | `PageLayout.tsx`   |
+| `StatCard`, `StatCardSkeletonGrid`, `MetricGrid` | `Metrics.tsx`      |
+| `SectionCard`, `ResponsiveCardGrid`              | `Section.tsx`      |
+| `EmptyState`, `error-state`, `loading-state`     | `Feedback.tsx`     |
+| `KeyValueList`, `keyValueItems`                  | `KeyValueList.tsx` |
+| `JsonBlock`, `jsonDisplay`                       | `JsonBlock.tsx`    |
+
+**Explicit decisions:**
+
+- Keep individual shadcn primitives separate.
+- Consolidate `ReadOnlyTable` and `AdvancedDataTable` only if they share compatible rendering and accessibility behavior. Otherwise, share their underlying implementation without merging their public components.
+- Preserve the `LazyChart` lazy-loading boundary.
+- Keep `QueryBoundary` separate from visual feedback components.
+- Move calendar-specific components into `features/calendar/`.
+- Consolidate `RunStatusBadge`, `RunStatusPanel` and `runStatusModel` into `RunStatus.tsx` only if they share a domain-independent status contract. Otherwise, move them into their owning feature.
+- Move `LanguageSelector` into `i18n/`.
+- Move platform-specific settings components into `features/platform/`.
+- Replace custom icons with Lucide equivalents.
+
+Enforce `design.md`, `index.css`, shadcn and Lucide as the canonical design system. Remove confirmed MUI remnants and duplicate design tokens.
+
+## 10. Frontend shared libraries
+
+Correct ownership under `frontend/src/lib/`:
+
+| Current files                                                                                 | Destination                          |
+| --------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `configurationContext.ts`, `configuration.ts`, `configurationTypes.ts`, `useConfiguration.ts` | `app/configuration.ts`               |
+| `ConfigurationProvider.tsx`                                                                   | `app/ConfigurationProvider.tsx`      |
+| `platformApi.ts`                                                                              | `features/platform/api.ts`           |
+| `usePlatformMetadata.ts`                                                                      | `features/platform/hooks.ts`         |
+| `useProjectsQuery.ts`                                                                         | `features/projects/hooks.ts`         |
+| `useSettingsTabs.ts`                                                                          | `app/` or owning settings feature    |
+| `useTabQueryParam.ts`                                                                         | `app/searchParams.ts` if overlapping |
+| `routes.ts`                                                                                   | `app/routes.ts`                      |
+
+- Keep `queryClient.ts` independent of feature implementations.
+- Move domain-specific query keys into their owning features.
+- Keep generic formatters in `lib/` and locale-dependent formatters in `i18n/`; remove actual duplication.
+- Keep generated OpenAPI contracts in `lib/generated/`.
+
+## 11. Smaller backend modules
+
+- Merge `agents/workflow_definitions.py` into `agents/workflow.py` if it contains only workflow definitions.
+- Keep agent runtime and service separate.
+- Move notification template routes into `notifications/router.py`.
+- Consolidate integration API key and webhook routes into `integrations/router.py` if reasonably sized.
+- Rename `integrations/webhook_jobs.py` to `jobs.py`.
+- Keep domain events separate from calendar events.
+- Keep capability discovery separate from business search unless their ownership is demonstrably identical.
+
+## 12. Capability and dependency boundaries
+
+Strengthen the existing capability registry rather than introducing a competing implementation.
+
+Centralize module registration, dependencies, worker tasks, frontend navigation and feature availability.
+
+Enforce through existing architecture checks:
+
+- No circular dependencies.
+- No core-to-business-module imports.
+- No cross-module access to private repositories or services.
+- No provider SDK imports outside provider adapters.
+- No shared frontend library or UI imports from business features.
+- No eager loading of disabled optional capabilities.
+- No unnecessary global barrel exports.
+
+## 13. Migration integrity
+
+Investigate the two initial-schema migration files:
+
+- `0001_initial_schema.py`
+- `9d1a7d0c959c_initial_schema.py`
+
+Verify revision relationships, migration heads and database consistency. Do not delete or rewrite applied migrations.
+
+## Mandatory merge decision rules
+
+The consolidation targets above are based on the architecture tree, not verified implementation duplication.
+
+For every proposed merge:
+
+1. Inspect implementations, dependencies, consumers and responsibilities.
+2. Merge only cohesive functionality with compatible ownership and lifecycle.
+3. Preserve independent security, transaction, provider, caching and lazy-loading boundaries.
+4. Review Python files exceeding 500 lines and React files exceeding 350 lines. These are review thresholds, not mandatory splitting rules.
+5. If a merge creates circular imports, excessive complexity or weaker boundaries, retain the files separately and document the reason.
+6. Remove obsolete files only after migrating all imports and verifying behavior.
+7. Do not introduce replacement abstractions that negate the simplification.
+
+## Validation
+
+Apply changes incrementally. Run existing backend/frontend tests, architecture checks, security checks, OpenAPI validation, Alembic validation, frontend builds and RAG regression evaluations.
+
+Do not reduce test coverage, retrieval quality, tenant isolation or runtime performance to achieve a smaller file count.
+
+Update `ARCHITECTURE.md` and relevant `AGENTS.md` files.
+
+Implement the changes and provide a concise final report containing:
+
+- Files merged, moved and deleted.
+- Proposed mergers rejected and their technical justification.
+- Before/after analyze the file and directory counts.
+- Architecture violations resolved.
+- Test and validation results.
+- Remaining blockers.
+
+Define a tie-breaker for ambiguous mergesRequire an explicit merge decision log

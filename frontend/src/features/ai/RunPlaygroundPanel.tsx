@@ -25,9 +25,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 import { AdvancedSettings } from "../../components/ui/AdvancedSettings";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { JsonBlock } from "../../components/ui/JsonBlock";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { EmptyState } from "../../components/Feedback";
+import { JsonBlock } from "../../components/JsonBlock";
+import { SectionCard } from "../../components/Section";
 import { formatDateTime } from "@/lib/formatters";
 
 import {

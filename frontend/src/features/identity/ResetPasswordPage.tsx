@@ -6,7 +6,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { resetPassword } from "@/features/identity/authApi";
 import { AuthMarketingPanel } from "./AuthMarketingPanel";
 import { AuthShell } from "./AuthShell";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
+import { usePlatformMetadata } from "../platform/hooks";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 import { useOneTimeAuthToken } from "./useOneTimeAuthToken";
 

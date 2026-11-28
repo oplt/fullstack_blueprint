@@ -6,8 +6,8 @@ import {
     Shield,
 } from "lucide-react";
 import type { AuthUser } from "@/features/identity/authApi";
-import { MetricGrid } from "../../components/ui/MetricGrid";
-import { StatCard } from "../../components/ui/StatCard";
+import { MetricGrid } from "../../components/Metrics";
+import { StatCard } from "../../components/Metrics";
 
 type Props = {
     user: AuthUser | null;

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Badge } from "@/components/ui/badge";import { Switch } from "@/components/ui/switch";
 import type { SubscriptionPlan } from "@/features/billing/api";
 import { FormGrid } from "../../components/ui/FormGrid";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import type { PlatformAdminModel } from "./usePlatformAdminContent";
 
 export function PlansSection({ plans, model }: { plans: SubscriptionPlan[]; model: PlatformAdminModel }) {

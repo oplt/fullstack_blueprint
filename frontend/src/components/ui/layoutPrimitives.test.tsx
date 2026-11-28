@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PageHeader } from "./PageHeader";
-import { KeyValueList } from "./KeyValueList";
-import { keyValueItemsFromRecord } from "./keyValueItems";
+import { PageHeader } from "../PageLayout";
+import { KeyValueList } from "../KeyValueList";
+import { keyValueItemsFromRecord } from "../keyValueItems";
 import { AdvancedSettings } from "./AdvancedSettings";
-import { ResponsiveCardGrid } from "./ResponsiveCardGrid";
-import { MetricGrid } from "./MetricGrid";
+import { ResponsiveCardGrid } from "../Section";
+import { MetricGrid } from "../Metrics";
 
 function wrap(ui: React.ReactElement) {
     return render(ui);

@@ -3,7 +3,7 @@ import unittest
 import httpx
 import pytest
 
-from backend import main
+from backend.api import main
 from backend.core.config import settings
 from backend.core.middleware import public_rate_limit
 

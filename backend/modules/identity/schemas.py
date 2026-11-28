@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from backend.core.schemas import RequestModel
+from backend.modules.identity.models import UserProfile
 
 
 class SignUpRequest(RequestModel):
@@ -73,3 +76,58 @@ class MfaVerifyRequest(RequestModel):
 
 class MfaDisableRequest(RequestModel):
     code: str = Field(min_length=6, max_length=6)
+
+
+class UserProfileUpdate(RequestModel):
+    full_name: str | None = None
+
+
+class UserProfileResponse(BaseModel):
+    id: str
+    email: str
+    full_name: str | None
+    is_verified: bool
+    mfa_enabled: bool
+
+
+class UserDirectoryResponse(BaseModel):
+    id: str
+    email: str
+    full_name: str | None
+
+
+class PasswordChangeRequest(RequestModel):
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+
+class SessionResponse(BaseModel):
+    id: str
+    created_at: datetime
+    expires_at: datetime
+
+
+class ProfileResponse(BaseModel):
+    user_id: str
+    bio: str | None
+    avatar_url: str | None
+    location: str | None
+    website: str | None
+
+
+class ProfileUpdate(RequestModel):
+    bio: str | None = None
+    location: str | None = None
+    website: str | None = None
+
+
+def profile_to_response(profile: UserProfile) -> ProfileResponse:
+    return ProfileResponse(
+        user_id=profile.user_id,
+        bio=profile.bio,
+        avatar_url=(
+            "/api/v1/profile/avatar/content" if profile.avatar_storage_key else profile.avatar_url
+        ),
+        location=profile.location,
+        website=profile.website,
+    )

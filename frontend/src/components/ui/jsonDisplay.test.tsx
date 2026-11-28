@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { JsonBlock } from "./JsonBlock";
+import { JsonBlock } from "../JsonBlock";
 import {
     formatDisplayValue,
     recordToKeyValueItems,
     stringifyPretty,
-} from "./jsonDisplay";
+} from "../jsonDisplay";
 
 vi.mock("../../lib/notify", () => ({ notify: vi.fn() }));
 

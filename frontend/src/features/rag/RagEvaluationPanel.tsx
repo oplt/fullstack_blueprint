@@ -3,7 +3,7 @@ import { FormField } from "@/components/ui/form-field";
 import {
     MessageCircleQuestion,
 } from "lucide-react";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import type { useRagWorkspace } from "./useRagWorkspace";
 import { RagEvaluationAnswer } from "./RagEvaluationAnswer";
 

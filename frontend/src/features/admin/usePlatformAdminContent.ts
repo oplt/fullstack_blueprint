@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { EmailTemplate } from "@/features/notifications/emailTemplatesApi";
 import type { FeatureFlag } from "@/features/admin/featureFlagsApi";
-import type { PlatformConfig } from "@/lib/platformApi";
+import type { PlatformConfig } from "@/features/platform/api";
 import type { SubscriptionPlan } from "@/features/billing/api";
 import { buildConfigDraft, buildFlagDrafts, buildPlanDrafts, buildTemplateDrafts } from "./platformAdminModel";
 import { EMPTY_NEW_FLAG, EMPTY_NEW_PLAN, EMPTY_NEW_TEMPLATE, usePlatformAdminMutations } from "./usePlatformAdminMutations";

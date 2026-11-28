@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from backend.core.config import settings
-from backend.router import build_api_router
+from backend.api.router import build_api_router
 
 
 def _paths(config) -> set[str]:
@@ -29,7 +29,7 @@ class OptionalCapabilityRouteTests(TestCase):
             }
         )
 
-        with patch("backend.router.import_module", side_effect=AssertionError):
+        with patch("backend.api.capabilities.import_module", side_effect=AssertionError):
             paths = _paths(config)
 
         self.assertIn("/api/v1/platform/metadata", paths)

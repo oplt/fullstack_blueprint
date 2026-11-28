@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { DisabledWithReason } from "../../components/ui/DisabledWithReason";
-import { KeyValueList } from "../../components/ui/KeyValueList";
-import { RunStatusPanel } from "../../components/ui/RunStatusPanel";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { KeyValueList } from "../../components/KeyValueList";
+import { RunStatusPanel } from "../../components/RunStatus";
+import { SectionCard } from "../../components/Section";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 import { agentRunElapsedMs } from "./agentTraceModel";
 import type { useAgentWorkspace } from "./useAgentWorkspace";

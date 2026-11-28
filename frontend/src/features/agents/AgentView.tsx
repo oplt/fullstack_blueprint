@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
-import { PageHeader } from "../../components/ui/PageHeader";
-import { PageShell } from "../../components/ui/PageShell";
-import { PageTabs, TabsPanel } from "../../components/ui/PageTabs";
+import { usePlatformMetadata } from "../platform/hooks";
+import { PageHeader } from "../../components/PageLayout";
+import { PageShell } from "../../components/PageLayout";
+import { PageTabs, TabsPanel } from "../../components/PageLayout";
 import { SettingsTabs } from "../../app/SettingsTabs";
-import { useTabQueryParam } from "../../lib/useTabQueryParam";
+import { useTabQueryParam } from "../../app/searchParams";
 import { useAgentWorkspace } from "./useAgentWorkspace";
 import { AgentConfigurationPanel } from "./AgentConfigurationPanel";
 import { AgentRunPanel } from "./AgentRunPanel";
 import { AgentRunDetails } from "./AgentRunDetails";
 import { buildAgentTraceSteps } from "./agentTraceModel";
-import { useApplicationConfiguration } from "../../lib/useConfiguration";
+import { useApplicationConfiguration } from "../../app/configuration";
 import { capabilityAvailability, serverStateFromPlatformMetadata } from "../../lib/capabilities";
 
 const AGENT_TABS = ["configure", "run", "trace", "sources", "output"] as const;

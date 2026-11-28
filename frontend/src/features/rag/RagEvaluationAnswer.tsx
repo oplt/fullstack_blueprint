@@ -1,6 +1,6 @@
 import { RagCitationList } from "./RagCitationList";
 import { RagDegradedNotice } from "./RagDegradedNotice";
-import { MetricGrid } from "../../components/ui/MetricGrid";
+import { MetricGrid } from "../../components/Metrics";
 import { RagMetricTile as MetricTile } from "./RagMetricTile";
 import { formatCoverage } from "./ragEvaluationSummary";
 import type { useRagWorkspace } from "./useRagWorkspace";

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createAdminEmailTemplate, updateAdminEmailTemplate } from "@/features/notifications/emailTemplatesApi";
 import { createAdminFeatureFlag, updateAdminFeatureFlag } from "@/features/admin/featureFlagsApi";
 import { createAdminPlan, updateAdminPlan } from "@/features/billing/api";
-import { updatePlatformConfig } from "@/lib/platformApi";
+import { updatePlatformConfig } from "@/features/platform/api";
 import { queryKeys } from "../../lib/queryKeys";
 import { useMutationErrorToast } from "../../lib/useMutationErrorToast";
 

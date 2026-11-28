@@ -16,9 +16,9 @@ import { HelpTooltip } from "../../components/ui/HelpTooltip";
 import { QueryBoundary, QueryErrorAlert } from "../../components/ui/QueryBoundary";
 import { AdvancedDataTable } from "../../components/ui/AdvancedDataTable";
 import { TruncatedCell } from "../../components/ui/TruncatedCell";
-import { RunStatusBadge } from "../../components/ui/RunStatusBadge";
+import { RunStatusBadge } from "../../components/RunStatus";
 import { RagIngestionStatus } from "./RagIngestionStatus";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import {
     documentPipelineLabel,
 } from "./ragEvaluationSummary";

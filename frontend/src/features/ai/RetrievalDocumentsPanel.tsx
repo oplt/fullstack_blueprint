@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";
 import { FileText } from "lucide-react";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { EmptyState } from "../../components/Feedback";
+import { SectionCard } from "../../components/Section";
 import { formatDateTime } from "@/lib/formatters";
 import type { AiStudioModel } from "./useAiStudioView";
 

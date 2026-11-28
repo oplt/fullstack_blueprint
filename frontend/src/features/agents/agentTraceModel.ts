@@ -4,7 +4,7 @@
  */
 
 import type { AgentRun } from "@/features/agents/api";
-import { formatRunDurationMs } from "@/components/ui/runStatusModel";
+import { formatRunDurationMs } from "@/components/runStatusModel";
 
 type AgentTraceCategory = "plan" | "tool" | "result" | "error" | "meta";
 

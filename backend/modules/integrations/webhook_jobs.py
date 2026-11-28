@@ -14,7 +14,7 @@ from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.admin.platform.models import WebhookDelivery
+from backend.modules.platform.models import WebhookDelivery
 
 logger = logging.getLogger(__name__)
 

@@ -5,10 +5,10 @@ from __future__ import annotations
 import importlib
 
 from backend.modules.memory.policies import MemoryPolicyService as CanonicalPolicyService
-from backend.modules.memory.policy_service import MemoryPolicyService
+from backend.modules.memory.policies import MemoryPolicyService
 from backend.modules.rag.config import RagConfig
-from backend.modules.rag.config_models import EvaluationConfig
-from backend.modules.rag.enums import DocumentStatus
+from backend.modules.rag.config import EvaluationConfig
+from backend.modules.rag.domain import DocumentStatus
 from backend.modules.rag.models import RagDocument
 from backend.modules.rag.repository import RagRepository
 

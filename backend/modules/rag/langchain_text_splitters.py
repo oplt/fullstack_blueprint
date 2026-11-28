@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from backend.core.vectors import estimate_tokens
 from backend.modules.rag.domain import ParsedBlock, ParsedDocument
-from backend.modules.rag.source_coordinates import SourceCoordinate
+from backend.modules.rag.provenance import SourceCoordinate
 from backend.modules.rag.structured_chunking import table_groups
 
 CHUNKER_VERSION = "structure-v2"

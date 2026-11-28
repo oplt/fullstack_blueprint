@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from sqlalchemy import ColumnElement, select
 from sqlalchemy.dialects import postgresql
 
-from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
+from backend.modules.rag.filters import RetrievalMetadataFilter
 from backend.modules.rag.models import RagChunk
 from backend.modules.rag.repository import RagRepository
 from backend.modules.rag.scope import RetrievalScope

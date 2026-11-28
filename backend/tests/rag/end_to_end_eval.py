@@ -10,11 +10,11 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any, Protocol
 
-from backend.modules.rag.config_models import EvaluationConfig
+from backend.modules.rag.config import EvaluationConfig
 from backend.modules.rag.context import RagContextBuilder
 from backend.modules.rag.domain import RagAnswer, RetrievalOutcome
 from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.retrieval_request import RetrievalRequest
+from backend.modules.rag.domain import RetrievalRequest
 from backend.tests.rag.retrieval_eval import evaluate_ranking
 
 P99_LATENCY_PERCENTILE = 99

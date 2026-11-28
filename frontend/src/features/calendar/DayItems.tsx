@@ -5,7 +5,7 @@ import {
     ListChecks,
 } from "lucide-react";
 import type { CalendarItem, CalendarItemType } from "./api";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { EmptyState } from "../../components/Feedback";
 import { humanizeKey } from "@/lib/formatters";
 
 function ItemIcon({ type }: { type: CalendarItemType }) {

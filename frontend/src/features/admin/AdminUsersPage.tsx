@@ -2,13 +2,13 @@ import { Search, Users } from "lucide-react";
 import { ADMIN_USERS_PAGE_SIZE, useAdminUsers } from "./useAdminUsers";
 import { useIsMobile } from "../../lib/use-mobile";
 import { SettingsTabs } from "../../app/SettingsTabs";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { EmptyState } from "../../components/Feedback";
 import { Input } from "../../components/ui/input";
-import { PageShell } from "../../components/ui/PageShell";
+import { PageShell } from "../../components/PageLayout";
 import { PaginationControls } from "../../components/ui/pagination";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
-import { StatCard } from "../../components/ui/StatCard";
+import { SectionCard } from "../../components/Section";
+import { StatCard } from "../../components/Metrics";
 import { AdminUsersDirectory } from "./AdminUsersDirectory";
 
 export default function AdminUsersPage() {

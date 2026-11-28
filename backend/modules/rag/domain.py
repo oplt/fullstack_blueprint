@@ -1,15 +1,78 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import StrEnum
 from typing import Any
 
-from backend.modules.rag.enums import (
-    DocumentStatus,
-    IngestionJobStatus,
-    RetrievalIntent,
-    SourceType,
-)
+from backend.modules.rag.filters import RetrievalMetadataFilter
+
+
+class DocumentStatus(StrEnum):
+    UPLOADED = "uploaded"
+    INDEXED = "indexed"
+    FAILED = "failed"
+    DELETED = "deleted"
+
+    # Legacy values: retain for existing records/API consumers during migration.
+    # New ingestion attempts track processing progress on the job instead.
+    PARSING = "parsing"
+    CHUNKING = "chunking"
+    EMBEDDING = "embedding"
+
+
+class IngestionJobStatus(StrEnum):
+    PENDING = "pending"
+    RUNNING = "running"
+    RETRYING = "retrying"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class IngestionStage(StrEnum):
+    DOWNLOAD = "download"
+    SCAN = "scan"
+    PARSE = "parse"
+    CHUNK = "chunk"
+    EMBED = "embed"
+    PERSIST = "persist"
+
+
+class IngestionErrorCode(StrEnum):
+    INDEXING_FAILED = "INDEXING_FAILED"
+    DOCUMENT_INVALID = "DOCUMENT_INVALID"
+    STORAGE_UNAVAILABLE = "STORAGE_UNAVAILABLE"
+    SCAN_UNAVAILABLE = "SCAN_UNAVAILABLE"
+    EMBEDDING_FAILED = "EMBEDDING_FAILED"
+    EMBEDDING_INVALID = "EMBEDDING_INVALID"
+    DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
+    DOCUMENT_DELETED = "DOCUMENT_DELETED"
+    WORKER_LEASE_LOST = "WORKER_LEASE_LOST"
+    WORKER_CANCELLED = "WORKER_CANCELLED"
+
+
+class SourceType(StrEnum):
+    UPLOAD = "upload"
+    API = "api"
+    MANUAL = "manual"
+
+
+class RetrievalIntent(StrEnum):
+    FACT = "fact"
+    DEFINITION = "definition"
+    EVIDENCE = "evidence"
+    COMPARISON = "comparison"
+    SYNTHESIS = "synthesis"
+    CONTRADICTION = "contradiction"
+    SEMANTIC_SEARCH = "semantic_search"
+
+
+class MessageRole(StrEnum):
+    USER = "user"
+    ASSISTANT = "assistant"
+    SYSTEM = "system"
 
 
 @dataclass(slots=True)
@@ -244,3 +307,46 @@ class IngestionJob:
     started_at: datetime | None
     finished_at: datetime | None
     created_at: datetime
+
+
+@dataclass(slots=True)
+class ChunkMetadata:
+    document_id: str
+    user_id: str
+    filename: str
+    chunk_index: int
+    organization_id: str | None = None
+    project_id: str | None = None
+    page_number: int | None = None
+    source_type: str = "upload"
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "document_id": self.document_id,
+            "user_id": self.user_id,
+            "filename": self.filename,
+            "chunk_index": self.chunk_index,
+            "source_type": self.source_type,
+        }
+        if self.organization_id:
+            payload["organization_id"] = self.organization_id
+        if self.project_id:
+            payload["project_id"] = self.project_id
+        if self.page_number is not None:
+            payload["page_number"] = self.page_number
+        return payload
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalRequest:
+    query: str
+    user_id: str
+    project_id: str | None
+    top_k: int | None = None
+    filters: Mapping[str, Any] | None = None
+    intent: RetrievalIntent | str | None = None
+    conversation_id: str | None = None
+    persist_trace: bool = False
+    evidence_revision_hash: str | None = None
+    metadata: RetrievalMetadataFilter | None = None
+    preview: bool = False

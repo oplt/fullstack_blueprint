@@ -1,12 +1,32 @@
 from __future__ import annotations
 
+import logging
 from time import perf_counter
 
-from backend.modules.rag import metrics
+from backend.modules.ai.gateway import AiModelGateway
+from backend.modules.rag import telemetry as metrics
 from backend.modules.rag.config import RagConfig
 from backend.modules.rag.embedding_cache import embed_texts_with_cache
-from backend.modules.rag.embedding_provider import LangChainEmbeddingAdapter
 from backend.modules.rag.telemetry import traced
+
+logger = logging.getLogger(__name__)
+
+
+class LangChainEmbeddingAdapter:
+    """Embedding adapter — uses existing AI provider registry, not hardcoded OpenAI."""
+
+    def __init__(self, config: RagConfig | None = None):
+        self.config = config or RagConfig.from_settings()
+        self._gateway = AiModelGateway()
+
+    async def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        if not texts:
+            return []
+        return await self._gateway.embed_texts(
+            texts,
+            provider_key=self.config.embedding_provider,
+            model=self.config.embedding_model,
+        )
 
 
 class EmbeddingService:

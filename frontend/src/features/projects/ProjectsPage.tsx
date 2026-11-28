@@ -17,15 +17,15 @@ import {
     X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { projectPath } from "../../lib/routes";
+import { projectPath } from "../../app/routes";
 import { createProject, listProjects } from "@/features/projects/api";
 import { queryKeys } from "../../lib/queryKeys";
 import { QUERY_STALE_TIMES } from "../../lib/queryTiming";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { PageShell } from "../../components/ui/PageShell";
+import { EmptyState } from "../../components/Feedback";
+import { PageShell } from "../../components/PageLayout";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
+import { SectionCard } from "../../components/Section";
+import { usePlatformMetadata } from "../platform/hooks";
 import { formatDate } from "@/lib/formatters";
 
 const projectSchema = z.object({

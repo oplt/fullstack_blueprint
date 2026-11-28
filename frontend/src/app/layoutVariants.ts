@@ -1,5 +1,5 @@
-import type { LayoutVariant, CapabilityId } from "@/lib/configurationTypes";
-export type { LayoutVariant } from "@/lib/configurationTypes";
+import type { LayoutVariant, CapabilityId } from "@/app/configuration";
+export type { LayoutVariant } from "@/app/configuration";
 
 type LayoutRule = { prefix: string; variant: LayoutVariant; capability?: CapabilityId };
 const rules: readonly LayoutRule[] = [

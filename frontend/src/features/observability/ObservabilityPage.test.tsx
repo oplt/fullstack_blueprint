@@ -15,7 +15,7 @@ vi.mock("../identity/useAuth", () => ({
     useAuth: vi.fn(() => ({ isAdmin: true })),
 }));
 
-vi.mock("../../lib/usePlatformMetadata", () => ({
+vi.mock("../platform/hooks", () => ({
     usePlatformMetadata: vi.fn(() => ({ data: { module_catalog: [] } })),
 }));
 

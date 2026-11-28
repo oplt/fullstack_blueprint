@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modules.ai import metrics
-from backend.modules.ai.context import AgentPromptContextBuilder
+from backend.modules.agents.context import AgentPromptContextBuilder
 from backend.modules.ai.runs import AiRunService
 from backend.modules.identity.models import User
 from backend.modules.memory.config import MemoryConfig

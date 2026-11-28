@@ -11,9 +11,9 @@ import {
     Globe2,
     History,
 } from "lucide-react";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { ResponsiveCardGrid } from "../../components/ui/ResponsiveCardGrid";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { EmptyState } from "../../components/Feedback";
+import { ResponsiveCardGrid } from "../../components/Section";
+import { SectionCard } from "../../components/Section";
 import { Skeleton } from "../../components/ui/skeleton";
 import type { ObservabilityToolLink } from "./types";
 import { buildGrafanaUrl, buildTempoExploreUrl, openExternalUrl } from "./urlBuilders";

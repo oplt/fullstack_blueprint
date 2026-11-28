@@ -1,4 +1,4 @@
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import type { AiStudioModel } from "./useAiStudioView";
 import { ReviewQueueSection } from "./ReviewQueueSection";
 import { EvaluationDatasetBuilder } from "./EvaluationDatasetBuilder";

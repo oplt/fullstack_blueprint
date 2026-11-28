@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
-from backend.modules.memory.enums import MemoryOperation
+from backend.modules.memory.domain import MemoryOperation
 from backend.modules.memory.models import MemoryAuditLog, MemoryRegistry
 
 

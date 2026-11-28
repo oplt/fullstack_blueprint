@@ -10,7 +10,7 @@ import { jobPollInterval } from "../../lib/queryTiming";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 import { notify } from "../../lib/notify";
 import { indexingParamsFromChunkMeta, summarizeRagAsk } from "./ragEvaluationSummary";
-import { useProjectsQuery } from "../../lib/useProjectsQuery";
+import { useProjectsQuery } from "../projects/hooks";
 
 export const PAGE_SIZE = 20;
 const TERMINAL_JOB = new Set(["completed", "failed", "cancelled"]);

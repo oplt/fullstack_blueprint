@@ -344,6 +344,7 @@ backend
 ├── scripts
 │   ├── backup_postgres.sh
 │   ├── check_architecture.py
+│   ├── check_coverage.py
 │   ├── check_db.py
 │   ├── export_openapi.py
 │   ├── migrate.sh
@@ -389,6 +390,7 @@ backend
 │   │   ├── test_parser_provenance.py
 │   │   ├── test_rerank_and_coverage.py
 │   │   ├── test_retrieval_branches.py
+│   │   ├── test_retrieval_degradation.py
 │   │   ├── test_retrieval_eval.py
 │   │   ├── test_retrieval_preview.py
 │   │   ├── test_retrieval_quality_regressions.py
@@ -403,7 +405,10 @@ backend
 │   ├── test_capability_modules.py
 │   ├── test_config_editor.py
 │   ├── test_document_consolidation.py
+│   ├── test_document_safety.py
 │   ├── test_entitlements.py
+│   ├── test_memory_jobs.py
+│   ├── test_memory_provider.py
 │   ├── test_memory_tenant_isolation.py
 │   ├── test_metrics_routes.py
 │   ├── test_middleware_contracts.py
@@ -413,6 +418,8 @@ backend
 │   ├── test_platform_config_service.py
 │   ├── test_public_urls.py
 │   ├── test_rag_answer_run.py
+│   ├── test_rag_entrypoint_imports.py
+│   ├── test_rag_entrypoints.py
 │   ├── test_rate_limit.py
 │   ├── test_repository_atomicity.py
 │   ├── test_repository.py
@@ -440,6 +447,7 @@ frontend
 ├── components.json
 ├── .dependency-cruiser.cjs
 ├── e2e
+│   ├── application-design.spec.ts
 │   ├── auth-rag.spec.ts
 │   ├── auth-refresh.spec.ts
 │   ├── core.spec.ts
@@ -590,6 +598,7 @@ frontend
 │   │       ├── StatCard.tsx
 │   │       ├── switch.tsx
 │   │       ├── table.tsx
+│   │       ├── tabs.test.tsx
 │   │       ├── tabs.tsx
 │   │       ├── textarea.tsx
 │   │       ├── tooltip.tsx
@@ -604,10 +613,8 @@ frontend
 │   │   │   ├── AdminPlatformContent.tsx
 │   │   │   ├── AdminPlatformPage.tsx
 │   │   │   ├── AdminPlatformStats.tsx
-│   │   │   ├── AdminPlatformView.tsx
 │   │   │   ├── AdminSettingsContent.tsx
 │   │   │   ├── AdminSettingsPage.tsx
-│   │   │   ├── AdminSettingsView.tsx
 │   │   │   ├── AdminUsersDirectory.tsx
 │   │   │   ├── AdminUsersPage.tsx
 │   │   │   ├── CloneConfigSection.tsx
@@ -849,6 +856,7 @@ frontend
 │   │   ├── useMutationErrorToast.ts
 │   │   ├── usePlatformMetadata.test.tsx
 │   │   ├── usePlatformMetadata.ts
+│   │   ├── useProjectsQuery.ts
 │   │   ├── useSettingsTabs.test.ts
 │   │   ├── useSettingsTabs.ts
 │   │   ├── useTabQueryParam.ts
@@ -872,4 +880,4 @@ frontend
 ├── vite.config.ts
 └── vitest.config.ts
 
-68 directories, 805 files
+68 directories, 813 files

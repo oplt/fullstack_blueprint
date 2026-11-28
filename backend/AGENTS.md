@@ -31,6 +31,7 @@
 - Validate ownership and membership in queries, ingestion, retrieval and background jobs.
 - Never trust client-provided identity or permissions.
 - Preserve typed settings, feature gates, structured logging and sanitized errors.
+- Use `core/observability` for shared telemetry and keep identity-dependent operational routes in `api`.
 - Use retry-safe background jobs and enqueue after successful persistence where appropriate.
 
 ## AI, Agents, RAG and Memory

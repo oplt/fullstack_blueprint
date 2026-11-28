@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import { FormGrid } from "./FormGrid";
-import { ResponsiveCardGrid } from "./ResponsiveCardGrid";
-import { MetricGrid } from "./MetricGrid";
+import { ResponsiveCardGrid } from "../Section";
+import { MetricGrid } from "../Metrics";
 import { WorkspaceSplit } from "./WorkspaceSplit";
 
 const RESPONSIVE_QA_VIEWPORTS = [390, 768, 1024, 1280, 1440, 1920] as const;

@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button";
 import { FolderOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Project } from "@/features/projects/api";
-import { projectPath, ROUTES } from "../../lib/routes";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { projectPath, ROUTES } from "../../app/routes";
+import { EmptyState } from "../../components/Feedback";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 
 type Props = {
     enabled: boolean;

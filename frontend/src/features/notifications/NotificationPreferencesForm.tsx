@@ -1,6 +1,6 @@
 import type { NotificationPreferences } from "@/features/notifications/api";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import { Switch } from "../../components/ui/switch";
 import type { useNotificationPreferences } from "./useNotificationPreferences";
 import type { useNotificationMutations } from "./useNotificationMutations";

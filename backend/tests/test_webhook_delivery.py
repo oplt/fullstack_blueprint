@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from sqlalchemy.dialects import postgresql
 
-from backend.modules.admin.platform.models import WebhookDelivery
+from backend.modules.platform.models import WebhookDelivery
 from backend.modules.integrations.webhook_jobs import (
     StaleWebhookAttemptError,
     WebhookDeliveryService,

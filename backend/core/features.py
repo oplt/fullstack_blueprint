@@ -23,6 +23,7 @@ class CapabilityDefinition:
     configuration_requirements: tuple[str, ...] = ()
     deployment_flag: str | None = None
     router: str | None = None
+    ai_retrieval_factory: str | None = None
     required_permissions: tuple[str, ...] = ()
     background_workers: tuple[str, ...] = ()
     database_dependencies: tuple[str, ...] = ()
@@ -158,7 +159,7 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
             description="Deployment metadata, plans, flags, keys, webhooks, and templates.",
             dependencies=("identity",),
             deployment_flag="PLATFORM_API_ENABLED",
-            router="backend.modules.admin.platform.router:router",
+            router="backend.modules.platform.router:router",
             database_dependencies=("app_settings", "feature_flags", "subscription_plans"),
             optional_integrations=("smtp", "outbound_http"),
         ),
@@ -197,7 +198,7 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
             description="Administrative runtime configuration endpoints.",
             dependencies=("identity", "platform"),
             deployment_flag="SETTINGS_API_ENABLED",
-            router="backend.modules.admin.settings_routes:router",
+            router="backend.modules.platform.settings_routes:router",
         ),
         CapabilityDefinition(
             identifier="admin_api",
@@ -249,6 +250,7 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
         ),
         CapabilityDefinition(
             identifier="rag",
+            ai_retrieval_factory="backend.modules.rag.service:RagAiRetrieval",
             label="Retrieval augmented generation",
             description="Documents, revisions, ingestion, indexing, retrieval, and citations.",
             dependencies=("identity", "projects"),
@@ -305,7 +307,7 @@ CAPABILITY_REGISTRY = CapabilityRegistry(
             dependencies=("identity",),
             configuration_requirements=("OBSERVABILITY_ENABLED",),
             deployment_flag="OBSERVABILITY_ENABLED",
-            router="backend.modules.observability.router:router",
+            router="backend.api.observability:router",
             required_permissions=("observability.read",),
             health_checks=("metrics", "traces"),
         ),

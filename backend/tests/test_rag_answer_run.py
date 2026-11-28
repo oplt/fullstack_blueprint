@@ -7,6 +7,7 @@ from backend.modules.ai.contracts import AiProviderRequest, AiProviderResponse, 
 from backend.modules.ai.models import AiRun
 from backend.modules.ai.runs import AiRunService
 from backend.modules.identity.models import User
+from backend.modules.rag.generation import RagAnswerRunService
 from backend.modules.rag.prompts import (
     DEFAULT_RAG_ANSWER_SYSTEM_PROMPT,
     RAG_STRUCTURED_OUTPUT_CONTRACT,
@@ -107,10 +108,10 @@ class AiRunServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
             self.assertNotIn(marker, str(stored["input_messages_json"]))
             self.assertNotIn(marker, str(stored["variables_json"]))
 
-    @patch("backend.modules.ai.runs.resolve_rag_answer_prompt")
+    @patch("backend.modules.rag.generation.resolve_rag_answer_prompt")
     async def test_run_rag_answer_creates_run_with_retrieved_chunk_ids(self, resolve_prompt):
         db = AsyncMock()
-        service = AiRunService(db)
+        service = RagAnswerRunService(db)
         service.repo = MagicMock()
         service.repo.create_run = AsyncMock(
             return_value=SimpleNamespace(id="run-1", provider_key="local")

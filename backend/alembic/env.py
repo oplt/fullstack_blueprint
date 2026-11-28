@@ -15,15 +15,12 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from backend.core.config import settings
 from backend.core.db.base import Base
-from backend.modules.admin import models as settings_models  # noqa: F401
-from backend.modules.admin.platform import models as platform_models  # noqa: F401
+from backend.modules.platform import models as platform_models  # noqa: F401
 from backend.modules.ai import models as ai_models  # noqa: F401
 from backend.modules.calendar import models as calendar_models  # noqa: F401
 from backend.modules.capabilities import models as capability_models  # noqa: F401
 from backend.modules.events import models as event_models  # noqa: F401
 from backend.modules.identity import models as identity_models  # noqa: F401
-from backend.modules.identity import models as profile_models  # noqa: F401
-from backend.modules.identity import models as user_models  # noqa: F401
 from backend.modules.identity.organizations import models as organization_models  # noqa: F401
 from backend.modules.memory import models as memory_models  # noqa: F401
 from backend.modules.notifications import models as notification_models  # noqa: F401

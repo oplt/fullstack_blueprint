@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from backend.modules.rag.citation_validation import CitationValidationService
+from backend.modules.rag.citations import CitationValidationService
 from backend.modules.rag.domain import RetrievedChunk
 
 FIXTURES = Path(__file__).with_name("fixtures") / "citation_entailment_pairs.json"

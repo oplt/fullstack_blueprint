@@ -4,12 +4,12 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { useAuth } from "../features/identity/useAuth";
-import { usePlatformMetadata } from "../lib/usePlatformMetadata";
+import { usePlatformMetadata } from "../features/platform/hooks";
 import AuthHomePage from "../features/identity/AuthHomePage";
-import { ROUTES } from "../lib/routes";
+import { ROUTES } from "./routes";
 import { capabilityAvailability, serverStateFromPlatformMetadata } from "../lib/capabilities";
-import { useApplicationConfiguration } from "../lib/useConfiguration";
-import type { CapabilityId } from "@/lib/configurationTypes";
+import { useApplicationConfiguration } from "./configuration";
+import type { CapabilityId } from "@/app/configuration";
 
 const AppLayout = lazy(() =>
     import("./AppLayout").then((module) => ({ default: module.AppLayout }))
@@ -18,7 +18,7 @@ const DashboardPage = lazy(() => import("../features/dashboard/DashboardPage"));
 const CalendarPage = lazy(() => import("../features/calendar/CalendarPage"));
 const ProjectsPage = lazy(() => import("../features/projects/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("../features/projects/ProjectDetailPage"));
-const PlatformPage = lazy(() => import("../features/integrations/PlatformPage"));
+const PlatformPage = lazy(() => import("../features/integrations/IntegrationsPage"));
 const ProfilePage = lazy(() => import("../features/identity/ProfilePage"));
 const NotificationsPage = lazy(() => import("../features/notifications/NotificationsPage"));
 const ObservabilityPage = lazy(() => import("../features/observability/ObservabilityPage"));

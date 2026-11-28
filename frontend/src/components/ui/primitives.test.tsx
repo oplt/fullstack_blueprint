@@ -2,10 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import { DatePicker } from "./date-picker"
-import { ErrorState } from "./error-state"
+import { ErrorState } from "../Feedback"
 import { FieldError } from "./field"
 import { Input } from "./input"
-import { LoadingState } from "./loading-state"
+import { LoadingState } from "../Feedback"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
 

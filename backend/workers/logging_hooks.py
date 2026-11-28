@@ -21,8 +21,11 @@ from celery.signals import (
 )
 
 from backend.core.config import settings
-from backend.core.logging import setup_logging
-from backend.core.logging.log_context import reset_correlation_id, set_correlation_id
+from backend.core.observability.logging import (
+    reset_correlation_id,
+    set_correlation_id,
+    setup_logging,
+)
 
 logger = logging.getLogger("backend.worker")
 
@@ -87,7 +90,7 @@ def attach_correlation_and_enqueue_time(
     if headers is None:
         return
     with contextlib.suppress(Exception):
-        from backend.core.logging.log_context import get_correlation_id  # noqa: PLC0415 - optional logging context
+        from backend.core.observability.logging import get_correlation_id  # noqa: PLC0415 - optional logging context
 
         correlation_id = get_correlation_id() or str(uuid4())
         headers.setdefault(CORRELATION_HEADER, correlation_id)

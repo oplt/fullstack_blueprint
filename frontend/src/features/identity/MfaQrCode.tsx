@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ErrorState } from "../../components/ui/error-state";
+import { ErrorState } from "../../components/Feedback";
 import { Skeleton } from "../../components/ui/skeleton";
 
 type QrResult =

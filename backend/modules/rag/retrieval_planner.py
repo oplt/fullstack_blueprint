@@ -5,11 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from backend.modules.rag.config import RagConfig
-from backend.modules.rag.enums import RetrievalIntent
-from backend.modules.rag.reranker_port import (
+from backend.modules.rag.contracts import (
     MAX_RERANK_CANDIDATES,
     resolve_reranker_mode,
 )
+from backend.modules.rag.domain import RetrievalIntent
 
 
 @dataclass(frozen=True, slots=True)

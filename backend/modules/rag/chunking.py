@@ -1,15 +1,138 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import os
+import tempfile
 from collections.abc import Callable
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 from uuid import uuid4
 
 from backend.core.vectors import estimate_tokens
-from backend.modules.rag.chunk_policy import resolve_chunk_policy
-from backend.modules.rag.chunk_tokenizers import resolve_token_counter
 from backend.modules.rag.config import RagConfig
 from backend.modules.rag.domain import DocumentChunk, ParsedDocument
 from backend.modules.rag.langchain_text_splitters import CHUNKER_VERSION, iter_chunks
+
+
+@dataclass(frozen=True, slots=True)
+class ChunkPolicy:
+    version: str
+    target_tokens: int
+    overlap_tokens: int
+    profile: str = "prose"
+    respect_page_boundaries: bool = False
+    respect_section_boundaries: bool = True
+    atomic_tables: bool = False
+
+
+def resolve_chunk_policy(document: ParsedDocument, config) -> ChunkPolicy:
+    """Keep prose defaults while applying PDF/page/table-aware profiles."""
+    metadata = document.metadata or {}
+    version = getattr(config, "chunk_policy_version", "structure-v2")
+    base_size = int(getattr(config, "chunk_size", 1000))
+    base_overlap = int(getattr(config, "chunk_overlap", 150))
+    if base_size < 1 or not 0 <= base_overlap < base_size:
+        raise ValueError("Chunk overlap must be nonnegative and smaller than the chunk size")
+    fmt = str(metadata.get("format") or "").lower()
+    block_type = str(metadata.get("parsed_block_type") or "").lower()
+
+    if block_type == "table" or fmt == "csv":
+        return ChunkPolicy(
+            version=version,
+            target_tokens=base_size,
+            overlap_tokens=0,
+            profile="atomic_table",
+            respect_page_boundaries=fmt == "pdf",
+            respect_section_boundaries=True,
+            atomic_tables=True,
+        )
+    if fmt == "pdf":
+        # Page-aware: slightly smaller windows reduce cross-page parent bleed.
+        return ChunkPolicy(
+            version=version,
+            target_tokens=min(base_size, 768),
+            overlap_tokens=min(base_overlap, 96, base_size - 1),
+            profile="pdf_page",
+            respect_page_boundaries=True,
+            respect_section_boundaries=True,
+            atomic_tables=False,
+        )
+    if fmt in {"markdown", "docx"}:
+        return ChunkPolicy(
+            version=version,
+            target_tokens=base_size,
+            overlap_tokens=base_overlap,
+            profile="section_aware",
+            respect_page_boundaries=False,
+            respect_section_boundaries=True,
+            atomic_tables=False,
+        )
+    return ChunkPolicy(
+        version=version,
+        target_tokens=base_size,
+        overlap_tokens=base_overlap,
+        profile="prose",
+        respect_page_boundaries=False,
+        respect_section_boundaries=True,
+        atomic_tables=False,
+    )
+
+
+_OPENAI_MODELS = {"text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"}
+OPENAI_INPUT_LIMIT = 8192
+_ENCODING_SHA256 = {
+    "cl100k_base": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+    "o200k_base": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d",
+}
+
+
+@lru_cache(maxsize=4)
+def _cached_openai_count(cache_dir: str, encoding_name: str) -> Callable[[str], int] | None:
+    # tiktoken fetches missing assets on demand. Only call it with a verified local cache.
+    asset = f"https://openaipublic.blob.core.windows.net/encodings/{encoding_name}.tiktoken"
+    key = hashlib.sha1(asset.encode(), usedforsecurity=False).hexdigest()
+    try:
+        with (Path(cache_dir) / key).open("rb") as asset:
+            if hashlib.file_digest(asset, "sha256").hexdigest() != _ENCODING_SHA256[encoding_name]:
+                return None
+        import tiktoken  # noqa: PLC0415 - optional tokenizer dependency
+
+        encoding = tiktoken.get_encoding(encoding_name)
+    except (ImportError, OSError, ValueError):
+        return None
+    return lambda text: len(encoding.encode_ordinary(text))
+
+
+def resolve_token_counter(
+    provider: str, model: str
+) -> tuple[str, Callable[[str], int], int | None]:
+    if provider != "openai" or model not in _OPENAI_MODELS:
+        return "character-estimate", estimate_tokens, None
+    name, counter = resolve_generation_token_counter(provider, model)
+    return name, counter, OPENAI_INPUT_LIMIT
+
+
+def resolve_generation_token_counter(provider: str, model: str) -> tuple[str, Callable[[str], int]]:
+    if provider == "openai":
+        try:
+            import tiktoken  # noqa: PLC0415 - optional tokenizer dependency
+
+            encoding = tiktoken.encoding_name_for_model(model)
+        except (ImportError, KeyError):
+            encoding = None
+        if encoding in _ENCODING_SHA256 and (counter := _local_count(encoding)):
+            return encoding, counter
+    return "utf8-byte-upper-bound", lambda text: len(text.encode())
+
+
+def _local_count(encoding: str) -> Callable[[str], int] | None:
+    cache = os.getenv("TIKTOKEN_CACHE_DIR", os.getenv("DATA_GYM_CACHE_DIR", ""))
+    if "TIKTOKEN_CACHE_DIR" not in os.environ and "DATA_GYM_CACHE_DIR" not in os.environ:
+        cache = str(Path(tempfile.gettempdir()) / "data-gym-cache")
+    return _cached_openai_count(cache, encoding) if cache else None
+
 
 MIN_PARENT_WINDOW_SIZE = 2
 

@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { listProjects } from "@/features/projects/api";
 import { capabilityAvailability, serverStateFromPlatformMetadata } from "../../lib/capabilities";
-import { useApplicationConfiguration } from "../../lib/useConfiguration";
-import { ROUTES } from "../../lib/routes";
+import { useApplicationConfiguration } from "../../app/configuration";
+import { ROUTES } from "../../app/routes";
 import { queryKeys } from "../../lib/queryKeys";
 import { AccountHealthCard } from "./AccountHealthCard";
 import { DashboardCalendarSlot } from "./DashboardCalendarSlot";
@@ -12,8 +12,8 @@ import { ProjectSnapshot } from "./ProjectSnapshot";
 import { RecentActivityCard } from "./RecentActivityCard";
 import { useAuth } from "../identity/useAuth";
 import { useNotifications } from "../notifications/useNotifications";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
-import { PageShell } from "../../components/ui/PageShell";
+import { usePlatformMetadata } from "../platform/hooks";
+import { PageShell } from "../../components/PageLayout";
 
 export default function DashboardPage() {
     const navigate = useNavigate();

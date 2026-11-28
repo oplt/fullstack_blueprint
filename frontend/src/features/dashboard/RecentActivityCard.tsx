@@ -2,11 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Notification } from "@/features/notifications/api";
-import { ROUTES } from "../../lib/routes";
+import { ROUTES } from "../../app/routes";
 import { NotificationListItem } from "../notifications/NotificationListItem";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { EmptyState } from "../../components/Feedback";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 
 type Props = {
     enabled: boolean;

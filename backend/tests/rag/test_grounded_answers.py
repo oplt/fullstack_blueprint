@@ -8,7 +8,7 @@ from fastapi import HTTPException, Response
 
 from backend.modules.rag import router as routes
 from backend.modules.rag.answers import RagAnswerService
-from backend.modules.rag.citation_validation import CitationValidationService
+from backend.modules.rag.citations import CitationValidationService
 from backend.modules.rag.context import RagContextBuilder
 from backend.modules.rag.domain import RetrievalOutcome, RetrievedChunk
 

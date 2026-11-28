@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";import { FormField } from "@/components/ui/form-field";import { Switch } from "@/components/ui/switch";
-import type { PlatformConfig } from "@/lib/platformApi";
+import type { PlatformConfig } from "@/features/platform/api";
 import { FormGrid } from "../../components/ui/FormGrid";
-import { ResponsiveCardGrid } from "../../components/ui/ResponsiveCardGrid";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { ResponsiveCardGrid } from "../../components/Section";
+import { SectionCard } from "../../components/Section";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 import type { PlatformAdminModel } from "./usePlatformAdminContent";
 

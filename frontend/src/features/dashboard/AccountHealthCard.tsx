@@ -1,6 +1,6 @@
 import type { AuthUser } from "@/features/identity/authApi";
 import { Badge } from "../../components/ui/badge";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 type Props = { user: AuthUser | null };
 function AccountCheck({ label, active, activeValue, inactiveValue, activeDescription, inactiveDescription }: { label: string; active: boolean; activeValue: string; inactiveValue: string; activeDescription: string; inactiveDescription: string }) {
     return <div className="ui-account-check"><div className="ui-health-header"><p className="text-label-sm">{label}</p><Badge variant={active ? "success" : "warning"}>{active ? activeValue : inactiveValue}</Badge></div><p className="ui-account-check-description">{active ? activeDescription : inactiveDescription}</p></div>;

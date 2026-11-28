@@ -13,38 +13,41 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from backend.core.config import settings
 from backend.core.vectors import can_index_embedding
-from backend.modules.rag import metrics
+from backend.modules.rag import telemetry as metrics
 from backend.modules.rag.config import RagConfig
-from backend.modules.rag.context_selection import select_context_chunks
-from backend.modules.rag.document_scope import document_ids_is_empty_allow_list
-from backend.modules.rag.domain import RetrievalCoverage, RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.context import expand_parent_chunks, select_context_chunks
+from backend.modules.rag.contracts import build_reranker
+from backend.modules.rag.domain import (
+    RetrievalCoverage,
+    RetrievalIntent,
+    RetrievalOutcome,
+    RetrievalRequest,
+    RetrievedChunk,
+)
 from backend.modules.rag.embeddings import EmbeddingService
-from backend.modules.rag.enums import RetrievalIntent
-from backend.modules.rag.evidence_revision import (
+from backend.modules.rag.filters import exclude_injection_flagged_chunks
+from backend.modules.rag.provenance import (
     StaleEvidenceRevisionError,
     assert_chunks_match_revision_allow_list,
     build_retrieved_evidence_revision_hash,
 )
-from backend.modules.rag.filters import exclude_injection_flagged_chunks
-from backend.modules.rag.parent_context_service import expand_parent_chunks
-from backend.modules.rag.query import QueryAnalysis, analyze_query
-from backend.modules.rag.query_expansion import (
+from backend.modules.rag.query import (
     QUERY_EXPANSION_VERSION,
+    QueryAnalysis,
     QueryExpansionService,
+    analyze_query,
 )
-from backend.modules.rag.repository import RagRepository
-from backend.modules.rag.rerank_policy import apply_rerank_policy
-from backend.modules.rag.reranker_port import build_reranker
-from backend.modules.rag.retrieval_cache import get_cached_retrieval, set_cached_retrieval
-from backend.modules.rag.retrieval_fusion import reciprocal_rank_fusion
-from backend.modules.rag.retrieval_planner import plan_retrieval
-from backend.modules.rag.retrieval_request import RetrievalRequest
-from backend.modules.rag.scope import RetrievalScope
-from backend.modules.rag.search_repository import RagSearchRepository
-from backend.modules.rag.source_diversifier import (
+from backend.modules.rag.ranking import (
+    apply_rerank_policy,
     diversify_by_document,
     filter_to_allow_list,
+    reciprocal_rank_fusion,
 )
+from backend.modules.rag.repository import RagRepository
+from backend.modules.rag.retrieval_cache import get_cached_retrieval, set_cached_retrieval
+from backend.modules.rag.retrieval_planner import plan_retrieval
+from backend.modules.rag.scope import RetrievalScope, document_ids_is_empty_allow_list
+from backend.modules.rag.search_repository import RagSearchRepository
 from backend.modules.rag.telemetry import RagTraceContext, traced
 from backend.modules.rag.vector_store import _parse_scope, build_vector_store
 

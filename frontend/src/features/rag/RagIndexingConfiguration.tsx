@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { HelpTooltip } from "../../components/ui/HelpTooltip";
-import { KeyValueList } from "../../components/ui/KeyValueList";
-import { MetricGrid } from "../../components/ui/MetricGrid";
+import { KeyValueList } from "../../components/KeyValueList";
+import { MetricGrid } from "../../components/Metrics";
 import { RagIngestionStatus } from "./RagIngestionStatus";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import { documentPipelineLabel } from "./ragEvaluationSummary";
 import { RagMetricTile as MetricTile } from "./RagMetricTile";
 import type { useRagWorkspace } from "./useRagWorkspace";

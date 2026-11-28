@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { FormGrid } from "./FormGrid";
 import { WorkspaceSplit } from "./WorkspaceSplit";
-import { MetricGrid } from "./MetricGrid";
+import { MetricGrid } from "../Metrics";
 
 function wrap(ui: React.ReactElement) {
     return render(ui);

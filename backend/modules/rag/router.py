@@ -30,10 +30,9 @@ from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 from backend.modules.rag.config import RagConfig
-from backend.modules.rag.domain import RetrievalOutcome
+from backend.modules.rag.domain import RetrievalOutcome, RetrievalRequest
 from backend.modules.rag.jobs import queue_document_indexing
 from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.retrieval_request import RetrievalRequest
 from backend.modules.rag.schemas import (
     RagAskRequest,
     RagAskResponse,

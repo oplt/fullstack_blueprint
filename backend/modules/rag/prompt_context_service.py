@@ -14,9 +14,8 @@ from backend.modules.rag.context import (
     RagContextBuilder,
     render_reference_data,
 )
-from backend.modules.rag.domain import RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.domain import RetrievalOutcome, RetrievalRequest, RetrievedChunk
 from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.retrieval_request import RetrievalRequest
 
 logger = logging.getLogger(__name__)
 PROMPT_MEMORY_RESULT_FIELDS = 3

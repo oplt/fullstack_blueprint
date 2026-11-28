@@ -1,7 +1,7 @@
 import {Button} from "@/components/ui/button";
 import {Trash2} from "lucide-react";
 import {QueryBoundary} from "../../components/ui/QueryBoundary";
-import {SectionCard} from "../../components/ui/SectionCard";
+import {SectionCard} from "../../components/Section";
 import type {MemoryItem} from "@/features/memory/api";
 import {Badge} from "@/components/ui/badge";
 

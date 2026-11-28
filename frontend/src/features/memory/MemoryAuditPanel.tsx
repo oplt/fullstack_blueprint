@@ -1,6 +1,6 @@
 import { PaginationControls } from "../../components/ui/pagination";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "../../components/Section";
 import type { useMemoryWorkspace } from "./useMemoryWorkspace";
 
 type MemoryAuditPanelProps = {
