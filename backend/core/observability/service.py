@@ -32,7 +32,7 @@ _observability_http_client: httpx.AsyncClient | None = None
 def _get_observability_http_client() -> httpx.AsyncClient:
     global _observability_http_client  # noqa: PLW0603 - process-lifetime shared client
     if _observability_http_client is None or _observability_http_client.is_closed:
-        _observability_http_client = httpx.AsyncClient(timeout=1.5, follow_redirects=True)
+        _observability_http_client = httpx.AsyncClient(timeout=1.5, follow_redirects=False)
     return _observability_http_client
 
 

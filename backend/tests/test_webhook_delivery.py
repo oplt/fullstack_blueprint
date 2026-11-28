@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from sqlalchemy.dialects import postgresql
 
-from backend.modules.platform.models import WebhookDelivery
 from backend.modules.integrations.webhook_jobs import (
     StaleWebhookAttemptError,
     WebhookDeliveryService,
     sign_webhook_payload,
     verify_webhook_signature,
 )
+from backend.modules.platform.models import WebhookDelivery
 
 
 def _delivery(**overrides) -> WebhookDelivery:

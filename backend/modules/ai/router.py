@@ -1,26 +1,26 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.config import settings
 from backend.core.db.dependencies import get_db
-from backend.modules.ai.overview import AiOverviewService
+from backend.modules.ai.document_routes import router as document_router
+from backend.modules.ai.evaluation_routes import router as evaluation_router
 from backend.modules.ai.gateway import AiModelGateway
-from backend.modules.ai.schemas import AiModuleOverviewResponse, AiProviderDescriptor
+from backend.modules.ai.overview import AiOverviewService
+from backend.modules.ai.prompt_routes import router as prompt_router
+from backend.modules.ai.review_routes import router as review_router
+from backend.modules.ai.run_routes import router as run_router
 from backend.modules.ai.schemas import (
+    AiModuleOverviewResponse,
+    AiProviderDescriptor,
     _dataset_to_response,
     _document_to_response,
     _prompt_template_to_response,
     run_to_response,
 )
+from backend.modules.ai.stream_routes import router as stream_router
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
-
-from backend.core.config import settings
-from backend.modules.ai.document_routes import router as document_router
-from backend.modules.ai.evaluation_routes import router as evaluation_router
-from backend.modules.ai.prompt_routes import router as prompt_router
-from backend.modules.ai.review_routes import router as review_router
-from backend.modules.ai.run_routes import router as run_router
-from backend.modules.ai.stream_routes import router as stream_router
 
 router = APIRouter()
 @router.get("/overview", response_model=AiModuleOverviewResponse)

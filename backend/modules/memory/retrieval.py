@@ -1,12 +1,13 @@
 from __future__ import annotations
-from datetime import UTC, datetime
+
 from dataclasses import replace
+from datetime import UTC, datetime
 from typing import Protocol
+
+from backend.modules.memory.domain import MemoryItem, MemoryLevel, MemorySearchRequest
 from backend.modules.memory.processing import MemoryConsolidator
-from backend.modules.memory.domain import MemoryItem, MemorySearchRequest
-from backend.modules.memory.domain import MemoryLevel
-from backend.modules.memory.telemetry import retrieved_memory_count
 from backend.modules.memory.provider import MEMORY_CONTEXT_HEADER
+from backend.modules.memory.telemetry import retrieved_memory_count
 
 
 def memory_recency_weight(timestamp: datetime | None) -> float:

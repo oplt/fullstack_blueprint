@@ -16,9 +16,11 @@ from typing import Any
 
 from backend.modules.rag.citations import CitationValidationService
 from backend.modules.rag.domain import RetrievedChunk
-from backend.modules.rag.ranking import HybridRetrievalRanker
-from backend.modules.rag.ranking import reciprocal_rank_fusion
-from backend.modules.rag.ranking import diversify_by_document
+from backend.modules.rag.ranking import (
+    HybridRetrievalRanker,
+    diversify_by_document,
+    reciprocal_rank_fusion,
+)
 
 FIXTURES = Path(__file__).with_name("fixtures") / "retrieval_qrels.json"
 REQUIRED_CATEGORIES = {

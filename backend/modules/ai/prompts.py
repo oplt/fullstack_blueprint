@@ -7,8 +7,8 @@ from typing import Any
 from fastapi import HTTPException
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT
-from backend.modules.ai.service import AiBaseService
 from backend.modules.ai.models import AiPromptTemplate, AiPromptVersion
+from backend.modules.ai.service import AiBaseService
 from backend.modules.identity.models import User
 
 PLACEHOLDER_PATTERN = re.compile(r"{{\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*}}")

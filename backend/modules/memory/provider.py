@@ -6,8 +6,7 @@ from typing import Any, Protocol
 
 from backend.modules.memory import telemetry
 from backend.modules.memory.config import MemoryConfig
-from backend.modules.memory.domain import MemoryItem, MemoryMetadata
-from backend.modules.memory.domain import MemoryLevel
+from backend.modules.memory.domain import MemoryItem, MemoryLevel, MemoryMetadata
 
 logger = logging.getLogger(__name__)
 

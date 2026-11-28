@@ -1,4 +1,4 @@
-import { ChevronDownIcon, XIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { XIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { cn } from '@/lib/utils'
 
 export function EventCalendarPrevIcon() {
@@ -18,17 +18,5 @@ const hoverIconClassName = 'text-muted-foreground group-hover:text-foreground gr
 export function EventCalendarCloseIcon() {
   return (
     <XIcon className={cn('size-(--icon-size-lg)', hoverIconClassName)} />
-  )
-}
-
-export function EventCalendarExpanderIcon(props: { isExpanded: boolean }) {
-  return (
-    <ChevronDownIcon
-      className={cn(
-        'size-(--icon-size-md) m-px',
-        hoverIconClassName,
-        !props.isExpanded && '-rotate-90 [[dir=rtl]_&]:rotate-90'
-      )}
-    />
   )
 }

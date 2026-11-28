@@ -16,7 +16,7 @@ from backend.core.vectors import can_index_embedding
 from backend.modules.rag import telemetry as metrics
 from backend.modules.rag.config import RagConfig
 from backend.modules.rag.context import expand_parent_chunks, select_context_chunks
-from backend.modules.rag.contracts import build_reranker
+from backend.modules.rag.contracts import RerankerPort, build_reranker
 from backend.modules.rag.domain import (
     RetrievalCoverage,
     RetrievalIntent,
@@ -25,7 +25,7 @@ from backend.modules.rag.domain import (
     RetrievedChunk,
 )
 from backend.modules.rag.embeddings import EmbeddingService
-from backend.modules.rag.filters import exclude_injection_flagged_chunks
+from backend.modules.rag.filters import RetrievalMetadataFilter, exclude_injection_flagged_chunks
 from backend.modules.rag.provenance import (
     StaleEvidenceRevisionError,
     assert_chunks_match_revision_allow_list,
@@ -45,7 +45,7 @@ from backend.modules.rag.ranking import (
 )
 from backend.modules.rag.repository import RagRepository
 from backend.modules.rag.retrieval_cache import get_cached_retrieval, set_cached_retrieval
-from backend.modules.rag.retrieval_planner import plan_retrieval
+from backend.modules.rag.retrieval_planner import RetrievalProfile, plan_retrieval
 from backend.modules.rag.scope import RetrievalScope, document_ids_is_empty_allow_list
 from backend.modules.rag.search_repository import RagSearchRepository
 from backend.modules.rag.telemetry import RagTraceContext, traced
@@ -98,11 +98,11 @@ class RetrievalCacheInputs:
     intent: str
     retrieval_mode: str
     index_revision_ids: list[str] | None
-    metadata: object | None
+    metadata: RetrievalMetadataFilter | None
     evidence_revision_hash: str | None
-    plan: object
+    plan: RetrievalProfile
     config: RagConfig
-    ranker: object
+    ranker: RerankerPort
     parent_context_enabled: bool
 
 

@@ -8,6 +8,9 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
+from backend.modules.identity.dependencies import get_current_user
+from backend.modules.identity.models import User
+from backend.modules.integrations.webhooks import WebhookService
 from backend.modules.platform.schemas import (
     WebhookEndpointCreate,
     WebhookEndpointCreateResponse,
@@ -15,9 +18,6 @@ from backend.modules.platform.schemas import (
     WebhookEndpointUpdate,
     WebhookTestResponse,
 )
-from backend.modules.identity.dependencies import get_current_user
-from backend.modules.identity.models import User
-from backend.modules.integrations.webhooks import WebhookService
 
 router = APIRouter()
 

@@ -9,8 +9,8 @@ from typing import Any
 from fastapi import HTTPException
 
 from backend.core.config import settings
-from backend.core.prompt_context import RAG_UNTRUSTED_CONTEXT_RULE, render_reference_data
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
+from backend.core.prompt_context import RAG_UNTRUSTED_CONTEXT_RULE, render_reference_data
 from backend.modules.ai import metrics
 from backend.modules.ai.contracts import AiMessage, AiMessageRole, AiProviderRequest
 from backend.modules.ai.document_service import AiDocumentService

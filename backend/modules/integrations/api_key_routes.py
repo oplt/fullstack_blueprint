@@ -8,15 +8,15 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
+from backend.modules.identity.dependencies import get_current_user
+from backend.modules.identity.models import User
+from backend.modules.integrations.api_keys import ApiKeyService
 from backend.modules.platform.schemas import (
     ApiKeyCreateRequest,
     ApiKeyCreateResponse,
     ApiKeyResponse,
     ApiKeyRotateRequest,
 )
-from backend.modules.identity.dependencies import get_current_user
-from backend.modules.identity.models import User
-from backend.modules.integrations.api_keys import ApiKeyService
 
 router = APIRouter()
 

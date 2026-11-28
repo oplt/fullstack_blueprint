@@ -7,11 +7,9 @@ import pytest
 
 from backend.modules.rag.cohere_reranker import CohereReranker
 from backend.modules.rag.context import select_context_chunks
-from backend.modules.rag.domain import RetrievedChunk
-from backend.modules.rag.domain import RetrievalIntent
-from backend.modules.rag.ranking import apply_rerank_policy
+from backend.modules.rag.domain import RetrievalIntent, RetrievedChunk
+from backend.modules.rag.ranking import apply_rerank_policy, diversify_by_document
 from backend.modules.rag.retrieval_planner import plan_retrieval
-from backend.modules.rag.ranking import diversify_by_document
 
 
 def _chunk(chunk_id: str, *, document: str = "doc", score: float = 0.5) -> RetrievedChunk:

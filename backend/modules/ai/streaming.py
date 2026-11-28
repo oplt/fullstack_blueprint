@@ -1,8 +1,14 @@
 from __future__ import annotations
+
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
+from hashlib import sha256
 from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.config import settings
 from backend.modules.ai.contracts import (
     AiHeartbeatEvent,
@@ -14,15 +20,11 @@ from backend.modules.ai.contracts import (
     AiUsage,
 )
 from backend.modules.ai.errors import AiErrorKind, AiProviderError
-from backend.modules.ai.providers import BaseAiProvider
-from datetime import UTC, datetime
-from hashlib import sha256
-from sqlalchemy.ext.asyncio import AsyncSession
 from backend.modules.ai.models import AiRun
+from backend.modules.ai.providers import BaseAiProvider
 from backend.modules.ai.repository import AiRepository
 from backend.modules.ai.routing import ModelRegistry, estimate_cost_micros
 from backend.modules.identity.models import User
-
 
 AI_STREAM_PROTOCOL_VERSION = "1"
 MAX_AI_STREAM_EVENT_BYTES = 64 * 1024

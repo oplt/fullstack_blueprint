@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, call
 
 import pytest
 
-from backend.modules.rag.domain import RetrievedChunk
 from backend.modules.rag.context import expand_parent_chunks
+from backend.modules.rag.domain import RetrievedChunk
 
 
 @pytest.mark.asyncio

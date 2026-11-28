@@ -2,11 +2,11 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from backend.modules.agents.service import AgentService
 from backend.modules.agents.context import (
     AgentPromptContext,
     AgentPromptContextBuilder,
 )
+from backend.modules.agents.service import AgentService
 from backend.modules.rag.domain import RetrievedChunk
 from backend.modules.rag.prompt_context_service import PromptContextOutcome
 

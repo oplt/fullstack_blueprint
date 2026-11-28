@@ -1,8 +1,8 @@
 from unittest import TestCase
 from unittest.mock import patch
 
-from backend.core.config import settings
 from backend.api.router import build_api_router
+from backend.core.config import settings
 
 
 def _paths(config) -> set[str]:

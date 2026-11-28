@@ -17,8 +17,9 @@ from backend.modules.ai.schemas import (
     AiEvaluationDatasetUpdate,
     AiEvaluationRunRequest,
     AiEvaluationRunResponse,
+    _dataset_case_to_response,
+    _dataset_to_response,
 )
-from backend.modules.ai.schemas import _dataset_case_to_response, _dataset_to_response
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 

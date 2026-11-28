@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 import re
 from dataclasses import dataclass
-from backend.modules.memory.domain import MemoryLevel, MemorySource, MemoryType
-from backend.modules.memory.policies import contains_secret, is_ephemeral_statement
-from backend.modules.memory.domain import MemoryItem
 
+from backend.modules.memory.domain import MemoryItem, MemoryLevel, MemorySource, MemoryType
+from backend.modules.memory.policies import contains_secret, is_ephemeral_statement
 
 TASK_STATE_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"(?i)\b(current(ly)?|working on|in progress|next step|todo|task)\b"),

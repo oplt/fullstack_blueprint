@@ -4,13 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.audit import log_request_audit_event
 from backend.core.db.dependencies import get_db
 from backend.modules.admin.dependencies import get_admin_user
+from backend.modules.identity.models import User
+from backend.modules.notifications.templates import EmailTemplateService
 from backend.modules.platform.schemas import (
     EmailTemplateCreate,
     EmailTemplateResponse,
     EmailTemplateUpdate,
 )
-from backend.modules.identity.models import User
-from backend.modules.notifications.templates import EmailTemplateService
 
 router = APIRouter()
 

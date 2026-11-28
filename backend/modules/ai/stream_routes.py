@@ -22,8 +22,7 @@ from backend.modules.ai.gateway import AiModelGateway
 from backend.modules.ai.providers import AiProviderRegistry
 from backend.modules.ai.routing import RoutingPolicy
 from backend.modules.ai.schemas import AiStreamRequest
-from backend.modules.ai.streaming import AiStreamService
-from backend.modules.ai.streaming import sse_encode
+from backend.modules.ai.streaming import AiStreamService, sse_encode
 from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
 

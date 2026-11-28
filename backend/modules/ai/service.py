@@ -1,12 +1,15 @@
 from __future__ import annotations
-from sqlalchemy.ext.asyncio import AsyncSession
-from backend.modules.ai.gateway import AiModelGateway
-from backend.modules.ai.repository import AiRepository
+
 from typing import Any
+
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.config import settings
 from backend.modules.ai.contracts import AiProviderRequest, AiProviderResponse, AiUsage
 from backend.modules.ai.errors import AiErrorKind, AiProviderError
+from backend.modules.ai.gateway import AiModelGateway
+from backend.modules.ai.repository import AiRepository
 
 
 class AiBaseService:

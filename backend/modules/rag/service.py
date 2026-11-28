@@ -265,5 +265,12 @@ class RagAiRetrieval:
                     document_ids: list[str] | None, top_k: int):
         from backend.modules.rag.prompt_context_service import PromptContextService  # noqa: PLC0415 - optional context builder
 
-        return await PromptContextService(self.db).build(query=query, user_id=user_id, agent_id=agent_id,
-            run_id=run_id, project_id=project_id, document_ids=document_ids, top_k=top_k)
+        return await PromptContextService(self.db).build(
+            query=query,
+            user_id=user_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            project_id=project_id,
+            document_ids=document_ids,
+            top_k=top_k,
+        )

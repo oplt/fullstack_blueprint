@@ -18,35 +18,31 @@ from backend.modules.memory.cache import (
     set_cached_memory_search,
 )
 from backend.modules.memory.config import MemoryConfig
-from backend.modules.memory.processing import MemoryConsolidator
-from backend.modules.memory.retrieval import MemoryContextBuilder
-from backend.modules.memory.domain import (
-    MemoryItem,
-    MemoryMetadata,
-    MemorySearchRequest,
-    MemoryWriteResult,
-)
 from backend.modules.memory.domain import (
     AgentScope,
+    MemoryItem,
     MemoryLevel,
+    MemoryMetadata,
     MemoryOperation,
     MemoryPrivacy,
+    MemorySearchRequest,
     MemorySource,
     MemoryType,
+    MemoryWriteResult,
 )
-from backend.modules.memory.processing import MemoryExtractor
 from backend.modules.memory.governance import (
     evaluate_memory_governance,
     provenance_payload,
 )
 from backend.modules.memory.models import MemoryRegistry
 from backend.modules.memory.policies import MemoryPolicyService, session_expires_at
+from backend.modules.memory.processing import MemoryConsolidator, MemoryExtractor, MemoryRouter
 from backend.modules.memory.provider import Mem0Client
 from backend.modules.memory.repository import (
     MemoryAuditRepository,
     MemoryRegistryRepository,
 )
-from backend.modules.memory.processing import MemoryRouter
+from backend.modules.memory.retrieval import MemoryContextBuilder
 from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
 
 logger = logging.getLogger(__name__)

@@ -7,10 +7,11 @@ import pytest
 from fastapi import HTTPException
 
 from backend.modules.memory import service as memory_service_module
-from backend.modules.memory.domain import MemoryItem, MemoryMetadata
 from backend.modules.memory.domain import (
     AgentScope,
+    MemoryItem,
     MemoryLevel,
+    MemoryMetadata,
     MemoryPrivacy,
     MemoryType,
 )

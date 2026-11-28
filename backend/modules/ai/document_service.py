@@ -4,15 +4,14 @@ from collections.abc import Callable
 from importlib import import_module
 from typing import Any, Protocol
 
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi import HTTPException, UploadFile
-
 from backend.core.config import settings
+from backend.core.features import CAPABILITY_REGISTRY
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.modules.ai.service import AiBaseService
 from backend.modules.identity.models import User
-from backend.core.features import CAPABILITY_REGISTRY
 
 
 class DocumentPort(Protocol):
@@ -87,7 +86,12 @@ def configured_retrieval(db: AsyncSession) -> RetrievalCapability:
 class AiDocumentService(AiBaseService):
     """Legacy /ai/documents contract backed exclusively by RAG storage and ingestion."""
 
-    def __init__(self, db: AsyncSession, *, retrieval_factory: Callable[[AsyncSession], RetrievalCapability] = configured_retrieval):
+    def __init__(
+        self,
+        db: AsyncSession,
+        *,
+        retrieval_factory: Callable[[AsyncSession], RetrievalCapability] = configured_retrieval,
+    ):
         super().__init__(db)
         self.retrieval_factory = retrieval_factory
 

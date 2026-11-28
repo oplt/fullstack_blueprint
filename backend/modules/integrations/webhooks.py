@@ -15,10 +15,10 @@ from backend.core.safe_http import (
     safe_post,
     validate_target,
 )
-from backend.modules.platform.models import WebhookEndpoint
-from backend.modules.platform.service import PlatformConfigService
 from backend.modules.identity.models import User
 from backend.modules.integrations.webhook_jobs import sign_webhook_payload
+from backend.modules.platform.models import WebhookEndpoint
+from backend.modules.platform.service import PlatformConfigService
 
 logger = logging.getLogger(__name__)
 

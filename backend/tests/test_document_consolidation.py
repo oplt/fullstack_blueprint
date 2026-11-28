@@ -4,8 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from backend.modules.ai.document_service import AiDocumentService
-from backend.modules.rag.domain import RetrievalOutcome, RetrievedChunk
-from backend.modules.rag.domain import DocumentStatus
+from backend.modules.rag.domain import DocumentStatus, RetrievalOutcome, RetrievedChunk
 from backend.modules.rag.service import (
     AiDocumentView,
     RagDocumentService,
@@ -61,7 +60,10 @@ class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
                 1,
             )
         )
-        service = AiDocumentService(self.db, retrieval_factory=lambda db: SimpleNamespace(documents=documents_port))
+        service = AiDocumentService(
+            self.db,
+            retrieval_factory=lambda _db: SimpleNamespace(documents=documents_port),
+        )
 
         documents, _ = await service.list_documents(self.user)
         self.assertEqual(documents[0].id, "doc-1")
@@ -87,7 +89,10 @@ class AiDocumentServiceDelegationTest(unittest.IsolatedAsyncioTestCase):
                 }
             ]
         )
-        service = AiDocumentService(self.db, retrieval_factory=lambda db: SimpleNamespace(documents=documents_port))
+        service = AiDocumentService(
+            self.db,
+            retrieval_factory=lambda _db: SimpleNamespace(documents=documents_port),
+        )
 
         matches = await service.retrieve_chunks(
             self.user,

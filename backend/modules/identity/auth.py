@@ -13,12 +13,12 @@ from backend.core.security import (
     hash_refresh_token,
     verify_password_async,
 )
+from backend.modules.identity.models import User
+from backend.modules.identity.repository import IdentityRepository
 from backend.modules.platform.platform_read_port import (
     PlatformReadPort,
     PlatformServiceReadPort,
 )
-from backend.modules.identity.models import User
-from backend.modules.identity.repository import IdentityRepository
 
 
 def _hash_token(token: str) -> str:
