@@ -1,9 +1,10 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from sqlalchemy import Update
+
 from backend.core.db.vector_search import store_chunk_embeddings_batch
 from backend.modules.rag.models import RagChunk
-from sqlalchemy import Update
 
 
 @pytest.mark.asyncio

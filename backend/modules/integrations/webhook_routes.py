@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.db.dependencies import get_db
 from backend.core.pagination import (
     PaginatedResponse,
     PaginationParams,
     paginated_response,
     pagination_params,
 )
-from backend.modules.identity.dependencies import get_current_user
-from backend.core.db.dependencies import get_db
-from backend.modules.identity.models import User
 from backend.modules.admin.platform.schemas import (
     WebhookEndpointCreate,
     WebhookEndpointCreateResponse,
@@ -17,6 +15,8 @@ from backend.modules.admin.platform.schemas import (
     WebhookEndpointUpdate,
     WebhookTestResponse,
 )
+from backend.modules.identity.dependencies import get_current_user
+from backend.modules.identity.models import User
 from backend.modules.integrations.webhooks import WebhookService
 
 router = APIRouter()

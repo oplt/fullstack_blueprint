@@ -1,11 +1,9 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.admin.dependencies import get_admin_user
-from backend.modules.identity.dependencies import get_current_user
-from backend.core.db.dependencies import get_db
 from backend.core.audit import log_request_audit_event
-from backend.modules.identity.models import User
+from backend.core.db.dependencies import get_db
+from backend.modules.admin.dependencies import get_admin_user
 from backend.modules.admin.feature_flags import FeatureFlagService
 from backend.modules.admin.platform.schemas import (
     EffectiveFeatureFlagResponse,
@@ -13,6 +11,8 @@ from backend.modules.admin.platform.schemas import (
     FeatureFlagResponse,
     FeatureFlagUpdate,
 )
+from backend.modules.identity.dependencies import get_current_user
+from backend.modules.identity.models import User
 
 router = APIRouter()
 

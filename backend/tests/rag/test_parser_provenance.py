@@ -2,10 +2,11 @@ import sys
 from types import ModuleType, SimpleNamespace
 
 import pytest
-from backend.modules.rag.parsing import DocumentParserService
+
 from backend.modules.rag.domain import ParsedBlock, ParsedDocument
-from backend.modules.rag.parsers.docling import DoclingParserAdapter
 from backend.modules.rag.langchain_text_splitters import split_documents
+from backend.modules.rag.parsers.docling import DoclingParserAdapter
+from backend.modules.rag.parsing import DocumentParserService
 from backend.modules.rag.provenance import normalize_parsed_documents
 
 

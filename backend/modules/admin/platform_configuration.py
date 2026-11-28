@@ -7,7 +7,6 @@ from backend.core.cache import (
     invalidate_platform_caches,
 )
 from backend.core.config import settings
-from backend.modules.capabilities import CAPABILITY_REGISTRY
 from backend.modules.admin.platform.defaults import (
     DEFAULT_EMAIL_TEMPLATES,
     DEFAULT_FEATURE_FLAGS,
@@ -30,6 +29,7 @@ from backend.modules.admin.platform.schemas import (
     PlatformMetadataResponse,
 )
 from backend.modules.admin.repository import SettingsRepository
+from backend.modules.capabilities import CAPABILITY_REGISTRY
 
 
 class PlatformConfigService:

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listProjects } from "@/features/projects/api";
 import {
     deleteMemory,
     forgetMemory,
@@ -13,22 +12,13 @@ import {
 import { queryKeys } from "../../lib/queryKeys";
 import { notify } from "../../lib/notify";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
-import { useApplicationConfiguration } from "../../lib/useConfiguration";
-import { capabilityAvailability, serverStateFromPlatformMetadata } from "../../lib/capabilities";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
+import { useProjectsQuery } from "../../lib/useProjectsQuery";
 
 const PAGE_SIZE = 20;
 export const MEMORY_LEVELS = ["working", "episodic", "semantic", "procedural"] as const;
 
 export function useMemoryWorkspace() {
     const client = useQueryClient();
-    const configuration = useApplicationConfiguration();
-    const { data: platformMetadata } = usePlatformMetadata();
-    const projectsEnabled = capabilityAvailability(
-        "projects",
-        configuration,
-        serverStateFromPlatformMetadata(platformMetadata),
-    ).available;
     const [projectId, setProjectId] = useState("");
     const [agentId, setAgentId] = useState("default");
     const [memoryLevel, setMemoryLevel] = useState("");
@@ -41,11 +31,7 @@ export function useMemoryWorkspace() {
     const [auditOffset, setAuditOffset] = useState(0);
     const [auditOpen, setAuditOpen] = useState(false);
 
-    const projectsQuery = useQuery({
-        queryKey: queryKeys.projects.all,
-        queryFn: ({ signal }) => listProjects({ signal }),
-        enabled: projectsEnabled,
-    });
+    const { enabled: projectsEnabled, query: projectsQuery } = useProjectsQuery();
     const listParams = useMemo(() => ({
         memoryLevel: memoryLevel || undefined,
         projectId: projectId || undefined,

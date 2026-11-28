@@ -9,10 +9,10 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from backend.modules.rag.context import citation_text
-from backend.modules.rag.policies import RagPolicyService
 from backend.modules.rag.citation_validation_context import CitationValidationContext
+from backend.modules.rag.context import citation_text
 from backend.modules.rag.domain import Citation, ClaimCitation, RetrievedChunk
+from backend.modules.rag.policies import RagPolicyService
 
 _JSON_FENCE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)
 

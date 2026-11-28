@@ -12,10 +12,10 @@ from backend.modules.ai import metrics
 from backend.modules.ai.context import AgentPromptContextBuilder
 from backend.modules.ai.runs import AiRunService
 from backend.modules.identity.models import User
-from backend.modules.memory.service import MemoryService
-from backend.modules.memory.domain import WorkingMemoryContext
 from backend.modules.memory.config import MemoryConfig
+from backend.modules.memory.domain import WorkingMemoryContext
 from backend.modules.memory.jobs import queue_turn_memory_extraction
+from backend.modules.memory.service import MemoryService
 
 logger = logging.getLogger(__name__)
 

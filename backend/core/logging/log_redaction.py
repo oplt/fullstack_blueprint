@@ -9,12 +9,11 @@ from urllib.parse import urlsplit, urlunsplit
 
 def redact_message(message: str) -> str:
     redacted = re.sub(r"(?i)\bbearer\s+\S+", "Bearer [REDACTED]", message)
-    redacted = re.sub(
+    return re.sub(
         r"(?i)(password|secret|token|api[_-]?key|authorization)\s*[:=]\s*\S+",
         r"\1=[REDACTED]",
         redacted,
     )
-    return redacted
 
 
 def redact_url(url: str) -> str:

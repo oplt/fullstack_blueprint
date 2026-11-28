@@ -4,6 +4,7 @@
  */
 
 import type { AgentRun } from "@/features/agents/api";
+import { formatRunDurationMs } from "@/components/ui/runStatusModel";
 
 type AgentTraceCategory = "plan" | "tool" | "result" | "error" | "meta";
 
@@ -126,10 +127,5 @@ export function agentRunElapsedMs(run: AgentRun): number | null {
 }
 
 export function formatElapsed(ms: number): string {
-    if (ms < 1000) return `${ms} ms`;
-    const seconds = ms / 1000;
-    if (seconds < 60) return `${seconds.toFixed(1)} s`;
-    const minutes = Math.floor(seconds / 60);
-    const rem = Math.round(seconds % 60);
-    return `${minutes}m ${rem}s`;
+    return formatRunDurationMs(ms);
 }

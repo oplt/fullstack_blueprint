@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from backend.modules.events.domain import DomainEvent
 from backend.modules.events.models import OutboxEvent
 from backend.modules.events.repository import OutboxRepository

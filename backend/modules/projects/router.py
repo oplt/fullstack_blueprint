@@ -3,6 +3,7 @@ from typing import cast
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.db.dependencies import get_db
 from backend.core.pagination import (
     PaginatedResponse,
     PaginationParams,
@@ -10,7 +11,6 @@ from backend.core.pagination import (
     pagination_params,
 )
 from backend.modules.identity.dependencies import get_current_user
-from backend.core.db.dependencies import get_db
 from backend.modules.identity.models import User
 from backend.modules.projects.models import Project, ProjectTask
 from backend.modules.projects.schemas import (

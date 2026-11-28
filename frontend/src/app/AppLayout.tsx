@@ -20,6 +20,7 @@ import { LanguageSelector } from "../components/ui/LanguageSelector";
 import { Button } from "../components/ui/button";
 import { Sheet, SheetContent } from "../components/ui/sheet";
 import { SkipToContentLink } from "../components/ui/SkipToContentLink";
+import { RouteErrorBoundary } from "./RouteErrorBoundary";
 import { getConfiguredNavigation } from "../lib/configuration";
 import { serverStateFromPlatformMetadata, visibleNavigation } from "../lib/capabilities";
 import { useApplicationConfiguration } from "../lib/useConfiguration";
@@ -83,7 +84,7 @@ export function AppLayout() {
       <aside className="ui-app-sidebar"><WorkspaceSidebar {...sidebarProps} collapsed={collapsed} /></aside>
       <div className="ui-app-workspace">
         <header className="ui-app-header">
-          {isMobile && <MobileNavigation key={`navigation-${location.key}`} {...sidebarProps} />}
+          {isMobile && <MobileNavigation {...sidebarProps} />}
           <Button variant="ghost" size="icon-sm" className="hidden md:block" aria-label={t(collapsed ? "navigation.expandSidebar" : "navigation.collapseSidebar")} onClick={() => setCollapsed(value => !value)}>
             {collapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
           </Button>
@@ -94,13 +95,13 @@ export function AppLayout() {
             </nav>
             <ShellPageTitle pathname={location.pathname} title={navigation.title} />
           </div>
-          <PageSearch key={`search-${location.key}`} pages={navigation.commands} />
+          <PageSearch pages={navigation.commands} />
           <OptionalNotificationMenu enabled={notificationsEnabled} />
           <ProfileMenu signOut={signOut} />
           <LanguageSelector compact />
           <ThemeSelector />
         </header>
-        <main id="main-content" tabIndex={-1} className={layoutContentClass(layoutVariantForPath(location.pathname, applicationConfiguration.layoutVariants))}><Outlet /></main>
+        <main id="main-content" tabIndex={-1} className={layoutContentClass(layoutVariantForPath(location.pathname, applicationConfiguration.layoutVariants))}><RouteErrorBoundary key={location.key}><Outlet /></RouteErrorBoundary></main>
       </div>
     </div>;
 }

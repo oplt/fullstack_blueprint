@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from time import perf_counter
 
-from backend.modules.rag.embedding_cache import embed_texts_with_cache
-from backend.modules.rag.telemetry import traced
 from backend.modules.rag import metrics
-from backend.modules.rag.embedding_provider import LangChainEmbeddingAdapter
 from backend.modules.rag.config import RagConfig
+from backend.modules.rag.embedding_cache import embed_texts_with_cache
+from backend.modules.rag.embedding_provider import LangChainEmbeddingAdapter
+from backend.modules.rag.telemetry import traced
 
 
 class EmbeddingService:

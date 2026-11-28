@@ -141,7 +141,7 @@ allowed-confusables = ["ı"]
 # This benchmark uses seeded pseudo-random vectors to make runs reproducible.
 "tests/rag/live_benchmark.py" = ["S311"]
 # These are fake unusable hashes in one auth test fixture, not credentials.
-"modules/ai/tests/test_rag_answer_run.py" = ["S106"]
+"tests/test_rag_answer_run.py" = ["S106"]
 
 [dependency-groups]
 dev = [

@@ -6,12 +6,12 @@ from datetime import UTC, datetime
 from fastapi import HTTPException
 from sqlalchemy import select
 
+from backend.core.audit import AuditRepository
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.core.rate_limit import check_rate_limit
-from backend.core.audit import AuditRepository
-from backend.modules.identity.models import User
-from backend.modules.admin.platform_configuration import PlatformConfigService
 from backend.modules.admin.platform.models import ApiKey
+from backend.modules.admin.platform_configuration import PlatformConfigService
+from backend.modules.identity.models import User
 
 
 class ApiKeyService(PlatformConfigService):

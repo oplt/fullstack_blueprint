@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+
 from backend.modules.ai.errors import AiProviderError
 from backend.modules.ai.providers import LocalHeuristicProvider
 from backend.modules.ai.schemas import AiStreamRequest

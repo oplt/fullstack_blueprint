@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { useAuth } from "../features/identity/useAuth";
 import { usePlatformMetadata } from "../lib/usePlatformMetadata";
 import AuthHomePage from "../features/identity/AuthHomePage";
-import { RouteErrorBoundary } from "./RouteErrorBoundary";
 import { ROUTES } from "../lib/routes";
 import { capabilityAvailability, serverStateFromPlatformMetadata } from "../lib/capabilities";
 import { useApplicationConfiguration } from "../lib/useConfiguration";
@@ -57,11 +56,6 @@ function SuspensePage({ children }: { children: React.ReactNode }) {
     return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
 }
 
-function RoutedErrorBoundary({ children }: { children: React.ReactNode }) {
-    const location = useLocation();
-    return <RouteErrorBoundary key={location.key}>{children}</RouteErrorBoundary>;
-}
-
 function NotFoundPage() {
     return (
         <div className="flex gap-ui-md items-center p-8" >
@@ -97,11 +91,15 @@ function FeaturePage({ feature, capability, children }: { feature: string; capab
 function AdminPage({
     isReady,
     isAuthenticated,
+    authStatus,
+    retryAuth,
     isAdmin,
     children,
 }: {
     isReady: boolean;
     isAuthenticated: boolean;
+    authStatus: "initializing" | "authenticated" | "anonymous" | "unavailable";
+    retryAuth: () => Promise<unknown>;
     isAdmin: boolean;
     children: React.ReactNode;
 }) {
@@ -110,6 +108,8 @@ function AdminPage({
             <ProtectedRoute
                 isReady={isReady}
                 isAuthenticated={isAuthenticated}
+                authStatus={authStatus}
+                retryAuth={retryAuth}
                 isAdmin={isAdmin}
                 requireAdmin
             >
@@ -120,19 +120,18 @@ function AdminPage({
 }
 
 export function AppRouter() {
-    const { isReady, isAuthenticated, isAdmin } = useAuth();
+    const { isReady, isAuthenticated, authStatus, retryAuth, isAdmin } = useAuth();
 
     return (
         <BrowserRouter>
-            <RoutedErrorBoundary>
-                <Routes>
+            <Routes>
                 <Route path={ROUTES.home} element={<AuthHomePage />} />
                 <Route path={ROUTES.resetPassword} element={<SuspensePage><ResetPasswordPage /></SuspensePage>} />
                 <Route path={ROUTES.verifyEmail} element={<SuspensePage><VerifyEmailPage /></SuspensePage>} />
 
                 <Route
                     element={
-                        <ProtectedRoute isReady={isReady} isAuthenticated={isAuthenticated}>
+                        <ProtectedRoute isReady={isReady} isAuthenticated={isAuthenticated} authStatus={authStatus} retryAuth={retryAuth}>
                             <Suspense fallback={<PageLoader />}>
                                 <AppLayout />
                             </Suspense>
@@ -157,6 +156,8 @@ export function AppRouter() {
                             <AdminPage
                                 isReady={isReady}
                                 isAuthenticated={isAuthenticated}
+                                authStatus={authStatus}
+                                retryAuth={retryAuth}
                                 isAdmin={isAdmin}
                             >
                                 <SuspensePage><AdminUsersPage /></SuspensePage>
@@ -169,6 +170,8 @@ export function AppRouter() {
                             <AdminPage
                                 isReady={isReady}
                                 isAuthenticated={isAuthenticated}
+                                authStatus={authStatus}
+                                retryAuth={retryAuth}
                                 isAdmin={isAdmin}
                             >
                                 <SuspensePage><AdminPlatformPage /></SuspensePage>
@@ -181,6 +184,8 @@ export function AppRouter() {
                             <AdminPage
                                 isReady={isReady}
                                 isAuthenticated={isAuthenticated}
+                                authStatus={authStatus}
+                                retryAuth={retryAuth}
                                 isAdmin={isAdmin}
                             >
                                 <SuspensePage><AdminSettingsPage /></SuspensePage>
@@ -191,8 +196,7 @@ export function AppRouter() {
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-            </RoutedErrorBoundary>
+            </Routes>
         </BrowserRouter>
     );
 }

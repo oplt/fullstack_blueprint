@@ -76,4 +76,4 @@ def __getattr__(name: str) -> Any:
     return value
 
 
-__all__ = sorted(_EXPORTS)
+__all__ = tuple(sorted(_EXPORTS))

@@ -118,7 +118,8 @@ class SettingsConfigService:
         def validate_and_normalize(current: dict[str, str]) -> dict[str, str]:
             merged = settings.model_dump()
             merged.update({key: value for key, value in current.items() if key in merged})
-            for key, value in raw_updates.items():
+            for key, raw_value in raw_updates.items():
+                value = raw_value
                 if cls._is_secret_key(key) and value == REDACTED_SECRET:
                     value = current.get(key, cls._serialize_value(getattr(settings, key, "")))
                 merged[key] = value

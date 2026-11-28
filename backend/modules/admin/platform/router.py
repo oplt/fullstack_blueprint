@@ -1,18 +1,18 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.identity.dependencies import get_current_user
 from backend.core.db.dependencies import get_db
-from backend.modules.identity.models import User
-from backend.modules.admin.platform_configuration import PlatformConfigService
-from backend.modules.admin.billing.entitlements import EntitlementService
-from backend.modules.admin.billing import router as billing_router
 from backend.modules.admin import config_routes as config_router
 from backend.modules.admin import feature_routes as feature_flag_router
+from backend.modules.admin.billing import router as billing_router
+from backend.modules.admin.billing.entitlements import EntitlementService
+from backend.modules.admin.platform.schemas import EntitlementResponse
+from backend.modules.admin.platform_configuration import PlatformConfigService
+from backend.modules.identity.dependencies import get_current_user
+from backend.modules.identity.models import User
 from backend.modules.integrations import api_key_routes as api_key_router
 from backend.modules.integrations import webhook_routes as webhook_router
 from backend.modules.notifications import template_routes as email_template_router
-from backend.modules.admin.platform.schemas import EntitlementResponse
 
 router = APIRouter()
 router.include_router(config_router.router)

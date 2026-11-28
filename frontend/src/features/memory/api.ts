@@ -1,4 +1,4 @@
-import { apiFetch, type ApiRequestOptions, type Paginated } from "@/lib/api";
+import { apiFetch, paginationParams, type ApiRequestOptions, type Paginated } from "@/lib/api";
 
 const BASE = "/memory";
 
@@ -50,12 +50,10 @@ export async function listMemories(options: {
     offset?: number;
     signal?: AbortSignal;
 } = {}): Promise<Paginated<MemoryItem>> {
-    const search = new URLSearchParams();
+    const search = paginationParams(options);
     if (options.memoryLevel) search.set("memory_level", options.memoryLevel);
     if (options.projectId) search.set("project_id", options.projectId);
     if (options.agentId) search.set("agent_id", options.agentId);
-    search.set("limit", String(options.limit ?? 20));
-    search.set("offset", String(options.offset ?? 0));
     return apiFetch(`${BASE}?${search}`, { signal: options.signal });
 }
 
@@ -97,9 +95,7 @@ export async function listMemoryAuditLogs(options: {
     offset?: number;
     signal?: AbortSignal;
 } = {}): Promise<Paginated<MemoryAuditLog>> {
-    const search = new URLSearchParams();
-    search.set("limit", String(options.limit ?? 20));
-    search.set("offset", String(options.offset ?? 0));
+    const search = paginationParams(options);
     return apiFetch(`${BASE}/audit?${search}`, { signal: options.signal });
 }
 

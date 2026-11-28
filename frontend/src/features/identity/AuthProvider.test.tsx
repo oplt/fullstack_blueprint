@@ -15,7 +15,7 @@ vi.mock("@/features/identity/authApi", () => ({
 
 function AuthProbe() {
     const auth = useAuth();
-    return <button type="button" onClick={() => void auth.logout().catch(() => undefined)}>{auth.isAuthenticated ? "signed-in" : "signed-out"}</button>;
+    return <><span data-testid="auth-status">{auth.authStatus}</span><button type="button" onClick={() => void auth.logout().catch(() => undefined)}>{auth.isAuthenticated ? "signed-in" : "signed-out"}</button></>;
 }
 
 describe("AuthProvider", () => {
@@ -58,6 +58,7 @@ describe("AuthProvider", () => {
         await waitFor(() => expect(queryClient.getQueryState(queryKeys.auth.me)?.status).toBe("error"));
         expect(queryClient.getQueryData(queryKeys.auth.me)).toBeUndefined();
         expect(me).toHaveBeenCalledOnce();
+        expect(screen.getByTestId("auth-status")).toHaveTextContent("unavailable");
     });
 
     it.each(["succeeds", "fails"])("clears identity-scoped queries when logout %s", async outcome => {

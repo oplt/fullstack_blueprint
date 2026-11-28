@@ -6,10 +6,10 @@ from uuid import uuid4
 
 from backend.core.vectors import estimate_tokens
 from backend.modules.rag.chunk_policy import resolve_chunk_policy
-from backend.modules.rag.domain import DocumentChunk, ParsedDocument
 from backend.modules.rag.chunk_tokenizers import resolve_token_counter
-from backend.modules.rag.langchain_text_splitters import CHUNKER_VERSION, iter_chunks
 from backend.modules.rag.config import RagConfig
+from backend.modules.rag.domain import DocumentChunk, ParsedDocument
+from backend.modules.rag.langchain_text_splitters import CHUNKER_VERSION, iter_chunks
 
 MIN_PARENT_WINDOW_SIZE = 2
 

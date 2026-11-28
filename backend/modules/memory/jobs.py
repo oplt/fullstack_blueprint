@@ -11,9 +11,28 @@ from backend.workers.async_dispatch import (
 )
 
 logger = logging.getLogger(__name__)
+_TURN_EXTRACTION_LEASE_SECONDS = 15 * 60
 
 
-def extract_turn_memories_sync(
+async def _claim_turn_extraction(redis_client, completion_key: str) -> tuple[bool, str | None]:
+    """Claim one extraction while allowing crashed workers to recover by expiry."""
+    try:
+        if await redis_client.get(completion_key):
+            return False, None
+        lock_key = f"{completion_key}:lease"
+        claimed = await redis_client.set(
+            lock_key,
+            "1",
+            ex=_TURN_EXTRACTION_LEASE_SECONDS,
+            nx=True,
+        )
+        return bool(claimed), lock_key if claimed else None
+    except Exception:
+        logger.warning("Memory extraction idempotency cache unavailable", exc_info=True)
+        return True, None
+
+
+def extract_turn_memories_sync(  # noqa: PLR0913 - mirrors the stable Celery payload
     *,
     user_id: str,
     agent_id: str,
@@ -23,34 +42,38 @@ def extract_turn_memories_sync(
     assistant_message: str,
     source_message_id: str,
 ) -> None:
-    from backend.core.db.session import SessionLocal
-    from backend.modules.memory.service import MemoryService
+    from backend.core.db.session import SessionLocal  # noqa: PLC0415 - worker-only import
+    from backend.modules.memory.service import MemoryService  # noqa: PLC0415 - worker-only import
 
     async def _run() -> None:
         completion_key = f"memory:turn-extraction:complete:{source_message_id}"
+        redis_client = get_redis_client()
+        claimed, lease_key = await _claim_turn_extraction(redis_client, completion_key)
+        if not claimed:
+            logger.info("Memory extraction already claimed source_message=%s", source_message_id)
+            return
         try:
-            if await get_redis_client().get(completion_key):
-                logger.info(
-                    "Memory extraction already complete source_message=%s", source_message_id
+            async with SessionLocal() as db:
+                service = MemoryService(db)
+                await service.process_turn_memories(
+                    user_id=user_id,
+                    agent_id=agent_id,
+                    run_id=run_id,
+                    project_id=project_id,
+                    user_message=user_message,
+                    assistant_message=assistant_message,
+                    source_message_id=source_message_id,
                 )
-                return
-        except Exception:
-            logger.warning("Memory extraction idempotency cache unavailable", exc_info=True)
-        async with SessionLocal() as db:
-            service = MemoryService(db)
-            await service.process_turn_memories(
-                user_id=user_id,
-                agent_id=agent_id,
-                run_id=run_id,
-                project_id=project_id,
-                user_message=user_message,
-                assistant_message=assistant_message,
-                source_message_id=source_message_id,
-            )
-        try:
-            await get_redis_client().set(completion_key, "1", ex=30 * 24 * 60 * 60)
-        except Exception:
-            logger.warning("Memory extraction completion cache unavailable", exc_info=True)
+            try:
+                await redis_client.set(completion_key, "1", ex=30 * 24 * 60 * 60)
+            except Exception:
+                logger.warning("Memory extraction completion cache unavailable", exc_info=True)
+        finally:
+            if lease_key is not None:
+                try:
+                    await redis_client.delete(lease_key)
+                except Exception:
+                    logger.warning("Memory extraction lease cleanup failed", exc_info=True)
 
     run_async_in_sync_context(_run())
 

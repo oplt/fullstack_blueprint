@@ -1,12 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.admin.dependencies import get_admin_user
-from backend.modules.identity.dependencies import get_current_user
-from backend.core.db.dependencies import get_db
 from backend.core.audit.request_logging import log_request_audit_event
-from backend.modules.identity.models import User
+from backend.core.db.dependencies import get_db
 from backend.modules.admin.billing.service import BillingService
+from backend.modules.admin.dependencies import get_admin_user
 from backend.modules.admin.platform.schemas import (
     SubscriptionPlanCreate,
     SubscriptionPlanResponse,
@@ -14,6 +12,8 @@ from backend.modules.admin.platform.schemas import (
     SubscriptionSelectionRequest,
     UserSubscriptionResponse,
 )
+from backend.modules.identity.dependencies import get_current_user
+from backend.modules.identity.models import User
 
 router = APIRouter()
 

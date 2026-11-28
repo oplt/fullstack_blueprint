@@ -13,12 +13,12 @@ from uuid import uuid4
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.modules.identity.models import User
-from backend.modules.rag.ingestion import DocumentIngestionService
 from backend.modules.rag.answers import RagAnswerService
+from backend.modules.rag.config import RagConfig
+from backend.modules.rag.ingestion import DocumentIngestionService
 from backend.modules.rag.retrieval import RetrievalService
 from backend.tests.rag.end_to_end_eval import load_end_to_end_qrels, run_end_to_end_benchmark
 from backend.tests.rag.fixture_ingestion import ingest_fixture_corpus
-from backend.modules.rag.infrastructure.rag_config import RagConfig
 
 
 async def run(report_path: Path, *, generate: bool) -> dict:

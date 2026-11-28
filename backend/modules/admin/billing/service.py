@@ -2,9 +2,9 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
 
-from backend.modules.identity.models import User
-from backend.modules.admin.platform_configuration import PlatformConfigService
 from backend.modules.admin.platform.models import SubscriptionPlan, UserSubscription
+from backend.modules.admin.platform_configuration import PlatformConfigService
+from backend.modules.identity.models import User
 
 
 class BillingService(PlatformConfigService):

@@ -399,8 +399,8 @@ class EnhancedPdfParser:
                         page_number=index,
                     )
                 )
-            for table in tables:
-                docs.append(
+            docs.extend(
+                [
                     ParsedDocument(
                         content=json.dumps(
                             {
@@ -423,7 +423,9 @@ class EnhancedPdfParser:
                         },
                         page_number=index,
                     )
-                )
+                    for table in tables
+                ]
+            )
         if not docs:
             raise RuntimeError("enhanced PDF parser returned no text")
         return docs

@@ -4,11 +4,11 @@ import asyncio
 import hashlib
 import logging
 
+from backend.modules.rag.config import RagConfig
 from backend.modules.rag.domain import ParsedDocument
 from backend.modules.rag.parsers.docling import DoclingParserAdapter
 from backend.modules.rag.parsers.loaders import parse_documents_from_bytes
 from backend.modules.rag.provenance import normalize_parsed_documents
-from backend.modules.rag.config import RagConfig
 
 logger = logging.getLogger(__name__)
 

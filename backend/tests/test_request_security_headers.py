@@ -2,10 +2,11 @@ from uuid import UUID
 
 import httpx
 import pytest
+from fastapi import FastAPI, Request
+
 from backend.core.middleware.correlation_id import CorrelationIdMiddleware
 from backend.core.middleware.public_rate_limit import PublicRateLimitMiddleware
 from backend.core.middleware.security_headers import SecurityHeadersMiddleware
-from fastapi import FastAPI, Request
 
 
 def _app() -> FastAPI:

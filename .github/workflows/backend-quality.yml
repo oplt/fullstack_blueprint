@@ -139,6 +139,7 @@ jobs:
             --cov=backend \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
+            --cov-fail-under=80 \
             --junitxml=test-results.xml
 
       - name: Upload backend reports

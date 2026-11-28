@@ -10,14 +10,14 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
-from backend.modules.rag.ingestion import DocumentIngestionService
-from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.enums import DocumentStatus
-from backend.modules.rag.retrieval_request import RetrievalRequest
-from backend.modules.rag.models import RagDocument
 from backend.modules.rag.config import RagConfig
-from backend.modules.rag.repository import RagRepository
+from backend.modules.rag.enums import DocumentStatus
+from backend.modules.rag.ingestion import DocumentIngestionService
 from backend.modules.rag.jobs import queue_document_indexing
+from backend.modules.rag.models import RagDocument
+from backend.modules.rag.repository import RagRepository
+from backend.modules.rag.retrieval import RetrievalService
+from backend.modules.rag.retrieval_request import RetrievalRequest
 
 _SAFE_FILENAME = re.compile(r"[^\w.\-]+", re.UNICODE)
 

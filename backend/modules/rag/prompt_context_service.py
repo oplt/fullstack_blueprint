@@ -6,17 +6,17 @@ from dataclasses import dataclass, field
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.memory.service import MemoryService
-from backend.modules.memory.domain import MemoryItem, MemorySearchRequest
 from backend.modules.memory.config import MemoryConfig
+from backend.modules.memory.domain import MemoryItem, MemorySearchRequest
+from backend.modules.memory.service import MemoryService
+from backend.modules.rag.config import RagConfig
 from backend.modules.rag.context import (
     RagContextBuilder,
     render_reference_data,
 )
-from backend.modules.rag.retrieval import RetrievalService
 from backend.modules.rag.domain import RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.retrieval import RetrievalService
 from backend.modules.rag.retrieval_request import RetrievalRequest
-from backend.modules.rag.config import RagConfig
 
 logger = logging.getLogger(__name__)
 PROMPT_MEMORY_RESULT_FIELDS = 3

@@ -74,6 +74,7 @@ const arbitraryClassExceptions = new Set();
 const nativeElementExceptions = new Map([["components/ui/native-select.tsx", new Set(["select"])], ["components/ui/textarea.tsx", new Set(["textarea"])]]);
 const bitmapColorExceptions = new Map([["features/profile/components/MfaQrCode.tsx", new Set(["#000000", "#ffffff"])]]);
 const report = (file, sf, node, message) => errors.push(`${file}:${sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1} ${message}`);
+bitmapColorExceptions.set("features/identity/MfaQrCode.tsx", new Set(["#000000", "#ffffff"]));
 
 function walk(dir, onFile) {
     for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
@@ -127,7 +128,7 @@ for (const row of design.matchAll(/^\|\s*`(--[\w-]+)`\s*\|\s*`([^`]+)`\s*\|\s*`(
 }
 if (checkedColors < 45) errors.push("DS-016 DESIGN.md: missing canonical palette tables");
 const md = css.match(/--breakpoint-md:\s*([^;]+);/)?.[1].trim();
-const hook = fs.readFileSync(path.join(sourceRoot, "hooks/use-mobile.ts"), "utf8");
+const hook = fs.readFileSync(path.join(sourceRoot, "lib/use-mobile.ts"), "utf8");
 if (md !== light.get("--navigation-breakpoint") || !hook.includes(`FALLBACK_BREAKPOINT = "${md}"`)) errors.push("DS-016 mobile breakpoint, CSS md and JS fallback must agree");
 const recipeNames = new Set([...css.matchAll(/\.((?:ui-)[\w-]+)(?=[\s.:,[{>+~#)]|$)/g)].map((m) => m[1]));
 const definedVars = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));

@@ -23,12 +23,12 @@ from backend.core.db.vector_search import (
 from backend.core.db.vector_search import pgvector_is_available as check_pgvector_is_available
 from backend.core.vectors import is_valid_embedding, vector_literal
 from backend.modules.projects.models import ProjectMember
-from backend.modules.rag.query import exact_identifier, quoted_phrase
-from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
 from backend.modules.rag.domain import RetrievedChunk
-from backend.modules.rag.scope import RetrievalScope
 from backend.modules.rag.lexical_languages import POSTGRES_TEXT_SEARCH_CONFIGS
+from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
 from backend.modules.rag.models import RagChunk, RagDocument
+from backend.modules.rag.query import exact_identifier, quoted_phrase
+from backend.modules.rag.scope import RetrievalScope
 
 
 def _chunk_value(key: str):

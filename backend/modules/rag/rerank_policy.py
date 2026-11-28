@@ -5,12 +5,12 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 
+from backend.modules.rag.domain import RetrievedChunk
 from backend.modules.rag.reranker_port import (
     MAX_RERANK_CANDIDATES,
     MIN_RERANK_CANDIDATES,
     RerankerPort,
 )
-from backend.modules.rag.domain import RetrievedChunk
 
 
 @dataclass(frozen=True, slots=True)

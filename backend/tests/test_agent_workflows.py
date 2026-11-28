@@ -5,6 +5,8 @@ import unittest
 from unittest.mock import patch
 
 import httpx
+from pydantic import BaseModel
+
 from backend.core import safe_http
 from backend.core.safe_http import UnsafeTargetError
 from backend.modules.agents import mcp
@@ -16,6 +18,12 @@ from backend.modules.agents.contracts import (
     TypedToolRegistry,
     immutable_action_hash,
 )
+from backend.modules.agents.mcp import (
+    McpServerConfig,
+    McpServerRegistry,
+    sanitize_untrusted_mcp_result,
+    validate_json_schema,
+)
 from backend.modules.agents.runtime import AgentDefinitionConfig, AgentRuntime
 from backend.modules.ai.contracts import (
     AiMessage,
@@ -25,13 +33,6 @@ from backend.modules.ai.contracts import (
     AiToolCall,
     AiUsage,
 )
-from backend.modules.agents.mcp import (
-    McpServerConfig,
-    McpServerRegistry,
-    sanitize_untrusted_mcp_result,
-    validate_json_schema,
-)
-from pydantic import BaseModel
 
 
 class AddInput(BaseModel):

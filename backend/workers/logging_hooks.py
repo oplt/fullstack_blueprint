@@ -21,8 +21,8 @@ from celery.signals import (
 )
 
 from backend.core.config import settings
-from backend.core.logging.log_context import reset_correlation_id, set_correlation_id
 from backend.core.logging import setup_logging
+from backend.core.logging.log_context import reset_correlation_id, set_correlation_id
 
 logger = logging.getLogger("backend.worker")
 

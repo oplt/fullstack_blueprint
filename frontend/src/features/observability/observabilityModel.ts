@@ -13,20 +13,24 @@ export const TIME_RANGES = [
     { label: "Last 24 hours", from: "now-24h", to: "now" },
 ];
 
+const HEALTH_FIELDS: Array<[HealthKey, keyof ObservabilityStatus]> = [
+    ["api", "api"],
+    ["frontend", "frontend"],
+    ["database", "database"],
+    ["cache", "cache"],
+    ["workers", "workers"],
+    ["backgroundJobs", "background_jobs"],
+    ["errorRate", "error_rate"],
+    ["requestLatency", "request_latency"],
+    ["prometheus", "prometheus"],
+    ["grafana", "grafana"],
+    ["tempo", "tempo"],
+];
+
 export function buildHealthItems(status?: ObservabilityStatus): Record<HealthKey, ObservabilityStatusItem | undefined> {
-    return {
-        api: status?.api,
-        frontend: status?.frontend,
-        database: status?.database,
-        cache: status?.cache,
-        workers: status?.workers,
-        backgroundJobs: status?.background_jobs,
-        errorRate: status?.error_rate,
-        requestLatency: status?.request_latency,
-        prometheus: status?.prometheus,
-        grafana: status?.grafana,
-        tempo: status?.tempo,
-    };
+    return Object.fromEntries(
+        HEALTH_FIELDS.map(([key, field]) => [key, status?.[field]])
+    ) as Record<HealthKey, ObservabilityStatusItem | undefined>;
 }
 
 export function metricFor(item?: ObservabilityStatusItem) {

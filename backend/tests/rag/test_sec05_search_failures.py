@@ -4,6 +4,10 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
+from sqlalchemy.pool import StaticPool
+
 from backend.core.config import settings
 from backend.core.db.vector_search import (
     InvalidQueryEmbedding,
@@ -15,9 +19,6 @@ from backend.core.db.vector_search import (
 from backend.core.vectors import can_index_embedding, is_valid_embedding
 from backend.modules.rag.scope import RetrievalScope
 from backend.modules.rag.search_repository import RagSearchRepository
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
-from sqlalchemy.pool import StaticPool
 
 
 class _Engine:

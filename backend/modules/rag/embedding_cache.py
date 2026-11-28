@@ -18,6 +18,7 @@ from backend.core.cache import (
     embedding_cache_key,
 )
 from backend.core.config import settings
+from backend.core.vectors import can_index_embedding, is_valid_embedding
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,12 @@ def _provider_semaphore(provider: str) -> asyncio.Semaphore:
         return semaphore
 
 
+def _is_valid_embedding_vector(vector: object, dimensions: int | None) -> bool:
+    if dimensions is None:
+        return is_valid_embedding(vector)
+    return can_index_embedding(vector, expected_dimensions=dimensions)  # type: ignore[arg-type]
+
+
 def reset_embedding_flight_locks_for_tests() -> None:
     """Test helper: clear process-local single-flight futures."""
     _INFLIGHT.clear()
@@ -112,6 +119,7 @@ async def _embed_batches(
     embed_fn: Callable[[list[str]], Awaitable[list[list[float]]]],
     *,
     provider: str,
+    dimensions: int | None = None,
 ) -> list[list[float]]:
     if not texts:
         return []
@@ -142,6 +150,8 @@ async def _embed_batches(
     for batch_vectors in results:
         if batch_vectors is None:
             raise RuntimeError("embedding provider batch returned no vectors")
+        if not all(_is_valid_embedding_vector(vector, dimensions) for vector in batch_vectors):
+            raise ValueError("invalid embedding vector returned by provider")
         flattened.extend(batch_vectors)
     return flattened
 
@@ -196,7 +206,7 @@ async def embed_texts_with_cache(
         cached_values = await cache_mget_json([key for _, _, key in cacheable])
         redis_embedding_cache_latency.observe(perf_counter() - started)
         for (index, text, cache_key), cached in zip(cacheable, cached_values, strict=True):
-            if isinstance(cached, list) and cached:
+            if _is_valid_embedding_vector(cached, dimensions):
                 results[index] = cast(list[float], cached)
                 hits += 1
             else:
@@ -253,6 +263,7 @@ async def embed_texts_with_cache(
                 unique_order,
                 embed_fn,
                 provider=provider,
+                dimensions=dimensions,
             )
         except BaseException as exc:
             for cache_key, future in owned_futures:

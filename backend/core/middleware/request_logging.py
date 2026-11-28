@@ -16,33 +16,31 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         started_at = perf_counter()
         response = await call_next(request)
         duration_ms = (perf_counter() - started_at) * 1000
-        correlation_id = getattr(request.state, "correlation_id", "n/a")
         log_args = (
             request.method,
             request.url.path,
             response.status_code,
             duration_ms,
-            correlation_id,
         )
 
         if duration_ms >= settings.SLOW_REQUEST_MS:
             logger.warning(
-                "slow_request method=%s path=%s status=%s duration_ms=%.2f correlation_id=%s",
+                "slow_request method=%s path=%s status=%s duration_ms=%.2f",
                 *log_args,
             )
         elif response.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR:
             logger.error(
-                "request_complete method=%s path=%s status=%s duration_ms=%.2f correlation_id=%s",
+                "request_complete method=%s path=%s status=%s duration_ms=%.2f",
                 *log_args,
             )
         elif response.status_code >= HTTPStatus.BAD_REQUEST:
             logger.warning(
-                "request_complete method=%s path=%s status=%s duration_ms=%.2f correlation_id=%s",
+                "request_complete method=%s path=%s status=%s duration_ms=%.2f",
                 *log_args,
             )
         else:
             logger.info(
-                "request_complete method=%s path=%s status=%s duration_ms=%.2f correlation_id=%s",
+                "request_complete method=%s path=%s status=%s duration_ms=%.2f",
                 *log_args,
             )
         return response

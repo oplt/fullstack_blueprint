@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listProjects } from "@/features/projects/api";
 import {
     askRag, deleteRagDocument, getRagIngestionJob, indexRagDocument,
     listRagChunks, listRagDocuments, listRagQueries,
@@ -11,9 +10,7 @@ import { jobPollInterval } from "../../lib/queryTiming";
 import { getQueryErrorMessage } from "../../lib/queryErrors";
 import { notify } from "../../lib/notify";
 import { indexingParamsFromChunkMeta, summarizeRagAsk } from "./ragEvaluationSummary";
-import { useApplicationConfiguration } from "../../lib/useConfiguration";
-import { capabilityAvailability, serverStateFromPlatformMetadata } from "../../lib/capabilities";
-import { usePlatformMetadata } from "../../lib/usePlatformMetadata";
+import { useProjectsQuery } from "../../lib/useProjectsQuery";
 
 export const PAGE_SIZE = 20;
 const TERMINAL_JOB = new Set(["completed", "failed", "cancelled"]);
@@ -22,13 +19,6 @@ type RagTab = "documents" | "indexing" | "retrieval" | "evaluation" | "runs";
 
 export function useRagWorkspace(activeTab: RagTab, setTab: (tab: RagTab) => void) {
     const client = useQueryClient();
-    const configuration = useApplicationConfiguration();
-    const { data: platformMetadata } = usePlatformMetadata();
-    const projectsEnabled = capabilityAvailability(
-        "projects",
-        configuration,
-        serverStateFromPlatformMetadata(platformMetadata),
-    ).available;
     const [projectId, setProjectId] = useState("");
     const [docOffset, setDocOffset] = useState(0);
     const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
@@ -38,11 +28,7 @@ export function useRagWorkspace(activeTab: RagTab, setTab: (tab: RagTab) => void
     const [askResult, setAskResult] = useState<RagAskResult | null>(null);
     const [historyOffset, setHistoryOffset] = useState(0);
 
-    const projectsQuery = useQuery({
-        queryKey: queryKeys.projects.all,
-        queryFn: ({ signal }) => listProjects({ signal }),
-        enabled: projectsEnabled,
-    });
+    const { enabled: projectsEnabled, query: projectsQuery } = useProjectsQuery();
 
     const documentsQuery = useQuery({
         queryKey: queryKeys.rag.documents(projectId || undefined, docOffset),

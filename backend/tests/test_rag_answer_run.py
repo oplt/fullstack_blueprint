@@ -3,15 +3,15 @@ from types import SimpleNamespace
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from backend.modules.ai.contracts import AiProviderRequest, AiProviderResponse, AiUsage
+from backend.modules.ai.models import AiRun
+from backend.modules.ai.runs import AiRunService
+from backend.modules.identity.models import User
 from backend.modules.rag.prompts import (
     DEFAULT_RAG_ANSWER_SYSTEM_PROMPT,
     RAG_STRUCTURED_OUTPUT_CONTRACT,
     resolve_rag_answer_prompt,
 )
-from backend.modules.ai.contracts import AiProviderRequest, AiProviderResponse, AiUsage
-from backend.modules.ai.models import AiRun
-from backend.modules.ai.runs import AiRunService
-from backend.modules.identity.models import User
 
 
 class RagAnswerPromptTest(unittest.IsolatedAsyncioTestCase):

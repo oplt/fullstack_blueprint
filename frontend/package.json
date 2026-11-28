@@ -15,7 +15,7 @@
     "perf:check": "node scripts/check-bundle-size.mjs",
     "storybook": "STORYBOOK=1 storybook dev -p 6006",
     "storybook:build": "STORYBOOK=1 storybook build",
-    "lint": "eslint .",
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
     "design:check": "node scripts/check-design-system.mjs",
     "typecheck": "tsc -b",
     "audit": "npm audit --audit-level=high",

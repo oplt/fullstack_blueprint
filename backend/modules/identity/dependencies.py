@@ -4,8 +4,8 @@ from fastapi import Cookie, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
-from backend.core.security import decode_token
 from backend.core.db.dependencies import get_db
+from backend.core.security import decode_token
 from backend.modules.identity.models import User
 from backend.modules.identity.repository import IdentityRepository
 

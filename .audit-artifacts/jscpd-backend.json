@@ -116,11 +116,11 @@
     },
     {
       "firstFile": {
-        "end": 8,
+        "end": 7,
         "endLoc": {
-          "column": 21,
-          "line": 8,
-          "position": 332
+          "column": 27,
+          "line": 7,
+          "position": 289
         },
         "name": "modules/admin/config_routes.py",
         "start": 1,
@@ -131,16 +131,54 @@
         }
       },
       "format": "python",
-      "fragment": "from fastapi import APIRouter, Depends, Request\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.modules.admin.dependencies import get_admin_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.core.audit import log_request_audit_event\nfrom backend.modules.identity.models import User\nfrom backend.modules.admin.platform_configuration import PlatformConfigService",
+      "fragment": "from fastapi import APIRouter, Depends, Request\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.audit import log_request_audit_event\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.admin.dependencies import get_admin_user\nfrom backend.modules.admin.platform.schemas import (",
       "isNew": false,
       "kind": "exact",
-      "lines": 8,
+      "lines": 7,
       "secondFile": {
-        "end": 8,
+        "end": 7,
         "endLoc": {
-          "column": 21,
-          "line": 8,
-          "position": 332
+          "column": 27,
+          "line": 7,
+          "position": 289
+        },
+        "name": "modules/admin/feature_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 7,
+        "endLoc": {
+          "column": 52,
+          "line": 7,
+          "position": 314
+        },
+        "name": "modules/admin/config_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "python",
+      "fragment": "from fastapi import APIRouter, Depends, Request\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.audit import log_request_audit_event\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.admin.dependencies import get_admin_user\nfrom backend.modules.admin.platform.schemas import (",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 7,
+        "endLoc": {
+          "column": 52,
+          "line": 7,
+          "position": 314
         },
         "name": "modules/notifications/template_routes.py",
         "start": 1,
@@ -150,45 +188,7 @@
           "position": 0
         }
       },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 8,
-        "endLoc": {
-          "column": 27,
-          "line": 8,
-          "position": 338
-        },
-        "name": "modules/admin/config_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 0,
-          "line": 2,
-          "position": 48
-        }
-      },
-      "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.modules.admin.dependencies import get_admin_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.core.audit import log_request_audit_event\nfrom backend.modules.identity.models import User\nfrom backend.modules.admin.platform_configuration import PlatformConfigService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 7,
-      "secondFile": {
-        "end": 8,
-        "endLoc": {
-          "column": 27,
-          "line": 8,
-          "position": 348
-        },
-        "name": "modules/admin/settings_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 0,
-          "line": 2,
-          "position": 58
-        }
-      },
-      "tokens": 53
+      "tokens": 56
     },
     {
       "firstFile": {
@@ -800,44 +800,6 @@
     },
     {
       "firstFile": {
-        "end": 16,
-        "endLoc": {
-          "column": 21,
-          "line": 16,
-          "position": 455
-        },
-        "name": "modules/agents/router.py",
-        "start": 5,
-        "startLoc": {
-          "column": 0,
-          "line": 5,
-          "position": 97
-        }
-      },
-      "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.config import settings\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.agents.workflow import AgentWorkflowService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 12,
-      "secondFile": {
-        "end": 15,
-        "endLoc": {
-          "column": 21,
-          "line": 15,
-          "position": 428
-        },
-        "name": "modules/ai/run_routes.py",
-        "start": 4,
-        "startLoc": {
-          "column": 0,
-          "line": 4,
-          "position": 70
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
         "end": 46,
         "endLoc": {
           "column": 5,
@@ -987,272 +949,6 @@
         }
       },
       "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 24,
-          "line": 12,
-          "position": 383
-        },
-        "name": "modules/ai/document_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 0,
-          "line": 2,
-          "position": 63
-        }
-      },
-      "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.document_service import AiDocumentService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 11,
-      "secondFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 24,
-          "line": 12,
-          "position": 359
-        },
-        "name": "modules/ai/evaluation_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 0,
-          "line": 2,
-          "position": 39
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 380
-        },
-        "name": "modules/ai/document_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 0,
-          "line": 2,
-          "position": 63
-        }
-      },
-      "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.document_service import AiDocumentService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 11,
-      "secondFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 366
-        },
-        "name": "modules/integrations/webhook_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 0,
-          "line": 2,
-          "position": 49
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 380
-        },
-        "name": "modules/ai/document_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 0,
-          "line": 2,
-          "position": 63
-        }
-      },
-      "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.document_service import AiDocumentService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 11,
-      "secondFile": {
-        "end": 14,
-        "endLoc": {
-          "column": 21,
-          "line": 14,
-          "position": 396
-        },
-        "name": "modules/projects/router.py",
-        "start": 4,
-        "startLoc": {
-          "column": 0,
-          "line": 4,
-          "position": 79
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 24,
-          "line": 12,
-          "position": 359
-        },
-        "name": "modules/ai/evaluation_routes.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "format": "python",
-      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 12,
-      "secondFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 24,
-          "line": 12,
-          "position": 359
-        },
-        "name": "modules/ai/prompt_routes.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 24,
-          "line": 12,
-          "position": 359
-        },
-        "name": "modules/ai/evaluation_routes.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "format": "python",
-      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 12,
-      "secondFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 24,
-          "line": 12,
-          "position": 359
-        },
-        "name": "modules/ai/review_routes.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 356
-        },
-        "name": "modules/ai/evaluation_routes.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "format": "python",
-      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 12,
-      "secondFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 356
-        },
-        "name": "modules/integrations/api_key_routes.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 356
-        },
-        "name": "modules/ai/evaluation_routes.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "format": "python",
-      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 12,
-      "secondFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 356
-        },
-        "name": "modules/notifications/router.py",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
-        }
-      },
-      "tokens": 56
     },
     {
       "firstFile": {
@@ -2016,117 +1712,41 @@
     },
     {
       "firstFile": {
-        "end": 13,
+        "end": 14,
         "endLoc": {
           "column": 21,
-          "line": 13,
-          "position": 405
+          "line": 14,
+          "position": 469
         },
-        "name": "modules/integrations/api_key_routes.py",
-        "start": 2,
+        "name": "modules/identity/user_routes.py",
+        "start": 5,
         "startLoc": {
-          "column": 5,
-          "line": 2,
-          "position": 44
+          "column": 0,
+          "line": 5,
+          "position": 152
         }
       },
       "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.identity.models import User\nfrom backend.modules.integrations.api_keys import ApiKeyService",
+      "fragment": "from backend.core.db.dependencies import get_db\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.modules.identity.models import User\nfrom backend.modules.identity.user_schemas import (",
       "isNew": false,
       "kind": "exact",
-      "lines": 12,
+      "lines": 10,
       "secondFile": {
         "end": 13,
         "endLoc": {
           "column": 21,
           "line": 13,
-          "position": 415
+          "position": 420
         },
-        "name": "modules/integrations/webhook_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 5,
-          "line": 2,
-          "position": 54
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 13,
-        "endLoc": {
-          "column": 21,
-          "line": 13,
-          "position": 405
-        },
-        "name": "modules/integrations/api_key_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 5,
-          "line": 2,
-          "position": 44
-        }
-      },
-      "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.identity.models import User\nfrom backend.modules.integrations.api_keys import ApiKeyService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 12,
-      "secondFile": {
-        "end": 13,
-        "endLoc": {
-          "column": 21,
-          "line": 13,
-          "position": 405
-        },
-        "name": "modules/notifications/router.py",
-        "start": 2,
-        "startLoc": {
-          "column": 5,
-          "line": 2,
-          "position": 44
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 13,
-        "endLoc": {
-          "column": 21,
-          "line": 13,
-          "position": 405
-        },
-        "name": "modules/integrations/api_key_routes.py",
-        "start": 2,
-        "startLoc": {
-          "column": 5,
-          "line": 2,
-          "position": 44
-        }
-      },
-      "format": "python",
-      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.identity.models import User\nfrom backend.modules.integrations.api_keys import ApiKeyService",
-      "isNew": false,
-      "kind": "exact",
-      "lines": 12,
-      "secondFile": {
-        "end": 15,
-        "endLoc": {
-          "column": 21,
-          "line": 15,
-          "position": 445
-        },
-        "name": "modules/projects/router.py",
+        "name": "modules/memory/router.py",
         "start": 4,
         "startLoc": {
-          "column": 5,
+          "column": 0,
           "line": 4,
-          "position": 84
+          "position": 103
         }
       },
-      "tokens": 59
+      "tokens": 52
     },
     {
       "firstFile": {
@@ -2434,6 +2054,82 @@
     },
     {
       "firstFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 420
+        },
+        "name": "modules/memory/router.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "python",
+      "fragment": "from fastapi import APIRouter, Depends, HTTPException\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.db.dependencies import get_db\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.modules.identity.models import User\nfrom backend.modules.memory.config import MemoryConfig",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 15,
+        "endLoc": {
+          "column": 21,
+          "line": 15,
+          "position": 445
+        },
+        "name": "modules/projects/router.py",
+        "start": 3,
+        "startLoc": {
+          "column": 0,
+          "line": 3,
+          "position": 25
+        }
+      },
+      "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 420
+        },
+        "name": "modules/memory/router.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 54
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.db.dependencies import get_db\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.modules.identity.models import User\nfrom backend.modules.memory.config import MemoryConfig",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 405
+        },
+        "name": "modules/notifications/router.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 39
+        }
+      },
+      "tokens": 60
+    },
+    {
+      "firstFile": {
         "end": 171,
         "endLoc": {
           "column": 8,
@@ -2738,18 +2434,18 @@
     },
     {
       "firstFile": {
-        "end": 387,
+        "end": 464,
         "endLoc": {
           "column": 35,
-          "line": 387,
-          "position": 15060
+          "line": 464,
+          "position": 17941
         },
         "name": "modules/rag/retrieval.py",
-        "start": 370,
+        "start": 447,
         "startLoc": {
           "column": 12,
-          "line": 370,
-          "position": 14333
+          "line": 447,
+          "position": 17214
         }
       },
       "format": "python",
@@ -2758,36 +2454,36 @@
       "kind": "exact",
       "lines": 18,
       "secondFile": {
-        "end": 537,
+        "end": 590,
         "endLoc": {
           "column": 39,
-          "line": 537,
-          "position": 22395
+          "line": 590,
+          "position": 23833
         },
         "name": "modules/rag/retrieval.py",
-        "start": 520,
+        "start": 573,
         "startLoc": {
           "column": 16,
-          "line": 520,
-          "position": 21600
+          "line": 573,
+          "position": 23038
         }
       },
       "tokens": 63
     },
     {
       "firstFile": {
-        "end": 538,
+        "end": 591,
         "endLoc": {
           "column": 43,
-          "line": 538,
-          "position": 22478
+          "line": 591,
+          "position": 23916
         },
         "name": "modules/rag/retrieval.py",
-        "start": 527,
+        "start": 580,
         "startLoc": {
           "column": 16,
-          "line": 527,
-          "position": 21933
+          "line": 580,
+          "position": 23371
         }
       },
       "format": "python",
@@ -2796,36 +2492,36 @@
       "kind": "exact",
       "lines": 12,
       "secondFile": {
-        "end": 907,
+        "end": 960,
         "endLoc": {
           "column": 39,
-          "line": 907,
-          "position": 39513
+          "line": 960,
+          "position": 40975
         },
         "name": "modules/rag/retrieval.py",
-        "start": 896,
+        "start": 949,
         "startLoc": {
           "column": 57,
-          "line": 896,
-          "position": 39012
+          "line": 949,
+          "position": 40474
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 907,
+        "end": 960,
         "endLoc": {
           "column": 59,
-          "line": 907,
-          "position": 39533
+          "line": 960,
+          "position": 40995
         },
         "name": "modules/rag/retrieval.py",
-        "start": 897,
+        "start": 950,
         "startLoc": {
           "column": 28,
-          "line": 897,
-          "position": 39042
+          "line": 950,
+          "position": 40504
         }
       },
       "format": "python",
@@ -2834,18 +2530,18 @@
       "kind": "exact",
       "lines": 11,
       "secondFile": {
-        "end": 946,
+        "end": 999,
         "endLoc": {
           "column": 63,
-          "line": 946,
-          "position": 41189
+          "line": 999,
+          "position": 42651
         },
         "name": "modules/rag/retrieval.py",
-        "start": 936,
+        "start": 989,
         "startLoc": {
           "column": 19,
-          "line": 936,
-          "position": 40658
+          "line": 989,
+          "position": 42120
         }
       },
       "tokens": 51
@@ -2928,32 +2624,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-11-28T02:55:51.252Z",
+    "detectionDate": "2026-11-28T04:05:53.969Z",
     "formats": {
       "python": {
-        "clones": 77,
-        "duplicatedLines": 802,
-        "duplicatedTokens": 5015,
-        "lines": 37605,
+        "clones": 69,
+        "duplicatedLines": 707,
+        "duplicatedTokens": 4575,
+        "lines": 37718,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.1326951203297435,
-        "percentageTokens": 2.3285292424270567,
+        "percentage": 1.8744366085158277,
+        "percentageTokens": 2.119154376343289,
         "sources": 278,
-        "tokens": 215372
+        "tokens": 215888
       }
     },
     "total": {
-      "clones": 77,
-      "duplicatedLines": 802,
-      "duplicatedTokens": 5015,
-      "lines": 37605,
+      "clones": 69,
+      "duplicatedLines": 707,
+      "duplicatedTokens": 4575,
+      "lines": 37718,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.1326951203297435,
-      "percentageTokens": 2.3285292424270567,
+      "percentage": 1.8744366085158277,
+      "percentageTokens": 2.119154376343289,
       "sources": 278,
-      "tokens": 215372
+      "tokens": 215888
     }
   }
 }

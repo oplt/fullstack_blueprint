@@ -1,12 +1,13 @@
 from types import SimpleNamespace
 
 import pytest
+
 from backend.modules.rag.chunking import _split_documents_with_token_counts
+from backend.modules.rag.domain import DocumentChunk, ParsedDocument
 from backend.modules.rag.ingestion import (
     DocumentIngestionService,
     _validate_parsed_document_limits,
 )
-from backend.modules.rag.domain import DocumentChunk, ParsedDocument
 
 
 def test_parsed_document_limits_reject_page_character_and_unit_overages() -> None:

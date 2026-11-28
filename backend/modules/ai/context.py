@@ -4,10 +4,10 @@ from dataclasses import dataclass, field
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.memory.service import MemoryService
 from backend.modules.memory.domain import MemoryItem
-from backend.modules.rag.prompt_context_service import PromptContextService
+from backend.modules.memory.service import MemoryService
 from backend.modules.rag.config import RagConfig
+from backend.modules.rag.prompt_context_service import PromptContextService
 
 
 @dataclass(frozen=True, slots=True)

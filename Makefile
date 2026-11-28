@@ -538,10 +538,10 @@ duplicate-check: ## Enforce frontend and backend duplication budgets with jscpd.
 	@mkdir -p "$(ARTIFACT_DIR)"
 	@status=0; \
 	 frontend/node_modules/.bin/jscpd frontend/src --format typescript,tsx,javascript,jsx,css --cross-formats js-ts \
-	 --ignore '**/*.test.*,**/*.spec.*,**/*.stories.*,**/__tests__/**' --min-lines 5 --min-tokens 50 --threshold 5 \
+	 --ignore '**/*.test.*,**/*.spec.*,**/*.stories.*,**/__tests__/**,**/generated/**,**/node_modules/**,**/.vite/**,**/dist/**,**/coverage/**,**/storybook-static/**' --min-lines 5 --min-tokens 50 --threshold 5 \
 	 --fail-on-empty --reporters console,json --report-name jscpd-frontend --output "$(ARTIFACT_DIR)" || status=1; \
 	 frontend/node_modules/.bin/jscpd backend --format python \
-	 --ignore '**/.venv/**,**/__pycache__/**,**/tests/**,**/test_*.py,**/*_test.py,**/alembic/versions/**' \
+	 --ignore '**/.venv/**,**/__pycache__/**,**/tests/**,**/test_*.py,**/*_test.py,**/alembic/versions/**,**/dist/**,**/build/**,**/coverage/**' \
 	 --min-lines 5 --min-tokens 50 --threshold 5 --fail-on-empty --reporters console,json \
 	 --report-name jscpd-backend --output "$(ARTIFACT_DIR)" || status=1; \
 	 exit $$status

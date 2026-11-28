@@ -1,10 +1,11 @@
 import unittest
 
 import pytest
+from fastapi import HTTPException
+
 from backend.core.config import settings
 from backend.modules.admin import settings_configuration as config_service
 from backend.modules.admin.settings_schemas import ConfigEntryUpdate
-from fastapi import HTTPException
 
 
 def test_config_editor_rejects_unknown_keys_without_writing(monkeypatch, tmp_path):

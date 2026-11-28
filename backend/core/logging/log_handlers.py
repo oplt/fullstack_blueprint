@@ -26,7 +26,7 @@ def build_file_handler(log_file: Path) -> TimedRotatingFileHandler:
         filename=str(log_file),
         when="midnight",
         interval=1,
-        backupCount=0,
+        backupCount=max(settings.LOG_RETENTION_DAYS, 1),
         encoding="utf-8",
         utc=True,
     )

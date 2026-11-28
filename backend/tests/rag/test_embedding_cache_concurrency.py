@@ -1,6 +1,7 @@
 import asyncio
 
 import pytest
+
 from backend.core.config import settings
 from backend.modules.rag import embedding_cache
 
@@ -107,6 +108,62 @@ def test_failed_provider_batch_cancels_sibling_batches(monkeypatch) -> None:
             )
 
         assert sibling_cancelled.is_set()
+
+    asyncio.run(run())
+
+
+def test_malformed_cached_vector_is_replaced_by_provider_result(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "CACHE_ENABLED", True)
+    monkeypatch.setattr(settings, "CACHE_EMBEDDING_MAX_TEXT_CHARS", 1000)
+    monkeypatch.setattr(settings, "CACHE_EMBEDDING_TTL_SECONDS", 60)
+
+    async def run() -> None:
+        provider_calls: list[list[str]] = []
+        writes: list[tuple[str, list[float]]] = []
+
+        async def cached_values(_keys: list[str]) -> list[list[float]]:
+            return [[1.0], [0.1, 0.2]]
+
+        async def embed_fn(texts: list[str]) -> list[list[float]]:
+            provider_calls.append(texts)
+            return [[0.3, 0.4]]
+
+        async def write_cache(values, *, ttl_seconds: int) -> None:
+            del ttl_seconds
+            writes.extend(values)
+
+        monkeypatch.setattr(embedding_cache, "cache_mget_json", cached_values)
+        monkeypatch.setattr(embedding_cache, "cache_mset_json", write_cache)
+        result = await embedding_cache.embed_texts_with_cache(
+            provider="test-provider-validation",
+            model="test-model",
+            texts=["bad", "good"],
+            embed_fn=embed_fn,
+            dimensions=2,
+        )
+
+        assert result == [[0.3, 0.4], [0.1, 0.2]]
+        assert provider_calls == [["bad"]]
+        assert len(writes) == 1
+
+    asyncio.run(run())
+
+
+def test_invalid_provider_vector_is_rejected_before_cache_write(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "CACHE_ENABLED", False)
+
+    async def run() -> None:
+        async def embed_fn(_texts: list[str]) -> list[list[float]]:
+            return [[float("nan")]]
+
+        with pytest.raises(ValueError, match="invalid embedding vector"):
+            await embedding_cache.embed_texts_with_cache(
+                provider="test-provider-validation",
+                model="test-model",
+                texts=["bad"],
+                embed_fn=embed_fn,
+                dimensions=1,
+            )
 
     asyncio.run(run())
 

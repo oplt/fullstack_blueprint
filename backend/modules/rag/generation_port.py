@@ -62,12 +62,12 @@ class AiRunGenerationPort:
 
     async def prepare_rag_answer(self, user: User) -> RagGenerationPlan:
         from backend.core.config import settings
-        from backend.modules.rag.prompts import resolve_rag_answer_prompt
         from backend.modules.ai.errors import AiProviderError
         from backend.modules.ai.routing import ModelRegistry
         from backend.modules.rag.chunk_tokenizers import (
             resolve_generation_token_counter,
         )
+        from backend.modules.rag.prompts import resolve_rag_answer_prompt
 
         prompt = await resolve_rag_answer_prompt(self._get_service().repo, user)
         try:

@@ -14,9 +14,9 @@ from sqlalchemy import bindparam, cast, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.vectors import vector_literal
-from backend.modules.rag.domain.retrieval_scope import RetrievalScope
-from backend.modules.rag.infrastructure.models import RagChunk, RagDocument
-from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
+from backend.modules.rag.models import RagChunk, RagDocument
+from backend.modules.rag.scope import RetrievalScope
+from backend.modules.rag.search_repository import RagSearchRepository
 
 MIN_TOP_K_FOR_RECALL_AT_10 = 10
 MAX_QUERY_PLANS = 3

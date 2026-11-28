@@ -40,6 +40,28 @@ function manualChunk(id: string) {
 }
 
 export default defineConfig({
+  optimizeDeps: {
+    include: [
+      '@base-ui/react/avatar',
+      '@base-ui/react/combobox',
+      '@base-ui/react/dialog',
+      '@base-ui/react/popover',
+      '@base-ui/react/switch',
+      '@base-ui/react/tooltip',
+      '@base-ui/react/alert-dialog',
+      '@base-ui/react/checkbox',
+      '@base-ui/react/progress',
+      '@fullcalendar/react',
+      '@fullcalendar/react/daygrid',
+      '@fullcalendar/react/interaction',
+      '@fullcalendar/react/locales/fr',
+      '@fullcalendar/react/locales/nl',
+      '@fullcalendar/react/multimonth',
+      '@fullcalendar/react/timegrid',
+      '@tanstack/react-table',
+      'temporal-polyfill',
+    ],
+  },
   plugins: [
     react(),
     tailwindcss(),

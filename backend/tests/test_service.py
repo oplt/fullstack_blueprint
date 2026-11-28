@@ -5,11 +5,12 @@ from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.modules.calendar import service as calendar_service
 from backend.modules.calendar.service import CalendarService
 from backend.modules.identity.models import User
-from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio

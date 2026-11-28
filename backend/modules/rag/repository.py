@@ -8,8 +8,8 @@ from sqlalchemy import JSON, Table, and_, delete, or_, select, update
 from sqlalchemy import cast as sql_cast
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
 from backend.core.db.vector_search import store_chunk_embeddings_batch
+from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
 from backend.modules.rag.enums import DocumentStatus, IngestionErrorCode, IngestionJobStatus
 from backend.modules.rag.models import (
     RagChunk,

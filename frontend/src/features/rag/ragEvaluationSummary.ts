@@ -31,49 +31,53 @@ export type RagEvaluationSummary = {
     groundingNotes: string[];
 };
 
+function citationCoverage(retrievedIds: string[], citedIds: Set<string>): number | null {
+    if (!retrievedIds.length) return null;
+    return [...citedIds].filter((id) => retrievedIds.includes(id)).length / retrievedIds.length;
+}
+
+function meanScore(citations: RagCitationLike[]): number | null {
+    const scores = citations.map((citation) => citation.score).filter((score) => Number.isFinite(score));
+    return scores.length ? scores.reduce((total, score) => total + score, 0) / scores.length : null;
+}
+
+function baseGroundingNotes(result: RagAskLike): string[] {
+    const notes = [
+        result.no_context_found && "No retrieval context was available for this answer.",
+        result.retrieval_degraded && "Retrieval ran in a degraded mode — treat citations cautiously.",
+        result.memory_degraded && "Conversation memory was unavailable.",
+        result.injection_chunks_filtered > 0
+            && `Filtered ${result.injection_chunks_filtered} injection chunk(s) before answering.`,
+    ].filter((note): note is string => typeof note === "string");
+    return notes;
+}
+
+function citationValidationNote(result: RagAskLike, citationCount: number): string | null {
+    return result.citation_validation_failed
+        ? "Citation validation failed. Review the retrieved sources."
+        : citationCount === 0 && !result.no_context_found && result.citation_validation_status !== "retrieval_unavailable"
+            ? "Answer returned without citations — grounding is unverified."
+            : null;
+}
+
+function groundingNotes(result: RagAskLike, citationCount: number, covered: number | null): string[] {
+    const notes = baseGroundingNotes(result);
+    const validationNote = citationValidationNote(result, citationCount);
+    if (validationNote) notes.push(validationNote);
+    if (covered != null && covered < 0.5 && citationCount > 0) {
+        notes.push("Fewer than half of retrieved chunks were cited — review unused evidence.");
+    }
+    return notes;
+}
+
 export function summarizeRagAsk(result: RagAskLike): RagEvaluationSummary {
     const retrievedCount = result.retrieved_chunk_ids.length;
     const used = result.citations.filter((citation) => citation.used_in_answer !== false);
     const citationCount = used.length;
     const citedIds = new Set(used.map((c) => c.chunk_id));
-    const covered =
-        retrievedCount > 0
-            ? [...citedIds].filter((id) => result.retrieved_chunk_ids.includes(id)).length /
-              retrievedCount
-            : null;
-    const scores = used.map((c) => c.score).filter((s) => Number.isFinite(s));
-    const meanCitationScore =
-        scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+    const covered = citationCoverage(result.retrieved_chunk_ids, citedIds);
+    const meanCitationScore = meanScore(used);
     const distinctDocuments = new Set(used.map((c) => c.document_id)).size;
-
-    const groundingNotes: string[] = [];
-    if (result.no_context_found) {
-        groundingNotes.push("No retrieval context was available for this answer.");
-    }
-    if (result.retrieval_degraded) {
-        groundingNotes.push("Retrieval ran in a degraded mode — treat citations cautiously.");
-    }
-    if (result.memory_degraded) {
-        groundingNotes.push("Conversation memory was unavailable.");
-    }
-    if (result.injection_chunks_filtered > 0) {
-        groundingNotes.push(
-            `Filtered ${result.injection_chunks_filtered} injection chunk(s) before answering.`
-        );
-    }
-    if (result.citation_validation_failed) {
-        groundingNotes.push("Citation validation failed. Review the retrieved sources.");
-    } else if (
-        citationCount === 0 && !result.no_context_found
-        && result.citation_validation_status !== "retrieval_unavailable"
-    ) {
-        groundingNotes.push("Answer returned without citations — grounding is unverified.");
-    }
-    if (covered != null && covered < 0.5 && citationCount > 0) {
-        groundingNotes.push(
-            "Fewer than half of retrieved chunks were cited — review unused evidence."
-        );
-    }
 
     return {
         retrievedCount,
@@ -81,7 +85,7 @@ export function summarizeRagAsk(result: RagAskLike): RagEvaluationSummary {
         citationCoverage: covered,
         distinctDocuments,
         meanCitationScore,
-        groundingNotes,
+        groundingNotes: groundingNotes(result, citationCount, covered),
     };
 }
 

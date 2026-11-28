@@ -4,9 +4,10 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
+from fastapi import HTTPException
+
 from backend.modules.identity import auth as identity_service
 from backend.modules.identity.auth import IdentityService
-from fastapi import HTTPException
 
 
 class _OneTimeRedis:

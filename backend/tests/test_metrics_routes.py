@@ -2,12 +2,13 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
-from backend.core.db import pool_observability
-from backend.core.observability import metrics as metrics_module
 from fastapi import FastAPI
 from prometheus_client import generate_latest
 from sqlalchemy import create_engine
 from sqlalchemy.pool import QueuePool
+
+from backend.core.db import pool_observability
+from backend.core.observability import metrics as metrics_module
 
 
 def histogram_count(scrape: str, metric: str, **labels: str) -> float:

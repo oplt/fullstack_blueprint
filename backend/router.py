@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import Settings, settings
 from backend.core.db.dependencies import get_db
-from backend.modules.capabilities import CAPABILITY_REGISTRY
-from backend.modules.identity.auth_routes import router as auth_router
 from backend.modules.admin.config_routes import metadata_router as platform_metadata_router
 from backend.modules.admin.platform_configuration import PlatformConfigService
+from backend.modules.capabilities import CAPABILITY_REGISTRY
+from backend.modules.identity.auth_routes import router as auth_router
 from backend.modules.identity.profile_routes import router as profile_router
 from backend.modules.identity.user_routes import router as users_router
 

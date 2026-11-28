@@ -17,6 +17,7 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
+from backend.core.db.dependencies import get_db
 from backend.core.pagination import (
     PaginatedResponse,
     PaginationParams,
@@ -25,10 +26,14 @@ from backend.core.pagination import (
 )
 from backend.core.storage import ObjectStorageError, object_storage
 from backend.core.text_snippet import text_snippet
-from backend.modules.identity.dependencies import get_current_user
-from backend.core.db.dependencies import get_db
 from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
+from backend.modules.identity.dependencies import get_current_user
 from backend.modules.identity.models import User
+from backend.modules.rag.config import RagConfig
+from backend.modules.rag.domain import RetrievalOutcome
+from backend.modules.rag.jobs import queue_document_indexing
+from backend.modules.rag.retrieval import RetrievalService
+from backend.modules.rag.retrieval_request import RetrievalRequest
 from backend.modules.rag.schemas import (
     RagAskRequest,
     RagAskResponse,
@@ -48,12 +53,7 @@ from backend.modules.rag.schemas import (
     RagRetrieveResponse,
     RagSourcePreviewResponse,
 )
-from backend.modules.rag.domain import RetrievalOutcome
-from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.retrieval_request import RetrievalRequest
-from backend.modules.rag.config import RagConfig
 from backend.modules.rag.service import RagPipelineService, RagReadService
-from backend.modules.rag.jobs import queue_document_indexing
 
 router = APIRouter()
 

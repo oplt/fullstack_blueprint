@@ -1,8 +1,9 @@
 from types import SimpleNamespace
 
 import pytest
-from backend.modules.rag.ingestion import DocumentIngestionService
 from fastapi import HTTPException
+
+from backend.modules.rag.ingestion import DocumentIngestionService
 
 
 @pytest.mark.asyncio

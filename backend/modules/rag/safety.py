@@ -11,6 +11,9 @@ from typing import Protocol
 
 from backend.modules.rag.config import RagConfig
 
+CLAMD_RESPONSE_PARTS = 2
+MIN_DRIVE_QUALIFIED_NAME_LENGTH = 2
+
 
 class MalwareScanStatus(StrEnum):
     CLEAN = "clean"
@@ -47,7 +50,7 @@ def normalize_clamd_response(response: object) -> MalwareScanResult:
         return MalwareScanResult(MalwareScanStatus.ERROR)
 
     entry = response.get("stream")
-    if not isinstance(entry, tuple) or len(entry) != 2:
+    if not isinstance(entry, tuple) or len(entry) != CLAMD_RESPONSE_PARTS:
         return MalwareScanResult(MalwareScanStatus.ERROR)
 
     status, signature = entry
@@ -60,17 +63,27 @@ def normalize_clamd_response(response: object) -> MalwareScanResult:
 
 
 class NoopMalwareScanner:
-    async def scan(self, content: bytes, *, filename: str) -> MalwareScanResult:
+    async def scan(
+        self,
+        content: bytes,  # noqa: ARG002
+        *,
+        filename: str,  # noqa: ARG002
+    ) -> MalwareScanResult:
         return MalwareScanResult(MalwareScanStatus.NOT_CONFIGURED)
 
 
 class ClamdMalwareScanner:
     """Optional local clamd adapter."""
 
-    async def scan(self, content: bytes, *, filename: str) -> MalwareScanResult:
+    async def scan(
+        self,
+        content: bytes,
+        *,
+        filename: str,  # noqa: ARG002
+    ) -> MalwareScanResult:
         def _scan() -> MalwareScanResult:
             try:
-                import clamd  # type: ignore[reportMissingImports]
+                import clamd  # noqa: PLC0415  # type: ignore[reportMissingImports]
             except ImportError:
                 return MalwareScanResult(MalwareScanStatus.UNAVAILABLE)
 
@@ -106,17 +119,23 @@ class DocumentSafetyService:
     def validate_container(content: bytes, *, filename: str, max_members: int = 10_000) -> None:
         """Reject archive path traversal and decompression-bomb metadata."""
         if filename.lower().endswith((".docx", ".xlsx", ".pptx", ".odt")):
-            with zipfile.ZipFile(io.BytesIO(content)) as archive:
-                members = archive.infolist()
-                if len(members) > max_members:
-                    raise ValueError("document archive contains too many members")
-                total_uncompressed = sum(member.file_size for member in members)
-                if total_uncompressed > 100 * 1024 * 1024:
-                    raise ValueError("document archive expands beyond the resource limit")
-                for member in members:
-                    name = member.filename.replace("\\", "/")
-                    if name.startswith("/") or "../" in name or name == "..":
-                        raise ValueError("document archive contains an unsafe path")
+            try:
+                with zipfile.ZipFile(io.BytesIO(content)) as archive:
+                    members = archive.infolist()
+                    if len(members) > max_members:
+                        raise ValueError("document archive contains too many members")
+                    total_uncompressed = sum(member.file_size for member in members)
+                    if total_uncompressed > 100 * 1024 * 1024:
+                        raise ValueError("document archive expands beyond the resource limit")
+                    for member in members:
+                        name = member.filename.replace("\\", "/")
+                        drive_qualified = (
+                            len(name) >= MIN_DRIVE_QUALIFIED_NAME_LENGTH and name[1] == ":"
+                        )
+                        if name.startswith("/") or drive_qualified or "../" in name or name == "..":
+                            raise ValueError("document archive contains an unsafe path")
+            except zipfile.BadZipFile as error:
+                raise ValueError("invalid document archive") from error
 
     async def scan(self, content: bytes, *, filename: str) -> MalwareScanResult:
         result = await self.scanner.scan(content, filename=filename)

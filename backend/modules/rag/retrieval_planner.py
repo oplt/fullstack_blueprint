@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from backend.modules.rag.config import RagConfig
+from backend.modules.rag.enums import RetrievalIntent
 from backend.modules.rag.reranker_port import (
     MAX_RERANK_CANDIDATES,
     resolve_reranker_mode,
 )
-from backend.modules.rag.enums import RetrievalIntent
-from backend.modules.rag.config import RagConfig
 
 
 @dataclass(frozen=True, slots=True)

@@ -12,20 +12,21 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import MAX_PAGE_LIMIT
+from backend.modules.memory import metrics
 from backend.modules.memory.cache import (
     get_cached_memory_search,
     invalidate_memory_search_cache,
     set_cached_memory_search,
 )
-from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
+from backend.modules.memory.config import MemoryConfig
 from backend.modules.memory.consolidation import MemoryConsolidator
 from backend.modules.memory.context import MemoryContextBuilder
-from backend.modules.memory.extraction import MemoryExtractor
-from backend.modules.memory.governance import (
-    evaluate_memory_governance,
-    provenance_payload,
+from backend.modules.memory.domain import (
+    MemoryItem,
+    MemoryMetadata,
+    MemorySearchRequest,
+    MemoryWriteResult,
 )
-from backend.modules.memory.routing import MemoryRouter
 from backend.modules.memory.enums import (
     AgentScope,
     MemoryLevel,
@@ -34,21 +35,20 @@ from backend.modules.memory.enums import (
     MemorySource,
     MemoryType,
 )
-from backend.modules.memory.domain import (
-    MemoryItem,
-    MemoryMetadata,
-    MemorySearchRequest,
-    MemoryWriteResult,
+from backend.modules.memory.extraction import MemoryExtractor
+from backend.modules.memory.governance import (
+    evaluate_memory_governance,
+    provenance_payload,
 )
+from backend.modules.memory.models import MemoryRegistry
 from backend.modules.memory.policies import MemoryPolicyService, session_expires_at
-from backend.modules.memory import metrics
 from backend.modules.memory.provider import Mem0Client
 from backend.modules.memory.repository import (
     MemoryAuditRepository,
     MemoryRegistryRepository,
 )
-from backend.modules.memory.config import MemoryConfig
-from backend.modules.memory.models import MemoryRegistry
+from backend.modules.memory.routing import MemoryRouter
+from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
 
 logger = logging.getLogger(__name__)
 

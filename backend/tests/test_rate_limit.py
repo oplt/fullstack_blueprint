@@ -2,9 +2,10 @@ import unittest
 from unittest.mock import AsyncMock
 
 import pytest
-from backend.core import rate_limit
 from fastapi import HTTPException
 from starlette.requests import Request
+
+from backend.core import rate_limit
 
 
 @pytest.mark.asyncio

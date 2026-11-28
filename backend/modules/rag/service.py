@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.modules.rag.answers import RagAnswerService
 from backend.modules.rag.config import RagConfig
 from backend.modules.rag.ingestion import DocumentIngestionService
-from backend.modules.rag.retrieval import RetrievalService
 from backend.modules.rag.repository import RagRepository
+from backend.modules.rag.retrieval import RetrievalService
 
 
 class RagReadService(RagRepository):

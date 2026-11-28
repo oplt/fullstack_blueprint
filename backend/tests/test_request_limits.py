@@ -1,6 +1,7 @@
 import unittest
 
 import pytest
+
 from backend.core.middleware.request_limits import RequestBodyLimitMiddleware
 
 
@@ -103,8 +104,9 @@ async def test_overflow_after_response_start_finishes_without_a_second_status(mo
 
 @pytest.mark.asyncio
 async def test_chunked_overflow_through_fastapi_returns_413(monkeypatch):
-    from backend.core.middleware import request_limits
     from fastapi import FastAPI, Request
+
+    from backend.core.middleware import request_limits
 
     monkeypatch.setattr(request_limits.settings, "MAX_REQUEST_BODY_BYTES", 3)
     app = FastAPI()

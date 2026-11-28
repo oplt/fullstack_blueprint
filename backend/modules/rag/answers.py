@@ -5,31 +5,31 @@ from time import perf_counter
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.modules.identity.models import User
+from backend.modules.memory.config import MemoryConfig
+from backend.modules.memory.service import MemoryService
+from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
+from backend.modules.rag import metrics
+from backend.modules.rag.citation_validation import CitationValidationService
+from backend.modules.rag.citation_validation_context import CitationValidationContext
+from backend.modules.rag.citations import CitationService
+from backend.modules.rag.config import RagConfig
+from backend.modules.rag.context import (
+    RagContextBuilder,
+    render_reference_data,
+)
+from backend.modules.rag.domain import RagAnswer, RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.enums import RetrievalIntent
+from backend.modules.rag.evidence_access import evidence_is_current
 from backend.modules.rag.generation_port import (
     RAG_MESSAGE_TOKEN_RESERVE,
     AiRunGenerationPort,
     GenerationPort,
 )
-from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
-from backend.modules.identity.models import User
-from backend.modules.memory.service import MemoryService
-from backend.modules.memory.config import MemoryConfig
-from backend.modules.rag.citations import CitationService
-from backend.modules.rag.citation_validation import CitationValidationService
-from backend.modules.rag.evidence_access import evidence_is_current
-from backend.modules.rag.context import (
-    RagContextBuilder,
-    render_reference_data,
-)
-from backend.modules.rag.retrieval import RetrievalService
-from backend.modules.rag.telemetry import traced, tracer
-from backend.modules.rag.citation_validation_context import CitationValidationContext
-from backend.modules.rag.enums import RetrievalIntent
-from backend.modules.rag.domain import RagAnswer, RetrievalOutcome, RetrievedChunk
-from backend.modules.rag.retrieval_request import RetrievalRequest
-from backend.modules.rag import metrics
-from backend.modules.rag.config import RagConfig
 from backend.modules.rag.repository import RagRepository
+from backend.modules.rag.retrieval import RetrievalService
+from backend.modules.rag.retrieval_request import RetrievalRequest
+from backend.modules.rag.telemetry import traced, tracer
 
 
 def _revision_by_document(chunks: list[RetrievedChunk]) -> dict[str, str]:

@@ -1,8 +1,8 @@
+from backend.modules.ai.jobs import run_evaluation_sync
 from backend.modules.memory.jobs import extract_turn_memories_sync
+from backend.modules.notifications.jobs import send_email_sync
 from backend.modules.rag.jobs import cleanup_document_sync, index_document_sync
 from backend.workers.celery_app import celery_app
-from backend.modules.notifications.jobs import send_email_sync
-from backend.modules.ai.jobs import run_evaluation_sync
 
 
 @celery_app.task(

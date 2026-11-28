@@ -6,9 +6,10 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
+from fastapi import HTTPException
+
 from backend.modules.agents.router import router
 from backend.modules.agents.service import AgentService
-from fastapi import HTTPException
 
 
 class AgentRunHistoryServiceTests(unittest.IsolatedAsyncioTestCase):

@@ -1,816 +1,656 @@
-### **Main architectural weaknesses**
+## **3. Bugs, errors and architectural bottlenecks**
 
-| Problem                                        | Severity | Recommendation                                        |
-| ---------------------------------------------- | -------- | ----------------------------------------------------- |
-| Overfragmented RAG implementation              | High     | Consolidate by processing stage                       |
-| Overlapping AI, RAG and agent responsibilities | High     | Establish explicit execution boundaries               |
-| Administrative and billing domain mixing       | High     | Separate domain ownership from administrative access  |
-| Multiple observability locations               | High     | Centralize infrastructure instrumentation             |
-| Potentially redundant backend entry points     | High     | Establish one application composition root            |
-| Excessive frontend Page/View/Content layers    | High     | Simplify component composition                        |
-| Inconsistent API client organization           | Medium   | Standardize feature API files                         |
-| Overpopulated shared UI directory              | Medium   | Separate generic UI from business-specific components |
-| Small folders with one or two files            | Medium   | Flatten where there is no meaningful boundary         |
-| Inconsistent naming conventions                | Medium   | Adopt uniform module conventions                      |
+| ID      | Priority | Issue                                             | Assessment               |
+| ------- | -------- | ------------------------------------------------- | ------------------------ |
+| FE-01   | P1       | Entire workspace remounts on navigation           | Confirmed in source      |
+| FE-02   | P1       | Vite dependency reoptimization                    | Confirmed                |
+| FE-03   | P1       | Duplicate API requests                            | Confirmed                |
+| AUTH-01 | P1       | Redundant authentication validation               | Confirmed in source      |
+| AUTH-02 | P2       | Authentication failure state handling             | Code-level weakness      |
+| FE-04   | P2       | Unnecessary global data loading                   | Optimization             |
+| OBS-01  | P2       | Observability endpoint overhead                   | Potential bottleneck     |
+| OBS-02  | P1       | Observability health status inaccuracies          | Confirmed in source      |
+| SEC-01  | P1       | Observability infrastructure information exposure | Potential security issue |
+| LOG-01  | P2       | Duplicate warning messages                        | Confirmed                |
+| LOG-02  | P2       | Log retention and file management                 | Confirmed in source      |
+| ARCH-01 | P1       | Remaining legacy architectural references         | Requires verification    |
+| OBS-03  | P2       | Distributed tracing disabled                      | Production readiness     |
 
-## **2. Recommended architectural model**
+P1 means high priority; P2 means medium priority. There is no confirmed P0 runtime blocker in the supplied logs.
 
-Use a **feature-first modular monolith with vertical slices**, supported by a small shared infrastructure layer.
+## **4. Frontend fixes**
 
-The architectural principles should be:
+### **FE-01 — Entire application workspace remounts when navigating**
 
-- Organize code by business capability, not exclusively by technical layer.
-- Keep each feature mostly flat.
-- Keep business logic inside its owning module.
-- Share infrastructure, not unrelated business logic.
-- Allow optional modules to be disabled or removed through a controlled provisioning mechanism.
-- Introduce a new folder, interface or abstraction only when it solves an identifiable problem.
+High priority
 
-## **3. Recommended backend directory tree**
+**File:** [frontend/src/app/router.tsx](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/app/router.tsx?utm_source=chatgpt.com)
 
-I would restructure the backend approximately as follows. This is the proposed structural skeleton; it does not enumerate every retained file.
+This is one of the most important architectural problems I found in the repository.
 
-```
-backend/
-├── main.py
-├── router.py
-├── core/
-│   ├── config.py
-│   ├── security.py
-│   ├── middleware.py
-│   ├── errors.py
-│   ├── schemas.py
-│   ├── cache.py
-│   ├── storage.py
-│   ├── features.py
-│   ├── health.py
-│   ├── pagination.py
-│   ├── db/
-│   ├── audit/
-│   └── observability/
-├── modules/
-│   ├── identity/
-│   ├── admin/
-│   ├── billing/
-│   ├── ai/
-│   ├── rag/
-│   ├── agents/
-│   ├── memory/
-│   ├── integrations/
-│   ├── notifications/
-│   ├── projects/
-│   ├── calendar/
-│   └── events/
-├── workers/
-├── alembic/
-│   └── versions/
-├── scripts/
-├── tests/
-│   └── rag/
-│       └── fixtures/
-├── pyproject.toml
-├── uv.lock
-├── requirements.txt
-├── alembic.ini
-├── .env.example
-├── ARCHITECTURE.md
-├── CONFIGURATION.md
-└── AGENTS.md
-```
-
-### **3.1. Standardize backend module structure**
-
-For ordinary business modules such as calendar, projects and notifications, use a consistent structure.
+The current implementation contains:
 
 ```
-projects/
-├── __init__.py
-├── router.py
-├── schemas.py
-├── models.py
-├── service.py
-├── repository.py
-└── permissions.py
+function RoutedErrorBoundary({ children }: {
+    children: React.ReactNode
+}) {
+    const location = useLocation();
+
+    return (
+        <RouteErrorBoundary key={location.key}>
+            {children}
+        </RouteErrorBoundary>
+    );
+}
 ```
 
-| File             | Responsibility                              |
-| ---------------- | ------------------------------------------- |
-| `router.py`      | HTTP endpoints and request handling         |
-| `schemas.py`     | Pydantic request and response contracts     |
-| `models.py`      | SQLAlchemy persistence models               |
-| `service.py`     | Business logic and use cases                |
-| `repository.py`  | Database access and queries                 |
-| `permissions.py` | Feature-specific authorization              |
-| `jobs.py`        | Background task handlers, when needed       |
-| `providers.py`   | External service adapters, when needed      |
-| `contracts.py`   | Public cross-module interfaces, when needed |
+The boundary wraps the entire `Routes` component. Changing `location.key` forces React to unmount and remount its descendants.
 
-Do not force every module to contain every file. A simple capability might only require a router, schemas and service.
+This can cause the application layout, sidebar, header and page components to be unnecessarily recreated.
 
-Avoid introducing structures such as `application/use_cases/`, `domain/entities/`, `infrastructure/repositories/` or `presentation/controllers/` for simple CRUD features. Those layers would unnecessarily increase your folder depth.
+Current architecture
 
-## **4. Backend folders to remove, flatten or relocate**
+Router
 
-| Existing directory                | Recommended action                                                                      |
-| --------------------------------- | --------------------------------------------------------------------------------------- |
-| `backend/api/`                    | Consolidate with the root entry point after verifying responsibilities                  |
-| `core/logging/`                   | Merge into `core/observability/`                                                        |
-| `core/middleware/`                | Consider flattening into `core/middleware.py` if it remains manageable                  |
-| `modules/admin/platform/`         | Flatten into `admin/`                                                                   |
-| `modules/admin/billing/`          | Promote to independent `modules/billing/`                                               |
-| `modules/identity/organizations/` | Flatten into `identity/` if it shares the same domain lifecycle                         |
-| `modules/capabilities/`           | Consolidate registry logic into `core/features.py`; relocate search to its actual owner |
-| `modules/observability/`          | Relocate its API router to the observability infrastructure or administrative API       |
-| `modules/rag/eval/`               | Remove if genuinely empty and unused                                                    |
+**Keyed boundary**
 
-### **Folders worth retaining**
+Remounts on navigation
 
-Not every folder is unnecessary. The following provide meaningful architectural boundaries:
+Application layout
 
-| Directory             | Reason                                                |
-| --------------------- | ----------------------------------------------------- |
-| `core/db/`            | Sessions, transactions and persistence infrastructure |
-| `core/audit/`         | Security-sensitive audit persistence                  |
-| `core/observability/` | Logging, tracing, metrics and error reporting         |
-| `ai/providers/`       | Independent LLM provider implementations              |
-| `rag/parsers/`        | Document format-specific parsing implementations      |
-| `alembic/versions/`   | Database migration history                            |
-| `workers/`            | Independent background execution entry point          |
-| `tests/rag/fixtures/` | Dedicated evaluation datasets                         |
+Sidebar · Header
 
-Removing these simply to decrease the directory count could make the application harder to maintain.
+Feature page
 
-## **5. RAG module — highest-priority simplification**
+Recommended architecture
 
-The existing RAG module contains 72 files, including separate files for chunking policies, tokenizers, embedding providers, retrieval planning, filtering, context selection, citation validation, evidence access and reranking.&#x20;
+Router
 
-architecture_tree.txt
+Stable root boundary
+
+Persistent layout
+
+Sidebar · Header
+
+Page error boundary
+
+Feature page only
+
+**Best solution:** Keep the root error boundary and application shell stable. Move the navigation-sensitive boundary to the outlet or individual feature page. Reset the boundary on relevant route changes without remounting the entire application.
+
+This will reduce component initialization, query subscriptions, DOM reconstruction and unnecessary state loss.
+
+### **FE-02 — Vite repeatedly reloads the browser**
+
+**File:** [frontend/vite.config.ts](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/vite.config.ts?utm_source=chatgpt.com)
+
+The following reloads occurred:
+
+| Time     | Newly discovered dependencies                            |
+| -------- | -------------------------------------------------------- |
+| 03:49:25 | Base UI avatar, combobox, dialog, popover                |
+| 03:49:26 | FullCalendar and Temporal polyfill                       |
+| 03:49:34 | Base UI switch, tooltip                                  |
+| 03:49:36 | Base UI alert-dialog, checkbox, progress, TanStack Table |
+
+Each reload discards the in-memory frontend query cache and restarts authentication and workspace initialization.&#x20;
+
+Pasted text(2).txt
 
 
 
-It is the strongest example of excessive file-level fragmentation in the backend.
+The latest Vite configuration does not explicitly configure `optimizeDeps`. Vite discovers dependencies from lazy-loaded routes during development and can reload the page when additional packages require prebundling.&#x20;
 
-### **Recommended RAG pipeline**
+[image](https://www.google.com/s2/favicons?domain=https://vite.dev\&sz=32)
 
-The algorithmic sophistication should remain. The simplification should occur in the organization and ownership of its implementation.
+Vite
 
-### **Proposed RAG tree**
 
-```
-rag/
-├── __init__.py
-├── router.py
-├── schemas.py
-├── models.py
-├── service.py
-├── repository.py
-├── config.py
-├── domain.py
-├── ingestion.py
-├── parsing.py
-├── chunking.py
-├── embeddings.py
-├── indexing.py
-├── query.py
-├── retrieval.py
-├── search_repository.py
-├── ranking.py
-├── context.py
-├── answers.py
-├── citations.py
-├── scope.py
-├── safety.py
-├── cache.py
-├── provenance.py
-├── vector_store.py
-├── contracts.py
-├── prompts.py
-├── storage.py
-├── jobs.py
-├── metrics.py
-├── tools.py
-└── parsers/
-    ├── __init__.py
-    ├── docling.py
-    ├── pdf.py
-    ├── pdf_quality.py
-    └── loaders.py
-```
 
-### **Recommended RAG file consolidation**
-
-| Target file                | Existing files to review for consolidation                                                                       |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `chunking.py`              | `chunking.py`, `chunk_policy.py`, `chunk_tokenizers.py`, `structured_chunking.py`, `langchain_text_splitters.py` |
-| `citations.py`             | `citations.py`, `citation_validation.py`, `citation_validation_context.py`                                       |
-| `embeddings.py`            | `embeddings.py`, `embedding_provider.py`, `embedding_registry.py`                                                |
-| `ranking.py`               | `ranking.py`, `rerank_policy.py`, `cohere_reranker.py`, `source_diversifier.py`                                  |
-| `retrieval.py`             | `retrieval.py`, `retrieval_planner.py`, `retrieval_fusion.py`, `retrieval_request.py`                            |
-| `context.py`               | `context.py`, `context_selection.py`, `parent_context_service.py`, `prompt_context_service.py`                   |
-| `scope.py`                 | `scope.py`, `document_scope.py`, `repository_scope.py`, `evidence_access.py`                                     |
-| `query.py`                 | `query.py`, `query_expansion.py`, `lexical_languages.py`                                                         |
-| `cache.py`                 | `embedding_cache.py`, `retrieval_cache.py`                                                                       |
-| `config.py`                | `config.py`, `config_models.py`                                                                                  |
-| `domain.py`                | `domain.py`, `value_objects.py`, `enums.py`                                                                      |
-| `provenance.py`            | `provenance.py`, `source_coordinates.py`, `evidence_revision.py`                                                 |
-| `filters.py` or `scope.py` | `filters.py`, `metadata_filters.py`                                                                              |
-| `contracts.py`             | `generation_port.py`, `reranker_port.py`                                                                         |
-| `metrics.py`               | `metrics.py`, `telemetry.py`                                                                                     |
-
-These are candidate merges based on filenames. Files containing substantially different responsibilities should remain separate even if their names are similar.
-
-### **Critical RAG requirements**
-
-During consolidation, preserve:
-
-- Hybrid lexical and semantic search.
-- Multilingual retrieval.
-- Document and tenant access controls.
-- Structured and hierarchical chunking.
-- Embedding caching and concurrency controls.
-- Reranking and source diversity.
-- Citation validation and provenance.
-- Retrieval evaluation and quality benchmarks.
-- Ingestion limits, job idempotency and transaction safety.
-
-The presence of both `ai/document_service.py` and `rag/legacy_ai_document_service.py` suggests a potential compatibility or duplicated document-management flow. RAG should become the canonical owner of document ingestion, indexing and retrieval. Compatibility endpoints can delegate to it until existing API consumers are migrated.
-
-Current RAG files
-
-# **72**
-
-Proposed target
-
-# **35–42**
-
-Current
-
-Proposed midpoint
-
-Approximately 42–51% fewer RAG files is a reasonable design target, provided that consolidation does not produce excessively large files or degrade retrieval quality.
-
-## **6. Simplify AI, agents and memory architecture**
-
-These four modules must cooperate, but they should not independently implement the same LLM execution, provider selection, context assembly or retry mechanisms.
-
-| Module   | Exclusive responsibility                                                                  |
-| -------- | ----------------------------------------------------------------------------------------- |
-| `ai`     | LLM execution, provider adapters, streaming, model routing, prompt assets, run management |
-| `rag`    | Document ingestion, knowledge retrieval, grounding and citations                          |
-| `agents` | Tools, MCP, workflows, multi-step orchestration and execution coordination                |
-| `memory` | User memory extraction, storage, retrieval, consolidation and governance                  |
-
-### **6.1. AI module**
-
-Reduce the current 41 files toward approximately 25–30.
+**Best solution:** Add the exact dependencies observed in the logs to the existing Vite configuration:
 
 ```
-ai/
-├── __init__.py
-├── router.py
-├── schemas.py
-├── models.py
-├── service.py
-├── repository.py
-├── contracts.py
-├── dependencies.py
-├── gateway.py
-├── routing.py
-├── reliability.py
-├── streaming.py
-├── runs.py
-├── prompts.py
-├── evaluations.py
-├── reviews.py
-├── overview.py
-├── errors.py
-├── metrics.py
-├── jobs.py
-└── providers/
-    ├── __init__.py
-    ├── registry.py
-    ├── common.py
-    ├── openai.py
-    ├── anthropic.py
-    └── local.py
+optimizeDeps: {
+  include: [
+    '@base-ui/react/avatar',
+    '@base-ui/react/combobox',
+    '@base-ui/react/dialog',
+    '@base-ui/react/popover',
+    '@base-ui/react/switch',
+    '@base-ui/react/tooltip',
+    '@base-ui/react/alert-dialog',
+    '@base-ui/react/checkbox',
+    '@base-ui/react/progress',
+    '@fullcalendar/react',
+    '@fullcalendar/react/daygrid',
+    '@fullcalendar/react/interaction',
+    '@fullcalendar/react/locales/fr',
+    '@fullcalendar/react/locales/nl',
+    '@fullcalendar/react/multimonth',
+    '@fullcalendar/react/timegrid',
+    '@tanstack/react-table',
+    'temporal-polyfill',
+  ],
+},
 ```
 
-| Current files                                                     | Recommended improvement                                    |
-| ----------------------------------------------------------------- | ---------------------------------------------------------- |
-| `base_service.py`, `orchestration.py`, `provider_service.py`      | Establish a clear application service and provider gateway |
-| `stream_routes.py`, `stream_service.py`, `streaming.py`           | Consolidate streaming execution and route registration     |
-| `run_routes.py`, `runs.py`                                        | Keep run business logic in `runs.py`                       |
-| `prompt_routes.py`, `prompts.py`                                  | Standardize prompt management                              |
-| `evaluation_routes.py`, `evaluation_scoring.py`, `evaluations.py` | Consolidate evaluation logic where manageable              |
-| `document_routes.py`, `document_service.py`                       | Delegate document operations to RAG                        |
-
-A single module router does not mean every endpoint must be implemented in one enormous file. Retain secondary route files when endpoint volume justifies them.
-
-**The most important improvement:** establish one canonical LLM gateway for AI runs, RAG answer generation, agents and memory extraction. Centralize model selection, timeouts, provider retries, concurrency limits, token accounting and telemetry there.
-
-### **6.2. Memory module**
-
-The memory module has 22 files. I would target approximately 14–17.
+Then rebuild the development dependency cache once:
 
 ```
-memory/
-├── __init__.py
-├── router.py
-├── schemas.py
-├── models.py
-├── repository.py
-├── service.py
-├── config.py
-├── domain.py
-├── extraction.py
-├── consolidation.py
-├── retrieval.py
-├── governance.py
-├── jobs.py
-├── cache.py
-└── metrics.py
+cd frontend
+rm -rf node_modules/.vite
+npm run dev
 ```
 
-Candidate consolidations:
+Keep the existing route-level lazy loading. There is no reason to remove lazy loading or replace FullCalendar, Base UI or shadcn components to address this issue.
 
-| Existing files                                      | Proposed owner                |
-| --------------------------------------------------- | ----------------------------- |
-| `policies.py`, `policy_service.py`, `governance.py` | `governance.py`               |
-| `context.py`, `ranking.py`, `routing.py`            | `retrieval.py`                |
-| `domain.py`, `enums.py`                             | `domain.py`                   |
-| `provider.py`                                       | Shared AI gateway integration |
+**Important:** This particular Vite behavior is development-only. It is not evidence that the production bundle reloads in the same manner.
 
-Preserve memory consent, deletion, retention, tenant isolation and audit capabilities.
+### **FE-03 — Duplicate API calls across application modules**
 
-### **6.3. Agents module**
+The logs show the following repeated request pairs:
 
-The current nine-file agents module is already reasonably organized.
+| Endpoint                | Observed requests | Proposed target\* |
+| ----------------------- | ----------------- | ----------------- |
+| `/profile`              | 8                 | 1                 |
+| `/notifications`        | 8                 | 1                 |
+| `/projects`             | 4                 | 1                 |
+| `/ai/evaluation-runs`   | 2                 | 1                 |
+| `/ai/reviews`           | 2                 | 1                 |
+| `/rag/documents`        | 2                 | 1                 |
+| `/memory`               | 2                 | 1                 |
+| `/observability/links`  | 2                 | 1                 |
+| `/observability/status` | 2                 | 1                 |
 
-I would retain most of it, while verifying whether `runtime.py` and `service.py`, or `workflow.py` and `workflow_definitions.py`, need to be separate.
+\*Targets assume the same user, query parameters, freshness window and no intentional reload, mutation or invalidation.
 
-Avoid moving RAG retrieval implementations or model-provider adapters into the agents module. Agents should consume those capabilities through explicit public interfaces.
+I checked these files:
 
-## **7. Core infrastructure improvements**
+- [frontend/src/main.tsx](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/main.tsx?utm_source=chatgpt.com)
+- [frontend/src/config/queryClient.ts](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/config/queryClient.ts?utm_source=chatgpt.com)
+- [frontend/src/config/queryTiming.ts](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/config/queryTiming.ts?utm_source=chatgpt.com)
+- [frontend/src/app/providers.tsx](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/app/providers.tsx?utm_source=chatgpt.com)
 
-The backend `core/` currently contains 53 files. Its responsibilities should be narrowed to infrastructure that is genuinely reusable across modules.
+The application already implements several good practices:
 
-| Current concern                           | Recommended ownership                                                       |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| Logging, redaction, tracing and timing    | `core/observability/`                                                       |
-| OpenTelemetry, Prometheus and Sentry      | `core/observability/`                                                       |
-| Database pooling instrumentation          | Instrumentation under observability, initialized by database infrastructure |
-| Security headers, CSRF and request limits | `core/middleware.py` or a retained middleware package                       |
-| Authentication primitives                 | `core/security.py`                                                          |
-| Identity and session business logic       | `modules/identity/`                                                         |
-| Generic caching                           | `core/cache.py`                                                             |
-| RAG-specific caching                      | `modules/rag/cache.py`                                                      |
-| Generic vector database operations        | `core/db/`                                                                  |
-| RAG-specific search logic                 | `modules/rag/`                                                              |
-| Feature registration                      | `core/features.py`                                                          |
-| Administrative feature management         | `modules/admin/`                                                            |
+- A singleton TanStack Query client.
+- Centralized query timing configuration.
+- Query garbage collection after 10 minutes.
+- Default stale time of 60 seconds.
+- Disabled window-focus refetching.
+- Restricted retries for HTTP client errors.
 
-### **Proposed observability consolidation**
+Consequently, **creating another caching system would be the wrong solution.**
 
-```
-core/observability/
-├── __init__.py
-├── setup.py
-├── config.py
-├── logging.py
-├── metrics.py
-├── tracing.py
-├── sentry.py
-└── router.py
-```
+React StrictMode is also enabled. It deliberately repeats certain lifecycle operations in development to expose side-effect bugs. When query cancellation is involved, an initial request may reach the server before it is cancelled and restarted.&#x20;
 
-Currently, observability-related responsibilities are distributed across `core/logging/`, `core/observability/`, `modules/observability/`, `workers/logging_hooks.py` and several feature-specific metrics files.
+[image](https://www.google.com/s2/favicons?domain=https://react.dev\&sz=32)
 
-Feature-specific metrics definitions can remain local, but their exporters, tracing configuration and logging infrastructure should be shared.
+React
 
-Do not remove log redaction, request correlation or audit logging during consolidation.
 
-# **Frontend architecture**
 
-## **9. Recommended frontend tree**
+The best solution is to fix FE-01 and FE-02 first, then audit every remaining duplicate using browser network initiators and query keys. Standardize API access through shared TanStack Query hooks, remove competing `useEffect`-based fetching and ensure identical resources use identical query keys.
 
-frontend/
-├── src/
-│   ├── main.tsx
-│   ├── index.css
-│   ├── app/
-│   │   ├── router.tsx
-│   │   ├── routes.ts
-│   │   ├── providers.tsx
-│   │   ├── AppLayout.tsx
-│   │   ├── ProtectedRoute.tsx
-│   │   ├── RouteErrorBoundary.tsx
-│   │   ├── WorkspaceSidebar.tsx
-│   │   ├── configuration.tsx
-│   │   └── theme.ts
-│   ├── ui/
-│   ├── features/
-│   │   ├── identity/
-│   │   ├── admin/
-│   │   ├── billing/
-│   │   ├── dashboard/
-│   │   ├── ai/
-│   │   ├── rag/
-│   │   ├── agents/
-│   │   ├── memory/
-│   │   ├── integrations/
-│   │   ├── notifications/
-│   │   ├── observability/
-│   │   ├── projects/
-│   │   └── calendar/
-│   ├── lib/
-│   │   ├── api.ts
-│   │   ├── queryClient.ts
-│   │   ├── queryKeys.ts
-│   │   ├── utils.ts
-│   │   ├── notify.ts
-│   │   ├── webVitals.ts
-│   │   └── generated/
-│   ├── i18n/
-│   └── test/
-├── e2e/
-├── public/
-├── scripts/
-├── .storybook/
-├── package.json
-├── package-lock.json
-└── ...
-```
+Keep StrictMode enabled. Do not disable request cancellation globally or introduce artificial delays to hide duplicate requests.
 
-Keep all existing build, dependency, lint and test configuration files unless they are verified to be unnecessary.
+### **FE-04 — Unnecessary global data loading**
 
-### **9.1. Flatten frontend folders**
+**Files:** [AppLayout.tsx](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/components/layout/AppLayout.tsx?utm_source=chatgpt.com) and [WorkspaceMenus.tsx](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/components/layout/WorkspaceMenus.tsx?utm_source=chatgpt.com).
 
-| Existing directory               | Recommendation                                                                                        |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `src/components/ui/`             | Rename to `src/ui/` to remove one nesting level                                                       |
-| `src/features/ai/workspace/`     | Move its files directly into the AI feature with clear names                                          |
-| `src/features/ai/generative-ui/` | Flatten using descriptive filenames, or retain if it evolves into a substantial independent subsystem |
-| `src/mocks/`                     | Move mock handlers into `src/test/`                                                                   |
-| `src/types/`                     | Relocate `qrcode.d.ts` to an appropriate existing location covered by TypeScript                      |
-| `e2e-design/`                    | Merge directory into `e2e/`, retaining separate test projects if necessary                            |
+The application shell loads projects for the sidebar, and the notification menu retrieves notifications to calculate an unread count.
 
-The `src/ui/` change is optional. Keeping the conventional `components/ui/` location may be preferable if changing shadcn tooling and aliases introduces unnecessary maintenance.
+These operations are reasonable with a small database but can become expensive as the application grows.
 
-### **9.2. Standardize frontend feature structure**
+**Recommended data loading policy:**
 
-Use a flat feature directory.
+| Resource                   | Recommended behavior                      |
+| -------------------------- | ----------------------------------------- |
+| Current authenticated user | Load on session initialization            |
+| Platform metadata          | Cache for 5 minutes                       |
+| Profile details            | Load when profile information is required |
+| Project selector           | Lightweight summaries                     |
+| Notification badge         | Unread count only                         |
+| Notification history       | Load when requested                       |
+| Calendar items             | Fetch visible date range only             |
+| AI overview                | Fetch on page entry                       |
+| AI reviews                 | Paginated, active tab only                |
+| RAG documents              | Paginated and scope-aware                 |
+| Memory records             | Paginated and user-scoped                 |
+| Observability              | Active page only                          |
+
+For example, the notification menu currently filters returned notifications to calculate the unread count. A lightweight unread count endpoint or existing response metadata would be more scalable.
+
+Do not create new endpoints for every small UI component. Introduce lightweight summaries only when the existing payloads justify them.
+
+## **5. Authentication fixes**
+
+### **AUTH-01 — Redundant authentication validation and refresh requests**
+
+**File:** [frontend/src/api/client.ts](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/api/client.ts?utm_source=chatgpt.com)
+
+The logs show:
 
 ```
-projects/
-├── api.ts
-├── types.ts
-├── hooks.ts
-├── ProjectsPage.tsx
-├── ProjectDetailPage.tsx
-├── ProjectTaskCards.tsx
-├── TaskEditor.tsx
-└── ProjectDetailPage.test.tsx
+GET  /auth/me       401
+GET  /auth/me       401
+POST /auth/refresh  200
+GET  /auth/me       200
 ```
 
-Avoid automatically creating separate `components/`, `hooks/`, `pages/`, `types/`, `services/` and `utils/` directories for every feature.
+The source code explains this behavior.
 
-For a small-to-medium feature, that approach creates more navigation overhead than architectural value.
+Inside `refreshAccessToken()`, the client calls `hasActiveSession()`, which makes another request to `/auth/me`, even though the original request already returned 401.
 
-## **10. Eliminate unnecessary Page/View/Content layers**
+The second request exists partly to protect against concurrent refresh operations across browser tabs. Therefore, it should not simply be removed without preserving that protection.
 
-The frontend has several candidates for excessive presentation layering.
+Current flow
 
-For example, the admin feature contains `AdminPlatformPage.tsx`, `AdminPlatformView.tsx`, `AdminPlatformContent.tsx` and `usePlatformAdminContent.ts`. Similar patterns exist in AI Studio, profile, integrations and observability.
+GET /auth/me
 
-**Current pattern**
+401
 
-Page.tsx
+GET /auth/me
 
-View\.tsx
+401
 
-Content.tsx
+POST /auth/refresh
 
-Components
+200
 
-**Recommended**
+GET /auth/me
 
-Page.tsx
+200
 
-Feature components
+**4 requests**
 
-Hooks + API
+Optimized flow
 
-| Existing files to inspect                                        | Proposed primary component |
-| ---------------------------------------------------------------- | -------------------------- |
-| `AdminPlatformPage`, `AdminPlatformView`, `AdminPlatformContent` | `AdminPlatformPage.tsx`    |
-| `AdminSettingsPage`, `AdminSettingsView`, `AdminSettingsContent` | `AdminSettingsPage.tsx`    |
-| `AiStudioPage`, `AiStudioView`                                   | `AiStudioPage.tsx`         |
-| `ProfilePage`, `ProfileView`                                     | `ProfilePage.tsx`          |
-| `ProjectDetailPage`, `ProjectDetailView`                         | `ProjectDetailPage.tsx`    |
-| `PlatformPage`, `PlatformView`                                   | `PlatformPage.tsx`         |
-| `ObservabilityPage`, `ObservabilityView`                         | `ObservabilityPage.tsx`    |
+GET /auth/me
 
-Merge these only when a component is primarily a pass-through wrapper or has no meaningful independent responsibility. Retain separately testable views or rendering boundaries when useful.
+401
 
-This would improve readability and reduce prop forwarding without requiring a major UI redesign.
+Acquire refresh lock
 
-## **11. Standardize frontend API access**
+Check session generation
 
-There is inconsistency between features that use `api.ts` and features that have numerous domain-prefixed API files.
+POST /auth/refresh
 
-For example:
+Return authenticated user
+
+Update auth cache
+
+Authenticated
+
+**2 requests in ideal case**
+
+**Best solution:** Optimize the session bootstrap flow while retaining:
+
+- Existing single-flight `refreshPromise`.
+- Browser Web Locks for cross-tab synchronization.
+- CSRF protection.
+- Refresh-token rotation.
+- Logout race-condition protection.
+- Identity-scoped cache clearing.
+
+Where the refresh response includes a validated user object, use it to populate the authentication query cache rather than requesting the same user again. Otherwise, keep one subsequent `/auth/me` request.
+
+This is an optimization, not a reason to change the authentication architecture.
+
+### **AUTH-02 — Network failures can be treated as unauthenticated sessions**
+
+**File:** [frontend/src/features/auth/context/AuthContext.tsx](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/frontend/src/features/auth/context/AuthContext.tsx?utm_source=chatgpt.com)
+
+The authentication provider calculates readiness using:
 
 ```
-features/ai/
-├── evaluationsApi.ts
-├── overviewApi.ts
-├── promptsApi.ts
-├── reviewsApi.ts
-└── runsApi.ts
+const isReady = signedOut || !isPending;
 ```
 
-Prefer a canonical feature API entry point:
+However, a failed authentication query can also stop being pending. A network failure or HTTP 500 could therefore leave the UI in a ready-but-unauthenticated state, even though the session could still be valid.
+
+**Best solution:** Introduce explicit authentication states.
+
+**Initializing**
+
+Checking the current session
+
+**Authenticated**
+
+Valid server-confirmed session
+
+**Anonymous**
+
+No valid session exists
+
+**Refreshing**
+
+Recovering an expired session
+
+**Unavailable**
+
+Backend or network failure; offer retry
+
+The two 401 responses in the provided logs are not evidence of a security failure. They are consistent with expired or missing access credentials followed by a successful refresh.
+
+## **6. Backend and observability fixes**
+
+### **OBS-01 — Observability endpoints are relatively expensive**
+
+| Endpoint                | Average  | Maximum  |
+| ----------------------- | -------- | -------- |
+| `/observability/links`  | 39.94 ms | 43.19 ms |
+| `/observability/status` | 43.27 ms | 44.98 ms |
+
+**File:** [backend/core/observability/service.py](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/backend/core/observability/service.py?utm_source=chatgpt.com)
+
+The implementation already includes Redis-backed status caching, a reusable asynchronous HTTP client and parallel checks using `asyncio.gather()`.
+
+These are good architectural decisions and should be preserved.
+
+The status endpoint potentially performs checks against PostgreSQL, Redis, Prometheus, Grafana, Tempo and background workers.
+
+**Observability API**
+
+**Redis status cache**
+
+Cache miss only
+
+PostgreSQL
+
+Redis
+
+Prometheus
+
+Grafana
+
+Tempo
+
+Workers
+
+Parallel dependency health checks
+
+**Best improvements:** Verify that simultaneous Redis cache misses are coalesced, maintain a configurable status TTL around 15–30 seconds, use bounded health-check timeouts and instrument individual check durations.
+
+The links endpoint primarily constructs URLs from configuration. Its relatively high latency warrants profiling authentication dependencies, database pool acquisition and request middleware before changing its implementation.
+
+At the observed latency, introducing a separate observability microservice would be unnecessary.
+
+### **OBS-02 — Incorrect health status classification**
+
+The observability service currently contains:
 
 ```
-features/ai/
-├── api.ts
-├── types.ts
-├── hooks.ts
-└── ...
+if response.status_code < HTTPStatus.INTERNAL_SERVER_ERROR:    return ObservabilityStatusItem(        status="healthy",        ...    )
 ```
 
-Apply the same approach to admin, identity and notifications, unless the resulting API module is large enough to justify separate files.
+This means responses such as HTTP 401, 403, 404 and 429 can be reported as healthy.
 
-The architectural flow should be:
+A service may be reachable without being operational.
 
-**React component**
+**Best solution:** Use dedicated service health endpoints and distinguish reachability from actual health.
 
-**Feature hook / TanStack Query**
+| Response                          | Recommended status     |
+| --------------------------------- | ---------------------- |
+| Valid 2xx health response         | Healthy                |
+| Expected authentication challenge | Reachable / restricted |
+| 404                               | Misconfigured          |
+| 429                               | Degraded               |
+| 5xx                               | Unhealthy or degraded  |
+| Timeout or connection refused     | Down                   |
+| Missing configuration             | Not configured         |
 
-**Feature&#x20;**`api.ts`
+Use appropriate internal health endpoints for Grafana, Prometheus and Tempo rather than relying exclusively on their public dashboard URLs.
 
-**Shared&#x20;**`lib/api.ts`
+This is a genuine code-level correctness issue, although the supplied logs do not show an incorrect health result.
 
-**FastAPI endpoint**
+### **SEC-01 — Potential infrastructure information disclosure**
 
-The shared API client should centralize authentication, token refresh, CSRF handling, standardized errors, cancellation, timeouts and appropriate retry policies.
+**Files:**
 
-Continue using generated OpenAPI types from `lib/generated/`. Avoid manually recreating backend schemas in frontend TypeScript when generated contracts already exist.
+[backend/core/observability/router.py](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/backend/core/observability/router.py?utm_source=chatgpt.com) and [backend/core/observability/service.py](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/backend/core/observability/service.py?utm_source=chatgpt.com).
 
-## **12. Simplify shared UI ownership**
+The `/links` endpoint checks whether the current user is an administrator before exposing technical links.
 
-Retain generic UI primitives and genuinely reusable compositions in `ui/`.
+However, the `/status` endpoint only requires an authenticated user, and the status service can include configured infrastructure URLs in its response.
 
-| Keep shared | Review for feature ownership           |
-| ----------- | -------------------------------------- |
-| Button      | Domain-specific run status panel       |
-| Dialog      | Event calendar integrations            |
-| Input       | Feature-specific advanced settings     |
-| Select      | Business-specific comparison cards     |
-| Table       | Workflow-specific status components    |
-| Card        | Feature-specific analytics widgets     |
-| Tabs        | Domain-specific timelines              |
-| Skeleton    | Feature-specific metric presentations  |
-| PageShell   | Components used by only one feature    |
-| EmptyState  | Business-specific form implementations |
+This creates an inconsistent authorization policy.
 
-Do not merge shadcn components into a single large file. Their independent component structure is beneficial for maintenance and compatibility with upstream tooling.
+**Best solution:** Either make detailed infrastructure status administrator-only or return role-filtered responses:
 
-Maintain one design token system through `index.css`, with Tailwind utilities, shadcn components and Lucide icons. Avoid introducing a second parallel styling system.
+| Information                      | Regular user | Administrator |
+| -------------------------------- | ------------ | ------------- |
+| General application availability | Yes          | Yes           |
+| Infrastructure URLs              | No           | Yes           |
+| Worker and queue details         | No           | Yes           |
+| Technical diagnostics            | No           | Yes           |
+| Grafana and Prometheus links     | No           | Yes           |
 
-# **Cross-cutting architectural improvements**
+Add authorization tests for both endpoints. Also restrict outgoing health-check requests to trusted configuration, and validate redirect destinations if following redirects is necessary.
 
-## **13. Establish strict dependency boundaries**
+This is a potential information exposure, not a confirmed exploitation event.
 
-The architecture should enforce the following dependency rules rather than merely document them.
+### **OBS-03 — OpenTelemetry tracing disabled**
 
-| Source            | Allowed dependencies                                          |
-| ----------------- | ------------------------------------------------------------- |
-| Backend `core`    | External libraries and infrastructure                         |
-| Backend modules   | Own implementation, core and explicit public module contracts |
-| Backend workers   | Core and module job handlers                                  |
-| Backend `main.py` | Application composition and registration                      |
-| Frontend `app`    | Features, UI and lib                                          |
-| Frontend features | Own implementation, UI, lib and explicit feature interfaces   |
-| Frontend `ui`     | Generic utilities and UI dependencies                         |
-| Frontend `lib`    | External libraries and generated contracts                    |
+```
+OpenTelemetry traces disabled by OTEL_TRACES_EXPORTER
+```
 
-Avoid:
+This is acceptable in local development. It is a production observability limitation if tracing remains disabled in the deployed environment.
 
-- Circular feature dependencies.
-- Direct access to another module's private repositories.
-- Business logic inside HTTP routers.
-- Database queries inside HTTP middleware.
-- Feature-specific business logic inside `core` or `lib`.
-- Imports from frontend features into generic UI primitives.
-- Duplicate wrappers that simply forward arguments.
-- Hidden initialization and other side effects in package imports.
+Recommended production configuration:
 
-You already have appropriate tools for enforcing these boundaries in the repository:
+```
+OTEL_TRACES_EXPORTER=otlp
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_TRACES_SAMPLER=parentbased_traceidratio
+OTEL_TRACES_SAMPLER_ARG=0.1
+```
 
-| Existing file                              | Recommended enforcement                               |
-| ------------------------------------------ | ----------------------------------------------------- |
-| `backend/scripts/check_architecture.py`    | Python module dependency rules                        |
-| `frontend/.dependency-cruiser.cjs`         | TypeScript dependency boundaries and circular imports |
-| `frontend/knip.json`                       | Unused files, exports and dependencies                |
-| `frontend/scripts/check-api-contract.mjs`  | API contract consistency                              |
-| `frontend/scripts/check-design-system.mjs` | UI design consistency                                 |
-| `frontend/scripts/check-bundle-size.mjs`   | Bundle-size regression limits                         |
+The collector hostname and endpoint must match the actual deployment infrastructure.
 
-Extend these existing tools rather than introducing several additional architecture-checking frameworks.
+For the blueprint, trace database queries, Redis calls, background jobs, RAG retrieval, embedding operations and LLM provider calls. Do not include credentials, document contents or sensitive prompts in telemetry by default.
 
-## **14. Make the blueprint genuinely modular**
+## **7. Logging issues**
 
-Because this application is intended to serve as a foundation for different application ideas, I would separate its capabilities into three conceptual categories without creating additional directory hierarchies.
+### **LOG-01 — Duplicate warning logs and correlation identifiers**
 
-**Mandatory foundation**
+Each failed authentication request produces both an exception warning and a request-completion warning.
 
-Identity
+The correlation identifier also appears twice within the same log line.
 
-Security
+Current:
 
-Database
+```
+WARNING [backend.request] [correlation_id=abc]
+request_complete method=GET path=/api/v1/auth/me
+status=401 duration_ms=20.91 correlation_id=abc
+```
 
-Configuration
+**Best solution:** Give request middleware ownership of the canonical request-completion log. Exception handlers should provide additional diagnostic information only when necessary.
 
-Audit
+Expected authentication failures should be classified appropriately, while suspicious authentication activity, repeated failures and security events remain visible to monitoring.
 
-Error handling
+Use one correlation ID field and structured JSON logs in production.
 
-Observability
+### **LOG-02 — File retention and rotation implementation**
 
-Application shell
+**File:** [backend/core/logging/log_handlers.py](https://github.com/oplt/fullstack_blueprint/blob/6e5c8892d5a250bdd843af302dd34b832ae01b8b/backend/core/logging/log_handlers.py?utm_source=chatgpt.com)
 
-Available in every generated application.
+The current rotating file handler uses:
 
-**Optional AI capabilities**
+```
+backupCount=0
+```
 
-AI gateway
+Custom cleanup is performed when the logging handlers are initialized. This means rotated files may accumulate in long-running processes because automatic backup deletion is disabled.
 
-RAG
+The current logs also show:
 
-Agents
+```
+path=backend/core/logs/logs.txt
+retention_days=1
+```
 
-Memory
+There are three weaknesses here: runtime logs are located within the source directory, the retention period is short for investigating production incidents, and synchronous file handlers may introduce blocking I/O under load.
 
-MCP
+**Recommended approach:**
 
-Speech
+| Setting               | Development               | Production                   |
+| --------------------- | ------------------------- | ---------------------------- |
+| Logging destination   | Console and optional file | Structured stdout            |
+| Log format            | Human-readable            | JSON                         |
+| Retention             | 3–7 days                  | 14–30 days, policy-dependent |
+| Rotation              | Bounded local files       | Container/platform-managed   |
+| Runtime files         | Git-ignored directory     | External log storage         |
+| Sensitive information | Redacted                  | Redacted                     |
 
-Generative UI
+For local file logging, configure the rotating handler with a bounded backup count. In production, prefer stdout and centralized collection rather than having multiple worker processes rotate the same file.
 
-Enabled according to the requirements of the application. Speech is a proposed addition, not a module shown in the attached tree.
+Consider queue-based asynchronous logging only when load testing demonstrates logging-related blocking.
 
-**Optional business capabilities**
+## **8. Architecture reorganization issues**
 
-Projects
+### **ARCH-01 — Outdated imports after moving backend files**
 
-Calendar
+The latest commit still contains inconsistent references to the previous architecture.
 
-Billing
+| Current file                    | Legacy import reference                    |
+| ------------------------------- | ------------------------------------------ |
+| `core/logging/logging.py`       | `backend.core.log_context`                 |
+| `core/logging/logging.py`       | `backend.core.log_handlers`                |
+| `core/logging/logging.py`       | `backend.core.log_redaction`               |
+| `core/observability/router.py`  | `modules.observability.schemas`            |
+| `core/observability/router.py`  | `modules.observability.service`            |
+| `core/observability/service.py` | `modules.observability.prometheus_metrics` |
 
-Notifications
+For example, the old `backend/core/log_context.py` path could not be retrieved from the latest commit, while `backend/core/logging/log_context.py` exists.
 
-Integrations
+The canonical imports should follow the new architecture:
 
-Events
+```
+from backend.core.logging.log_context import get_correlation_idfrom backend.core.logging.log_handlers import attach_handlersfrom backend.core.logging.log_redaction import RedactingFilter
+```
 
-Organizations
+**Best solution:**
 
-Installed or enabled only when required by the target product.
+Perform a repository-wide import audit after the reorganization. Replace obsolete imports with canonical paths, checking whether any intentional compatibility aliases are involved.
 
-Use the existing `core/features.py` as the basis for a canonical feature registry.
+Do not recreate deleted folders solely to accommodate outdated imports.
 
-Each optional capability should declare its dependencies, router registration, background jobs, configuration requirements and frontend availability.
+Run the following checks from the repository root:
 
-Disabling a capability should consistently affect API availability, frontend navigation, background task execution and resource initialization. Frontend feature visibility alone is not a security boundary; backend access must also be enforced.
+```
+cd backend
 
-This allows a lightweight SaaS application to use the blueprint without initializing the full RAG and agent infrastructure.
+uv run ruff check .
+uv run alembic current
+uv run alembic check
+uv run pytest -x -q
+```
 
-## **15. Naming conventions and architecture rules**
+Also add a CI test that imports every registered backend router and initializes the FastAPI application. Syntax checks alone cannot identify every invalid import.
 
-| Area                          | Recommended convention                           |
-| ----------------------------- | ------------------------------------------------ |
-| Python files                  | `snake_case.py`                                  |
-| React components              | `PascalCase.tsx`                                 |
-| TypeScript utilities          | `camelCase.ts`                                   |
-| shadcn primitives             | Existing upstream naming                         |
-| Feature API files             | `api.ts`                                         |
-| Feature hooks                 | `hooks.ts` or descriptive `useFeature.ts`        |
-| API contracts                 | `schemas.py` and generated TypeScript types      |
-| Background jobs               | `jobs.py`                                        |
-| Business logic                | `service.py` or capability-specific names        |
-| Maximum ordinary folder depth | Three directory levels below backend/frontend    |
-| New subdirectories            | Only for meaningful independent responsibilities |
-| Public interfaces             | Explicit exports rather than wildcard re-exports |
-| Test files                    | Retain descriptive names and existing coverage   |
+### **ARCH-02 — Remaining platform abstraction**
 
-### **Recommended file-size guidelines**
+The application continues to request:
 
-These should be soft review thresholds, not automatic failure conditions.
+```
+GET /api/v1/platform/metadata
+```
 
-| File type         | Review threshold |
-| ----------------- | ---------------- |
-| Python router     | 300 lines        |
-| Python service    | 500 lines        |
-| Python repository | 400 lines        |
-| React page        | 300 lines        |
-| React component   | 250 lines        |
-| React hook        | 200 lines        |
-| General utility   | 300 lines        |
+The router and application layout still rely on platform configuration, capability availability and server feature metadata.
 
-If consolidation produces a 2,000-line `retrieval.py` or `service.py`, retain the appropriate independent implementation files. The goal is high cohesion, not simply a lower file count.
+Given your objective of maintaining a single general-purpose blueprint rather than multiple platform variants, I recommend simplifying these abstractions further.
 
-## **16. Additional performance improvements enabled by this architecture**
+Preserve useful runtime feature flags and authorization controls, but remove unnecessary layers of platform differentiation. Deployment-level configuration should remain separate from user permissions and feature implementation.
 
-| Improvement                                | Expected benefit                                         |
-| ------------------------------------------ | -------------------------------------------------------- |
-| Lazy-load optional frontend feature routes | Smaller initial JavaScript bundle                        |
-| Lazy-initialize AI providers and parsers   | Lower startup overhead where initialization is expensive |
-| Disable unused capability initialization   | Lower resource consumption                               |
-| Centralize LLM client lifecycle            | Connection reuse and consistent timeouts                 |
-| Centralize database session handling       | Better transaction and connection management             |
-| Standardize TanStack Query keys            | Fewer redundant network requests                         |
-| Eliminate duplicate RAG execution paths    | Potentially lower retrieval latency and AI costs         |
-| Shared asynchronous job dispatch           | Consistent retry and idempotency behavior                |
-| Consolidate context construction           | Potentially lower token consumption                      |
-| Keep heavy ingestion outside API workers   | Better API responsiveness under ingestion load           |
+This is an architectural simplification opportunity rather than a runtime defect.
 
-Reducing files and directories by itself will not significantly improve runtime performance. Actual improvements depend on eliminating redundant execution, unnecessary initialization, duplicated network requests and inefficient data access.
+## **9. Recommended implementation roadmap**
 
-# **Implementation roadmap**
+Implement the fixes in the following order to minimize regressions.
 
-## **17. Recommended refactoring order**
+## **1**
 
-**1**
+**Architecture integrity**
 
-**Establish architectural baseline**
+Easy to medium difficulty
 
-P0
+- Correct outdated imports.
+- Verify Alembic and application initialization.
+- Run frontend type checking and production build.
 
-Record current imports, API contracts, test results, migrations, RAG quality and performance measurements.
+## **2**
 
-**2**
+**Development environment and logging**
 
-**Define module ownership**
+Easy difficulty
 
-P0
+- Configure Vite dependency optimization.
+- Remove redundant logging fields.
+- Correct log rotation and retention.
 
-Establish canonical ownership for AI execution, RAG documents, agents, memory, billing and configuration.
+## **3**
 
-**3**
+**Frontend lifecycle and data fetching**
 
-**Consolidate RAG internals**
+Medium difficulty · Highest performance impact
 
-P1
+- Stabilize the application layout.
+- Fix route error boundary placement.
+- Identify remaining duplicate queries.
+- Optimize global workspace data loading.
 
-Merge related processing-stage implementations while preserving algorithms, authorization and quality benchmarks.
+## **4**
 
-**4**
+**Authentication**
 
-**Consolidate AI infrastructure**
+Medium to high difficulty
 
-P1
+- Optimize the refresh flow.
+- Implement explicit authentication states.
+- Test concurrent refresh and logout operations.
+- Preserve CSRF and session security.
 
-Unify the gateway, streaming, provider routing, retry policies and model execution.
+## **5**
 
-**5**
+**Observability and production hardening**
 
-**Simplify core infrastructure**
+Medium to high difficulty
 
-P1
+- Correct health status classification.
+- Enforce infrastructure access permissions.
+- Verify cache coalescing.
+- Configure distributed tracing.
+- Perform production load testing.
 
-Consolidate observability, feature registration and overlapping infrastructure.
+## **10. Expected acceptance criteria**
 
-**6**
+| Metric                            | Current observation | Target                     |
+| --------------------------------- | ------------------- | -------------------------- |
+| Backend startup                   | Successful          | Successful                 |
+| Vite dependency-triggered reloads | 4                   | 0 during normal navigation |
+| Workspace remount on navigation   | Present in source   | Eliminated                 |
+| Identical concurrent GET requests | Multiple            | 1 where applicable         |
+| Authentication recovery requests  | 4                   | 2–3 when feasible          |
+| HTTP 5xx errors                   | 0                   | 0                          |
+| Median local API latency          | 5.05 ms             | Maintain                   |
+| Log correlation ID repetitions    | 2                   | 1                          |
+| Obsolete imports                  | Present             | 0                          |
+| Infrastructure authorization      | Inconsistent        | Consistent                 |
+| Production tracing                | Not verified        | Configured and tested      |
 
-**Refactor frontend features**
+After implementation, run:
 
-P2
+```
+cd frontend
 
-Remove unnecessary Page/View/Content wrappers and standardize API clients and hooks.
-
-**7**
-
-**Flatten directory structure**
-
-P2
-
-Move files, update imports, aliases, tooling, worker registrations and documentation.
-
-**8**
-
-**Improve optional capability lifecycle**
-
-P2
-
-Ensure optional features can be disabled safely without initializing unnecessary resources.
-
-**9**
-
-**Production validation**
-
-P3
-
-Execute security, migration, integration, E2E, RAG quality and performance regression checks.
-
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+npm run perf:check
+npm run test:e2e
+```

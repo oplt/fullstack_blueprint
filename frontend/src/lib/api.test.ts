@@ -130,7 +130,6 @@ describe("apiFetchItems", () => {
         document.cookie = "blueprint_csrf=token; Path=/";
         const fetchMock = vi.fn()
             .mockResolvedValueOnce(new Response(null, { status: 401 }))
-            .mockResolvedValueOnce(new Response(null, { status: 401 }))
             .mockResolvedValueOnce(new Response(null, { status: 204 }))
             .mockResolvedValueOnce(Response.json({ id: "user-1" }));
         vi.stubGlobal("fetch", fetchMock);
@@ -138,6 +137,26 @@ describe("apiFetchItems", () => {
         try {
             await expect(apiFetch("/auth/me")).resolves.toEqual({ id: "user-1" });
             expect(fetchMock.mock.calls.filter(([url]) => url === "/api/v1/auth/refresh")).toHaveLength(1);
+        } finally {
+            document.cookie = "blueprint_csrf=; Max-Age=0; Path=/";
+        }
+    });
+
+    it("does not probe /auth/me again before refreshing an expired bootstrap session", async () => {
+        document.cookie = "blueprint_csrf=token; Path=/";
+        const fetchMock = vi.fn()
+            .mockResolvedValueOnce(new Response(null, { status: 401 }))
+            .mockResolvedValueOnce(new Response(null, { status: 204 }))
+            .mockResolvedValueOnce(Response.json({ id: "user-1" }));
+        vi.stubGlobal("fetch", fetchMock);
+
+        try {
+            await expect(apiFetch("/auth/me")).resolves.toEqual({ id: "user-1" });
+            expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+                "/api/v1/auth/me",
+                "/api/v1/auth/refresh",
+                "/api/v1/auth/me",
+            ]);
         } finally {
             document.cookie = "blueprint_csrf=; Max-Age=0; Path=/";
         }

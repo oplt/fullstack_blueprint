@@ -9,21 +9,21 @@ from typing import Any
 from fastapi import HTTPException
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
-from backend.modules.rag.generation_port import RAG_MESSAGE_TOKEN_RESERVE, RagGenerationPlan
 from backend.modules.ai import metrics
-from backend.modules.rag.prompts import resolve_rag_answer_prompt
 from backend.modules.ai.contracts import AiMessage, AiMessageRole, AiProviderRequest
 from backend.modules.ai.document_service import AiDocumentService
 from backend.modules.ai.errors import AiErrorKind, AiProviderError
 from backend.modules.ai.models import AiPromptVersion, AiRun
 from backend.modules.ai.prompts import AiPromptService, _render_template
 from backend.modules.identity.models import User
-from backend.modules.rag.prompt_context_service import PromptContextService
+from backend.modules.rag.config import RagConfig
 from backend.modules.rag.context import (
     RAG_UNTRUSTED_CONTEXT_RULE,
     render_reference_data,
 )
-from backend.modules.rag.config import RagConfig
+from backend.modules.rag.generation_port import RAG_MESSAGE_TOKEN_RESERVE, RagGenerationPlan
+from backend.modules.rag.prompt_context_service import PromptContextService
+from backend.modules.rag.prompts import resolve_rag_answer_prompt
 
 
 class AiRunService(AiPromptService, AiDocumentService):

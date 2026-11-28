@@ -43,10 +43,10 @@ async function reject(code, expected) {
     assert.match(result.stderr, expected);
 }
 try {
-    for (const dir of [path.dirname(script), path.join(src, "hooks")]) fs.mkdirSync(dir, { recursive: true });
+    for (const dir of [path.dirname(script), path.join(src, "lib")]) fs.mkdirSync(dir, { recursive: true });
     fs.copyFileSync(path.join(source, "scripts/check-design-system.mjs"), script);
     fs.copyFileSync(path.join(source, "src/index.css"), path.join(src, "index.css"));
-    fs.copyFileSync(path.join(source, "src/hooks/use-mobile.ts"), path.join(src, "hooks/use-mobile.ts"));
+    fs.copyFileSync(path.join(source, "src/lib/use-mobile.ts"), path.join(src, "lib/use-mobile.ts"));
     fs.copyFileSync(path.resolve(source, "../DESIGN.md"), path.join(temp, "DESIGN.md"));
     fs.writeFileSync(path.join(fixture, "package.json"), JSON.stringify({name:"fixture",type:"module"}));
     fs.writeFileSync(path.join(fixture, "package-lock.json"), JSON.stringify({packages:{}}));

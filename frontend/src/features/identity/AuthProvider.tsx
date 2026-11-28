@@ -12,6 +12,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const {
         data: currentUser = null,
         isPending,
+        isError,
+        refetch,
     } = useQuery<AuthUser | null>({
         queryKey: queryKeys.auth.me,
         queryFn: async () => {
@@ -31,7 +33,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const visibleUser = signedOut ? null : currentUser;
     const isAuthenticated = visibleUser !== null;
-    const isReady = signedOut || !isPending;
+    const authStatus = signedOut
+        ? "anonymous"
+        : isPending
+            ? "initializing"
+            : isError
+                ? "unavailable"
+                : isAuthenticated
+                    ? "authenticated"
+                    : "anonymous";
+    const isReady = authStatus === "authenticated" || authStatus === "anonymous";
 
     async function logout() {
         setSignedOut(true);
@@ -58,12 +69,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
         <AuthContext.Provider
             value={{
                 isReady,
+                authStatus,
                 isAuthenticated,
                 isAdmin: visibleUser?.is_admin ?? false,
                 isMfaEnabled: visibleUser?.mfa_enabled ?? false,
                 currentUser: visibleUser,
                 logout,
                 setAuthenticated,
+                retryAuth: async () => { await refetch(); },
             }}
         >
             {children}

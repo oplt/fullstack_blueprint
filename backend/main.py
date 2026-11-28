@@ -9,17 +9,11 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from backend.core.cache import ping_redis, redis_client
 from backend.core.config import settings
+from backend.core.db.session import SessionLocal, engine
 from backend.core.errors import register_exception_handlers
+from backend.core.health import health_router
 from backend.core.logging.log_redaction import redact_url
 from backend.core.logging.logging import setup_logging
-from backend.core.storage import object_storage
-from backend.core.db.session import SessionLocal, engine
-from backend.modules.admin.platform_configuration import PlatformConfigService
-from backend.workers.async_dispatch import (
-    log_eager_mode_startup_warning,
-    shutdown_background_runtime,
-)
-
 from backend.core.middleware.correlation_id import CorrelationIdMiddleware
 from backend.core.middleware.csrf import CSRFMiddleware
 from backend.core.middleware.public_rate_limit import PublicRateLimitMiddleware
@@ -27,8 +21,13 @@ from backend.core.middleware.request_limits import RequestBodyLimitMiddleware
 from backend.core.middleware.request_logging import RequestLoggingMiddleware
 from backend.core.middleware.security_headers import SecurityHeadersMiddleware
 from backend.core.openapi import build_openapi
-from backend.core.health import health_router
+from backend.core.storage import object_storage
+from backend.modules.admin.platform_configuration import PlatformConfigService
 from backend.router import api_router
+from backend.workers.async_dispatch import (
+    log_eager_mode_startup_warning,
+    shutdown_background_runtime,
+)
 
 setup_logging()
 

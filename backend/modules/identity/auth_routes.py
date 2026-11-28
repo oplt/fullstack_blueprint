@@ -4,6 +4,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
+from backend.core.db.dependencies import get_db
 from backend.core.rate_limit import (
     auth_account_rate_limit_key,
     auth_client_rate_limit_key,
@@ -14,8 +15,8 @@ from backend.core.rate_limit import (
     increment_rate_limit,
 )
 from backend.core.security import create_access_token, generate_csrf_token
+from backend.modules.identity.auth import IdentityService
 from backend.modules.identity.dependencies import get_authenticated_user, get_current_user
-from backend.core.db.dependencies import get_db
 from backend.modules.identity.models import User
 from backend.modules.identity.schemas import (
     AuthSessionResponse,
@@ -31,7 +32,6 @@ from backend.modules.identity.schemas import (
     SignUpRequest,
     VerifyEmailRequest,
 )
-from backend.modules.identity.auth import IdentityService
 
 router = APIRouter()
 logger = logging.getLogger("backend.auth")

@@ -68,11 +68,14 @@ function browserLocks(): LockManager | undefined {
     return typeof navigator !== "undefined" ? navigator.locks : undefined;
 }
 
-async function refreshAccessToken(expectedGeneration: number): Promise<boolean> {
+async function refreshAccessToken(
+    expectedGeneration: number,
+    skipInitialSessionProbe = false,
+): Promise<boolean> {
     const initialCsrfToken = readCookie(CSRF_COOKIE_NAME);
     const refresh = async () => {
         if (logoutInProgress || expectedGeneration !== authGeneration) return false;
-        if (await hasActiveSession().catch(() => false)) return true;
+        if (!skipInitialSessionProbe && await hasActiveSession().catch(() => false)) return true;
         if (logoutInProgress || expectedGeneration !== authGeneration) return false;
         if (initialCsrfToken !== readCookie(CSRF_COOKIE_NAME)) return false;
 
@@ -90,11 +93,14 @@ async function refreshAccessToken(expectedGeneration: number): Promise<boolean> 
     }
 }
 
-async function waitForRefresh(signal?: AbortSignal | null): Promise<boolean> {
+async function waitForRefresh(
+    signal?: AbortSignal | null,
+    skipInitialSessionProbe = false,
+): Promise<boolean> {
     signal?.throwIfAborted();
     if (logoutInProgress) return false;
     const expectedGeneration = authGeneration;
-    refreshPromise ??= refreshAccessToken(expectedGeneration).finally(() => { refreshPromise = null; });
+    refreshPromise ??= refreshAccessToken(expectedGeneration, skipInitialSessionProbe).finally(() => { refreshPromise = null; });
     if (!signal) return refreshPromise;
     const pending = refreshPromise;
     return new Promise<boolean>((resolve, reject) => {
@@ -167,6 +173,13 @@ export type Paginated<T> = {
     offset: number;
 };
 
+export function paginationParams(options: { limit?: number; offset?: number } = {}): URLSearchParams {
+    const search = new URLSearchParams();
+    search.set("limit", String(options.limit ?? 20));
+    search.set("offset", String(options.offset ?? 0));
+    return search;
+}
+
 /** Request options intentionally exposed to query functions for cancellation. */
 export type ApiRequestOptions = Pick<RequestInit, "signal">;
 
@@ -217,6 +230,7 @@ async function retryAfterRefresh(
     response: Response,
     path: string,
     options: RequestInit,
+    skipInitialSessionProbe = false,
 ): Promise<Response> {
     let originalError: ApiError;
     try {
@@ -226,7 +240,7 @@ async function retryAfterRefresh(
     }
     const requestGeneration = authGeneration;
     if (
-        !await waitForRefresh(options.signal)
+        !await waitForRefresh(options.signal, skipInitialSessionProbe)
         || requestGeneration !== authGeneration
         || logoutInProgress
     ) {
@@ -239,7 +253,12 @@ async function retryAfterRefresh(
 export async function apiFetchStream(path: string, options: RequestInit = {}, retry = true): Promise<Response> {
     let response = isLogoutRequest(path) ? await requestLogout(path, options) : await request(path, options);
     if (response.status === 401 && retry && canRefreshRequest(path, options)) {
-        response = await retryAfterRefresh(response, path, options);
+        response = await retryAfterRefresh(
+            response,
+            path,
+            options,
+            path.split("?", 1)[0].replace(/\/$/, "") === "/auth/me",
+        );
     }
     if (!response.ok) throw await parseApiError(response, options.signal);
     return response;

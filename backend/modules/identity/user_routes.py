@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.core.audit import log_request_audit_event
+from backend.core.db.dependencies import get_db
 from backend.core.pagination import (
     PaginatedResponse,
     PaginationParams,
@@ -8,8 +10,6 @@ from backend.core.pagination import (
     pagination_params,
 )
 from backend.modules.identity.dependencies import get_current_user
-from backend.core.db.dependencies import get_db
-from backend.core.audit import log_request_audit_event
 from backend.modules.identity.models import User
 from backend.modules.identity.user_schemas import (
     PasswordChangeRequest,

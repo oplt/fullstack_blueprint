@@ -19,13 +19,13 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from backend.modules.identity.models import User
+from backend.modules.rag.config import RagConfig
+from backend.modules.rag.models import RagChunk  # noqa: F401
+from backend.modules.rag.repository import RagRepository
 from backend.modules.rag.retrieval import RetrievalService
 from backend.modules.rag.retrieval_request import RetrievalRequest
 from backend.tests.rag.load_benchmark import DEFAULT_SCALES
 from backend.tests.rag.pgvector_benchmark import measure_pgvector_search
-from backend.modules.rag.infrastructure.models import RagChunk  # noqa: F401
-from backend.modules.rag.infrastructure.rag_config import RagConfig
-from backend.modules.rag.infrastructure.repositories import RagRepository
 
 MIN_BENCHMARK_RECALL = 0.5
 

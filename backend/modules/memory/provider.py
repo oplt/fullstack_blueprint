@@ -4,10 +4,10 @@ import logging
 from datetime import datetime
 from typing import Any, Protocol
 
-from backend.modules.memory.domain import MemoryItem, MemoryMetadata
-from backend.modules.memory.enums import MemoryLevel
 from backend.modules.memory import metrics
 from backend.modules.memory.config import MemoryConfig
+from backend.modules.memory.domain import MemoryItem, MemoryMetadata
+from backend.modules.memory.enums import MemoryLevel
 
 logger = logging.getLogger(__name__)
 

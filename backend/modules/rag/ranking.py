@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from backend.modules.rag.domain import RetrievedChunk
 from backend.modules.rag.reranker_port import (
     NoOpReranker,
     UnicodeHeuristicReranker,
     build_reranker,
 )
-from backend.modules.rag.domain import RetrievedChunk
 
 
 class HybridRetrievalRanker:

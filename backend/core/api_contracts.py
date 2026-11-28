@@ -41,7 +41,7 @@ def problem_details(
 ) -> dict[str, Any]:
     """Build a stable error payload without leaking exception internals."""
 
-    payload = ProblemDetails(
+    return ProblemDetails(
         type=problem_type or f"{PROBLEM_TYPE_BASE}/{status}",
         title=title,
         status=status,
@@ -50,7 +50,6 @@ def problem_details(
         correlation_id=getattr(request.state, "correlation_id", None),
         errors=errors,
     ).model_dump(exclude_none=True)
-    return payload
 
 
 def problem_response(

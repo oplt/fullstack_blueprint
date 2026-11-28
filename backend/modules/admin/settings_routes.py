@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.admin.dependencies import get_admin_user
-from backend.core.db.dependencies import get_db
 from backend.core.audit import log_request_audit_event
-from backend.modules.identity.models import User
+from backend.core.db.dependencies import get_db
+from backend.modules.admin.dependencies import get_admin_user
+from backend.modules.admin.settings import SettingsService
 from backend.modules.admin.settings_configuration import SettingsConfigService
 from backend.modules.admin.settings_schemas import (
     ConfigSettingsResponse,
@@ -13,7 +13,7 @@ from backend.modules.admin.settings_schemas import (
     DatabaseSettingResponse,
     DatabaseSettingUpdate,
 )
-from backend.modules.admin.settings import SettingsService
+from backend.modules.identity.models import User
 
 router = APIRouter()
 

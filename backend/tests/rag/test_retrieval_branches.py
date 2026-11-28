@@ -82,9 +82,10 @@ def test_database_branch_uses_a_fresh_session_for_engine_bound_requests(monkeypa
     from types import SimpleNamespace
     from unittest.mock import MagicMock
 
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
     from backend.modules.rag import retrieval as retrieval_module
     from backend.modules.rag.retrieval import RetrievalService
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     async def run() -> None:
         engine = MagicMock(spec=AsyncEngine)
@@ -111,6 +112,7 @@ def test_retrieval_deadline_cancels_in_flight_work(monkeypatch) -> None:
     import asyncio
 
     import pytest
+
     from backend.core.config import settings
     from backend.modules.rag.retrieval import RetrievalService
 

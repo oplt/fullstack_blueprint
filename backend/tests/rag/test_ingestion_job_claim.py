@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
+
 from backend.modules.rag.enums import IngestionErrorCode, IngestionJobStatus
 from backend.modules.rag.repository import RagRepository
 

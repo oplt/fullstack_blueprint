@@ -120,12 +120,21 @@ class ObservabilityService:
             ),
         )
 
-    async def get_status(self) -> ObservabilityStatus:
-        return await cache_get_or_load_model(
+    async def get_status(self, *, is_admin: bool) -> ObservabilityStatus:
+        status = await cache_get_or_load_model(
             OBSERVABILITY_STATUS_CACHE_KEY,
             ObservabilityStatus,
             ttl_seconds=self._settings.CACHE_OBSERVABILITY_STATUS_TTL_SECONDS,
             loader=self._build_status,
+        )
+        if is_admin:
+            return status
+        return status.model_copy(
+            update={
+                field: item.model_copy(update={"url": None})
+                for field, item in status
+                if field in {"prometheus", "grafana", "tempo"}
+            }
         )
 
     async def _build_status(self) -> ObservabilityStatus:
@@ -255,7 +264,7 @@ class ObservabilityService:
         try:
             client = _get_observability_http_client()
             response = await client.get(url)
-            if response.status_code < HTTPStatus.INTERNAL_SERVER_ERROR:
+            if HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
                 return ObservabilityStatusItem(
                     status="healthy",
                     detail=f"{service_name} is reachable",

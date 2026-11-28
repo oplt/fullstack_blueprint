@@ -7,8 +7,8 @@ from backend.modules.ai.context import (
     AgentPromptContext,
     AgentPromptContextBuilder,
 )
-from backend.modules.rag.prompt_context_service import PromptContextOutcome
 from backend.modules.rag.domain import RetrievedChunk
+from backend.modules.rag.prompt_context_service import PromptContextOutcome
 
 
 class AgentPromptContextBuilderTest(unittest.IsolatedAsyncioTestCase):

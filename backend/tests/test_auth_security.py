@@ -7,17 +7,18 @@ from unittest.mock import AsyncMock, MagicMock
 
 import jwt
 import pytest
-from backend.core.middleware.csrf import CSRFMiddleware
-from backend.core.config import Settings, settings
-from backend.core.security import decode_token
-from backend.modules.identity.dependencies import _get_authenticated_user
-from backend.modules.identity import auth_routes as identity_router
-from backend.modules.identity.repository import IdentityRepository
-from backend.modules.identity.schemas import SignInRequest
 from fastapi import HTTPException
 from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import Response
+
+from backend.core.config import Settings, settings
+from backend.core.middleware.csrf import CSRFMiddleware
+from backend.core.security import decode_token
+from backend.modules.identity import auth_routes as identity_router
+from backend.modules.identity.dependencies import _get_authenticated_user
+from backend.modules.identity.repository import IdentityRepository
+from backend.modules.identity.schemas import SignInRequest
 
 TEST_SIGNING_KEY = secrets.token_urlsafe(48)
 

@@ -12,41 +12,41 @@ from opentelemetry import trace
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from backend.core.config import settings
-from backend.modules.rag.retrieval_cache import get_cached_retrieval, set_cached_retrieval
 from backend.core.vectors import can_index_embedding
+from backend.modules.rag import metrics
+from backend.modules.rag.config import RagConfig
 from backend.modules.rag.context_selection import select_context_chunks
 from backend.modules.rag.document_scope import document_ids_is_empty_allow_list
+from backend.modules.rag.domain import RetrievalCoverage, RetrievalOutcome, RetrievedChunk
 from backend.modules.rag.embeddings import EmbeddingService
+from backend.modules.rag.enums import RetrievalIntent
 from backend.modules.rag.evidence_revision import (
     StaleEvidenceRevisionError,
     assert_chunks_match_revision_allow_list,
     build_retrieved_evidence_revision_hash,
 )
+from backend.modules.rag.filters import exclude_injection_flagged_chunks
 from backend.modules.rag.parent_context_service import expand_parent_chunks
 from backend.modules.rag.query import QueryAnalysis, analyze_query
 from backend.modules.rag.query_expansion import (
     QUERY_EXPANSION_VERSION,
     QueryExpansionService,
 )
+from backend.modules.rag.repository import RagRepository
 from backend.modules.rag.rerank_policy import apply_rerank_policy
 from backend.modules.rag.reranker_port import build_reranker
-from backend.modules.rag.filters import exclude_injection_flagged_chunks
+from backend.modules.rag.retrieval_cache import get_cached_retrieval, set_cached_retrieval
 from backend.modules.rag.retrieval_fusion import reciprocal_rank_fusion
 from backend.modules.rag.retrieval_planner import plan_retrieval
+from backend.modules.rag.retrieval_request import RetrievalRequest
+from backend.modules.rag.scope import RetrievalScope
+from backend.modules.rag.search_repository import RagSearchRepository
 from backend.modules.rag.source_diversifier import (
     diversify_by_document,
     filter_to_allow_list,
 )
 from backend.modules.rag.telemetry import RagTraceContext, traced
-from backend.modules.rag.enums import RetrievalIntent
-from backend.modules.rag.domain import RetrievalCoverage, RetrievalOutcome, RetrievedChunk
-from backend.modules.rag.retrieval_request import RetrievalRequest
-from backend.modules.rag.scope import RetrievalScope
-from backend.modules.rag import metrics
 from backend.modules.rag.vector_store import _parse_scope, build_vector_store
-from backend.modules.rag.config import RagConfig
-from backend.modules.rag.repository import RagRepository
-from backend.modules.rag.search_repository import RagSearchRepository
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +79,28 @@ class RetrievalTraceData:
     latency_ms: int
     query_variants: list[dict] | None = None
     branch_errors: list[str] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalCacheContext:
+    filters: dict
+    identity: dict
+    variant: str
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalCacheInputs:
+    document_ids: list[str] | None
+    owner_scoped: bool
+    intent: str
+    retrieval_mode: str
+    index_revision_ids: list[str] | None
+    metadata: object | None
+    evidence_revision_hash: str | None
+    plan: object
+    config: RagConfig
+    ranker: object
+    parent_context_enabled: bool
 
 
 async def _completed_branch() -> RetrievalBranchResult:
@@ -186,6 +208,61 @@ def _filters_for_cache(
     if index_revision_ids is not None:
         filters["index_revision_ids"] = sorted(index_revision_ids)
     return filters
+
+
+def _build_retrieval_cache_context(inputs: RetrievalCacheInputs) -> RetrievalCacheContext:
+    document_ids = inputs.document_ids
+    owner_scoped = inputs.owner_scoped
+    intent = inputs.intent
+    retrieval_mode = inputs.retrieval_mode
+    index_revision_ids = inputs.index_revision_ids
+    metadata = inputs.metadata
+    evidence_revision_hash = inputs.evidence_revision_hash
+    plan = inputs.plan
+    config = inputs.config
+    ranker = inputs.ranker
+    parent_context_enabled = inputs.parent_context_enabled
+    filters = _filters_for_cache(
+        document_ids,
+        owner_scoped=owner_scoped,
+        intent=intent,
+        retrieval_mode=retrieval_mode,
+        index_revision_ids=index_revision_ids,
+    )
+    if metadata is not None:
+        filters["metadata"] = metadata.model_dump(mode="json", exclude_none=True)
+
+    identity = {
+        "artifact_version": getattr(config, "retrieval_cache_artifact_version", "v2"),
+        "evidence_revision_hash": evidence_revision_hash,
+        "index_revision_ids": sorted(index_revision_ids or []),
+        "planner": plan.to_dict(),
+        "retrieval_algorithm_version": getattr(
+            config, "retrieval_algorithm_version", "hybrid-rrf-v2"
+        ),
+        "index_version": getattr(config, "index_version", "pgvector-fts-v1"),
+        "rrf_k": getattr(config, "rrf_k", 60),
+        "reranker": f"{ranker.name}:{ranker.version}",
+        "parent_context_enabled": parent_context_enabled,
+        "ranking_policy": "evidence-v2",
+        "dense_min_cosine": getattr(config, "score_threshold", None),
+        "dedupe_threshold": getattr(config, "context_overlap_dedupe_threshold", 0.8),
+        "retrieval_fingerprint": (
+            config.retrieval.fingerprint() if hasattr(config, "retrieval") else None
+        ),
+        "reranking_fingerprint": (
+            config.reranking.fingerprint() if hasattr(config, "reranking") else None
+        ),
+    }
+    variant = (
+        f"{getattr(config, 'retrieval_algorithm_version', 'hybrid-rrf-v2')}"
+        f":{getattr(config, 'index_version', 'pgvector-fts-v1')}"
+        f":rerank={ranker.name}:{ranker.version}"
+        f":mode={retrieval_mode}"
+        f":children-only:parent={int(parent_context_enabled)}"
+        f":xq={QUERY_EXPANSION_VERSION if plan.multi_query else 'none'}"
+    )
+    return RetrievalCacheContext(filters=filters, identity=identity, variant=variant)
 
 
 def _actual_fusion_method(
@@ -389,44 +466,20 @@ class RetrievalService:
                 )
             return outcome
 
-        cache_filters = _filters_for_cache(
-            document_ids,
-            owner_scoped=owner_scoped,
-            intent=plan.intent.value,
-            retrieval_mode=retrieval_mode,
-            index_revision_ids=index_revision_ids,
-        )
-        if request.metadata is not None:
-            cache_filters["metadata"] = request.metadata.model_dump(mode="json", exclude_none=True)
-        cache_identity = {
-            "artifact_version": getattr(self.config, "retrieval_cache_artifact_version", "v2"),
-            "evidence_revision_hash": evidence_revision_hash,
-            "index_revision_ids": sorted(index_revision_ids or []),
-            "planner": plan.to_dict(),
-            "retrieval_algorithm_version": getattr(
-                self.config, "retrieval_algorithm_version", "hybrid-rrf-v2"
-            ),
-            "index_version": getattr(self.config, "index_version", "pgvector-fts-v1"),
-            "rrf_k": getattr(self.config, "rrf_k", 60),
-            "reranker": f"{self.ranker.name}:{self.ranker.version}",
-            "parent_context_enabled": parent_context_enabled,
-            "ranking_policy": "evidence-v2",
-            "dense_min_cosine": getattr(self.config, "score_threshold", None),
-            "dedupe_threshold": getattr(self.config, "context_overlap_dedupe_threshold", 0.8),
-            "retrieval_fingerprint": (
-                self.config.retrieval.fingerprint() if hasattr(self.config, "retrieval") else None
-            ),
-            "reranking_fingerprint": (
-                self.config.reranking.fingerprint() if hasattr(self.config, "reranking") else None
-            ),
-        }
-        cache_variant = (
-            f"{getattr(self.config, 'retrieval_algorithm_version', 'hybrid-rrf-v2')}"
-            f":{getattr(self.config, 'index_version', 'pgvector-fts-v1')}"
-            f":rerank={self.ranker.name}:{self.ranker.version}"
-            f":mode={retrieval_mode}"
-            f":children-only:parent={int(parent_context_enabled)}"
-            f":xq={QUERY_EXPANSION_VERSION if plan.multi_query else 'none'}"
+        cache_context = _build_retrieval_cache_context(
+            RetrievalCacheInputs(
+                document_ids=document_ids,
+                owner_scoped=owner_scoped,
+                intent=plan.intent.value,
+                retrieval_mode=retrieval_mode,
+                index_revision_ids=index_revision_ids,
+                metadata=request.metadata,
+                evidence_revision_hash=evidence_revision_hash,
+                plan=plan,
+                config=self.config,
+                ranker=self.ranker,
+                parent_context_enabled=parent_context_enabled,
+            )
         )
         started = perf_counter()
         query_variants_meta: list[dict] = []
@@ -440,9 +493,9 @@ class RetrievalService:
                     project_id=project_id,
                     query=query,
                     top_k=plan.top_k,
-                    filters=cache_filters,
-                    variant=cache_variant,
-                    identity=cache_identity,
+                    filters=cache_context.filters,
+                    variant=cache_context.variant,
+                    identity=cache_context.identity,
                     expected_revision_ids=index_revision_ids,
                 )
             )
@@ -884,11 +937,11 @@ class RetrievalService:
                     project_id=project_id,
                     query=query,
                     top_k=plan.top_k,
-                    filters=cache_filters,
+                    filters=cache_context.filters,
                     chunks=filtered,
                     provenance=outcome.retrieval_provenance,
-                    variant=cache_variant,
-                    identity=cache_identity,
+                    variant=cache_context.variant,
+                    identity=cache_context.identity,
                     artifact_version=getattr(self.config, "retrieval_cache_artifact_version", "v2"),
                 )
             metrics.rag_retrieved_chunks.observe(len(filtered))

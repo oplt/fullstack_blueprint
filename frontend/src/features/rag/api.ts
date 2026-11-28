@@ -1,4 +1,4 @@
-import { apiFetch, type ApiRequestOptions, type Paginated } from "@/lib/api";
+import { apiFetch, paginationParams, type ApiRequestOptions, type Paginated } from "@/lib/api";
 import type {
     AiDocumentResponse,
     AiDocumentCreate,
@@ -133,10 +133,8 @@ export async function listRagDocuments(options: {
     offset?: number;
     signal?: AbortSignal;
 } = {}): Promise<Paginated<RagDocument>> {
-    const search = new URLSearchParams();
+    const search = paginationParams(options);
     if (options.projectId) search.set("project_id", options.projectId);
-    search.set("limit", String(options.limit ?? 20));
-    search.set("offset", String(options.offset ?? 0));
     return apiFetch(`${BASE}/documents?${search}`, { signal: options.signal });
 }
 
@@ -166,9 +164,7 @@ export async function listRagChunks(
     documentId: string,
     options: { limit?: number; offset?: number; contentMode?: "snippet" | "full"; signal?: AbortSignal } = {}
 ): Promise<Paginated<RagChunk>> {
-    const search = new URLSearchParams();
-    search.set("limit", String(options.limit ?? 20));
-    search.set("offset", String(options.offset ?? 0));
+    const search = paginationParams(options);
     search.set("content_mode", options.contentMode ?? "snippet");
     return apiFetch(`${BASE}/documents/${encodeURIComponent(documentId)}/chunks?${search}`, { signal: options.signal });
 }

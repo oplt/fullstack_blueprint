@@ -3,13 +3,13 @@ from pathlib import Path
 import pytest
 
 from backend.modules.admin.analytics import sanitize_properties
-from backend.modules.integrations.service import IntegrationSecretCipher, OutboundUrlPolicy
-from backend.modules.capabilities.search import SearchResult, SearchService
-from backend.modules.integrations.storage import LocalStorageProvider
 from backend.modules.admin.platform import (
     sign_webhook_payload,
     verify_webhook_signature,
 )
+from backend.modules.capabilities.search import SearchResult, SearchService
+from backend.modules.integrations.service import IntegrationSecretCipher, OutboundUrlPolicy
+from backend.modules.integrations.storage import LocalStorageProvider
 
 
 def test_analytics_removes_sensitive_and_complex_values() -> None:

@@ -15,5 +15,5 @@ async def get_links(current_user: User = Depends(get_current_user)) -> Observabi
 
 
 @router.get("/status", response_model=ObservabilityStatus)
-async def get_status(_: User = Depends(get_current_user)) -> ObservabilityStatus:
-    return await ObservabilityService(settings).get_status()
+async def get_status(current_user: User = Depends(get_current_user)) -> ObservabilityStatus:
+    return await ObservabilityService(settings).get_status(is_admin=current_user.is_admin)

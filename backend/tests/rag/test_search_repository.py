@@ -1,14 +1,15 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
-from backend.modules.rag.scope import RetrievalScope
-from backend.modules.rag.models import RagChunk
-from backend.modules.rag.repository import RagRepository
-from backend.modules.rag.search_repository import RagSearchRepository
 from pydantic import ValidationError
 from sqlalchemy import ColumnElement, select
 from sqlalchemy.dialects import postgresql
+
+from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
+from backend.modules.rag.models import RagChunk
+from backend.modules.rag.repository import RagRepository
+from backend.modules.rag.scope import RetrievalScope
+from backend.modules.rag.search_repository import RagSearchRepository
 
 
 def test_retrieval_scope_filters_bind_untrusted_filter_values() -> None:

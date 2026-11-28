@@ -9,10 +9,10 @@ from backend.core.cache import (
     invalidate_platform_caches,
 )
 from backend.core.config import settings
-from backend.modules.identity.models import User
-from backend.modules.admin.platform_configuration import PlatformConfigService
 from backend.modules.admin.platform.models import FeatureFlag
 from backend.modules.admin.platform.schemas import EffectiveFeatureFlagResponse
+from backend.modules.admin.platform_configuration import PlatformConfigService
+from backend.modules.identity.models import User
 
 FULL_ROLLOUT_PERCENTAGE = 100
 ROLLOUT_BUCKET_COUNT = 100

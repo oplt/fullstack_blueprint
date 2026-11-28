@@ -3,11 +3,12 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from backend.modules.rag import router as routes
-from backend.modules.rag.schemas import RagCompareRequest, RagRetrievalDraft
-from backend.modules.rag.domain import RetrievalOutcome
-from backend.modules.rag.config import RagConfig
 from pydantic import ValidationError
+
+from backend.modules.rag import router as routes
+from backend.modules.rag.config import RagConfig
+from backend.modules.rag.domain import RetrievalOutcome
+from backend.modules.rag.schemas import RagCompareRequest, RagRetrievalDraft
 
 
 def test_draft_models_allow_only_bounded_request_local_settings() -> None:

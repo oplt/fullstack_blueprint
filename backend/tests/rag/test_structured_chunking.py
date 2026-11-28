@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+
 from backend.core.vectors import estimate_tokens
 from backend.modules.rag.chunking import ChunkingService
 from backend.modules.rag.domain import ParsedBlock, ParsedDocument

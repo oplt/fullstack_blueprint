@@ -5,13 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import RedirectResponse
 
 from backend.core.config import settings
+from backend.core.db.dependencies import get_db
 from backend.core.storage import ObjectStorageError, StorageNotConfiguredError, object_storage
 from backend.modules.identity.dependencies import get_current_user
-from backend.core.db.dependencies import get_db
 from backend.modules.identity.models import User
+from backend.modules.identity.profile import ProfileService
 from backend.modules.identity.profile_schemas import ProfileResponse, ProfileUpdate
 from backend.modules.identity.profile_serializers import profile_to_response
-from backend.modules.identity.profile import ProfileService
 
 router = APIRouter()
 
