@@ -1,5 +1,15 @@
+import asyncio
+from types import SimpleNamespace
+from unittest.mock import MagicMock
+
+import pytest
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+from backend.core.config import settings
+from backend.modules.rag import retrieval as retrieval_module
 from backend.modules.rag.retrieval import (
     RetrievalBranchResult,
+    RetrievalService,
     _coerce_branch_result,
     _embed_query_variants,
     _limited_branch,
@@ -20,8 +30,6 @@ def test_branch_result_preserves_success_values() -> None:
 
 
 def test_branch_result_preserves_cancellation() -> None:
-    import asyncio
-
     cancellation = asyncio.CancelledError()
 
     try:
@@ -33,8 +41,6 @@ def test_branch_result_preserves_cancellation() -> None:
 
 
 def test_unique_query_variants_are_embedded_in_one_batch() -> None:
-    import asyncio
-
     class Embeddings:
         def __init__(self) -> None:
             self.calls: list[list[str]] = []
@@ -51,8 +57,6 @@ def test_unique_query_variants_are_embedded_in_one_batch() -> None:
 
 
 def test_noop_branch_does_not_take_branch_semaphore() -> None:
-    import asyncio
-
     class CountingSemaphore:
         entered = 0
 
@@ -78,15 +82,6 @@ def test_noop_branch_does_not_take_branch_semaphore() -> None:
 
 
 def test_database_branch_uses_a_fresh_session_for_engine_bound_requests(monkeypatch) -> None:
-    import asyncio
-    from types import SimpleNamespace
-    from unittest.mock import MagicMock
-
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from backend.modules.rag import retrieval as retrieval_module
-    from backend.modules.rag.retrieval import RetrievalService
-
     async def run() -> None:
         engine = MagicMock(spec=AsyncEngine)
         request_session = AsyncSession(bind=engine)
@@ -96,7 +91,7 @@ def test_database_branch_uses_a_fresh_session_for_engine_bound_requests(monkeypa
         monkeypatch.setattr(retrieval_module, "build_reranker", lambda **_kwargs: object())
         monkeypatch.setattr(retrieval_module, "RagRepository", lambda _db: object())
         monkeypatch.setattr(retrieval_module, "RagSearchRepository", lambda _db: object())
-        monkeypatch.setattr(retrieval_module, "QueryExpansionService", lambda: object())
+        monkeypatch.setattr(retrieval_module, "QueryExpansionService", object)
         service = RetrievalService(request_session, config=config)
 
         async with service._database_branch() as branch_session:
@@ -109,13 +104,6 @@ def test_database_branch_uses_a_fresh_session_for_engine_bound_requests(monkeypa
 
 
 def test_retrieval_deadline_cancels_in_flight_work(monkeypatch) -> None:
-    import asyncio
-
-    import pytest
-
-    from backend.core.config import settings
-    from backend.modules.rag.retrieval import RetrievalService
-
     async def run() -> None:
         service = RetrievalService.__new__(RetrievalService)
         cancelled = asyncio.Event()

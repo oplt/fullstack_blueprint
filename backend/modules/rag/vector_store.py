@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
 from backend.core.db.vector_search import MAX_JSON_FALLBACK_ROWS, VectorSearchUnavailable
+from backend.modules.rag import metrics
 from backend.modules.rag.config import RagConfig
 from backend.modules.rag.document_scope import document_ids_is_empty_allow_list
 from backend.modules.rag.domain import RetrievedChunk
@@ -94,8 +95,6 @@ class PgVectorAdapter:
         if indexed is None:
             if settings.is_production:
                 raise VectorSearchUnavailable("pgvector_required_for_production")
-            from backend.modules.rag import metrics
-
             logger.debug(
                 "Using JSON embedding fallback for query "
                 "(pgvector unavailable or dimension mismatch)"
@@ -115,8 +114,6 @@ class PgVectorAdapter:
         if settings.is_production:
             fallback = []
         else:
-            from backend.modules.rag import metrics
-
             logger.debug("Indexed search returned no matches; trying JSON embedding fallback")
             metrics.rag_json_fallback_total.inc()
             fallback = await self.search_repo.similarity_search_json_fallback(

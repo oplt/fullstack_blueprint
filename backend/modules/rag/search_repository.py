@@ -23,6 +23,10 @@ from backend.core.db.vector_search import (
 from backend.core.db.vector_search import pgvector_is_available as check_pgvector_is_available
 from backend.core.vectors import is_valid_embedding, vector_literal
 from backend.modules.projects.models import ProjectMember
+from backend.modules.rag.document_scope import (
+    document_ids_is_empty_allow_list,
+    should_apply_document_id_filter,
+)
 from backend.modules.rag.domain import RetrievedChunk
 from backend.modules.rag.lexical_languages import POSTGRES_TEXT_SEARCH_CONFIGS
 from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
@@ -85,11 +89,6 @@ class RagSearchRepository:
         scope: RetrievalScope,
     ) -> list[ColumnElement[bool]] | None:
         """Build shared WHERE clauses. Returns None when empty allow-list (I1)."""
-        from backend.modules.rag.document_scope import (
-            document_ids_is_empty_allow_list,
-            should_apply_document_id_filter,
-        )
-
         document_ids = list(scope.document_ids) if scope.document_ids is not None else None
         if document_ids_is_empty_allow_list(document_ids):
             return None

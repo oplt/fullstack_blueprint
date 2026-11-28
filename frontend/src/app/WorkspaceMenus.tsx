@@ -22,7 +22,7 @@ export function NotificationMenu() {
     const unread = notifications?.filter(item => !item.is_read).length ?? 0;
     return <Popover>
         <PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("navigation.openNotificationCenter")} />}>
-            <NotificationNavBadge unreadCount={unread}><Bell size={18} /></NotificationNavBadge>
+            <NotificationNavBadge unreadCount={unread}><Bell className="size-(--icon-size-lg)" /></NotificationNavBadge>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-80 p-ui-md">
             <div className="flex items-center justify-between">
@@ -47,7 +47,7 @@ export function ProfileMenu({ signOut }: { signOut: () => void }) {
             <p className="mb-ui-xs truncate px-ui-xs text-body-sm text-muted-foreground">{currentUser?.email ?? t("status.signedIn")}</p>
             <DropdownMenuItem render={<Link to={ROUTES.profile} />}>{t("navigation.profile")}</DropdownMenuItem>
             <DropdownMenuItem onClick={signOut} className="gap-ui-xs">
-                <LogOut aria-hidden size={15} />{t("actions.signOut")}
+                <LogOut aria-hidden className="size-(--icon-size-compact)" />{t("actions.signOut")}
             </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>;

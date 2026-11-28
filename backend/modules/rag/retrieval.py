@@ -288,6 +288,28 @@ def _actual_fusion_method(
     return "none"
 
 
+def _classify_branch_degradation(
+    *,
+    dense_attempted: bool,
+    lexical_attempted: bool,
+    any_dense_ok: bool,
+    any_lexical_ok: bool,
+) -> tuple[bool, str | None]:
+    """Classify retrieval degradation without mixing branch configuration and outcomes."""
+    if dense_attempted and lexical_attempted:
+        if any_dense_ok and not any_lexical_ok:
+            return True, "lexical_branch_failed"
+        if any_lexical_ok and not any_dense_ok:
+            return True, "dense_branch_failed"
+        if not any_dense_ok and not any_lexical_ok:
+            return True, "both_branches_failed"
+    elif dense_attempted and not any_dense_ok:
+        return True, "dense_branch_failed"
+    elif lexical_attempted and not any_lexical_ok:
+        return True, "lexical_branch_failed"
+    return False, None
+
+
 def _retrieval_provenance(
     *,
     plan,
@@ -365,6 +387,52 @@ class RetrievalService:
         else:
             yield self.db
 
+    async def _empty_allow_list_outcome(
+        self,
+        *,
+        request: RetrievalRequest,
+        plan,
+        document_ids: list[str] | None,
+        index_revision_ids: list[str] | None,
+        persist_trace: bool,
+    ) -> RetrievalOutcome:
+        """Return the zero-evidence outcome for an explicit empty allow-list (I1)."""
+        coverage = RetrievalCoverage(
+            documents_in_scope=0,
+            documents_with_retrieved_evidence=0,
+            retrieved_passage_count=0,
+            coverage_ratio=0.0,
+        )
+        outcome = RetrievalOutcome(
+            chunks=[],
+            no_matches=True,
+            intent=plan.intent,
+            fusion_method="none",
+            coverage=coverage,
+            scope_hash=scope_hash_for_document_ids(document_ids),
+        )
+        _assign_evidence_revision_hash(
+            outcome,
+            evidence_revision_hash=request.evidence_revision_hash,
+            index_revision_ids=index_revision_ids,
+            project_id=request.project_id,
+            document_ids=document_ids,
+            config=self.config,
+        )
+        if persist_trace:
+            outcome = await self._persist_trace(
+                outcome,
+                RetrievalTraceData(
+                    query=request.query,
+                    user_id=request.user_id,
+                    project_id=request.project_id,
+                    conversation_id=request.conversation_id,
+                    document_ids=document_ids,
+                    latency_ms=0,
+                ),
+            )
+        return outcome
+
     @traced("rag.retrieval")
     async def retrieve(self, request: RetrievalRequest) -> RetrievalOutcome:
         async with asyncio.timeout(max(0.1, float(settings.RAG_RETRIEVAL_TIMEOUT_SECONDS))):
@@ -430,41 +498,13 @@ class RetrievalService:
 
         # I1: explicit empty allow-list → zero evidence, never widen.
         if document_ids_is_empty_allow_list(document_ids):
-            coverage = RetrievalCoverage(
-                documents_in_scope=0,
-                documents_with_retrieved_evidence=0,
-                retrieved_passage_count=0,
-                coverage_ratio=0.0,
-            )
-            outcome = RetrievalOutcome(
-                chunks=[],
-                no_matches=True,
-                intent=plan.intent,
-                fusion_method="none",
-                coverage=coverage,
-                scope_hash=scope_hash_for_document_ids(document_ids),
-            )
-            _assign_evidence_revision_hash(
-                outcome,
-                evidence_revision_hash=evidence_revision_hash,
-                index_revision_ids=index_revision_ids,
-                project_id=project_id,
+            return await self._empty_allow_list_outcome(
+                request=request,
+                plan=plan,
                 document_ids=document_ids,
-                config=self.config,
+                index_revision_ids=index_revision_ids,
+                persist_trace=persist_trace,
             )
-            if persist_trace:
-                outcome = await self._persist_trace(
-                    outcome,
-                    RetrievalTraceData(
-                        query=query,
-                        user_id=user_id,
-                        project_id=project_id,
-                        conversation_id=conversation_id,
-                        document_ids=document_ids,
-                        latency_ms=0,
-                    ),
-                )
-            return outcome
 
         cache_context = _build_retrieval_cache_context(
             RetrievalCacheInputs(
@@ -794,24 +834,12 @@ class RetrievalService:
                     else fusion_method
                 )
 
-            degraded = False
-            degradation_reason: str | None = None
-            if dense_attempted and lexical_attempted:
-                if any_dense_ok and not any_lexical_ok:
-                    degraded = True
-                    degradation_reason = "lexical_branch_failed"
-                elif any_lexical_ok and not any_dense_ok:
-                    degraded = True
-                    degradation_reason = "dense_branch_failed"
-                elif not any_dense_ok and not any_lexical_ok:
-                    degraded = True
-                    degradation_reason = "both_branches_failed"
-            elif dense_attempted and not any_dense_ok:
-                degraded = True
-                degradation_reason = "dense_branch_failed"
-            elif lexical_attempted and not any_lexical_ok:
-                degraded = True
-                degradation_reason = "lexical_branch_failed"
+            degraded, degradation_reason = _classify_branch_degradation(
+                dense_attempted=dense_attempted,
+                lexical_attempted=lexical_attempted,
+                any_dense_ok=any_dense_ok,
+                any_lexical_ok=any_lexical_ok,
+            )
 
             if degraded:
                 metrics.rag_retrieval_degraded_total.inc()

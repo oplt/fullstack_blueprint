@@ -275,7 +275,6 @@ class DocumentIngestionService:
         *,
         document_id: str,
         user_id: str,
-        file_content: bytes | None = None,
         is_admin: bool = False,
     ):
         # Lock the document before creating or inspecting its active job.

@@ -7,6 +7,7 @@ import pytest
 from backend.modules.events.domain import DomainEvent
 from backend.modules.events.models import OutboxEvent
 from backend.modules.events.repository import OutboxRepository
+from backend.modules.events.service import OutboxService
 
 
 def event(*, event_id: str, dedupe_key: str = "dedupe-1") -> DomainEvent:
@@ -78,8 +79,6 @@ async def test_conflicting_dedupe_identity_is_rejected():
 
 @pytest.mark.asyncio
 async def test_malformed_outbox_event_does_not_block_valid_batch_event():
-    from backend.modules.events.service import OutboxService
-
     event_row = SimpleNamespace(
         event_id="event-valid",
         event_type="test.created.v1",

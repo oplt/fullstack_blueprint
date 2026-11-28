@@ -108,7 +108,7 @@ instrument_engine(role="api", sync_engine=engine.sync_engine)
 def observe_session_duration(*, role: DatabaseRole, started_at: float) -> None:
     """Record session lifetime at dependency/task scope boundaries."""
     try:
-        from backend.core.observability.prometheus_metrics import database_session_duration_seconds
+        from backend.core.observability.prometheus_metrics import database_session_duration_seconds  # noqa: PLC0415 - lazy metrics import
 
         database_session_duration_seconds.labels(role=role).observe(monotonic() - started_at)
     except (ImportError, AttributeError, ValueError) as exc:

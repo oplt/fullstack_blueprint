@@ -142,7 +142,7 @@ export default function ProjectDetailPage() {
             <ProjectFlowSection model={m} onNewTask={openNewTask} onSelectTask={openTask} />
 
             <div>
-                <div className="flex h-full flex-col gap-ui-md overflow-auto p-5">
+                <div className="flex h-full flex-col gap-ui-md overflow-auto p-ui-lg">
                     <div className="flex flex-row items-center justify-between">
                         <h6>
                             {m.selectedTask ? "Edit task" : "Create task"}

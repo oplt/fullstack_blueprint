@@ -209,7 +209,9 @@ Use the canonical font stacks above. Preserve negative display tracking and avoi
 ### Spacing System
 - **Base unit**: 4px. The scale steps 4 → 8 → 12 → 16 → 24 → 32 → 40 → 64 → 96 → 128px.
 - **Tokens**: `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 16px · `{spacing.lg}` 24px · `{spacing.xl}` 32px · `{spacing.2xl}` 40px · `{spacing.3xl}` 64px · `{spacing.4xl}` 96px · `{spacing.section}` 128px.
-- **Card interiors** sit at `{spacing.lg}`–`{spacing.xl}` (24–32px); **section bands** run `{spacing.4xl}`–`{spacing.section}` (96–128px) of vertical rhythm.
+- **Card interiors** use 16px by default, 12px for dense cards and 24px for large cards; **section bands** run `{spacing.4xl}`–`{spacing.section}` (96–128px) of vertical rhythm.
+- Standard card content uses a 12px internal gap; dense cards use 8px. Metric values use the 24px page-title scale so dashboard grids stay compact.
+- Primary and mobile interactive controls keep a 44px target. Desktop secondary controls may use a 32px compact variant, while dense calendar actions may use 28–32px when their accessible name and keyboard target remain intact.
 - **Button padding** is horizontal-only — marketing pills run `0px 14px`, nav buttons `0px 6px` — with a 44px target height for primary application and marketing controls. The line height defines the label typography, not the full touch target.
 
 ### Grid & Container

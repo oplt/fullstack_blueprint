@@ -99,7 +99,7 @@ class AiEvaluationService(AiRunService):
         dataset_id: str,
         case,
     ) -> _EvaluationCaseResult:
-        from backend.core.db.session import SessionLocal
+        from backend.core.db.session import SessionLocal  # noqa: PLC0415 - avoids import cycle
 
         async with SessionLocal() as db:
             case_service = AiRunService(db)
@@ -155,7 +155,7 @@ class AiEvaluationService(AiRunService):
         await self.db.commit()
         await self.db.refresh(evaluation_run)
 
-        from backend.modules.ai.jobs import queue_evaluation_run
+        from backend.modules.ai.jobs import queue_evaluation_run  # noqa: PLC0415 - avoids import cycle
 
         queue_evaluation_run(
             evaluation_run_id=evaluation_run.id,

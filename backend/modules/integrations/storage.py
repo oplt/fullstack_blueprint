@@ -57,7 +57,7 @@ class LocalStorageProvider:
             raise ValueError("storage key escapes local storage root")
         return path
 
-    async def put(self, key: str, body: bytes, content_type: str) -> None:
+    async def put(self, key: str, body: bytes, content_type: str) -> None:  # noqa: ARG002 - storage protocol
         path = self._path(key)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(body)

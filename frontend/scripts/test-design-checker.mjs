@@ -58,17 +58,20 @@ try {
     await reject('export const Example = () => <div className="ui-no-such-format"/>;', /DS-014/);
     await reject('export const Example = () => <div style={({padding: 11})}/>;', /DS-008/);
     await reject('import { Plus as AddIcon } from "lucide-react"; export const Example = () => <AddIcon/>;', /DS-012/);
+    await reject('import { Plus } from "lucide-react"; export const Example = () => <Plus size={16}/>;', /DS-012/);
     await reject('export const Example = () => <div className="bg-white"/>;', /DS-005/);
     await reject('export const Example = () => <div className="text-black"/>;', /DS-005/);
     await reject('export const Example = () => <div className="gap-3"/>;', /DS-006/);
     await reject('export const Example = () => <div className="mt-4"/>;', /DS-006/);
     await reject('export const Example = () => <div className="text-sm"/>;', /DS-006/);
+    await reject('export const Example = () => <div className="p-5"/>;', /DS-006/);
     await reject('export const Example = () => <input type="checkbox"/>;', /DS-011/);
     await reject('export const Example = () => <input type="radio"/>;', /DS-011/);
     await reject('export const Example = () => <input type={"checkbox"}/>;', /DS-011/);
     await reject('import { cn } from "./utils"; export const Example = ({active}) => <div className={cn({"bg-red-500": active})}/>;', /DS-005/);
     await reject('const visualClass = "bg-red-500"; export const Example = () => <div className={visualClass}/>;', /DS-005/);
     await reject('const visualStyle = { padding: 12 }; export const Example = () => <div style={visualStyle}/>;', /DS-008/);
+    await reject('export const Example = () => <div style={{ width: 480, height: 240 }}/>;', /DS-008/);
     await reject('export async function loadStyles() { await import("./rogue.css"); }', /DS-003/);
     await reject('import Button from "@mui/material/Button"; export const Example = () => <Button/>;', /DS-001/);
     fs.writeFileSync(entry, 'export const Example = () => <div className="ui-card"/>;');
@@ -78,5 +81,5 @@ try {
     const cssPath = path.join(src, "index.css");
     fs.writeFileSync(cssPath, fs.readFileSync(cssPath, "utf8").replace("--background: #fafafa;", "--background: #ffffff;"));
     assert.match((await run()).stderr, /DS-016/);
-    console.log("Design checker regression fixtures passed (valid case + 20 rejection cases).");
+    console.log("Design checker regression fixtures passed (valid case + 22 rejection cases).");
 } finally { fs.rmSync(temp, { recursive: true, force: true }); }

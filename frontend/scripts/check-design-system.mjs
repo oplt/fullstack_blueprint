@@ -65,6 +65,8 @@ const semanticStyleProperties = new Set([
     "justifyContent",
     "opacity",
     "zIndex",
+    "width",
+    "height",
     "transition",
     "animation",
 ]);
@@ -135,7 +137,7 @@ const definedVars = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]
 const animationLegacy = /(?:^|:)(?:animate-in|animate-out|fade-in-\d+|fade-out-\d+|zoom-in-\d+|zoom-out-\d+|slide-in-from-[\w-]+|slide-out-to-[\w-]+)$/;
 const paletteUtility = /(?:^|:)(?:bg|text|border|ring|outline|fill|stroke|from|via|to|decoration)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}(?:\/\d+)?!?$/;
 const namedPaletteUtility = /(?:^|:)(?:bg|text|border|ring|outline|fill|stroke|from|via|to|decoration)-(?:black|white)(?:\/\d+)?!?$/;
-const genericVisualUtility = /^(?:(?:[\w-]+|\[[^\]]+\]):)*(?:gap(?:-[xy])?-(?:1|2|2[.]5|3|4|6)|space-[xy]-(?:1|2|2[.]5|3|4|6)|[mp][trblxy]?-(?:2|3|4|6)|text-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl))!?$/;
+const genericVisualUtility = /^(?:(?:[\w-]+|\[[^\]]+\]):)*(?:gap(?:-[xy])?-(?:1|2|2[.]5|3|4|5|6)|space-[xy]-(?:1|2|2[.]5|3|4|5|6)|[mp][trblxy]?-(?:2|3|4|5|6)|text-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl))!?$/;
 const numericIconUtility = /^(?:(?:[\w-]+|\[[^\]]+\]):)*(?:size|[wh])-\d+(?:[.]\d+)?!?$/;
 const rawColor = /(?:^|\s)(?:text|bg|border|ring|fill|stroke)-\[\s*#|(?:^|\s)\[(?:color|background-color|border-color):\s*(?:#|rgb\()/i;
 const arbitraryToken = /(?:^|\s)(?:rounded|shadow|font)-\[[^\]]+\]|(?:^|\s)(?:text|leading|tracking)-\[\d+(?:\.\d+)?(?:px|rem|em)\]|(?:^|\s)(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|gap-x|gap-y|space-x|space-y)-\[[^\]]+\]/i;
@@ -279,6 +281,11 @@ for (const absolute of files) {
                 if (className && ts.isJsxAttribute(className) && className.initializer) classLiterals(ts.isJsxExpression(className.initializer) ? className.initializer.expression : className.initializer, (classNode, value) => {
                     for (const token of value.trim().split(/\s+/)) if (numericIconUtility.test(token)) report(file, sf, classNode, `DS-012 numeric icon utility ${token}; use an icon token`);
                 }, constants);
+                for (const attribute of node.attributes.properties) {
+                    if (!ts.isJsxAttribute(attribute) || !/^(?:size|width|height)$/.test(attribute.name.getText(sf))) continue;
+                    const initializer = attribute.initializer && (ts.isJsxExpression(attribute.initializer) ? attribute.initializer.expression : attribute.initializer);
+                    if (initializer && (ts.isNumericLiteral(initializer) || ts.isStringLiteralLike(initializer))) report(file, sf, attribute, "DS-012 direct Lucide size prop; use an icon token");
+                }
             }
         }
         ts.forEachChild(node, visit);

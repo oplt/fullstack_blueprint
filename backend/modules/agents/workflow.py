@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
-from backend.modules.agents.contracts import AgentRunState, ToolExecutionResult
+from backend.modules.agents.contracts import AgentRunState, ToolApprovalRequest, ToolExecutionResult
 from backend.modules.agents.runtime import AgentDefinitionConfig, AgentRuntime
 from backend.modules.agents.tools import build_default_tool_registry
 from backend.modules.agents.workflow_definitions import WorkflowStatus
@@ -363,8 +363,6 @@ def _state_to_json(state: AgentRunState) -> dict[str, Any]:
 
 
 def _state_from_json(payload: dict[str, Any]) -> AgentRunState:
-    from backend.modules.agents.contracts import ToolApprovalRequest
-
     return AgentRunState(
         run_id=payload["run_id"],
         status=payload.get("status", "running"),

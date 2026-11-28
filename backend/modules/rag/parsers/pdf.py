@@ -50,8 +50,8 @@ def _extract_ocr_text(page, fitz) -> tuple[str, dict]:
     if not settings.RAG_PDF_OCR_ENABLED:
         return "", {"ocr_enabled": False, "ocr_ran": False, "ocr_status": "ocr_disabled"}
     try:
-        import pytesseract
-        from PIL import Image
+        import pytesseract  # noqa: PLC0415 - optional OCR extra
+        from PIL import Image  # noqa: PLC0415 - optional OCR extra
     except ImportError:
         return "", {
             "ocr_enabled": True,
@@ -165,13 +165,11 @@ class BasicPypdfParser:
         fallback_reason: str | None = None,
     ) -> list[ParsedDocument]:
         try:
-            from pypdf import PdfReader
+            from pypdf import PdfReader  # noqa: PLC0415 - optional pdf extra
         except ImportError as exc:
             raise RuntimeError(
                 "pypdf is required for PDF parsing. Install with: uv add pypdf"
             ) from exc
-
-        import io
 
         reader = PdfReader(io.BytesIO(content))
         _validate_pdf_page_count(len(reader.pages))
@@ -219,10 +217,10 @@ class EnhancedPdfParser:
         fallback_reason: str | None = None,
     ) -> list[ParsedDocument]:
         try:
-            import pymupdf as fitz
+            import pymupdf as fitz  # noqa: PLC0415 - optional pdf extra
         except ImportError:
             try:
-                import fitz  # type: ignore[no-redef]  # compatibility with older PyMuPDF
+                import fitz  # type: ignore[no-redef]  # noqa: PLC0415 - optional pdf extra; compatibility with older PyMuPDF
             except ImportError as exc:
                 raise RuntimeError("enhanced PDF parser unavailable") from exc
         except Exception as exc:

@@ -103,13 +103,14 @@ class RagContextBuilder:
             return token_counter(builder.build_document_context_block(items))
 
         for chunk in selection.chunks:
-            if token_count([*packed, chunk]) > budget and chunk.context_content is not None:
+            candidate = chunk
+            if token_count([*packed, candidate]) > budget and candidate.context_content is not None:
                 # Prefer the exact child anchor when the optional parent will not fit.
-                chunk = replace(chunk, context_content=None, parent_context_id=None)
-            if token_count([*packed, chunk]) > budget:
-                budget_removed.append(chunk.chunk_id)
+                candidate = replace(candidate, context_content=None, parent_context_id=None)
+            if token_count([*packed, candidate]) > budget:
+                budget_removed.append(candidate.chunk_id)
                 continue
-            packed.append(chunk)
+            packed.append(candidate)
         return ContextSelection(
             chunks=packed,
             removed_chunk_ids=selection.removed_chunk_ids,

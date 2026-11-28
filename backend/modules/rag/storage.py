@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
@@ -157,7 +158,5 @@ class FileStorageAdapter:
                 Key=storage_path,
             )
             return response["Body"].read()
-
-        import asyncio
 
         return await asyncio.to_thread(_get)

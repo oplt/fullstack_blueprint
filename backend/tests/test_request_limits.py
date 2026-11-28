@@ -1,14 +1,14 @@
 import unittest
 
 import pytest
+from fastapi import FastAPI, Request
 
+from backend.core.middleware import request_limits
 from backend.core.middleware.request_limits import RequestBodyLimitMiddleware
 
 
 @pytest.mark.asyncio
 async def test_chunked_overflow_returns_one_413_without_delivering_overflow_to_app(monkeypatch):
-    from backend.core.middleware import request_limits
-
     monkeypatch.setattr(request_limits.settings, "MAX_REQUEST_BODY_BYTES", 3)
     delivered = []
     responses = []
@@ -47,8 +47,6 @@ async def test_chunked_overflow_returns_one_413_without_delivering_overflow_to_a
 async def test_invalid_or_oversized_content_length_is_rejected(
     headers, expected_status, monkeypatch
 ):
-    from backend.core.middleware import request_limits
-
     monkeypatch.setattr(request_limits.settings, "MAX_REQUEST_BODY_BYTES", 3)
     responses = []
 
@@ -73,8 +71,6 @@ async def test_invalid_or_oversized_content_length_is_rejected(
 
 @pytest.mark.asyncio
 async def test_overflow_after_response_start_finishes_without_a_second_status(monkeypatch):
-    from backend.core.middleware import request_limits
-
     monkeypatch.setattr(request_limits.settings, "MAX_REQUEST_BODY_BYTES", 3)
     responses = []
     incoming = iter(
@@ -104,10 +100,6 @@ async def test_overflow_after_response_start_finishes_without_a_second_status(mo
 
 @pytest.mark.asyncio
 async def test_chunked_overflow_through_fastapi_returns_413(monkeypatch):
-    from fastapi import FastAPI, Request
-
-    from backend.core.middleware import request_limits
-
     monkeypatch.setattr(request_limits.settings, "MAX_REQUEST_BODY_BYTES", 3)
     app = FastAPI()
     app.add_middleware(RequestBodyLimitMiddleware)

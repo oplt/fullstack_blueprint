@@ -13,6 +13,18 @@ describe("internationalization foundation", () => {
         expect(languageDirection("ar")).toBe("rtl");
     });
 
+    it("falls back to the browser language for unsupported persisted values", () => {
+        const storage = { getItem: () => "xx-XX" } as unknown as Storage;
+        expect(["en", "nl", "fr"]).toContain(readLanguage(storage));
+    });
+
+    it("detects right-to-left scripts beyond Arabic", () => {
+        expect(languageDirection("fa")).toBe("rtl");
+        expect(languageDirection("he")).toBe("rtl");
+        expect(languageDirection("ur")).toBe("rtl");
+        expect(languageDirection("de")).toBe("ltr");
+    });
+
     it("formats dates, numbers and currency using the selected locale", async () => {
         await setLanguage("fr");
         expect(formatNumber(1234.5)).toContain("1");
@@ -20,6 +32,11 @@ describe("internationalization foundation", () => {
         expect(formatDate("2026-11-24")).toMatch(/2026/);
         expect(i18nInstance.t("navigation.projects")).toBe("Projets");
         expect(i18nInstance.t("status.unread", { count: 2 })).toContain("2");
+    });
+
+    it("formats with an explicit language override", () => {
+        expect(formatNumber(1234.5, undefined, "nl")).toContain("1.234");
+        expect(formatCurrency(12345, "USD", "en")).toContain("$");
     });
 
     it("localizes common validation issue shapes", async () => {

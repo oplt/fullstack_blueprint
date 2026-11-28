@@ -1,6 +1,6 @@
 
-import { useId, useState, type ComponentProps } from "react";
-import { useForm } from "react-hook-form";
+import { useId, useState, type ComponentProps, type ReactNode } from "react";
+import { useForm, type UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -131,6 +131,28 @@ function PasswordField(props: PasswordFieldProps) {
     );
 }
 
+type EmailFieldProps = {
+    disabled: boolean;
+    register: UseFormRegisterReturn;
+    error?: boolean;
+    description?: ReactNode;
+};
+
+function EmailField({ disabled, register, error, description }: EmailFieldProps) {
+    return (
+        <FormField
+            label="Email"
+            type="email"
+            autoComplete="email"
+            placeholder="name@example.com"
+            disabled={disabled}
+            {...register}
+            error={error}
+            description={description}
+        />
+    );
+}
+
 function AuthError({ message }: { message: string }) {
     if (!message) {
         return null;
@@ -256,13 +278,9 @@ export function SignInForm() {
                 aria-busy={isSubmitting}
                 noValidate
             >
-                <FormField
-                    label="Email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="name@example.com"
+                <EmailField
                     disabled={isSubmitting}
-                    {...register("email")}
+                    register={register("email")}
                     error={!!errors.email}
                     description={errors.email?.message}
                 />
@@ -456,13 +474,9 @@ export function SignUpForm({
                     description={errors.full_name?.message}
                 />
 
-                <FormField
-                    label="Email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="name@example.com"
+                <EmailField
                     disabled={isSubmitting}
-                    {...register("email")}
+                    register={register("email")}
                     error={!!errors.email}
                     description={errors.email?.message}
                 />

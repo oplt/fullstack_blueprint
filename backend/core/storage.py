@@ -28,8 +28,8 @@ class ObjectStorage:
     @cached_property
     def _client(self) -> Any:
         try:
-            import boto3
-            from botocore.client import Config
+            import boto3  # noqa: PLC0415 - optional storage extra
+            from botocore.client import Config  # noqa: PLC0415 - optional storage extra
         except ImportError as exc:
             raise ObjectStorageError(
                 "Object storage dependencies are not installed. "

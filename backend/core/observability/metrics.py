@@ -26,7 +26,7 @@ def _safe_attrs(attrs: dict[str, Any] | None = None) -> dict[str, str | int | fl
 
 @lru_cache(maxsize=1)
 def _meter():
-    from opentelemetry import metrics
+    from opentelemetry import metrics  # noqa: PLC0415 - optional telemetry
 
     return metrics.get_meter("generic_app.telemetry")
 
@@ -68,9 +68,9 @@ def setup_metrics(app: Any) -> None:
     if getattr(app.state, "prometheus_metrics_instrumented", False):
         return
     try:
-        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: PLC0415 - optional metrics
 
-        from backend.core.observability import prometheus_metrics
+        from backend.core.observability import prometheus_metrics  # noqa: PLC0415 - optional metrics
     except ImportError:
         logger.warning("prometheus-client not installed - Prometheus metrics disabled")
         return

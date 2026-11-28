@@ -4,6 +4,8 @@ import importlib.util
 import re
 from dataclasses import dataclass
 
+from sqlalchemy import text
+
 from backend.core.config import settings
 from backend.modules.rag.config_models import (
     ChunkingConfig,
@@ -15,6 +17,7 @@ from backend.modules.rag.config_models import (
     RetrievalConfig,
     SynthesisConfig,
 )
+from backend.modules.rag.reranker_port import resolve_reranker_mode
 
 SUPPORTED_VECTOR_BACKENDS = frozenset({"pgvector"})
 SUPPORTED_FUSION_METHODS = frozenset({"rrf"})
@@ -309,8 +312,6 @@ def validate_rag_config(config: RagConfig | None = None) -> None:
 
 
 def _validate_ranking(config: RagConfig) -> None:
-    from backend.modules.rag.reranker_port import resolve_reranker_mode
-
     if not -1 <= config.score_threshold <= 1:
         raise RuntimeError("RAG_SCORE_THRESHOLD must be between -1 and 1")
     mode = resolve_reranker_mode(config)
@@ -350,8 +351,6 @@ async def validate_rag_index_health(
     )
     if not enforce_health:
         return
-    from sqlalchemy import text
-
     schema_result = await db.execute(
         text(
             """

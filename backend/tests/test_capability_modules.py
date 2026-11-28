@@ -40,7 +40,13 @@ async def test_outbound_policy_rejects_private_ip() -> None:
 @pytest.mark.asyncio
 async def test_search_service_enforces_tenant_boundary() -> None:
     class Provider:
-        async def search(self, query: str, *, tenant_id: str, limit: int) -> list[SearchResult]:
+        async def search(
+            self,
+            query: str,
+            *,
+            tenant_id: str,
+            limit: int,  # noqa: ARG002 - SearchPort contract
+        ) -> list[SearchResult]:
             return [
                 SearchResult("doc", "one", query, "safe", 1.0, tenant_id),
                 SearchResult("doc", "two", query, "foreign", 0.9, "other-tenant"),

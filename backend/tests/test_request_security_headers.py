@@ -4,6 +4,7 @@ import httpx
 import pytest
 from fastapi import FastAPI, Request
 
+from backend.core.middleware import public_rate_limit
 from backend.core.middleware.correlation_id import CorrelationIdMiddleware
 from backend.core.middleware.public_rate_limit import PublicRateLimitMiddleware
 from backend.core.middleware.security_headers import SecurityHeadersMiddleware
@@ -59,8 +60,6 @@ async def test_safe_correlation_id_is_preserved() -> None:
 
 @pytest.mark.asyncio
 async def test_production_public_rate_limit_cannot_be_disabled(monkeypatch) -> None:
-    from backend.core.middleware import public_rate_limit
-
     monkeypatch.setattr(public_rate_limit.settings, "APP_ENV", "production")
     monkeypatch.setattr(public_rate_limit.settings, "PUBLIC_RATE_LIMIT_REQUESTS", 0)
     app = FastAPI()

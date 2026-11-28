@@ -21,8 +21,7 @@ function manualChunk(id: string) {
   if (!normalizedId.includes('/node_modules/')) return undefined
   if (
     normalizedId.includes('/@fullcalendar/') ||
-    normalizedId.includes('/@full-ui/headless-calendar/') ||
-    normalizedId.includes('/temporal-polyfill/')
+    normalizedId.includes('/@full-ui/headless-calendar/')
   ) return 'calendar-runtime'
   if (
     /\/node_modules\/(?:react|react-dom)\//.test(normalizedId) ||
@@ -59,7 +58,6 @@ export default defineConfig({
       '@fullcalendar/react/multimonth',
       '@fullcalendar/react/timegrid',
       '@tanstack/react-table',
-      'temporal-polyfill',
     ],
   },
   plugins: [

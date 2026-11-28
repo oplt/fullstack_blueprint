@@ -139,8 +139,10 @@ jobs:
             --cov=backend \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
-            --cov-fail-under=80 \
             --junitxml=test-results.xml
+
+      - name: Enforce application statement coverage
+        run: uv run --no-sync python scripts/check_coverage.py coverage.xml
 
       - name: Upload backend reports
         if: always()

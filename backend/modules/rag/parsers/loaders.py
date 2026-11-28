@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+import io
 import logging
 import re
 import tempfile
@@ -95,9 +97,6 @@ def _looks_numeric(value: str) -> bool:
 
 def _parse_csv(content: bytes) -> list[ParsedDocument]:
     """Row/record-aware CSV parsing — never flatten the entire file into one blob."""
-    import csv
-    import io
-
     text, decode_metadata = _decode_text(content)
     reader = csv.reader(io.StringIO(text))
     rows = list(reader)
@@ -148,20 +147,18 @@ def _parse_csv(content: bytes) -> list[ParsedDocument]:
 
 
 def _parse_pdf(content: bytes) -> list[ParsedDocument]:
-    from backend.modules.rag.parsers.pdf import parse_pdf_with_fallback
+    from backend.modules.rag.parsers.pdf import parse_pdf_with_fallback  # noqa: PLC0415 - parser adapter boundary
 
     return parse_pdf_with_fallback(content)
 
 
 def _parse_docx(content: bytes) -> list[ParsedDocument]:
     try:
-        import docx
+        import docx  # noqa: PLC0415 - optional docx extra
     except ImportError as exc:
         raise RuntimeError(
             "python-docx is required for DOCX parsing. Install with: uv add python-docx"
         ) from exc
-
-    import io
 
     document = docx.Document(io.BytesIO(content))
     sections: list[ParsedDocument] = []
@@ -243,11 +240,11 @@ def _parse_with_langchain_loader(file_path: str, loader_name: str) -> list[Parse
     """Fallback LangChain community loaders when available."""
     try:
         if loader_name == "text":
-            from langchain_community.document_loaders import TextLoader
+            from langchain_community.document_loaders import TextLoader  # noqa: PLC0415 - optional rag extra
 
             loader = TextLoader(file_path, encoding="utf-8")
         elif loader_name == "csv":
-            from langchain_community.document_loaders import CSVLoader
+            from langchain_community.document_loaders import CSVLoader  # noqa: PLC0415 - optional rag extra
 
             loader = CSVLoader(file_path)
         else:

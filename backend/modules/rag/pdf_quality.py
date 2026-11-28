@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+MIN_HEADER_FOOTER_REPEAT_COUNT = 2
+
 
 @dataclass(frozen=True, slots=True)
 class OcrDecision:
@@ -38,7 +40,9 @@ def suppress_repeated_headers_footers(page_texts: list[str]) -> list[str]:
     for lines in lines_by_page:
         for line in {lines[0], lines[-1]} if lines else set():
             candidates[line] = candidates.get(line, 0) + 1
-    repeated = {line for line, count in candidates.items() if count >= 2}
+    repeated = {
+        line for line, count in candidates.items() if count >= MIN_HEADER_FOOTER_REPEAT_COUNT
+    }
     cleaned: list[str] = []
     for lines in lines_by_page:
         while lines and lines[0] in repeated:

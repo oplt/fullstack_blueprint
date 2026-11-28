@@ -7,9 +7,9 @@ def setup_sentry(dsn: str, environment: str, traces_sample_rate: float) -> None:
     if not dsn:
         return
     try:
-        import sentry_sdk
-        from sentry_sdk.integrations.fastapi import FastApiIntegration
-        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+        import sentry_sdk  # noqa: PLC0415 - optional error tracking
+        from sentry_sdk.integrations.fastapi import FastApiIntegration  # noqa: PLC0415 - optional error tracking
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration  # noqa: PLC0415 - optional error tracking
 
         sentry_sdk.init(
             dsn=dsn,

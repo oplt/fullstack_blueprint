@@ -8,7 +8,7 @@ import {defineConfig, globalIgnores} from 'eslint/config'
 export default defineConfig([
     globalIgnores([
         'dist', 'coverage', 'test-results', 'playwright-report', 'storybook-static',
-        'public/mockServiceWorker.js', 'src/lib/generated/**', '.vitest',
+        'public/mockServiceWorker.js', '.vitest',
     ]),
     {
         files: ['src/**/*.{ts,tsx,js,jsx}'],
@@ -28,6 +28,13 @@ export default defineConfig([
             'max-depth': ['warn', 3],
             'max-params': ['warn', 5],
             'max-nested-callbacks': ['warn', 3],
+        },
+    },
+    {
+        // Generated OpenAPI types are validated by the generation/typecheck path.
+        files: ['src/lib/generated/**'],
+        rules: {
+            'max-lines': 'off',
         },
     },
 ])

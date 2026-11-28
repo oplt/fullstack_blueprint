@@ -66,7 +66,7 @@ class TemporalWorkflowBackend:
     @classmethod
     async def connect(cls, target: str, namespace: str = "default") -> TemporalWorkflowBackend:
         try:
-            from temporalio.client import Client  # type: ignore[reportMissingImports]
+            from temporalio.client import Client  # type: ignore[reportMissingImports]  # noqa: PLC0415 - optional durable extra
         except ImportError as exc:  # pragma: no cover - optional integration
             raise RuntimeError("Install the durable extra to enable Temporal") from exc
         return cls(await Client.connect(target, namespace=namespace))

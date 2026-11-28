@@ -1,11 +1,14 @@
+import importlib.util
 import sys
 from types import ModuleType, SimpleNamespace
 
 import pytest
 
+from backend.modules.rag.config import RagConfig, validate_rag_config
 from backend.modules.rag.domain import ParsedBlock, ParsedDocument
 from backend.modules.rag.langchain_text_splitters import split_documents
 from backend.modules.rag.parsers.docling import DoclingParserAdapter
+from backend.modules.rag.parsers.loaders import _parse_markdown
 from backend.modules.rag.parsing import DocumentParserService
 from backend.modules.rag.provenance import normalize_parsed_documents
 
@@ -154,8 +157,6 @@ def test_parser_service_binds_block_ids_to_document_revision(monkeypatch) -> Non
 
 
 def test_baseline_markdown_blocks_keep_nested_heading_hierarchy(monkeypatch) -> None:
-    from backend.modules.rag.parsers.loaders import _parse_markdown
-
     def baseline_parse(*, content, **_kwargs):
         return _parse_markdown(content)
 
@@ -262,10 +263,6 @@ def test_chunk_source_coordinates_include_overlapping_layout_blocks() -> None:
 
 
 def test_docling_configuration_fails_startup_when_optional_extra_is_missing(monkeypatch) -> None:
-    import importlib.util
-
-    from backend.modules.rag.config import RagConfig, validate_rag_config
-
     config = RagConfig.from_settings()
     config = config.__class__(
         **{

@@ -1,10 +1,9 @@
 import type { AuthUser } from "@/features/identity/authApi";
-import { Card, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { SectionCard } from "../../components/ui/SectionCard";
 type Props = { user: AuthUser | null };
 function AccountCheck({ label, active, activeValue, inactiveValue, activeDescription, inactiveDescription }: { label: string; active: boolean; activeValue: string; inactiveValue: string; activeDescription: string; inactiveDescription: string }) {
-    return <Card size="sm" className="ui-account-check"><CardContent><div className="ui-health-header"><p className="text-label-sm">{label}</p><Badge variant={active ? "success" : "warning"}>{active ? activeValue : inactiveValue}</Badge></div><p className="ui-account-check-description">{active ? activeDescription : inactiveDescription}</p></CardContent></Card>;
+    return <div className="ui-account-check"><div className="ui-health-header"><p className="text-label-sm">{label}</p><Badge variant={active ? "success" : "warning"}>{active ? activeValue : inactiveValue}</Badge></div><p className="ui-account-check-description">{active ? activeDescription : inactiveDescription}</p></div>;
 }
 export function AccountHealthCard({ user }: Props) {
     return <SectionCard title="Account health" description="Settings that affect trust and security." compact contentClassName="flex flex-col">

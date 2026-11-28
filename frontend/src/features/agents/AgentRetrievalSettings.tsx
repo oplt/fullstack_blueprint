@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { HelpFieldLabel } from "../../components/ui/HelpTooltip";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
 import type { useAgentWorkspace } from "./useAgentWorkspace";
+import { FormGrid } from "@/components/ui/FormGrid";
 
 type AgentWorkspace = ReturnType<typeof useAgentWorkspace>;
 type Props = {
@@ -27,7 +28,7 @@ export function AgentRetrievalSettings({
     return (
         <section className="grid gap-ui-sm">
             <h3>Limits & retrieval</h3>
-            <div className="flex flex-col gap-ui-md sm:flex-row sm:flex-wrap">
+            <FormGrid columns="2">
                 <FormField
                     type="number"
                     label={<HelpFieldLabel termId="top_k_retrieval">Top-k</HelpFieldLabel>}
@@ -42,7 +43,7 @@ export function AgentRetrievalSettings({
                     onChange={(event) => setRetrievalQuery(event.target.value)}
                     description="Defaults to the user message when empty."
                 />
-            </div>
+            </FormGrid>
             <div>
                 <p>RAG documents (optional scope)</p>
                 <QueryBoundary

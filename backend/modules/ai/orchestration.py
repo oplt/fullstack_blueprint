@@ -40,7 +40,7 @@ class PydanticAiOrchestrator:
                 provider_key=request.metadata.get("provider_key", "unknown"),
             )
         try:
-            from pydantic_ai import Agent  # type: ignore[reportMissingImports]
+            from pydantic_ai import Agent  # type: ignore[reportMissingImports]  # noqa: PLC0415 - optional ai extra
         except ImportError as exc:  # pragma: no cover - dependency is installed in supported builds
             raise AiProviderError(
                 "Install the ai dependency extra to enable Pydantic AI orchestration",

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from dataclasses import replace
 from typing import Protocol
 
 from backend.modules.memory.consolidation import MemoryConsolidator
@@ -58,14 +58,9 @@ class MemoryContextBuilder:
         if not ordered_levels:
             return []
 
+        search_request = replace(request, memory_levels=ordered_levels)
         collected = await self.memory_service.recall(
-            user_id=request.user_id,
-            agent_id=request.agent_id,
-            query=request.query,
-            run_id=request.run_id,
-            project_id=request.project_id,
-            memory_levels=ordered_levels,
-            limit=request.limit,
+            search_request,
         )
 
         deduped = self.consolidator.mark_contradictions(collected)
@@ -84,12 +79,5 @@ class MemoryContextBuilder:
 class MemoryServiceProtocol(Protocol):
     async def recall(
         self,
-        *,
-        user_id: str,
-        agent_id: str,
-        query: str,
-        run_id: str | None = None,
-        project_id: str | None = None,
-        memory_levels: Sequence[str | MemoryLevel] | None = None,
-        limit: int | None = None,
+        request: MemorySearchRequest,
     ) -> list[MemoryItem]: ...

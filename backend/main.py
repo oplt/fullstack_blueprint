@@ -47,22 +47,22 @@ async def lifespan(_app: FastAPI):
         resources.push_async_callback(engine.dispose)
         resources.push_async_callback(redis_client.aclose)
         if settings.OBSERVABILITY_ENABLED:
-            from backend.core.observability.service import close_observability_http_client
+            from backend.core.observability.service import close_observability_http_client  # noqa: PLC0415 - observability-gated
 
             resources.push_async_callback(close_observability_http_client)
         if settings.AI_ENABLED or settings.RAG_ENABLED:
-            from backend.modules.ai.providers import close_ai_provider_http_clients
+            from backend.modules.ai.providers import close_ai_provider_http_clients  # noqa: PLC0415 - ai-gated
 
             resources.push_async_callback(close_ai_provider_http_clients)
         resources.push_async_callback(asyncio.to_thread, shutdown_background_runtime)
 
         log_eager_mode_startup_warning()
         if settings.RAG_ENABLED:
-            from backend.modules.rag.config import validate_rag_config
+            from backend.modules.rag.config import validate_rag_config  # noqa: PLC0415 - rag-gated
 
             validate_rag_config()
         if settings.MEMORY_ENABLED:
-            from backend.modules.memory.config import validate_memory_config
+            from backend.modules.memory.config import validate_memory_config  # noqa: PLC0415 - memory-gated
 
             validate_memory_config()
         if settings.STORAGE_BUCKET:
@@ -75,7 +75,7 @@ async def lifespan(_app: FastAPI):
             async with SessionLocal() as db:
                 await PlatformConfigService(db).ensure_defaults()
                 if settings.RAG_ENABLED:
-                    from backend.modules.rag.config import (
+                    from backend.modules.rag.config import (  # noqa: PLC0415 - rag-gated
                         validate_rag_index_health,
                     )
 

@@ -40,7 +40,7 @@ def _task_label(task: Any) -> str:
 
 def _safe_worker_metrics():
     try:
-        from backend.core.observability import prometheus_metrics as m
+        from backend.core.observability import prometheus_metrics as m  # noqa: PLC0415 - optional metrics
 
         return m
     except Exception:
@@ -50,11 +50,11 @@ def _safe_worker_metrics():
 @worker_process_shutdown.connect
 @worker_shutdown.connect
 def close_worker_runtime(**_kwargs) -> None:
-    from backend.workers.async_dispatch import shutdown_background_runtime
+    from backend.workers.async_dispatch import shutdown_background_runtime  # noqa: PLC0415 - worker lifecycle
 
     shutdown_background_runtime()
     with contextlib.suppress(Exception):
-        from backend.workers.health import mark_worker_stopped
+        from backend.workers.health import mark_worker_stopped  # noqa: PLC0415 - worker lifecycle
 
         mark_worker_stopped()
 
@@ -63,7 +63,7 @@ def close_worker_runtime(**_kwargs) -> None:
 def configure_worker_logging(**_kwargs) -> None:
     setup_logging()
     with contextlib.suppress(Exception):
-        from backend.workers.health import mark_worker_ready
+        from backend.workers.health import mark_worker_ready  # noqa: PLC0415 - worker lifecycle
 
         mark_worker_ready()
     logger.info("Celery worker ready")
@@ -72,14 +72,14 @@ def configure_worker_logging(**_kwargs) -> None:
 @heartbeat_sent.connect
 def refresh_worker_health(**_kwargs) -> None:
     with contextlib.suppress(Exception):
-        from backend.workers.health import mark_worker_ready
+        from backend.workers.health import mark_worker_ready  # noqa: PLC0415 - worker lifecycle
 
         mark_worker_ready()
 
 
 @before_task_publish.connect
 def attach_correlation_and_enqueue_time(
-    sender: Any = None,
+    _sender: Any = None,
     headers: dict[str, Any] | None = None,
     **_kwargs: Any,
 ) -> None:
@@ -87,7 +87,7 @@ def attach_correlation_and_enqueue_time(
     if headers is None:
         return
     with contextlib.suppress(Exception):
-        from backend.core.logging.log_context import get_correlation_id
+        from backend.core.logging.log_context import get_correlation_id  # noqa: PLC0415 - optional logging context
 
         correlation_id = get_correlation_id() or str(uuid4())
         headers.setdefault(CORRELATION_HEADER, correlation_id)

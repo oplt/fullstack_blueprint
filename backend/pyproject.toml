@@ -131,6 +131,7 @@ allowed-confusables = ["ı"]
 "**/tests/**/*.py" = ["S101", "PLR2004"]
 # These commands produce their documented stdout output as part of the CLI interface.
 "scripts/check_architecture.py" = ["T201"]
+"scripts/check_coverage.py" = ["T201", "S314"]  # CLI stdout; local coverage.xml report
 "scripts/check_db.py" = ["T201"]
 "scripts/validate_openapi.py" = ["T201"]
 "tests/rag/chunking_experiments.py" = ["T201"]
@@ -197,7 +198,6 @@ exclude_also = [
 
 skip_covered = true
 show_missing = true
-fail_under = 80
 precision = 2
 
 [tool.pyright]

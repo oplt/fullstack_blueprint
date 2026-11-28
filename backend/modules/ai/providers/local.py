@@ -74,7 +74,11 @@ class LocalHeuristicProvider(BaseAiProvider):
             provider_request_id=request.provider_request_id,
         )
 
-    async def embed_texts(self, texts: list[str], model: str | None = None) -> list[list[float]]:
+    async def embed_texts(
+        self,
+        texts: list[str],
+        model: str | None = None,  # noqa: ARG002 - protocol; model unused here
+    ) -> list[list[float]]:
         return [
             _hash_embedding(text, dimensions=settings.RAG_EMBEDDING_DIMENSIONS) for text in texts
         ]

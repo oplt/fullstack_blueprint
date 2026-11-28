@@ -26,7 +26,7 @@ def _signal_endpoint(signal: str, base_endpoint: str) -> str:
 
 
 def _resource(service_name: str, environment: str):
-    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.resources import Resource  # noqa: PLC0415 - optional telemetry
 
     return Resource.create(
         {
@@ -40,7 +40,7 @@ def _resource(service_name: str, environment: str):
 def setup_observability(app: Any | None = None, *, service_name: str | None = None) -> None:
     """Configure Prometheus metrics, OTLP traces, and app instrumentation."""
 
-    from backend.core.observability.metrics import setup_metrics
+    from backend.core.observability.metrics import setup_metrics  # noqa: PLC0415 - optional telemetry
 
     if app is not None:
         setup_metrics(app)
@@ -50,7 +50,7 @@ def setup_observability(app: Any | None = None, *, service_name: str | None = No
 def setup_traces(app: Any | None = None, *, service_name: str | None = None) -> None:
     """Configure OTLP traces. Export failures must not affect app startup."""
 
-    global _configured
+    global _configured  # noqa: PLW0603 - process-lifetime idempotence guard
     if _configured:
         if app is not None:
             _instrument_app(app)
@@ -91,17 +91,17 @@ def setup_traces(app: Any | None = None, *, service_name: str | None = None) -> 
 
 
 def _setup_trace_exporter(config: Any, resource: Any) -> None:
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry import trace  # noqa: PLC0415 - optional telemetry
+    from opentelemetry.sdk.trace import TracerProvider  # noqa: PLC0415 - optional telemetry
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor  # noqa: PLC0415 - optional telemetry
 
     provider = TracerProvider(resource=resource)
     if config.otlp_protocol == "grpc":
-        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # noqa: PLC0415 - optional telemetry
 
         exporter = OTLPSpanExporter(endpoint=config.otlp_endpoint, insecure=config.otlp_insecure)
     else:
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter  # noqa: PLC0415 - optional telemetry
 
         exporter = OTLPSpanExporter(endpoint=_signal_endpoint("traces", config.otlp_endpoint))
 
@@ -110,13 +110,13 @@ def _setup_trace_exporter(config: Any, resource: Any) -> None:
 
 
 def _setup_library_instrumentation() -> None:
-    global _libraries_instrumented
+    global _libraries_instrumented  # noqa: PLW0603 - process-lifetime idempotence guard
     if _libraries_instrumented:
         return
     try:
-        from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+        from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor  # noqa: PLC0415 - optional telemetry
 
-        from backend.core.db.session import engine
+        from backend.core.db.session import engine  # noqa: PLC0415 - avoids core.db import cycle
 
         SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
     except Exception as exc:
@@ -128,7 +128,7 @@ def _instrument_app(app: Any) -> None:
     if getattr(app.state, "otel_instrumented", False):
         return
     try:
-        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor  # noqa: PLC0415 - optional telemetry
 
         FastAPIInstrumentor.instrument_app(app)
         app.state.otel_instrumented = True

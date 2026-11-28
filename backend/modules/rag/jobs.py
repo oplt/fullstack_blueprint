@@ -18,8 +18,8 @@ def index_document_sync(
     user_id: str,
     job_id: str | None = None,
 ) -> None:
-    from backend.core.db.session import SessionLocal
-    from backend.modules.rag.ingestion import DocumentIngestionService
+    from backend.core.db.session import SessionLocal  # noqa: PLC0415 - avoids import cycle
+    from backend.modules.rag.ingestion import DocumentIngestionService  # noqa: PLC0415 - avoids import cycle
 
     async def _run() -> None:
         async with SessionLocal() as db:
@@ -88,8 +88,8 @@ def cleanup_document_sync(
     user_id: str,
     storage_path: str | None,
 ) -> None:
-    from backend.core.db.session import SessionLocal
-    from backend.modules.rag.ingestion import DocumentIngestionService
+    from backend.core.db.session import SessionLocal  # noqa: PLC0415 - avoids import cycle
+    from backend.modules.rag.ingestion import DocumentIngestionService  # noqa: PLC0415 - avoids import cycle
 
     async def _run() -> None:
         async with SessionLocal() as db:

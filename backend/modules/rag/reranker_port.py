@@ -93,8 +93,8 @@ def build_reranker(*, config) -> RerankerPort:
     if mode == "heuristic":
         return UnicodeHeuristicReranker()
     if mode == "provider":
-        from backend.core.config import settings
-        from backend.modules.rag.cohere_reranker import CohereReranker
+        from backend.core.config import settings  # noqa: PLC0415 - provider resolution
+        from backend.modules.rag.cohere_reranker import CohereReranker  # noqa: PLC0415 - optional provider
 
         return CohereReranker(
             api_key=settings.RAG_COHERE_API_KEY.get_secret_value(), model=config.rerank_model

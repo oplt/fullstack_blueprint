@@ -104,8 +104,8 @@ def _blocks_from_metadata(
 
     output: list[ParsedBlock] = []
     cursor = 0
-    for offset, item in enumerate(source_items):
-        item = item if isinstance(item, dict) else {}
+    for offset, raw_item in enumerate(source_items):
+        item = raw_item if isinstance(raw_item, dict) else {}
         text = str(item.get("text") or "")
         start = document.content.find(text, cursor) if text else 0
         aligned = start >= 0

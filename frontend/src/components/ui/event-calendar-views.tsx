@@ -9,12 +9,12 @@ const dayRowCommonClasses: CalendarOptions = {
     listItemEventClass: (info) => cn('ui-fc-list-item', info.isNarrow ? 'ui-fc-list-item-narrow' : 'ui-fc-list-item-wide'),
     listItemEventBeforeClass: (info) => cn('ui-fc-list-item-dot', info.isNarrow ? 'ui-fc-list-dot-narrow' : 'ui-fc-list-dot-wide'),
     listItemEventInnerClass: (info) => info.isNarrow ? 'ui-fc-list-inner-narrow' : 'ui-fc-list-inner-wide',
-    listItemEventTimeClass: (info) => cn('ui-fc-list-time', info.isNarrow ? 'ui-fc-list-time-narrow' : 'ui-fc-list-time-wide'),
-    listItemEventTitleClass: (info) => cn('ui-fc-list-title', info.isNarrow ? 'ui-fc-list-title-narrow' : 'ui-fc-list-title-wide'),
-    rowEventClass: (info) => cn(info.isStart && 'ui-fc-row-start', info.isEnd && 'ui-fc-row-end'),
+    listItemEventTimeClass: (info) => cn('ui-fc-list-time', info.isNarrow ? 'ps-0.5' : 'ps-1'),
+    listItemEventTitleClass: (info) => cn('ui-fc-list-title', info.isNarrow ? 'px-0.5' : 'px-1'),
+    rowEventClass: (info) => cn(info.isStart && 'ms-px', info.isEnd && 'me-px'),
     rowEventInnerClass: (info) => info.isNarrow ? 'ui-fc-row-inner-narrow' : 'ui-fc-row-inner-wide',
     rowMoreLinkClass: (info) => cn('ui-fc-row-more', info.isNarrow ? 'ui-fc-row-more-narrow' : 'ui-fc-row-more-wide'),
-    rowMoreLinkInnerClass: (info) => info.isNarrow ? 'ui-fc-row-more-inner-narrow' : 'ui-fc-row-more-inner-wide',
+    rowMoreLinkInnerClass: (info) => info.isNarrow ? 'px-0.5 py-px' : 'px-1 py-0.5',
 };
 export type EventCalendarViewProps = CalendarOptions & { eventsRevision?: number } & Required<Pick<CalendarOptions, 'popoverCloseContent'>>;
 export function EventCalendarViews({ views: userViews, eventsRevision, ...restOptions }: EventCalendarViewProps) {
@@ -40,20 +40,20 @@ export function EventCalendarViews({ views: userViews, eventsRevision, ...restOp
         blockEventTimeClass='whitespace-nowrap overflow-hidden'
         blockEventTitleClass='whitespace-nowrap overflow-hidden'
         rowEventClass={(info) => cn('ui-fc-row-event', info.isStart ? 'ui-fc-row-event-start' : (!info.isNarrow && 'ui-fc-row-event-continued-start'), info.isEnd ? 'ui-fc-row-event-end' : (!info.isNarrow && 'ui-fc-row-event-continued-end'))}
-        rowEventBeforeClass={(info) => info.isStartResizable ? cn(info.isSelected ? 'ui-fc-row-touch' : 'ui-fc-row-pointer', 'ui-fc-row-resize-start') : (!info.isStart && !info.isNarrow) ? 'ui-fc-row-continuation-start' : ''}
+        rowEventBeforeClass={(info) => info.isStartResizable ? cn(info.isSelected ? 'ui-fc-row-touch' : 'ui-fc-row-pointer', '-start-1') : (!info.isStart && !info.isNarrow) ? 'ui-fc-row-continuation-start' : ''}
         rowEventBeforeContent={(info) => (!info.isStart && !info.isNarrow) ? filledRightTriangle('ui-fc-triangle-start') : <></>}
-        rowEventAfterClass={(info) => info.isEndResizable ? cn(info.isSelected ? 'ui-fc-row-touch' : 'ui-fc-row-pointer', 'ui-fc-row-resize-end') : (!info.isEnd && !info.isNarrow) ? 'ui-fc-row-continuation-end' : ''}
+        rowEventAfterClass={(info) => info.isEndResizable ? cn(info.isSelected ? 'ui-fc-row-touch' : 'ui-fc-row-pointer', '-end-1') : (!info.isEnd && !info.isNarrow) ? 'ui-fc-row-continuation-end' : ''}
         rowEventAfterContent={(info) => (!info.isEnd && !info.isNarrow) ? filledRightTriangle('ui-fc-triangle-end') : <></>}
         rowEventInnerClass={(info) => cn('flex flex-row items-center', info.isNarrow ? 'ui-fc-text-compact' : 'ui-fc-text-small')}
-        rowEventTimeClass={(info) => cn('ui-fc-row-time', info.isNarrow ? 'ui-fc-list-time-narrow' : 'ui-fc-list-time-wide')}
-        rowEventTitleClass={(info) => cn('shrink-100', info.isNarrow ? 'ui-fc-list-title-narrow' : 'ui-fc-list-title-wide')}
+        rowEventTimeClass={(info) => cn('ui-fc-row-time', info.isNarrow ? 'ps-0.5' : 'ps-1')}
+        rowEventTitleClass={(info) => cn('shrink-100', info.isNarrow ? 'px-0.5' : 'px-1')}
         columnEventTitleSticky={false}
         columnEventClass={(info) => cn('ui-fc-column-event', info.isStart && 'ui-fc-column-event-start', info.isEnd && 'ui-fc-column-event-end')}
         columnEventBeforeClass={(info) => cn(info.isStartResizable && [info.isSelected ? 'ui-fc-column-touch' : 'ui-fc-column-pointer', 'ui-fc-column-resize-start'])}
         columnEventAfterClass={(info) => cn(info.isEndResizable && [info.isSelected ? 'ui-fc-column-touch' : 'ui-fc-column-pointer', 'ui-fc-column-resize-end'])}
         columnEventInnerClass={(info) => cn('flex', info.isShort ? 'ui-fc-column-short' : ['flex-col', info.isNarrow ? 'ui-fc-column-narrow' : 'ui-fc-column-wide'], (info.isShort || info.isNarrow) ? 'ui-fc-text-compact' : 'ui-fc-text-small')}
-        columnEventTimeClass={(info) => cn('order-1 shrink-100', !info.isShort && (info.isNarrow ? 'ui-fc-column-time-narrow' : 'ui-fc-column-time-wide'))}
-        columnEventTitleClass={(info) => cn('shrink-1', !info.isShort && (info.isNarrow ? 'ui-fc-row-inner-wide' : 'ui-fc-column-title-wide'))}
+        columnEventTimeClass={(info) => cn('order-1 shrink-100', !info.isShort && (info.isNarrow ? 'pb-0.5' : 'pb-1'))}
+        columnEventTitleClass={(info) => cn('shrink-1', !info.isShort && (info.isNarrow ? 'ui-fc-row-inner-wide' : 'py-1'))}
         moreLinkClass='ui-fc-nav-focus'
         moreLinkInnerClass='whitespace-nowrap overflow-hidden'
         columnMoreLinkClass='ui-fc-column-more'

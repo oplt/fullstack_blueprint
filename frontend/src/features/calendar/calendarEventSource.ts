@@ -1,4 +1,3 @@
-import { Temporal } from "temporal-polyfill";
 import type { EventInput } from "@fullcalendar/react";
 import type { CalendarItem } from "./api";
 
@@ -10,8 +9,13 @@ export type CalendarFetchRange = {
 export function toInclusiveCalendarRange({ startStr, endStr }: CalendarFetchRange) {
     return {
         start: startStr.slice(0, 10),
-        end: Temporal.PlainDate.from(endStr.slice(0, 10)).subtract({ days: 1 }).toString(),
+        end: previousPlainDate(endStr.slice(0, 10)),
     };
+}
+
+function previousPlainDate(isoDate: string): string {
+    const [year, month, day] = isoDate.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day - 1)).toISOString().slice(0, 10);
 }
 
 export function toFullCalendarEvent(item: CalendarItem): EventInput {

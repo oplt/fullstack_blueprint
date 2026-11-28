@@ -9,10 +9,13 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from importlib import import_module
 from queue import Queue
 from threading import BoundedSemaphore, Event, Lock, Thread
+from time import time
 from typing import Any, TypeVar
+from uuid import uuid4
 
 from backend.core.cache import create_redis_client, redis_client_override
 from backend.core.config import settings
+from backend.core.logging.log_context import get_correlation_id
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +58,7 @@ class _WorkerAsyncRuntime:
         engine = None
         asyncio.set_event_loop(loop)
         try:
-            from backend.core.db.session import create_worker_sessionmaker
+            from backend.core.db.session import create_worker_sessionmaker  # noqa: PLC0415 - worker fork init
 
             engine, self._sessionmaker = create_worker_sessionmaker()
             self._loop = loop
@@ -80,7 +83,7 @@ class _WorkerAsyncRuntime:
             async def close_resources() -> None:
                 try:
                     if settings.AI_ENABLED or settings.RAG_ENABLED:
-                        from backend.modules.ai.providers import close_ai_provider_http_clients
+                        from backend.modules.ai.providers import close_ai_provider_http_clients  # noqa: PLC0415 - worker fork init
 
                         await close_ai_provider_http_clients()
                 finally:
@@ -100,7 +103,7 @@ class _WorkerAsyncRuntime:
         self._thread.join()
 
     async def _execute(self, coro: Coroutine[Any, Any, T]) -> T:
-        from backend.core.db.session import _sessionmaker_override
+        from backend.core.db.session import _sessionmaker_override  # noqa: PLC0415 - worker fork init
 
         token = _sessionmaker_override.set(self._sessionmaker)
         redis_token = redis_client_override.set(self._redis)
@@ -117,7 +120,7 @@ class _WorkerAsyncRuntime:
 
 
 def _get_worker_runtime() -> _WorkerAsyncRuntime:
-    global _worker_runtime
+    global _worker_runtime  # noqa: PLW0603 - process-lifetime worker runtime
     with _worker_runtime_lock:
         if _worker_runtime is None:
             _worker_runtime = _WorkerAsyncRuntime()
@@ -135,7 +138,7 @@ def run_async_in_sync_context[T](coro: Coroutine[Any, Any, T]) -> T:
 
 
 def shutdown_background_runtime() -> None:
-    global _eager_executor, _eager_slots, _worker_runtime
+    global _eager_executor, _eager_slots, _worker_runtime  # noqa: PLW0603 - process-lifetime runtime
     with _eager_lock:
         executor, _eager_executor = _eager_executor, None
         _eager_slots = None
@@ -149,7 +152,7 @@ def shutdown_background_runtime() -> None:
 
 def _eager_executor_for_settings() -> tuple[ThreadPoolExecutor, BoundedSemaphore]:
     """Lazily construct a process-local bounded executor for eager development."""
-    global _eager_executor, _eager_slots
+    global _eager_executor, _eager_slots  # noqa: PLW0603 - process-lifetime executor
     with _eager_lock:
         if _eager_executor is None:
             workers = max(1, settings.EAGER_BACKGROUND_MAX_WORKERS)
@@ -179,7 +182,7 @@ def dispatch_background_sync_job(
     task_id: str | None = None,
 ) -> str | None:
     """Queue work on Celery, or a bounded local executor in eager mode."""
-    global _eager_warning_logged
+    global _eager_warning_logged  # noqa: PLW0603 - process-lifetime log guard
 
     if settings.CELERY_TASK_ALWAYS_EAGER:
         if not _eager_warning_logged:
@@ -224,11 +227,6 @@ def dispatch_background_sync_job(
 
 def _celery_observability_headers() -> dict[str, Any]:
     """Correlation id + enqueue wall-clock for worker queue-delay metrics."""
-    from time import time
-    from uuid import uuid4
-
-    from backend.core.logging.log_context import get_correlation_id
-
     return {
         "correlation_id": get_correlation_id() or str(uuid4()),
         "enqueued_at": time(),

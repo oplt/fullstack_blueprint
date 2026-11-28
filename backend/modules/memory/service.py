@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Sequence
 from datetime import UTC, datetime
 from time import perf_counter
 from typing import Any, Literal
@@ -279,18 +278,18 @@ class MemoryService:
 
     async def recall(
         self,
-        *,
-        user_id: str,
-        agent_id: str,
-        query: str,
-        run_id: str | None = None,
-        project_id: str | None = None,
-        memory_levels: Sequence[str | MemoryLevel] | None = None,
-        limit: int | None = None,
+        request: MemorySearchRequest,
     ) -> list[MemoryItem]:
         if not self.config.enabled:
             return []
 
+        user_id = request.user_id
+        agent_id = request.agent_id
+        query = request.query
+        run_id = request.run_id
+        project_id = request.project_id
+        limit = request.limit
+        memory_levels = request.memory_levels
         resolved_limit = limit or self.config.default_limit
         levels = [MemoryLevel(level) for level in memory_levels] if memory_levels else None
         if project_id:
@@ -320,7 +319,7 @@ class MemoryService:
                 return []
             if level == MemoryLevel.SESSION and not run_id:
                 return []
-            items = await self.mem0.search(
+            return await self.mem0.search(
                 query=query,
                 memory_level=level,
                 user_id=user_id,
@@ -329,7 +328,6 @@ class MemoryService:
                 project_id=project_id,
                 top_k=resolved_limit,
             )
-            return items
 
         try:
             level_results = await asyncio.gather(*[_search_level(level) for level in search_levels])

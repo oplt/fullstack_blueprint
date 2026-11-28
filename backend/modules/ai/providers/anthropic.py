@@ -130,7 +130,11 @@ class AnthropicProvider(HttpAiProvider):
             finish_reason=data.get("stop_reason"),
         )
 
-    async def embed_texts(self, texts: list[str], model: str | None = None) -> list[list[float]]:
+    async def embed_texts(
+        self,
+        texts: list[str],
+        model: str | None = None,  # noqa: ARG002 - protocol; model unused here
+    ) -> list[list[float]]:
         if settings.AI_EMBEDDING_PROVIDER == "local":
             return await LocalHeuristicProvider().embed_texts(texts)
         raise AiProviderError(

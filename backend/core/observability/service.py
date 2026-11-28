@@ -30,14 +30,14 @@ _observability_http_client: httpx.AsyncClient | None = None
 
 
 def _get_observability_http_client() -> httpx.AsyncClient:
-    global _observability_http_client
+    global _observability_http_client  # noqa: PLW0603 - process-lifetime shared client
     if _observability_http_client is None or _observability_http_client.is_closed:
         _observability_http_client = httpx.AsyncClient(timeout=1.5, follow_redirects=True)
     return _observability_http_client
 
 
 async def close_observability_http_client() -> None:
-    global _observability_http_client
+    global _observability_http_client  # noqa: PLW0603 - process-lifetime shared client
     if _observability_http_client is not None and not _observability_http_client.is_closed:
         await _observability_http_client.aclose()
     _observability_http_client = None
@@ -195,7 +195,7 @@ class ObservabilityService:
         try:
             count, depths = await asyncio.gather(healthy_worker_count(), queue_depths())
             try:
-                from backend.core.observability import prometheus_metrics
+                from backend.core.observability import prometheus_metrics  # noqa: PLC0415 - optional metrics
 
                 for queue, depth in depths.items():
                     prometheus_metrics.worker_queue_depth.labels(queue=queue).set(depth)

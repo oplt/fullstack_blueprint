@@ -322,7 +322,7 @@ _security-check:
 	 "$(VENV_BIN)/pip-audit" --strict --no-deps --disable-pip --requirement "$$tmp"
 	$(call require,trivy)
 	@mkdir -p "$(ARTIFACT_DIR)"
-	trivy fs --scanners vuln --exit-code 0 --format json --output "$(ARTIFACT_DIR)/dependency-advisories.json" --skip-dirs .git --skip-dirs backend/.venv --skip-dirs frontend/node_modules --skip-dirs "$(ARTIFACTS)" .
+	trivy fs --scanners vuln --include-dev-deps --exit-code 0 --format json --output "$(ARTIFACT_DIR)/dependency-advisories.json" --skip-dirs .git --skip-dirs backend/.venv --skip-dirs frontend/node_modules --skip-dirs "$(ARTIFACTS)" .
 	@"$(BACKEND_PYTHON)" -c 'import json,sys,collections; r=json.load(open(sys.argv[1])); findings=[v for result in (r.get("Results") or []) for v in (result.get("Vulnerabilities") or [])]; counts=collections.Counter(v.get("Severity","UNKNOWN") for v in findings); print("Dependency vulnerability counts:",dict(counts)); [print(v.get("VulnerabilityID"),v.get("PkgName"),v.get("Severity")) for v in findings if v.get("Severity") in {"HIGH","CRITICAL"}]; sys.exit(1 if any(v.get("Severity") in {"HIGH","CRITICAL"} for v in findings) else 0)' "$(ARTIFACT_DIR)/dependency-advisories.json"
 	$(call require,gitleaks git)
 	@tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
@@ -330,9 +330,12 @@ _security-check:
 	 args=(); if [[ -f .gitleaks.toml ]]; then args+=(--config "$(CURDIR)/.gitleaks.toml"); fi; if [[ -f .gitleaksignore ]]; then args+=(--gitleaks-ignore-path "$(CURDIR)/.gitleaksignore"); fi; \
 	 gitleaks dir --redact "$${args[@]}" "$$tmp"; gitleaks git --redact "$${args[@]}" --pre-commit --staged .
 	gitleaks git --redact --log-opts=--all .
-	@# IBM Plex Mono is OFL-1.1; its exact license accompanies the distributed font.
+	@# Reviewed license allowlist (see infra/LICENSES.md for the review policy):
+	@# OFL-1.1 is the bundled IBM Plex Mono font; MIT-0 and PSF-2.0 cover the locked
+	@# cffi 2.1.1, greenlet 3.5.6 (MIT AND PSF-2.0) and typing-extensions 4.16.0 wheels.
 	@cmp frontend/node_modules/@fontsource/ibm-plex-mono/LICENSE frontend/public/licenses/ibm-plex-mono.txt
-	trivy fs --scanners license --severity "$(LICENSE_SEVERITY)" --ignored-licenses OFL-1.1 --exit-code 1 --skip-dirs .git --skip-dirs backend/.venv --skip-dirs frontend/node_modules --skip-dirs "$(ARTIFACTS)" .
+	@cd backend && "$(BACKEND_PYTHON)" -c 'import importlib.metadata as m; expected={"cffi":"MIT-0","greenlet":"MIT AND PSF-2.0","typing-extensions":"PSF-2.0"}; bad={p:m.distribution(p).metadata.get("License-Expression") for p in expected if m.distribution(p).metadata.get("License-Expression")!=expected[p]}; assert not bad, f"Unexpected license metadata: {bad}"'
+	trivy fs --scanners license --severity "$(LICENSE_SEVERITY)" --ignored-licenses OFL-1.1,MIT-0,PSF-2.0 --exit-code 1 --skip-dirs .git --skip-dirs backend/.venv --skip-dirs frontend/node_modules --skip-dirs "$(ARTIFACTS)" .
 	trivy config --severity HIGH,CRITICAL --exit-code 1 infra
 	$(call require,semgrep)
 	semgrep scan --config "$(SAST_CONFIG)" --error --metrics=off backend frontend/src
@@ -345,7 +348,8 @@ _test-ready: _local-ready
 
 _backend-test: _migration-check _test-ready
 	@env -u RAG_INTEGRATION_DATABASE_URL APP_ENV=test DATABASE_URL=postgresql+asyncpg://blueprint@127.0.0.1:1/unused REDIS_URL=redis://127.0.0.1:1/0 CELERY_BROKER_URL=redis://127.0.0.1:1/0 CELERY_RESULT_BACKEND=redis://127.0.0.1:1/0 CELERY_TASK_ALWAYS_EAGER=true JWT_SECRET=$$("$(BACKEND_PYTHON)" -c 'import secrets; print(secrets.token_urlsafe(48))') JWT_ALGORITHM=HS256 ACCESS_TOKEN_EXPIRE_MINUTES=15 REFRESH_TOKEN_EXPIRE_DAYS=7 LOG_TO_FILE=false AI_ENABLED=false RAG_ENABLED=false MEMORY_ENABLED=false STORAGE_BUCKET= SMTP_HOST= OBSERVABILITY_ENABLED=false SENTRY_DSN= AI_MCP_ENABLED=false INTEGRATIONS_ENABLED=false ANALYTICS_ENABLED=false ANALYTICS_POSTHOG_ENABLED=false OPENAI_API_KEY='' AI_DEFAULT_PROVIDER=local AI_EMBEDDING_PROVIDER=local \
-	 ANTHROPIC_API_KEY='' $(PYTEST) -m "not ($(NON_UNIT))" --cov=backend --cov-report=term-missing --cov-report=xml:"$(ARTIFACT_DIR)/backend-coverage.xml" --cov-fail-under=80 --junitxml="$(ARTIFACT_DIR)/backend-junit.xml"
+	 ANTHROPIC_API_KEY='' $(PYTEST) -m "not ($(NON_UNIT))" --cov=backend --cov-report=term-missing --cov-report=xml:"$(ARTIFACT_DIR)/backend-coverage.xml" --junitxml="$(ARTIFACT_DIR)/backend-junit.xml"
+	"$(BACKEND_PYTHON)" backend/scripts/check_coverage.py "$(ARTIFACT_DIR)/backend-coverage.xml"
 	@$(isolated_services); \
 	 if [[ -n $$PREVIOUS_DB_REVISION ]]; then [[ $$PREVIOUS_DB_REVISION =~ ^[A-Za-z0-9_]+$$ ]]; $(call alembic_run,upgrade "$$PREVIOUS_DB_REVISION"); fi; \
 	 $(call alembic_run,upgrade head); $(call alembic_run,check); \

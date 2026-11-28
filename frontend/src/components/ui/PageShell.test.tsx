@@ -16,7 +16,7 @@ describe("PageShell width and app layout gutters", () => {
         expect(layoutContentClass("saas-dashboard")).toBe("ui-layout-content");
         expect(layoutContentClass("settings")).toBe("ui-layout-content");
         for (const variant of ["split-panel-workspace", "full-width-workspace", "ai-conversation"] as const) {
-            expect(layoutContentClass(variant)).toBe("ui-layout-content ui-layout-content-fluid");
+            expect(layoutContentClass(variant)).toBe("ui-layout-content");
         }
     });
 });

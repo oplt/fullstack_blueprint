@@ -130,6 +130,10 @@ class Mem0Adapter(Protocol):
     async def delete(self, memory_id: str) -> None: ...
 
 
+class MemoryProviderUnavailableError(RuntimeError):
+    """Mem0 is unavailable and the requested memory mutation cannot be completed."""
+
+
 class NullMem0Adapter:
     """Degraded adapter when Mem0 is unavailable."""
 
@@ -140,27 +144,28 @@ class NullMem0Adapter:
     def available(self) -> bool:
         return False
 
-    async def add(self, **kwargs: Any) -> dict[str, Any]:
+    async def add(self, **_kwargs: Any) -> dict[str, Any]:
         metrics.mem0_unavailable_count.inc()
         logger.warning("Mem0 unavailable on add: %s", self._reason)
-        return {}
+        raise MemoryProviderUnavailableError("Mem0 is unavailable for writes")
 
-    async def search(self, **kwargs: Any) -> list[MemoryItem]:
+    async def search(self, **_kwargs: Any) -> list[MemoryItem]:
         metrics.mem0_unavailable_count.inc()
         logger.warning("Mem0 unavailable on search: %s", self._reason)
         return []
 
-    async def get(self, memory_id: str) -> MemoryItem | None:
+    async def get(self, memory_id: str) -> MemoryItem | None:  # noqa: ARG002 - protocol signature
         metrics.mem0_unavailable_count.inc()
         return None
 
-    async def get_all(self, **kwargs: Any) -> list[MemoryItem]:
+    async def get_all(self, **_kwargs: Any) -> list[MemoryItem]:
         metrics.mem0_unavailable_count.inc()
         return []
 
-    async def delete(self, memory_id: str) -> None:
+    async def delete(self, memory_id: str) -> None:  # noqa: ARG002 - protocol signature
         metrics.mem0_unavailable_count.inc()
         logger.warning("Mem0 unavailable on delete: %s", self._reason)
+        raise MemoryProviderUnavailableError("Mem0 is unavailable for deletes")
 
 
 class Mem0Client:
@@ -263,7 +268,7 @@ class Mem0Client:
 
 class _HostedMem0Adapter:
     def __init__(self, config: MemoryConfig):
-        from mem0 import AsyncMemoryClient
+        from mem0 import AsyncMemoryClient  # noqa: PLC0415 - optional memory extra
 
         host = config.mem0_base_url or None
         self._client = AsyncMemoryClient(api_key=config.mem0_api_key or None, host=host)
@@ -321,7 +326,7 @@ class _HostedMem0Adapter:
 
 class _OssMem0Adapter:
     def __init__(self, config: MemoryConfig):
-        from mem0 import AsyncMemory
+        from mem0 import AsyncMemory  # noqa: PLC0415 - optional memory extra
 
         self._client = AsyncMemory()
         self._app_id = config.app_id

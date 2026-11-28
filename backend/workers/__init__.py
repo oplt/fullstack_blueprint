@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 def __getattr__(name: str) -> Any:
     if name == "celery_app":
-        from backend.workers.celery_app import celery_app
+        from backend.workers.celery_app import celery_app  # noqa: PLC0415 - lazy worker app import
 
         return celery_app
 

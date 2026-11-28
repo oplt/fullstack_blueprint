@@ -622,7 +622,7 @@ export function RunPlaygroundPanel({ m }: { m: AiStudioModel }) {
         >
             <div className="flex min-w-0 flex-col gap-ui-lg">
                 <form
-                    className="flex min-w-0 flex-col gap-5"
+                    className="flex min-w-0 flex-col gap-ui-lg"
                     aria-busy={isRunning}
                     onSubmit={(event) => {
                         event.preventDefault();

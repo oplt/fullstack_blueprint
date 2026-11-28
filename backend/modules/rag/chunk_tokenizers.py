@@ -28,7 +28,7 @@ def _cached_openai_count(cache_dir: str, encoding_name: str) -> Callable[[str], 
         with (Path(cache_dir) / key).open("rb") as asset:
             if hashlib.file_digest(asset, "sha256").hexdigest() != _ENCODING_SHA256[encoding_name]:
                 return None
-        import tiktoken
+        import tiktoken  # noqa: PLC0415 - optional tokenizer dependency
 
         encoding = tiktoken.get_encoding(encoding_name)
     except (ImportError, OSError, ValueError):
@@ -48,7 +48,7 @@ def resolve_token_counter(
 def resolve_generation_token_counter(provider: str, model: str) -> tuple[str, Callable[[str], int]]:
     if provider == "openai":
         try:
-            import tiktoken
+            import tiktoken  # noqa: PLC0415 - optional tokenizer dependency
 
             encoding = tiktoken.encoding_name_for_model(model)
         except (ImportError, KeyError):

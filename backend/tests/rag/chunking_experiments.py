@@ -10,8 +10,12 @@ from pathlib import Path
 from typing import Any
 
 from backend.core.vectors import estimate_tokens
+from backend.modules.rag.chunking import ChunkingService
+from backend.modules.rag.config import RagConfig
 from backend.modules.rag.domain import ParsedDocument
+from backend.modules.rag.ingestion import _validate_parsed_document_limits
 from backend.modules.rag.langchain_text_splitters import split_documents
+from backend.modules.rag.parsing import DocumentParserService
 
 FIXTURE_DIR = Path(__file__).with_name("fixtures")
 MAX_PREVIEW_CHUNKS = 100
@@ -140,13 +144,6 @@ def _default_synthetic_rankings() -> list[dict[str, Any]]:
 
 
 def preview_file(path: Path, args: argparse.Namespace) -> dict[str, Any]:
-    from backend.modules.rag.chunking import ChunkingService
-    from backend.modules.rag.config import RagConfig
-    from backend.modules.rag.ingestion import (
-        _validate_parsed_document_limits,
-    )
-    from backend.modules.rag.parsing import DocumentParserService
-
     config = replace(
         RagConfig.from_settings(),
         chunk_size=args.chunk_size,

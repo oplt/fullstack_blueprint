@@ -155,8 +155,8 @@ class StreamableHttpMcpClient(McpClientPort):
 
     async def _session(self, server: McpServerConfig, tenant_id: str):
         try:
-            from mcp import ClientSession  # type: ignore[reportMissingImports]
-            from mcp.client.streamable_http import (  # type: ignore[reportMissingImports, reportAttributeAccessIssue]
+            from mcp import ClientSession  # type: ignore[reportMissingImports]  # noqa: PLC0415 - optional extra
+            from mcp.client.streamable_http import (  # type: ignore[reportMissingImports, reportAttributeAccessIssue]  # noqa: PLC0415 - optional extra
                 streamablehttp_client,  # type: ignore[reportAttributeAccessIssue]
             )
         except ImportError as exc:  # pragma: no cover - optional integration

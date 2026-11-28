@@ -44,7 +44,7 @@ class DoclingParserAdapter:
         converter = getattr(self._worker_state, "converter", None)
         if converter is None:
             try:
-                from docling.document_converter import (  # type: ignore[reportMissingImports]
+                from docling.document_converter import (  # type: ignore[reportMissingImports]  # noqa: PLC0415 - optional extra
                     DocumentConverter,
                 )
             except ImportError as exc:  # pragma: no cover - optional integration

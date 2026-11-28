@@ -166,7 +166,7 @@ class WebhookDeliveryService:
             values.update(status="retrying", next_attempt_at=now + timedelta(seconds=delay))
         else:
             try:
-                from backend.core.observability import prometheus_metrics
+                from backend.core.observability import prometheus_metrics  # noqa: PLC0415 - optional metrics
 
                 prometheus_metrics.webhook_delivery_failures_total.inc()
             except (ImportError, AttributeError, ValueError) as exc:

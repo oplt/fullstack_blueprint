@@ -13,7 +13,7 @@ sys.path.insert(0, str(BACKEND_ROOT))
 
 async def main() -> int:
     try:
-        from backend.core.config import settings
+        from backend.core.config import settings  # noqa: PLC0415 - script env setup
     except Exception as exc:
         print(f"Failed to load backend settings: {exc}", file=sys.stderr)
         return 1
@@ -21,7 +21,7 @@ async def main() -> int:
     dsn = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 
     try:
-        import asyncpg
+        import asyncpg  # noqa: PLC0415 - script-scoped db driver
 
         conn = await asyncpg.connect(dsn)
         await conn.execute("SELECT 1")

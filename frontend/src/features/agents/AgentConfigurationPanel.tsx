@@ -6,6 +6,8 @@ import { KeyValueList } from "../../components/ui/KeyValueList";
 import { SectionCard } from "../../components/ui/SectionCard";
 import type { useAgentWorkspace } from "./useAgentWorkspace";
 import { AgentRetrievalSettings } from "./AgentRetrievalSettings";
+import { FormGrid } from "@/components/ui/FormGrid";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type AgentWorkspace = ReturnType<typeof useAgentWorkspace>;
 
@@ -72,17 +74,19 @@ export function AgentConfigurationPanel(props: Props) {
                         title="Configure"
                         description="Model, tools, prompt, limits, and retrieval — then continue to Run."
                     >
-                        <div className="flex gap-ui-md">
-                            <div role="alert" className="rounded-lg border border-border p-ui-sm text-body-md">
+                        <div className="stack min-w-0">
+                            <Alert variant="information">
+                                <AlertDescription>
                                 Execution is synchronous today (HTTP 201). The Run tab shows live
                                 status until the backend responds or times out.
-                            </div>
+                                </AlertDescription>
+                            </Alert>
 
-                            <p>
+                            <h3>
                                 <HelpTooltip termId="model_family" variant="label">
                                     Model
                                 </HelpTooltip>
-                            </p>
+                            </h3>
                             <KeyValueList
                                 showHelp
                                 items={[
@@ -111,7 +115,7 @@ export function AgentConfigurationPanel(props: Props) {
                                 ]}
                             />
 
-                            <div className="flex flex-col sm:flex-row gap-ui-md flex-wrap">
+                            <FormGrid columns="3">
                                 <FormField
                                     label="Agent ID"
                                     value={agentId}
@@ -135,14 +139,14 @@ export function AgentConfigurationPanel(props: Props) {
                                         </option>
                                     ))}
                                 </FormField>
-                            </div>
+                            </FormGrid>
 
                             <div>
-                                <p>
+                                <h3>
                                     <HelpTooltip termId="agent_tools" variant="label">
                                         Tools
                                     </HelpTooltip>
-                                </p>
+                                </h3>
                                 <div className="flex flex-row gap-ui-xs flex-wrap">
                                     {enabledTools.map((tool) => (
                                         <Badge key={tool.id} variant="outline">
@@ -156,7 +160,7 @@ export function AgentConfigurationPanel(props: Props) {
                                 </span>
                             </div>
 
-                            <p>Prompt</p>
+                            <h3>Prompt</h3>
                             <FormField
                                 label="User message"
                                 value={userMessage}
@@ -175,13 +179,15 @@ export function AgentConfigurationPanel(props: Props) {
                                     toggleDocument={toggleDocument}
                                 />
                             ) : null}
-                            <Button
-                                variant="default"
-                                onClick={onContinue}
-                                disabled={!userMessage.trim()}
-                                type="button">
-                                Continue to Run
-                            </Button>
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="default"
+                                    onClick={onContinue}
+                                    disabled={!userMessage.trim()}
+                                    type="button">
+                                    Continue to Run
+                                </Button>
+                            </div>
                         </div>
                     </SectionCard>
                 

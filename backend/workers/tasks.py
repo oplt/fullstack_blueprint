@@ -110,6 +110,6 @@ def extract_turn_memories_task(
     max_retries=8,
 )
 def publish_outbox_events_task(*, limit: int = 100) -> int:
-    from backend.modules.events.jobs import publish_outbox_events_sync
+    from backend.modules.events.jobs import publish_outbox_events_sync  # noqa: PLC0415 - worker task boundary
 
     return publish_outbox_events_sync(limit=limit)

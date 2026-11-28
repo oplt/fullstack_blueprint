@@ -19,8 +19,8 @@ def run_evaluation_sync(
     dataset_id: str,
     prompt_version_id: str,
 ) -> None:
-    from backend.core.db.session import SessionLocal
-    from backend.modules.ai.evaluations import AiEvaluationService
+    from backend.core.db.session import SessionLocal  # noqa: PLC0415 - avoids import cycle
+    from backend.modules.ai.evaluations import AiEvaluationService  # noqa: PLC0415 - avoids import cycle
 
     async def _run() -> None:
         async with SessionLocal() as db:

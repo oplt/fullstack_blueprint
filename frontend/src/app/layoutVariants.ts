@@ -26,6 +26,6 @@ export function layoutVariantForPath(pathname: string, overrides: Partial<Record
     return rule.capability ? overrides[rule.capability] ?? rule.variant : rule.variant;
 }
 export function layoutContentClass(variant: LayoutVariant): string {
-    const fluid = ["full-width-workspace", "split-panel-workspace", "ai-conversation"].includes(variant);
-    return fluid ? "ui-layout-content ui-layout-content-fluid" : "ui-layout-content";
+    void variant;
+    return "ui-layout-content";
 }

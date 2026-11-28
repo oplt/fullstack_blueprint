@@ -50,7 +50,7 @@ export function ProjectSnapshot({
                         <Link
                             key={project.id}
                             to={projectPath(project.id)}
-                            className="dashboard-project rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            className="dashboard-project control-focus"
                         >
                             <p>{project.name}</p>
                             <p className="mt-1 text-muted-foreground">

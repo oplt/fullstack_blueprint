@@ -33,7 +33,7 @@ def _queue_email(
     text_body: str | None = None,
 ) -> None:
     # Keep job dispatch behind the bounded background-job boundary.
-    from backend.modules.notifications.jobs import queue_email
+    from backend.modules.notifications.jobs import queue_email  # noqa: PLC0415 - avoids import cycle
 
     queue_email(to=to, subject=subject, html_body=html_body, text_body=text_body)
 
@@ -96,7 +96,7 @@ class IdentityService:
             raise HTTPException(status_code=403, detail="Verify your email before signing in")
         if user.mfa_enabled:
             try:
-                from pyotp.totp import TOTP
+                from pyotp.totp import TOTP  # noqa: PLC0415 - MFA optional dependency
             except ImportError as exc:
                 raise HTTPException(status_code=501, detail="MFA not available") from exc
             if (
@@ -279,8 +279,8 @@ class IdentityService:
 
     async def mfa_enable(self, user: User) -> dict:
         try:
-            import pyotp
-            from pyotp.totp import TOTP
+            import pyotp  # noqa: PLC0415 - MFA optional dependency
+            from pyotp.totp import TOTP  # noqa: PLC0415 - MFA optional dependency
         except ImportError:
             raise HTTPException(
                 status_code=501, detail="MFA not available (pyotp not installed)"
@@ -299,7 +299,7 @@ class IdentityService:
 
     async def mfa_verify_enable(self, user: User, code: str) -> None:
         try:
-            from pyotp.totp import TOTP
+            from pyotp.totp import TOTP  # noqa: PLC0415 - MFA optional dependency
         except ImportError:
             raise HTTPException(status_code=501, detail="MFA not available") from None
 
@@ -320,7 +320,7 @@ class IdentityService:
 
     async def mfa_disable(self, user: User, code: str) -> None:
         try:
-            from pyotp.totp import TOTP
+            from pyotp.totp import TOTP  # noqa: PLC0415 - MFA optional dependency
         except ImportError:
             raise HTTPException(status_code=501, detail="MFA not available") from None
 

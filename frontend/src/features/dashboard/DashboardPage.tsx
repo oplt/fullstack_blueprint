@@ -47,7 +47,7 @@ export default function DashboardPage() {
                 unreadCount={unreadCount}
                 notificationsLoading={notificationsQuery.isLoading}
             />
-            <div className="stack dashboard-sections">
+            <div className="stack">
                 <div className="dashboard-grid">
                     <ProjectSnapshot
                         enabled={projectsEnabled}

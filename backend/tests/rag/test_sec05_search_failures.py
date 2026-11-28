@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.core.config import settings
 from backend.core.db.vector_search import (
+    DenseFallbackScopeTooLarge,
     InvalidQueryEmbedding,
     VectorSearchUnavailable,
     invalidate_pgvector_capability,
@@ -19,13 +20,14 @@ from backend.core.db.vector_search import (
 from backend.core.vectors import can_index_embedding, is_valid_embedding
 from backend.modules.rag.scope import RetrievalScope
 from backend.modules.rag.search_repository import RagSearchRepository
+from backend.modules.rag.vector_store import PgVectorAdapter
 
 
 class _Engine:
     dialect = SimpleNamespace(name="postgresql")
 
     def __init__(self) -> None:
-        self.pool = StaticPool(creator=lambda: object())
+        self.pool = StaticPool(creator=object)
 
 
 def _result(*, available: bool = True, rows: list | None = None) -> Mock:
@@ -170,8 +172,6 @@ async def test_json_fallback_is_bounded_and_refuses_oversized_scope() -> None:
     result = _result(rows=[{}, {}])
     db.execute.return_value = result
 
-    from backend.core.db.vector_search import DenseFallbackScopeTooLarge
-
     with pytest.raises(DenseFallbackScopeTooLarge):
         await RagSearchRepository(db).similarity_search_json_fallback(
             scope=RetrievalScope(
@@ -206,9 +206,6 @@ async def test_json_fallback_hard_caps_configured_scan_limit() -> None:
 
 @pytest.mark.asyncio
 async def test_vector_adapter_disables_json_fallback_in_production(monkeypatch) -> None:
-    from backend.core.db.vector_search import VectorSearchUnavailable
-    from backend.modules.rag.vector_store import PgVectorAdapter
-
     db = AsyncMock()
     config = SimpleNamespace(score_threshold=0.3, exact_vector_fallback_max_rows=5000)
     adapter = PgVectorAdapter(db, config=config)

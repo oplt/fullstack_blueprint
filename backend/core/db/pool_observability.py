@@ -69,7 +69,7 @@ def _record_connection_hold(*, role: DatabaseRole, connection_record: Any) -> No
 
 def _safe_metrics():
     try:
-        from backend.core.observability import prometheus_metrics as m
+        from backend.core.observability import prometheus_metrics as m  # noqa: PLC0415 - lazy metrics import
 
         return m
     except Exception:

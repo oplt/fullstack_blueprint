@@ -1,12 +1,18 @@
+import asyncio
 from types import SimpleNamespace
 
 import pytest
 
+from backend.core.config import settings
 from backend.modules.rag.chunking import _split_documents_with_token_counts
 from backend.modules.rag.domain import DocumentChunk, ParsedDocument
 from backend.modules.rag.ingestion import (
     DocumentIngestionService,
     _validate_parsed_document_limits,
+)
+from backend.modules.rag.parsers.pdf import (
+    _validate_pdf_character_count,
+    _validate_pdf_page_count,
 )
 
 
@@ -61,12 +67,6 @@ def test_chunking_stops_at_chunk_and_token_limits() -> None:
 
 
 def test_pdf_page_and_text_limits_are_checked_during_parse(monkeypatch) -> None:
-    from backend.core.config import settings
-    from backend.modules.rag.parsers.pdf import (
-        _validate_pdf_character_count,
-        _validate_pdf_page_count,
-    )
-
     monkeypatch.setattr(settings, "RAG_MAX_DOCUMENT_PAGES", 2)
     monkeypatch.setattr(settings, "RAG_MAX_DOCUMENT_CHARACTERS", 5)
 
@@ -77,10 +77,6 @@ def test_pdf_page_and_text_limits_are_checked_during_parse(monkeypatch) -> None:
 
 
 def test_ingestion_embeddings_are_processed_in_bounded_batches(monkeypatch) -> None:
-    import asyncio
-
-    from backend.core.config import settings
-
     class Embeddings:
         def __init__(self) -> None:
             self.calls: list[list[str]] = []

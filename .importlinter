@@ -11,19 +11,6 @@ forbidden_modules =
     backend.api
     backend.core
     backend.core.db
-    backend.modules.memory.infrastructure
-    backend.modules.rag.infrastructure
-
-[importlinter:contract:application-api-independence]
-name = Application layers do not import their API layers
-type = forbidden
-source_modules =
-    backend.modules.ai.application
-    backend.modules.memory.application
-    backend.modules.rag.application
-forbidden_modules =
-    backend.modules.memory.api
-    backend.modules.rag.api
 
 [importlinter:contract:event-domain-independence]
 name = Event envelope does not depend on adapters
@@ -34,8 +21,6 @@ forbidden_modules =
     backend.api
     backend.core
     backend.core.db
-    backend.modules.memory.infrastructure
-    backend.modules.rag.infrastructure
     backend.modules.events.models
     backend.modules.events.repository
 

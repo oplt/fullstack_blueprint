@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.modules.identity.models import User
 from backend.modules.memory.config import MemoryConfig
+from backend.modules.memory.domain import MemorySearchRequest
 from backend.modules.memory.service import MemoryService
 from backend.modules.projects.permissions import ProjectAccessPort, SqlAlchemyProjectAccessPort
 from backend.modules.rag import metrics
@@ -185,8 +186,6 @@ class RagAnswerService:
         memory_context, memory_degraded = "", False
         if plan and include_memory and self.memory_config.enabled:
             try:
-                from backend.modules.memory.domain import MemorySearchRequest
-
                 memory_context, _, memory_degraded = await self.memory.recall_for_prompt(
                     MemorySearchRequest(
                         user_id=user_id,

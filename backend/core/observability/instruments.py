@@ -25,8 +25,8 @@ def observed_span(name: str, **attributes: Any) -> Iterator[Any]:
     """Create a span, attach safe attrs, record failures, then re-raise."""
 
     try:
-        from opentelemetry import trace
-        from opentelemetry.trace import Status, StatusCode
+        from opentelemetry import trace  # noqa: PLC0415 - optional telemetry
+        from opentelemetry.trace import Status, StatusCode  # noqa: PLC0415 - optional telemetry
     except Exception:
         yield None
         return

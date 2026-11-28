@@ -61,8 +61,8 @@ class MemoryExtractor:
     def _iter_sentences(self, text: str) -> list[str]:
         parts = re.split(r"(?<=[.!?])\s+|\n+", text.strip())
         extracted: list[str] = []
-        for part in parts:
-            part = part.strip()
+        for raw_part in parts:
+            part = raw_part.strip()
             if part:
                 extracted.append(part)
             for pattern in EXTRACT_PATTERNS:

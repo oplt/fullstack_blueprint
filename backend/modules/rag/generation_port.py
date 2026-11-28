@@ -56,18 +56,18 @@ class AiRunGenerationPort:
         self._db = db
 
     def _get_service(self):
-        from backend.modules.ai.runs import AiRunService
+        from backend.modules.ai.runs import AiRunService  # noqa: PLC0415 - avoids import cycle
 
         return AiRunService(self._db)
 
     async def prepare_rag_answer(self, user: User) -> RagGenerationPlan:
-        from backend.core.config import settings
-        from backend.modules.ai.errors import AiProviderError
-        from backend.modules.ai.routing import ModelRegistry
-        from backend.modules.rag.chunk_tokenizers import (
+        from backend.core.config import settings  # noqa: PLC0415 - avoids import cycle
+        from backend.modules.ai.errors import AiProviderError  # noqa: PLC0415 - avoids import cycle
+        from backend.modules.ai.routing import ModelRegistry  # noqa: PLC0415 - avoids import cycle
+        from backend.modules.rag.chunk_tokenizers import (  # noqa: PLC0415 - avoids import cycle
             resolve_generation_token_counter,
         )
-        from backend.modules.rag.prompts import resolve_rag_answer_prompt
+        from backend.modules.rag.prompts import resolve_rag_answer_prompt  # noqa: PLC0415 - avoids import cycle
 
         prompt = await resolve_rag_answer_prompt(self._get_service().repo, user)
         try:

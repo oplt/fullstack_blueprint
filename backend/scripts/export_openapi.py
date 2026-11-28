@@ -37,8 +37,8 @@ def export_contract(output: Path, *, profile: str = "all") -> None:
         for flag in OPTIONAL_FLAGS:
             os.environ[flag] = "true"
 
-    from backend.core.openapi import build_openapi
-    from backend.main import app
+    from backend.core.openapi import build_openapi  # noqa: PLC0415 - must follow env setup
+    from backend.main import app  # noqa: PLC0415 - must follow env setup
 
     contract = build_openapi(app)
     output.parent.mkdir(parents=True, exist_ok=True)
