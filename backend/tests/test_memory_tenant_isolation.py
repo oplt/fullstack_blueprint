@@ -4,15 +4,15 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from backend.modules.memory.application import memory_service as memory_service_module
-from backend.modules.memory.application.memory_service import MemoryService
-from backend.modules.memory.domain.enums import (
+from backend.modules.memory import service as memory_service_module
+from backend.modules.memory.service import MemoryService
+from backend.modules.memory.enums import (
     AgentScope,
     MemoryLevel,
     MemoryPrivacy,
     MemoryType,
 )
-from backend.modules.memory.domain.models import MemoryItem, MemoryMetadata
+from backend.modules.memory.domain import MemoryItem, MemoryMetadata
 from fastapi import HTTPException
 
 

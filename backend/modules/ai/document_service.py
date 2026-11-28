@@ -7,8 +7,8 @@ from fastapi import HTTPException, UploadFile
 from backend.core.config import settings
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
 from backend.modules.ai.base_service import AiBaseService
-from backend.modules.identity_access.models import User
-from backend.modules.rag.application.legacy_ai_document_service import LegacyAiDocumentService
+from backend.modules.identity.models import User
+from backend.modules.rag.legacy_ai_document_service import LegacyAiDocumentService
 
 
 class AiDocumentService(AiBaseService):

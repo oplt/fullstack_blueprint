@@ -1,0 +1,816 @@
+### **Main architectural weaknesses**
+
+| Problem                                        | Severity | Recommendation                                        |
+| ---------------------------------------------- | -------- | ----------------------------------------------------- |
+| Overfragmented RAG implementation              | High     | Consolidate by processing stage                       |
+| Overlapping AI, RAG and agent responsibilities | High     | Establish explicit execution boundaries               |
+| Administrative and billing domain mixing       | High     | Separate domain ownership from administrative access  |
+| Multiple observability locations               | High     | Centralize infrastructure instrumentation             |
+| Potentially redundant backend entry points     | High     | Establish one application composition root            |
+| Excessive frontend Page/View/Content layers    | High     | Simplify component composition                        |
+| Inconsistent API client organization           | Medium   | Standardize feature API files                         |
+| Overpopulated shared UI directory              | Medium   | Separate generic UI from business-specific components |
+| Small folders with one or two files            | Medium   | Flatten where there is no meaningful boundary         |
+| Inconsistent naming conventions                | Medium   | Adopt uniform module conventions                      |
+
+## **2. Recommended architectural model**
+
+Use a **feature-first modular monolith with vertical slices**, supported by a small shared infrastructure layer.
+
+The architectural principles should be:
+
+- Organize code by business capability, not exclusively by technical layer.
+- Keep each feature mostly flat.
+- Keep business logic inside its owning module.
+- Share infrastructure, not unrelated business logic.
+- Allow optional modules to be disabled or removed through a controlled provisioning mechanism.
+- Introduce a new folder, interface or abstraction only when it solves an identifiable problem.
+
+## **3. Recommended backend directory tree**
+
+I would restructure the backend approximately as follows. This is the proposed structural skeleton; it does not enumerate every retained file.
+
+```
+backend/
+├── main.py
+├── router.py
+├── core/
+│   ├── config.py
+│   ├── security.py
+│   ├── middleware.py
+│   ├── errors.py
+│   ├── schemas.py
+│   ├── cache.py
+│   ├── storage.py
+│   ├── features.py
+│   ├── health.py
+│   ├── pagination.py
+│   ├── db/
+│   ├── audit/
+│   └── observability/
+├── modules/
+│   ├── identity/
+│   ├── admin/
+│   ├── billing/
+│   ├── ai/
+│   ├── rag/
+│   ├── agents/
+│   ├── memory/
+│   ├── integrations/
+│   ├── notifications/
+│   ├── projects/
+│   ├── calendar/
+│   └── events/
+├── workers/
+├── alembic/
+│   └── versions/
+├── scripts/
+├── tests/
+│   └── rag/
+│       └── fixtures/
+├── pyproject.toml
+├── uv.lock
+├── requirements.txt
+├── alembic.ini
+├── .env.example
+├── ARCHITECTURE.md
+├── CONFIGURATION.md
+└── AGENTS.md
+```
+
+### **3.1. Standardize backend module structure**
+
+For ordinary business modules such as calendar, projects and notifications, use a consistent structure.
+
+```
+projects/
+├── __init__.py
+├── router.py
+├── schemas.py
+├── models.py
+├── service.py
+├── repository.py
+└── permissions.py
+```
+
+| File             | Responsibility                              |
+| ---------------- | ------------------------------------------- |
+| `router.py`      | HTTP endpoints and request handling         |
+| `schemas.py`     | Pydantic request and response contracts     |
+| `models.py`      | SQLAlchemy persistence models               |
+| `service.py`     | Business logic and use cases                |
+| `repository.py`  | Database access and queries                 |
+| `permissions.py` | Feature-specific authorization              |
+| `jobs.py`        | Background task handlers, when needed       |
+| `providers.py`   | External service adapters, when needed      |
+| `contracts.py`   | Public cross-module interfaces, when needed |
+
+Do not force every module to contain every file. A simple capability might only require a router, schemas and service.
+
+Avoid introducing structures such as `application/use_cases/`, `domain/entities/`, `infrastructure/repositories/` or `presentation/controllers/` for simple CRUD features. Those layers would unnecessarily increase your folder depth.
+
+## **4. Backend folders to remove, flatten or relocate**
+
+| Existing directory                | Recommended action                                                                      |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| `backend/api/`                    | Consolidate with the root entry point after verifying responsibilities                  |
+| `core/logging/`                   | Merge into `core/observability/`                                                        |
+| `core/middleware/`                | Consider flattening into `core/middleware.py` if it remains manageable                  |
+| `modules/admin/platform/`         | Flatten into `admin/`                                                                   |
+| `modules/admin/billing/`          | Promote to independent `modules/billing/`                                               |
+| `modules/identity/organizations/` | Flatten into `identity/` if it shares the same domain lifecycle                         |
+| `modules/capabilities/`           | Consolidate registry logic into `core/features.py`; relocate search to its actual owner |
+| `modules/observability/`          | Relocate its API router to the observability infrastructure or administrative API       |
+| `modules/rag/eval/`               | Remove if genuinely empty and unused                                                    |
+
+### **Folders worth retaining**
+
+Not every folder is unnecessary. The following provide meaningful architectural boundaries:
+
+| Directory             | Reason                                                |
+| --------------------- | ----------------------------------------------------- |
+| `core/db/`            | Sessions, transactions and persistence infrastructure |
+| `core/audit/`         | Security-sensitive audit persistence                  |
+| `core/observability/` | Logging, tracing, metrics and error reporting         |
+| `ai/providers/`       | Independent LLM provider implementations              |
+| `rag/parsers/`        | Document format-specific parsing implementations      |
+| `alembic/versions/`   | Database migration history                            |
+| `workers/`            | Independent background execution entry point          |
+| `tests/rag/fixtures/` | Dedicated evaluation datasets                         |
+
+Removing these simply to decrease the directory count could make the application harder to maintain.
+
+## **5. RAG module — highest-priority simplification**
+
+The existing RAG module contains 72 files, including separate files for chunking policies, tokenizers, embedding providers, retrieval planning, filtering, context selection, citation validation, evidence access and reranking.&#x20;
+
+architecture_tree.txt
+
+
+
+It is the strongest example of excessive file-level fragmentation in the backend.
+
+### **Recommended RAG pipeline**
+
+The algorithmic sophistication should remain. The simplification should occur in the organization and ownership of its implementation.
+
+### **Proposed RAG tree**
+
+```
+rag/
+├── __init__.py
+├── router.py
+├── schemas.py
+├── models.py
+├── service.py
+├── repository.py
+├── config.py
+├── domain.py
+├── ingestion.py
+├── parsing.py
+├── chunking.py
+├── embeddings.py
+├── indexing.py
+├── query.py
+├── retrieval.py
+├── search_repository.py
+├── ranking.py
+├── context.py
+├── answers.py
+├── citations.py
+├── scope.py
+├── safety.py
+├── cache.py
+├── provenance.py
+├── vector_store.py
+├── contracts.py
+├── prompts.py
+├── storage.py
+├── jobs.py
+├── metrics.py
+├── tools.py
+└── parsers/
+    ├── __init__.py
+    ├── docling.py
+    ├── pdf.py
+    ├── pdf_quality.py
+    └── loaders.py
+```
+
+### **Recommended RAG file consolidation**
+
+| Target file                | Existing files to review for consolidation                                                                       |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `chunking.py`              | `chunking.py`, `chunk_policy.py`, `chunk_tokenizers.py`, `structured_chunking.py`, `langchain_text_splitters.py` |
+| `citations.py`             | `citations.py`, `citation_validation.py`, `citation_validation_context.py`                                       |
+| `embeddings.py`            | `embeddings.py`, `embedding_provider.py`, `embedding_registry.py`                                                |
+| `ranking.py`               | `ranking.py`, `rerank_policy.py`, `cohere_reranker.py`, `source_diversifier.py`                                  |
+| `retrieval.py`             | `retrieval.py`, `retrieval_planner.py`, `retrieval_fusion.py`, `retrieval_request.py`                            |
+| `context.py`               | `context.py`, `context_selection.py`, `parent_context_service.py`, `prompt_context_service.py`                   |
+| `scope.py`                 | `scope.py`, `document_scope.py`, `repository_scope.py`, `evidence_access.py`                                     |
+| `query.py`                 | `query.py`, `query_expansion.py`, `lexical_languages.py`                                                         |
+| `cache.py`                 | `embedding_cache.py`, `retrieval_cache.py`                                                                       |
+| `config.py`                | `config.py`, `config_models.py`                                                                                  |
+| `domain.py`                | `domain.py`, `value_objects.py`, `enums.py`                                                                      |
+| `provenance.py`            | `provenance.py`, `source_coordinates.py`, `evidence_revision.py`                                                 |
+| `filters.py` or `scope.py` | `filters.py`, `metadata_filters.py`                                                                              |
+| `contracts.py`             | `generation_port.py`, `reranker_port.py`                                                                         |
+| `metrics.py`               | `metrics.py`, `telemetry.py`                                                                                     |
+
+These are candidate merges based on filenames. Files containing substantially different responsibilities should remain separate even if their names are similar.
+
+### **Critical RAG requirements**
+
+During consolidation, preserve:
+
+- Hybrid lexical and semantic search.
+- Multilingual retrieval.
+- Document and tenant access controls.
+- Structured and hierarchical chunking.
+- Embedding caching and concurrency controls.
+- Reranking and source diversity.
+- Citation validation and provenance.
+- Retrieval evaluation and quality benchmarks.
+- Ingestion limits, job idempotency and transaction safety.
+
+The presence of both `ai/document_service.py` and `rag/legacy_ai_document_service.py` suggests a potential compatibility or duplicated document-management flow. RAG should become the canonical owner of document ingestion, indexing and retrieval. Compatibility endpoints can delegate to it until existing API consumers are migrated.
+
+Current RAG files
+
+# **72**
+
+Proposed target
+
+# **35–42**
+
+Current
+
+Proposed midpoint
+
+Approximately 42–51% fewer RAG files is a reasonable design target, provided that consolidation does not produce excessively large files or degrade retrieval quality.
+
+## **6. Simplify AI, agents and memory architecture**
+
+These four modules must cooperate, but they should not independently implement the same LLM execution, provider selection, context assembly or retry mechanisms.
+
+| Module   | Exclusive responsibility                                                                  |
+| -------- | ----------------------------------------------------------------------------------------- |
+| `ai`     | LLM execution, provider adapters, streaming, model routing, prompt assets, run management |
+| `rag`    | Document ingestion, knowledge retrieval, grounding and citations                          |
+| `agents` | Tools, MCP, workflows, multi-step orchestration and execution coordination                |
+| `memory` | User memory extraction, storage, retrieval, consolidation and governance                  |
+
+### **6.1. AI module**
+
+Reduce the current 41 files toward approximately 25–30.
+
+```
+ai/
+├── __init__.py
+├── router.py
+├── schemas.py
+├── models.py
+├── service.py
+├── repository.py
+├── contracts.py
+├── dependencies.py
+├── gateway.py
+├── routing.py
+├── reliability.py
+├── streaming.py
+├── runs.py
+├── prompts.py
+├── evaluations.py
+├── reviews.py
+├── overview.py
+├── errors.py
+├── metrics.py
+├── jobs.py
+└── providers/
+    ├── __init__.py
+    ├── registry.py
+    ├── common.py
+    ├── openai.py
+    ├── anthropic.py
+    └── local.py
+```
+
+| Current files                                                     | Recommended improvement                                    |
+| ----------------------------------------------------------------- | ---------------------------------------------------------- |
+| `base_service.py`, `orchestration.py`, `provider_service.py`      | Establish a clear application service and provider gateway |
+| `stream_routes.py`, `stream_service.py`, `streaming.py`           | Consolidate streaming execution and route registration     |
+| `run_routes.py`, `runs.py`                                        | Keep run business logic in `runs.py`                       |
+| `prompt_routes.py`, `prompts.py`                                  | Standardize prompt management                              |
+| `evaluation_routes.py`, `evaluation_scoring.py`, `evaluations.py` | Consolidate evaluation logic where manageable              |
+| `document_routes.py`, `document_service.py`                       | Delegate document operations to RAG                        |
+
+A single module router does not mean every endpoint must be implemented in one enormous file. Retain secondary route files when endpoint volume justifies them.
+
+**The most important improvement:** establish one canonical LLM gateway for AI runs, RAG answer generation, agents and memory extraction. Centralize model selection, timeouts, provider retries, concurrency limits, token accounting and telemetry there.
+
+### **6.2. Memory module**
+
+The memory module has 22 files. I would target approximately 14–17.
+
+```
+memory/
+├── __init__.py
+├── router.py
+├── schemas.py
+├── models.py
+├── repository.py
+├── service.py
+├── config.py
+├── domain.py
+├── extraction.py
+├── consolidation.py
+├── retrieval.py
+├── governance.py
+├── jobs.py
+├── cache.py
+└── metrics.py
+```
+
+Candidate consolidations:
+
+| Existing files                                      | Proposed owner                |
+| --------------------------------------------------- | ----------------------------- |
+| `policies.py`, `policy_service.py`, `governance.py` | `governance.py`               |
+| `context.py`, `ranking.py`, `routing.py`            | `retrieval.py`                |
+| `domain.py`, `enums.py`                             | `domain.py`                   |
+| `provider.py`                                       | Shared AI gateway integration |
+
+Preserve memory consent, deletion, retention, tenant isolation and audit capabilities.
+
+### **6.3. Agents module**
+
+The current nine-file agents module is already reasonably organized.
+
+I would retain most of it, while verifying whether `runtime.py` and `service.py`, or `workflow.py` and `workflow_definitions.py`, need to be separate.
+
+Avoid moving RAG retrieval implementations or model-provider adapters into the agents module. Agents should consume those capabilities through explicit public interfaces.
+
+## **7. Core infrastructure improvements**
+
+The backend `core/` currently contains 53 files. Its responsibilities should be narrowed to infrastructure that is genuinely reusable across modules.
+
+| Current concern                           | Recommended ownership                                                       |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| Logging, redaction, tracing and timing    | `core/observability/`                                                       |
+| OpenTelemetry, Prometheus and Sentry      | `core/observability/`                                                       |
+| Database pooling instrumentation          | Instrumentation under observability, initialized by database infrastructure |
+| Security headers, CSRF and request limits | `core/middleware.py` or a retained middleware package                       |
+| Authentication primitives                 | `core/security.py`                                                          |
+| Identity and session business logic       | `modules/identity/`                                                         |
+| Generic caching                           | `core/cache.py`                                                             |
+| RAG-specific caching                      | `modules/rag/cache.py`                                                      |
+| Generic vector database operations        | `core/db/`                                                                  |
+| RAG-specific search logic                 | `modules/rag/`                                                              |
+| Feature registration                      | `core/features.py`                                                          |
+| Administrative feature management         | `modules/admin/`                                                            |
+
+### **Proposed observability consolidation**
+
+```
+core/observability/
+├── __init__.py
+├── setup.py
+├── config.py
+├── logging.py
+├── metrics.py
+├── tracing.py
+├── sentry.py
+└── router.py
+```
+
+Currently, observability-related responsibilities are distributed across `core/logging/`, `core/observability/`, `modules/observability/`, `workers/logging_hooks.py` and several feature-specific metrics files.
+
+Feature-specific metrics definitions can remain local, but their exporters, tracing configuration and logging infrastructure should be shared.
+
+Do not remove log redaction, request correlation or audit logging during consolidation.
+
+# **Frontend architecture**
+
+## **9. Recommended frontend tree**
+
+frontend/
+├── src/
+│   ├── main.tsx
+│   ├── index.css
+│   ├── app/
+│   │   ├── router.tsx
+│   │   ├── routes.ts
+│   │   ├── providers.tsx
+│   │   ├── AppLayout.tsx
+│   │   ├── ProtectedRoute.tsx
+│   │   ├── RouteErrorBoundary.tsx
+│   │   ├── WorkspaceSidebar.tsx
+│   │   ├── configuration.tsx
+│   │   └── theme.ts
+│   ├── ui/
+│   ├── features/
+│   │   ├── identity/
+│   │   ├── admin/
+│   │   ├── billing/
+│   │   ├── dashboard/
+│   │   ├── ai/
+│   │   ├── rag/
+│   │   ├── agents/
+│   │   ├── memory/
+│   │   ├── integrations/
+│   │   ├── notifications/
+│   │   ├── observability/
+│   │   ├── projects/
+│   │   └── calendar/
+│   ├── lib/
+│   │   ├── api.ts
+│   │   ├── queryClient.ts
+│   │   ├── queryKeys.ts
+│   │   ├── utils.ts
+│   │   ├── notify.ts
+│   │   ├── webVitals.ts
+│   │   └── generated/
+│   ├── i18n/
+│   └── test/
+├── e2e/
+├── public/
+├── scripts/
+├── .storybook/
+├── package.json
+├── package-lock.json
+└── ...
+```
+
+Keep all existing build, dependency, lint and test configuration files unless they are verified to be unnecessary.
+
+### **9.1. Flatten frontend folders**
+
+| Existing directory               | Recommendation                                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/components/ui/`             | Rename to `src/ui/` to remove one nesting level                                                       |
+| `src/features/ai/workspace/`     | Move its files directly into the AI feature with clear names                                          |
+| `src/features/ai/generative-ui/` | Flatten using descriptive filenames, or retain if it evolves into a substantial independent subsystem |
+| `src/mocks/`                     | Move mock handlers into `src/test/`                                                                   |
+| `src/types/`                     | Relocate `qrcode.d.ts` to an appropriate existing location covered by TypeScript                      |
+| `e2e-design/`                    | Merge directory into `e2e/`, retaining separate test projects if necessary                            |
+
+The `src/ui/` change is optional. Keeping the conventional `components/ui/` location may be preferable if changing shadcn tooling and aliases introduces unnecessary maintenance.
+
+### **9.2. Standardize frontend feature structure**
+
+Use a flat feature directory.
+
+```
+projects/
+├── api.ts
+├── types.ts
+├── hooks.ts
+├── ProjectsPage.tsx
+├── ProjectDetailPage.tsx
+├── ProjectTaskCards.tsx
+├── TaskEditor.tsx
+└── ProjectDetailPage.test.tsx
+```
+
+Avoid automatically creating separate `components/`, `hooks/`, `pages/`, `types/`, `services/` and `utils/` directories for every feature.
+
+For a small-to-medium feature, that approach creates more navigation overhead than architectural value.
+
+## **10. Eliminate unnecessary Page/View/Content layers**
+
+The frontend has several candidates for excessive presentation layering.
+
+For example, the admin feature contains `AdminPlatformPage.tsx`, `AdminPlatformView.tsx`, `AdminPlatformContent.tsx` and `usePlatformAdminContent.ts`. Similar patterns exist in AI Studio, profile, integrations and observability.
+
+**Current pattern**
+
+Page.tsx
+
+View\.tsx
+
+Content.tsx
+
+Components
+
+**Recommended**
+
+Page.tsx
+
+Feature components
+
+Hooks + API
+
+| Existing files to inspect                                        | Proposed primary component |
+| ---------------------------------------------------------------- | -------------------------- |
+| `AdminPlatformPage`, `AdminPlatformView`, `AdminPlatformContent` | `AdminPlatformPage.tsx`    |
+| `AdminSettingsPage`, `AdminSettingsView`, `AdminSettingsContent` | `AdminSettingsPage.tsx`    |
+| `AiStudioPage`, `AiStudioView`                                   | `AiStudioPage.tsx`         |
+| `ProfilePage`, `ProfileView`                                     | `ProfilePage.tsx`          |
+| `ProjectDetailPage`, `ProjectDetailView`                         | `ProjectDetailPage.tsx`    |
+| `PlatformPage`, `PlatformView`                                   | `PlatformPage.tsx`         |
+| `ObservabilityPage`, `ObservabilityView`                         | `ObservabilityPage.tsx`    |
+
+Merge these only when a component is primarily a pass-through wrapper or has no meaningful independent responsibility. Retain separately testable views or rendering boundaries when useful.
+
+This would improve readability and reduce prop forwarding without requiring a major UI redesign.
+
+## **11. Standardize frontend API access**
+
+There is inconsistency between features that use `api.ts` and features that have numerous domain-prefixed API files.
+
+For example:
+
+```
+features/ai/
+├── evaluationsApi.ts
+├── overviewApi.ts
+├── promptsApi.ts
+├── reviewsApi.ts
+└── runsApi.ts
+```
+
+Prefer a canonical feature API entry point:
+
+```
+features/ai/
+├── api.ts
+├── types.ts
+├── hooks.ts
+└── ...
+```
+
+Apply the same approach to admin, identity and notifications, unless the resulting API module is large enough to justify separate files.
+
+The architectural flow should be:
+
+**React component**
+
+**Feature hook / TanStack Query**
+
+**Feature&#x20;**`api.ts`
+
+**Shared&#x20;**`lib/api.ts`
+
+**FastAPI endpoint**
+
+The shared API client should centralize authentication, token refresh, CSRF handling, standardized errors, cancellation, timeouts and appropriate retry policies.
+
+Continue using generated OpenAPI types from `lib/generated/`. Avoid manually recreating backend schemas in frontend TypeScript when generated contracts already exist.
+
+## **12. Simplify shared UI ownership**
+
+Retain generic UI primitives and genuinely reusable compositions in `ui/`.
+
+| Keep shared | Review for feature ownership           |
+| ----------- | -------------------------------------- |
+| Button      | Domain-specific run status panel       |
+| Dialog      | Event calendar integrations            |
+| Input       | Feature-specific advanced settings     |
+| Select      | Business-specific comparison cards     |
+| Table       | Workflow-specific status components    |
+| Card        | Feature-specific analytics widgets     |
+| Tabs        | Domain-specific timelines              |
+| Skeleton    | Feature-specific metric presentations  |
+| PageShell   | Components used by only one feature    |
+| EmptyState  | Business-specific form implementations |
+
+Do not merge shadcn components into a single large file. Their independent component structure is beneficial for maintenance and compatibility with upstream tooling.
+
+Maintain one design token system through `index.css`, with Tailwind utilities, shadcn components and Lucide icons. Avoid introducing a second parallel styling system.
+
+# **Cross-cutting architectural improvements**
+
+## **13. Establish strict dependency boundaries**
+
+The architecture should enforce the following dependency rules rather than merely document them.
+
+| Source            | Allowed dependencies                                          |
+| ----------------- | ------------------------------------------------------------- |
+| Backend `core`    | External libraries and infrastructure                         |
+| Backend modules   | Own implementation, core and explicit public module contracts |
+| Backend workers   | Core and module job handlers                                  |
+| Backend `main.py` | Application composition and registration                      |
+| Frontend `app`    | Features, UI and lib                                          |
+| Frontend features | Own implementation, UI, lib and explicit feature interfaces   |
+| Frontend `ui`     | Generic utilities and UI dependencies                         |
+| Frontend `lib`    | External libraries and generated contracts                    |
+
+Avoid:
+
+- Circular feature dependencies.
+- Direct access to another module's private repositories.
+- Business logic inside HTTP routers.
+- Database queries inside HTTP middleware.
+- Feature-specific business logic inside `core` or `lib`.
+- Imports from frontend features into generic UI primitives.
+- Duplicate wrappers that simply forward arguments.
+- Hidden initialization and other side effects in package imports.
+
+You already have appropriate tools for enforcing these boundaries in the repository:
+
+| Existing file                              | Recommended enforcement                               |
+| ------------------------------------------ | ----------------------------------------------------- |
+| `backend/scripts/check_architecture.py`    | Python module dependency rules                        |
+| `frontend/.dependency-cruiser.cjs`         | TypeScript dependency boundaries and circular imports |
+| `frontend/knip.json`                       | Unused files, exports and dependencies                |
+| `frontend/scripts/check-api-contract.mjs`  | API contract consistency                              |
+| `frontend/scripts/check-design-system.mjs` | UI design consistency                                 |
+| `frontend/scripts/check-bundle-size.mjs`   | Bundle-size regression limits                         |
+
+Extend these existing tools rather than introducing several additional architecture-checking frameworks.
+
+## **14. Make the blueprint genuinely modular**
+
+Because this application is intended to serve as a foundation for different application ideas, I would separate its capabilities into three conceptual categories without creating additional directory hierarchies.
+
+**Mandatory foundation**
+
+Identity
+
+Security
+
+Database
+
+Configuration
+
+Audit
+
+Error handling
+
+Observability
+
+Application shell
+
+Available in every generated application.
+
+**Optional AI capabilities**
+
+AI gateway
+
+RAG
+
+Agents
+
+Memory
+
+MCP
+
+Speech
+
+Generative UI
+
+Enabled according to the requirements of the application. Speech is a proposed addition, not a module shown in the attached tree.
+
+**Optional business capabilities**
+
+Projects
+
+Calendar
+
+Billing
+
+Notifications
+
+Integrations
+
+Events
+
+Organizations
+
+Installed or enabled only when required by the target product.
+
+Use the existing `core/features.py` as the basis for a canonical feature registry.
+
+Each optional capability should declare its dependencies, router registration, background jobs, configuration requirements and frontend availability.
+
+Disabling a capability should consistently affect API availability, frontend navigation, background task execution and resource initialization. Frontend feature visibility alone is not a security boundary; backend access must also be enforced.
+
+This allows a lightweight SaaS application to use the blueprint without initializing the full RAG and agent infrastructure.
+
+## **15. Naming conventions and architecture rules**
+
+| Area                          | Recommended convention                           |
+| ----------------------------- | ------------------------------------------------ |
+| Python files                  | `snake_case.py`                                  |
+| React components              | `PascalCase.tsx`                                 |
+| TypeScript utilities          | `camelCase.ts`                                   |
+| shadcn primitives             | Existing upstream naming                         |
+| Feature API files             | `api.ts`                                         |
+| Feature hooks                 | `hooks.ts` or descriptive `useFeature.ts`        |
+| API contracts                 | `schemas.py` and generated TypeScript types      |
+| Background jobs               | `jobs.py`                                        |
+| Business logic                | `service.py` or capability-specific names        |
+| Maximum ordinary folder depth | Three directory levels below backend/frontend    |
+| New subdirectories            | Only for meaningful independent responsibilities |
+| Public interfaces             | Explicit exports rather than wildcard re-exports |
+| Test files                    | Retain descriptive names and existing coverage   |
+
+### **Recommended file-size guidelines**
+
+These should be soft review thresholds, not automatic failure conditions.
+
+| File type         | Review threshold |
+| ----------------- | ---------------- |
+| Python router     | 300 lines        |
+| Python service    | 500 lines        |
+| Python repository | 400 lines        |
+| React page        | 300 lines        |
+| React component   | 250 lines        |
+| React hook        | 200 lines        |
+| General utility   | 300 lines        |
+
+If consolidation produces a 2,000-line `retrieval.py` or `service.py`, retain the appropriate independent implementation files. The goal is high cohesion, not simply a lower file count.
+
+## **16. Additional performance improvements enabled by this architecture**
+
+| Improvement                                | Expected benefit                                         |
+| ------------------------------------------ | -------------------------------------------------------- |
+| Lazy-load optional frontend feature routes | Smaller initial JavaScript bundle                        |
+| Lazy-initialize AI providers and parsers   | Lower startup overhead where initialization is expensive |
+| Disable unused capability initialization   | Lower resource consumption                               |
+| Centralize LLM client lifecycle            | Connection reuse and consistent timeouts                 |
+| Centralize database session handling       | Better transaction and connection management             |
+| Standardize TanStack Query keys            | Fewer redundant network requests                         |
+| Eliminate duplicate RAG execution paths    | Potentially lower retrieval latency and AI costs         |
+| Shared asynchronous job dispatch           | Consistent retry and idempotency behavior                |
+| Consolidate context construction           | Potentially lower token consumption                      |
+| Keep heavy ingestion outside API workers   | Better API responsiveness under ingestion load           |
+
+Reducing files and directories by itself will not significantly improve runtime performance. Actual improvements depend on eliminating redundant execution, unnecessary initialization, duplicated network requests and inefficient data access.
+
+# **Implementation roadmap**
+
+## **17. Recommended refactoring order**
+
+**1**
+
+**Establish architectural baseline**
+
+P0
+
+Record current imports, API contracts, test results, migrations, RAG quality and performance measurements.
+
+**2**
+
+**Define module ownership**
+
+P0
+
+Establish canonical ownership for AI execution, RAG documents, agents, memory, billing and configuration.
+
+**3**
+
+**Consolidate RAG internals**
+
+P1
+
+Merge related processing-stage implementations while preserving algorithms, authorization and quality benchmarks.
+
+**4**
+
+**Consolidate AI infrastructure**
+
+P1
+
+Unify the gateway, streaming, provider routing, retry policies and model execution.
+
+**5**
+
+**Simplify core infrastructure**
+
+P1
+
+Consolidate observability, feature registration and overlapping infrastructure.
+
+**6**
+
+**Refactor frontend features**
+
+P2
+
+Remove unnecessary Page/View/Content wrappers and standardize API clients and hooks.
+
+**7**
+
+**Flatten directory structure**
+
+P2
+
+Move files, update imports, aliases, tooling, worker registrations and documentation.
+
+**8**
+
+**Improve optional capability lifecycle**
+
+P2
+
+Ensure optional features can be disabled safely without initializing unnecessary resources.
+
+**9**
+
+**Production validation**
+
+P3
+
+Execute security, migration, integration, E2E, RAG quality and performance regression checks.
+

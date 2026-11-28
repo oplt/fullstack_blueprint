@@ -4,7 +4,7 @@ import {EmptyState} from "../../components/ui/EmptyState";
 import {QueryBoundary, QueryErrorAlert} from "../../components/ui/QueryBoundary";
 import {SectionCard} from "../../components/ui/SectionCard";
 import {PaginationControls} from "../../components/ui/pagination";
-import type {useMemoryWorkspace} from "./hooks/useMemoryWorkspace";
+import type {useMemoryWorkspace} from "./useMemoryWorkspace";
 import {Badge} from "@/components/ui/badge";
 
 type Workspace = ReturnType<typeof useMemoryWorkspace>;

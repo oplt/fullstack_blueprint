@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, paginate_scalars
-from backend.modules.platform.models import (
+from backend.modules.admin.platform.models import (
     ApiKey,
     EmailTemplate,
     FeatureFlag,

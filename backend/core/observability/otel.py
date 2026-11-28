@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from modules.observability.config import load_config
+from backend.core.observability.config import load_config
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def _resource(service_name: str, environment: str):
 def setup_observability(app: Any | None = None, *, service_name: str | None = None) -> None:
     """Configure Prometheus metrics, OTLP traces, and app instrumentation."""
 
-    from modules.observability.metrics import setup_metrics
+    from backend.core.observability.metrics import setup_metrics
 
     if app is not None:
         setup_metrics(app)

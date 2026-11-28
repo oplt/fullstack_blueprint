@@ -3,10 +3,10 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from backend.modules.rag.api import routes
-from backend.modules.rag.api.schemas import RagCompareRequest, RagRetrievalDraft
-from backend.modules.rag.domain.models import RetrievalOutcome
-from backend.modules.rag.infrastructure.rag_config import RagConfig
+from backend.modules.rag import router as routes
+from backend.modules.rag.schemas import RagCompareRequest, RagRetrievalDraft
+from backend.modules.rag.domain import RetrievalOutcome
+from backend.modules.rag.config import RagConfig
 from pydantic import ValidationError
 
 
@@ -30,7 +30,7 @@ async def test_comparison_reuses_authorized_revisions_and_keeps_draft_request_lo
     scope = AsyncMock(return_value=[("doc", "revision-1")])
     monkeypatch.setattr(
         routes,
-        "RagRepository",
+        "RagReadService",
         lambda _db: SimpleNamespace(list_preview_revisions=scope),
     )
     monkeypatch.setattr(routes, "_require_rag_enabled", lambda: None)
@@ -79,7 +79,7 @@ async def test_unscoped_comparison_rejects_revision_changes_during_run(monkeypat
     scope = AsyncMock(side_effect=[[("doc", "revision-1")], [("doc", "revision-2")]])
     monkeypatch.setattr(
         routes,
-        "RagRepository",
+        "RagReadService",
         lambda _db: SimpleNamespace(list_preview_revisions=scope),
     )
     monkeypatch.setattr(routes, "_require_rag_enabled", lambda: None)

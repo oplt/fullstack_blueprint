@@ -8,7 +8,7 @@ import {defineConfig, globalIgnores} from 'eslint/config'
 export default defineConfig([
     globalIgnores([
         'dist', 'coverage', 'test-results', 'playwright-report', 'storybook-static',
-        'public/mockServiceWorker.js', 'src/api/generated/**', '.vitest',
+        'public/mockServiceWorker.js', 'src/lib/generated/**', '.vitest',
     ]),
     {
         files: ['src/**/*.{ts,tsx,js,jsx}'],

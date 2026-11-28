@@ -1,0 +1,114 @@
+import { notify } from "../lib/notify";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, matchPath, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Bell, Bot, CalendarDays, ChevronLeft, ChevronRight, FolderKanban, LayoutDashboard, Menu, Search, Settings, ShieldCheck, UserRound } from "lucide-react";
+import { useAuth } from "../features/identity/useAuth";
+import { usePlatformMetadata } from "../lib/usePlatformMetadata";
+import { useIsMobile } from "../lib/use-mobile";
+import { PageSearch } from "./PageSearch";
+import { WorkspaceSidebar } from "./WorkspaceSidebar";
+import { NotificationMenu, ProfileMenu } from "./WorkspaceMenus";
+import { ThemeSelector } from "./ThemeSelector";
+import { useSettingsTabs, getSettingsHubLabel } from "../lib/useSettingsTabs";
+import { layoutContentClass, layoutVariantForPath } from "./layoutVariants";
+import { listProjects, type Project } from "@/features/projects/api";
+import { queryKeys } from "../lib/queryKeys";
+import { projectPath, ROUTES } from "../lib/routes";
+import { LanguageSelector } from "../components/ui/LanguageSelector";
+import { Button } from "../components/ui/button";
+import { Sheet, SheetContent } from "../components/ui/sheet";
+import { SkipToContentLink } from "../components/ui/SkipToContentLink";
+import { getConfiguredNavigation } from "../lib/configuration";
+import { serverStateFromPlatformMetadata, visibleNavigation } from "../lib/capabilities";
+import { useApplicationConfiguration } from "../lib/useConfiguration";
+import type { NavigationIcon } from "@/lib/configurationTypes";
+
+const NAV_ICONS: Record<NavigationIcon, typeof LayoutDashboard> = {
+  dashboard: LayoutDashboard, projects: FolderKanban, calendar: CalendarDays, ai: Bot, search: Search,
+  memory: Bot, agent: Bot, observability: LayoutDashboard, platform: Settings, profile: UserRound,
+  notifications: Bell, admin: ShieldCheck,
+};
+const SIDEBAR_KEY = "blueprint.sidebar.collapsed";
+function ShellPageTitle({ pathname, title }: { pathname: string; title: string }) {
+  if (matchPath({ path: ROUTES.agent, end: true }, pathname) || matchPath({ path: ROUTES.rag, end: true }, pathname)) return null;
+  return <h1 className="ui-app-title">{title}</h1>;
+}
+function OptionalNotificationMenu({ enabled }: { enabled: boolean }) { return enabled ? <NotificationMenu /> : null; }
+function readPreference(key: string): string | undefined {
+  try { return window.localStorage.getItem(key) ?? undefined; } catch { return undefined; }
+}
+function writePreference(key: string, value: string) { try { window.localStorage.setItem(key, value); } catch { /* optional persistence */ } }
+function useShellNavigation(pathname: string) {
+  const { t } = useTranslation();
+  const applicationConfiguration = useApplicationConfiguration();
+  const { data: metadata } = usePlatformMetadata();
+  const settingsTabs = useSettingsTabs();
+  const entries = visibleNavigation(getConfiguredNavigation(applicationConfiguration), applicationConfiguration, serverStateFromPlatformMetadata(metadata)).map(item => {
+    const label = t(item.translationKey ?? item.label);
+    return { ...item, icon: NAV_ICONS[item.icon], label: item.capability === "projects" ? metadata?.core_domain_plural ?? label : label };
+  });
+  const secondaryTabs = settingsTabs.filter(tab => !entries.some(entry => entry.path === tab.path)).map(tab => ({ ...tab, icon: Settings }));
+  const commands = [...entries, ...secondaryTabs];
+  const activeEntry = commands.filter(item => matchPath({ path: item.path, end: false }, pathname)).sort((left, right) => right.path.length - left.path.length)[0];
+  const title = getSettingsHubLabel(pathname, settingsTabs) ?? activeEntry?.label ?? t("navigation.workspace");
+  return { entries, secondaryTabs, commands, active: activeEntry?.path, title, name: metadata?.app_name ?? applicationConfiguration.appName };
+}
+export function AppLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const applicationConfiguration = useApplicationConfiguration();
+  const navigation = useShellNavigation(location.pathname);
+  const projectsEnabled = navigation.entries.some((entry) => entry.path === ROUTES.projects);
+  const notificationsEnabled = navigation.commands.some((entry) => entry.path === ROUTES.notifications);
+  const [collapsed, setCollapsed] = useState(() => readPreference(SIDEBAR_KEY) === "true");
+  const [selectedProjectId, setSelectedProjectId] = useState(() => readPreference("blueprint.selected-project"));
+  const projectQuery = useQuery({ queryKey: queryKeys.projects.all, queryFn: ({ signal }) => listProjects({ signal }), enabled: projectsEnabled, staleTime: 60_000 });
+  useEffect(() => { writePreference(SIDEBAR_KEY, String(collapsed)); }, [collapsed]);
+  useEffect(() => { if (selectedProjectId) writePreference("blueprint.selected-project", selectedProjectId); }, [selectedProjectId]);
+  const crumbs = location.pathname.split("/").filter(Boolean);
+  const projectId = location.pathname.match(/^\/projects\/([^/]+)/)?.[1] ?? selectedProjectId;
+  const selectedProject = projectQuery.data?.find(project => project.id === projectId);
+  async function signOut() { try { await logout(); navigate("/", { replace: true }); } catch { notify({ message: t("status.couldNotSignOut"), severity: "error" }); } }
+  const sidebarProps = { name: navigation.name, pages: navigation.entries, settings: navigation.secondaryTabs, active: navigation.active, projectsEnabled,
+    projects: projectQuery.data ?? [], project: selectedProject, signOut,
+    select(project: Project) { setSelectedProjectId(project.id); navigate(projectPath(project.id)); },
+  };
+  return <div className="ui-app-shell" data-collapsed={collapsed}>
+      <SkipToContentLink />
+      <aside className="ui-app-sidebar"><WorkspaceSidebar {...sidebarProps} collapsed={collapsed} /></aside>
+      <div className="ui-app-workspace">
+        <header className="ui-app-header">
+          {isMobile && <MobileNavigation key={`navigation-${location.key}`} {...sidebarProps} />}
+          <Button variant="ghost" size="icon-sm" className="hidden md:block" aria-label={t(collapsed ? "navigation.expandSidebar" : "navigation.collapseSidebar")} onClick={() => setCollapsed(value => !value)}>
+            {collapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
+          </Button>
+          <div className="min-w-0 flex-1">
+            <nav aria-label={t("navigation.breadcrumb")} className="ui-app-breadcrumb">
+              <Link to={ROUTES.dashboard} className="hover:text-foreground">{t("navigation.workspace")}</Link>
+              {crumbs.map((crumb, i) => <span key={crumb + i}> / <span className={i === crumbs.length - 1 ? "text-foreground" : ""}>{i === 1 && selectedProject ? selectedProject.name : crumb.replaceAll("-", " ")}</span></span>)}
+            </nav>
+            <ShellPageTitle pathname={location.pathname} title={navigation.title} />
+          </div>
+          <PageSearch key={`search-${location.key}`} pages={navigation.commands} />
+          <OptionalNotificationMenu enabled={notificationsEnabled} />
+          <ProfileMenu signOut={signOut} />
+          <LanguageSelector compact />
+          <ThemeSelector />
+        </header>
+        <main id="main-content" tabIndex={-1} className={layoutContentClass(layoutVariantForPath(location.pathname, applicationConfiguration.layoutVariants))}><Outlet /></main>
+      </div>
+    </div>;
+}
+function MobileNavigation(props: Omit<React.ComponentProps<typeof WorkspaceSidebar>, "collapsed" | "close">) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return <>
+    <Button variant="ghost" size="icon-sm" className="md:hidden" aria-label={t("navigation.openNavigation")} onClick={() => setOpen(true)} type="button"><Menu aria-hidden="true" /></Button>
+    <Sheet open={open} onOpenChange={setOpen}><SheetContent side="left" title={t("navigation.main")} description={t("navigation.workspace")}><WorkspaceSidebar {...props} collapsed={false} close={() => setOpen(false)} /></SheetContent></Sheet>
+  </>;
+}

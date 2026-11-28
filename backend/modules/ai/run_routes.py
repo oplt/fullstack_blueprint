@@ -10,13 +10,13 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
-from backend.dependencies.auth import get_current_user
-from backend.dependencies.db import get_db
+from backend.modules.identity.dependencies import get_current_user
+from backend.core.db.dependencies import get_db
 from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
-from backend.modules.ai.run_service import AiRunService
+from backend.modules.ai.runs import AiRunService
 from backend.modules.ai.schemas import AiRunRequest, AiRunResponse
 from backend.modules.ai.serializers import run_to_response
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 
 router = APIRouter()
 

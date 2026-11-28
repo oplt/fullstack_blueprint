@@ -1,0 +1,50 @@
+import { apiFetch, type ApiRequestOptions } from "@/lib/api";
+import type { ProjectTaskPriority, ProjectTaskStatus } from "@/features/projects/api";
+
+export type CalendarItemType = "event" | "appointment" | "task";
+type CalendarItemSource = "planner" | "task";
+
+export type CalendarItem = {
+    id: string;
+    source: CalendarItemSource;
+    type: CalendarItemType;
+    title: string;
+    description: string | null;
+    date: string;
+    start_time: string | null;
+    end_time: string | null;
+    project_id: string | null;
+    project_name: string | null;
+    priority: ProjectTaskPriority | null;
+    status: ProjectTaskStatus | null;
+    created_at: string;
+};
+
+export async function listCalendarItems(
+    startDate: string,
+    endDate: string,
+    options?: ApiRequestOptions,
+): Promise<CalendarItem[]> {
+    const params = new URLSearchParams({
+        start_date: startDate,
+        end_date: endDate,
+    });
+    return apiFetch(`/calendar/items?${params.toString()}`, options);
+}
+
+export async function createCalendarItem(payload: {
+    type: CalendarItemType;
+    title: string;
+    description?: string | null;
+    date: string;
+    start_time?: string | null;
+    end_time?: string | null;
+    project_id?: string | null;
+    priority?: ProjectTaskPriority | null;
+    assignee_id?: string | null;
+}): Promise<CalendarItem> {
+    return apiFetch("/calendar/items", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+}

@@ -1,6 +1,6 @@
 """Capability metadata and availability evaluation."""
 
-from backend.modules.capabilities.registry import (
+from backend.core.features import (
     CAPABILITY_REGISTRY,
     CapabilityDefinition,
     CapabilityManifest,

@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { layoutContentClass } from "@/components/layout/layoutVariants";
+import { layoutContentClass } from "../../app/layoutVariants";
 import { PageShell } from "./PageShell";
 describe("PageShell width and app layout gutters", () => {
     it("preserves explicit content widths", () => {

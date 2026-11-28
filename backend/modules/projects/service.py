@@ -7,14 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
 from backend.core.pagination import DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT
-from backend.lib.resource_cache import (
+from backend.core.resource_cache import (
     get_cached_model_list,
     invalidate_calendar_cache,
     invalidate_project_list_cache,
     project_list_cache_key,
     set_cached_model_list,
 )
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 from backend.modules.notifications.repository import NotificationsRepository
 from backend.modules.projects.models import Project, ProjectTask
 from backend.modules.projects.repository import ProjectsRepository
@@ -27,7 +27,7 @@ from backend.modules.projects.schemas import (
     ProjectTaskReorderRequest,
     ProjectTaskUpdate,
 )
-from backend.modules.users.repository import UsersRepository
+from backend.modules.identity.user_repository import UsersRepository
 
 
 class ProjectsService:

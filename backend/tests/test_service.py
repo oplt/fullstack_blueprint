@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 import pytest
 from backend.modules.calendar import service as calendar_service
 from backend.modules.calendar.service import CalendarService
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 

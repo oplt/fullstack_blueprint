@@ -24,7 +24,7 @@ npm run pwa:check
 
 Use a disposable backend for Playwright. The authenticated shell and shared UI live in `src/app` and `src/components`. Features and corresponding API clients live in `src/features` and `src/api`.
 
-The API contract workflow exports FastAPI with all optional routers enabled, then generates the Hey API SDK and TypeScript models into `src/api/generated`. Generated files must not be edited manually. `api:check` regenerates the contract in a temporary directory and fails when the committed OpenAPI document or generated artifacts drift. Runtime calls continue through `src/api/client.ts` so cookies, CSRF, refresh deduplication, cancellation and structured errors retain their existing behavior.
+The API contract workflow exports FastAPI with all optional routers enabled, then generates the Hey API SDK and TypeScript models into `src/lib/generated`. Generated files must not be edited manually. `api:check` regenerates the contract in a temporary directory and fails when the committed OpenAPI document or generated artifacts drift. Runtime calls continue through `src/lib/api.ts` so cookies, CSRF, refresh deduplication, cancellation and structured errors retain their existing behavior.
 
 ## Source layout and references
 

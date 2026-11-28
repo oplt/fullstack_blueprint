@@ -74,3 +74,12 @@ Run broader checks only when justified:
 Use existing environments.
 Do not start PostgreSQL, Redis, Celery or Docker services for tasks that do not require them.
 Do not run live LLM evaluations for unrelated backend changes.
+
+## Naming and architecture enforcement
+
+- Prefer `router.py`, `service.py`, `repository.py`, `models.py`, `schemas.py`, `policies.py`, `permissions.py`, and `jobs.py` for cohesive responsibilities.
+- Keep Python filenames and symbols in `snake_case`; retain `base_service.py` and `providers/common.py` only for their documented shared responsibilities.
+- Routers must not perform persistence directly. Services own use-case coordination and repositories own database operations.
+- Core must not import business modules; repositories must not import routers; infrastructure must not import application layers; production code must not import tests or offline evaluation runners.
+- Run `backend/.venv/bin/python scripts/check_architecture.py` and the configured import-linter contracts when changing module boundaries.
+- See `backend/ARCHITECTURE.md` for the complete policy and review thresholds.

@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
-from backend.lib.resource_cache import (
+from backend.core.resource_cache import (
     calendar_items_cache_key,
     get_cached_model_items,
     invalidate_calendar_cache,
@@ -18,7 +18,7 @@ from backend.modules.calendar.schemas import (
     CalendarItemResponse,
     CalendarItemType,
 )
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 from backend.modules.projects.models import Project, ProjectTask
 from backend.modules.projects.repository import ProjectsRepository
 from backend.modules.projects.schemas import ProjectTaskCreate, TaskPriority, TaskStatus

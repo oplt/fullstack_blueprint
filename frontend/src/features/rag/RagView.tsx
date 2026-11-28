@@ -3,14 +3,14 @@ import { FormField } from "../../components/ui/form-field";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { PageShell } from "../../components/ui/PageShell";
 import { PageTabs, TabsPanel } from "../../components/ui/PageTabs";
-import { SettingsTabs } from "../../components/layout/SettingsTabs";
-import { useTabQueryParam } from "../../hooks/useTabQueryParam";
-import { useRagWorkspace } from "./hooks/useRagWorkspace";
-import { RagDocumentsPanel } from "./components/RagDocumentsPanel";
-import { RagIndexingPanel } from "./components/RagIndexingPanel";
-import { RagRetrievalPanel } from "./components/RagRetrievalPanel";
-import { RagEvaluationPanel } from "./components/RagEvaluationPanel";
-import { RagRunsPanel } from "./components/RagRunsPanel";
+import { SettingsTabs } from "../../app/SettingsTabs";
+import { useTabQueryParam } from "../../lib/useTabQueryParam";
+import { useRagWorkspace } from "./useRagWorkspace";
+import { RagDocumentsPanel } from "./RagDocumentsPanel";
+import { RagIndexingPanel } from "./RagIndexingPanel";
+import { RagRetrievalPanel } from "./RagRetrievalPanel";
+import { RagEvaluationPanel } from "./RagEvaluationPanel";
+import { RagRunsPanel } from "./RagRunsPanel";
 
 const RAG_TABS = ["documents", "indexing", "retrieval", "evaluation", "runs"] as const;
 

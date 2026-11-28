@@ -9,16 +9,16 @@ import {
     saveThemePreferences,
     type ThemePreferences,
 } from "./theme";
-import { queryClient } from "../config/queryClient";
-import { AuthProvider } from "../features/auth/context/AuthContext";
+import { queryClient } from "../lib/queryClient";
+import { AuthProvider } from "@/features/identity/AuthProvider";
 import { ColorModeContext } from "./colorModeContext";
 import { Toaster } from "../components/ui/sonner";
 import { I18nextProvider } from "react-i18next";
 import { i18nInstance, setLanguage } from "../i18n/config";
 import { useLanguage } from "../i18n/useLanguage";
-import { ApplicationConfigurationProvider } from "@/config/application/context";
-import { useApplicationConfiguration } from "@/config/application/useConfiguration";
-import type { ApplicationConfiguration, ApplicationConfigurationInput } from "@/config/application/types";
+import { ApplicationConfigurationProvider } from "@/lib/ConfigurationProvider";
+import { useApplicationConfiguration } from "../lib/useConfiguration";
+import type { ApplicationConfiguration, ApplicationConfigurationInput } from "@/lib/configurationTypes";
 
 export function AppProviders({ children, configuration }: PropsWithChildren<{ configuration?: ApplicationConfiguration | ApplicationConfigurationInput }>) {
     return <ApplicationConfigurationProvider configuration={configuration}><ConfiguredProviders>{children}</ConfiguredProviders></ApplicationConfigurationProvider>;

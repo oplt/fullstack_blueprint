@@ -1,0 +1,2959 @@
+{
+  "duplicates": [
+    {
+      "firstFile": {
+        "end": 506,
+        "endLoc": {
+          "column": 21,
+          "line": 506,
+          "position": 20776
+        },
+        "name": "core/config.py",
+        "start": 499,
+        "startLoc": {
+          "column": 31,
+          "line": 499,
+          "position": 20551
+        }
+      },
+      "format": "python",
+      "fragment": "    def parse_trusted_proxy_ips(cls, value):\n        if value in (None, \"\"):\n            return []\n        if isinstance(value, str):\n            return [item.strip() for item in value.split(\",\") if item.strip()]\n        return value\n\n    @field_validator(\"ALLOWED_HOSTS\", mode=\"before\")",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 524,
+        "endLoc": {
+          "column": 21,
+          "line": 524,
+          "position": 21396
+        },
+        "name": "core/config.py",
+        "start": 517,
+        "startLoc": {
+          "column": 32,
+          "line": 517,
+          "position": 21171
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 515,
+        "endLoc": {
+          "column": 5,
+          "line": 515,
+          "position": 21069
+        },
+        "name": "core/config.py",
+        "start": 508,
+        "startLoc": {
+          "column": 27,
+          "line": 508,
+          "position": 20852
+        }
+      },
+      "format": "python",
+      "fragment": "    def parse_allowed_hosts(cls, value):\n        if value in (None, \"\"):\n            return []\n        if isinstance(value, str):\n            return [item.strip().lower() for item in value.split(\",\") if item.strip()]\n        return value\n\n    @field_validator(\"AI_ALLOWED_REGIONS\", mode=\"before\")",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 533,
+        "endLoc": {
+          "column": 5,
+          "line": 533,
+          "position": 21703
+        },
+        "name": "core/config.py",
+        "start": 526,
+        "startLoc": {
+          "column": 34,
+          "line": 526,
+          "position": 21486
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 5,
+          "line": 55,
+          "position": 1574
+        },
+        "name": "core/features.py",
+        "start": 38,
+        "startLoc": {
+          "column": 4,
+          "line": 38,
+          "position": 1132
+        }
+      },
+      "format": "python",
+      "fragment": "    identifier: str\n    label: str\n    description: str\n    dependencies: list[str]\n    configuration_requirements: list[str]\n    required_permissions: list[str]\n    background_workers: list[str]\n    database_dependencies: list[str]\n    optional_integrations: list[str]\n    health_checks: list[str]\n    default_feature_flags: list[str]\n    build_included: bool\n    deployment_enabled: bool\n    runtime_enabled: bool\n    user_visible: bool\n\n\nclass CapabilityRegistry:",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 18,
+      "secondFile": {
+        "end": 45,
+        "endLoc": {
+          "column": 5,
+          "line": 45,
+          "position": 978
+        },
+        "name": "modules/admin/platform/schemas.py",
+        "start": 28,
+        "startLoc": {
+          "column": 4,
+          "line": 28,
+          "position": 536
+        }
+      },
+      "tokens": 70
+    },
+    {
+      "firstFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 21,
+          "line": 8,
+          "position": 332
+        },
+        "name": "modules/admin/config_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "python",
+      "fragment": "from fastapi import APIRouter, Depends, Request\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.modules.admin.dependencies import get_admin_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.core.audit import log_request_audit_event\nfrom backend.modules.identity.models import User\nfrom backend.modules.admin.platform_configuration import PlatformConfigService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 21,
+          "line": 8,
+          "position": 332
+        },
+        "name": "modules/notifications/template_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 27,
+          "line": 8,
+          "position": 338
+        },
+        "name": "modules/admin/config_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 48
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.modules.admin.dependencies import get_admin_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.core.audit import log_request_audit_event\nfrom backend.modules.identity.models import User\nfrom backend.modules.admin.platform_configuration import PlatformConfigService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 27,
+          "line": 8,
+          "position": 348
+        },
+        "name": "modules/admin/settings_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 58
+        }
+      },
+      "tokens": 53
+    },
+    {
+      "firstFile": {
+        "end": 27,
+        "endLoc": {
+          "column": 16,
+          "line": 27,
+          "position": 752
+        },
+        "name": "modules/admin/env_file_store.py",
+        "start": 22,
+        "startLoc": {
+          "column": 13,
+          "line": 22,
+          "position": 500
+        }
+      },
+      "format": "python",
+      "fragment": "    ) -> None:\n        self.path.parent.mkdir(parents=True, exist_ok=True)\n        with self.lock_path.open(\"a+\", encoding=\"utf-8\") as lock_file:\n            os.chmod(self.lock_path, 0o600)\n            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)\n            try:",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 42,
+        "endLoc": {
+          "column": 16,
+          "line": 42,
+          "position": 1371
+        },
+        "name": "modules/admin/env_file_store.py",
+        "start": 37,
+        "startLoc": {
+          "column": 23,
+          "line": 37,
+          "position": 1119
+        }
+      },
+      "tokens": 60
+    },
+    {
+      "firstFile": {
+        "end": 32,
+        "endLoc": {
+          "column": 5,
+          "line": 32,
+          "position": 1263
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 21,
+        "startLoc": {
+          "column": 71,
+          "line": 21,
+          "position": 955
+        }
+      },
+      "format": "python",
+      "fragment": "    features_json: Mapped[list[str]] = mapped_column(JSON, default=list)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass UserSubscription(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 58,
+        "endLoc": {
+          "column": 5,
+          "line": 58,
+          "position": 2339
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 47,
+        "startLoc": {
+          "column": 4,
+          "line": 47,
+          "position": 2031
+        }
+      },
+      "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 32,
+        "endLoc": {
+          "column": 5,
+          "line": 32,
+          "position": 1263
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 21,
+        "startLoc": {
+          "column": 71,
+          "line": 21,
+          "position": 955
+        }
+      },
+      "format": "python",
+      "fragment": "    features_json: Mapped[list[str]] = mapped_column(JSON, default=list)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass UserSubscription(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 48,
+        "endLoc": {
+          "column": 5,
+          "line": 48,
+          "position": 1382
+        },
+        "name": "modules/ai/models.py",
+        "start": 37,
+        "startLoc": {
+          "column": 4,
+          "line": 37,
+          "position": 1074
+        }
+      },
+      "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 32,
+        "endLoc": {
+          "column": 5,
+          "line": 32,
+          "position": 1263
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 21,
+        "startLoc": {
+          "column": 71,
+          "line": 21,
+          "position": 955
+        }
+      },
+      "format": "python",
+      "fragment": "    features_json: Mapped[list[str]] = mapped_column(JSON, default=list)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass UserSubscription(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 155,
+        "endLoc": {
+          "column": 5,
+          "line": 155,
+          "position": 6949
+        },
+        "name": "modules/ai/models.py",
+        "start": 144,
+        "startLoc": {
+          "column": 66,
+          "line": 144,
+          "position": 6641
+        }
+      },
+      "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 29,
+        "endLoc": {
+          "column": 5,
+          "line": 29,
+          "position": 1255
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 21,
+        "startLoc": {
+          "column": 71,
+          "line": 21,
+          "position": 955
+        }
+      },
+      "format": "python",
+      "fragment": "    features_json: Mapped[list[str]] = mapped_column(JSON, default=list)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 65,
+        "endLoc": {
+          "column": 5,
+          "line": 65,
+          "position": 2565
+        },
+        "name": "modules/projects/models.py",
+        "start": 57,
+        "startLoc": {
+          "column": 60,
+          "line": 57,
+          "position": 2265
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 32,
+        "endLoc": {
+          "column": 5,
+          "line": 32,
+          "position": 1263
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 23,
+        "startLoc": {
+          "column": 40,
+          "line": 23,
+          "position": 1047
+        }
+      },
+      "format": "python",
+      "fragment": "        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass UserSubscription(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 440,
+        "endLoc": {
+          "column": 5,
+          "line": 440,
+          "position": 20294
+        },
+        "name": "modules/ai/models.py",
+        "start": 431,
+        "startLoc": {
+          "column": 40,
+          "line": 431,
+          "position": 20078
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 32,
+        "endLoc": {
+          "column": 5,
+          "line": 32,
+          "position": 1263
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 23,
+        "startLoc": {
+          "column": 40,
+          "line": 23,
+          "position": 1047
+        }
+      },
+      "format": "python",
+      "fragment": "        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass UserSubscription(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 474,
+        "endLoc": {
+          "column": 5,
+          "line": 474,
+          "position": 21677
+        },
+        "name": "modules/ai/models.py",
+        "start": 465,
+        "startLoc": {
+          "column": 40,
+          "line": 465,
+          "position": 21461
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 58,
+        "endLoc": {
+          "column": 5,
+          "line": 58,
+          "position": 2339
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 45,
+        "startLoc": {
+          "column": 22,
+          "line": 45,
+          "position": 1937
+        }
+      },
+      "format": "python",
+      "fragment": "    current_period_end: Mapped[datetime | None] = mapped_column(\n        DateTime(timezone=True), nullable=True\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass ApiKey(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 14,
+      "secondFile": {
+        "end": 87,
+        "endLoc": {
+          "column": 5,
+          "line": 87,
+          "position": 3952
+        },
+        "name": "modules/capabilities/models.py",
+        "start": 76,
+        "startLoc": {
+          "column": 14,
+          "line": 76,
+          "position": 3564
+        }
+      },
+      "tokens": 88
+    },
+    {
+      "firstFile": {
+        "end": 54,
+        "endLoc": {
+          "column": 43,
+          "line": 54,
+          "position": 2325
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 45,
+        "startLoc": {
+          "column": 22,
+          "line": 45,
+          "position": 1937
+        }
+      },
+      "format": "python",
+      "fragment": "    current_period_end: Mapped[datetime | None] = mapped_column(\n        DateTime(timezone=True), nullable=True\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 289,
+        "endLoc": {
+          "column": 43,
+          "line": 289,
+          "position": 13460
+        },
+        "name": "modules/rag/models.py",
+        "start": 282,
+        "startLoc": {
+          "column": 15,
+          "line": 282,
+          "position": 13086
+        }
+      },
+      "tokens": 86
+    },
+    {
+      "firstFile": {
+        "end": 58,
+        "endLoc": {
+          "column": 5,
+          "line": 58,
+          "position": 2339
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 46,
+        "startLoc": {
+          "column": 31,
+          "line": 46,
+          "position": 2011
+        }
+      },
+      "format": "python",
+      "fragment": "        DateTime(timezone=True), nullable=True\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass ApiKey(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 102,
+        "endLoc": {
+          "column": 5,
+          "line": 102,
+          "position": 4603
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 91,
+        "startLoc": {
+          "column": 68,
+          "line": 91,
+          "position": 4280
+        }
+      },
+      "tokens": 72
+    },
+    {
+      "firstFile": {
+        "end": 58,
+        "endLoc": {
+          "column": 5,
+          "line": 58,
+          "position": 2339
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 46,
+        "startLoc": {
+          "column": 41,
+          "line": 46,
+          "position": 2021
+        }
+      },
+      "format": "python",
+      "fragment": "        DateTime(timezone=True), nullable=True\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass ApiKey(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 284,
+        "endLoc": {
+          "column": 5,
+          "line": 284,
+          "position": 13236
+        },
+        "name": "modules/ai/models.py",
+        "start": 273,
+        "startLoc": {
+          "column": 60,
+          "line": 273,
+          "position": 12923
+        }
+      },
+      "tokens": 70
+    },
+    {
+      "firstFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 5,
+          "line": 55,
+          "position": 2331
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 46,
+        "startLoc": {
+          "column": 31,
+          "line": 46,
+          "position": 2011
+        }
+      },
+      "format": "python",
+      "fragment": "        DateTime(timezone=True), nullable=True\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 311,
+        "endLoc": {
+          "column": 5,
+          "line": 311,
+          "position": 14793
+        },
+        "name": "modules/ai/models.py",
+        "start": 303,
+        "startLoc": {
+          "column": 55,
+          "line": 303,
+          "position": 14478
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 5,
+          "line": 55,
+          "position": 2331
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 46,
+        "startLoc": {
+          "column": 41,
+          "line": 46,
+          "position": 2021
+        }
+      },
+      "format": "python",
+      "fragment": "        DateTime(timezone=True), nullable=True\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 61,
+        "endLoc": {
+          "column": 5,
+          "line": 61,
+          "position": 3336
+        },
+        "name": "modules/memory/models.py",
+        "start": 53,
+        "startLoc": {
+          "column": 75,
+          "line": 53,
+          "position": 3031
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 80,
+        "endLoc": {
+          "column": 5,
+          "line": 80,
+          "position": 3536
+        },
+        "name": "modules/admin/platform/models.py",
+        "start": 73,
+        "startLoc": {
+          "column": 16,
+          "line": 73,
+          "position": 3228
+        }
+      },
+      "format": "python",
+      "fragment": "    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)\n    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n\n\nclass WebhookEndpoint(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 80,
+        "endLoc": {
+          "column": 14,
+          "line": 80,
+          "position": 3783
+        },
+        "name": "modules/capabilities/models.py",
+        "start": 75,
+        "startLoc": {
+          "column": 19,
+          "line": 75,
+          "position": 3468
+        }
+      },
+      "tokens": 70
+    },
+    {
+      "firstFile": {
+        "end": 22,
+        "endLoc": {
+          "column": 37,
+          "line": 22,
+          "position": 599
+        },
+        "name": "modules/admin/platform/platform_read_port.py",
+        "start": 14,
+        "startLoc": {
+          "column": 4,
+          "line": 14,
+          "position": 352
+        }
+      },
+      "format": "python",
+      "fragment": "    async def render_email_template(\n        self,\n        *,\n        key: str,\n        context: dict[str, str],\n        fallback_subject: str,\n        fallback_html: str,\n        fallback_text: str | None = None,\n    ) -> tuple[str, str, str | None]: ...",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 42,
+        "endLoc": {
+          "column": 37,
+          "line": 42,
+          "position": 1168
+        },
+        "name": "modules/admin/platform/platform_read_port.py",
+        "start": 34,
+        "startLoc": {
+          "column": 4,
+          "line": 34,
+          "position": 921
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 22,
+        "endLoc": {
+          "column": 37,
+          "line": 22,
+          "position": 599
+        },
+        "name": "modules/admin/platform/platform_read_port.py",
+        "start": 14,
+        "startLoc": {
+          "column": 4,
+          "line": 14,
+          "position": 352
+        }
+      },
+      "format": "python",
+      "fragment": "    async def render_email_template(\n        self,\n        *,\n        key: str,\n        context: dict[str, str],\n        fallback_subject: str,\n        fallback_html: str,\n        fallback_text: str | None = None,\n    ) -> tuple[str, str, str | None]: ...",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 62,
+        "endLoc": {
+          "column": 37,
+          "line": 62,
+          "position": 2409
+        },
+        "name": "modules/notifications/templates.py",
+        "start": 54,
+        "startLoc": {
+          "column": 4,
+          "line": 54,
+          "position": 2162
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 16,
+        "endLoc": {
+          "column": 21,
+          "line": 16,
+          "position": 455
+        },
+        "name": "modules/agents/router.py",
+        "start": 5,
+        "startLoc": {
+          "column": 0,
+          "line": 5,
+          "position": 97
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.config import settings\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.agents.workflow import AgentWorkflowService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 15,
+        "endLoc": {
+          "column": 21,
+          "line": 15,
+          "position": 428
+        },
+        "name": "modules/ai/run_routes.py",
+        "start": 4,
+        "startLoc": {
+          "column": 0,
+          "line": 4,
+          "position": 70
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 46,
+        "endLoc": {
+          "column": 5,
+          "line": 46,
+          "position": 1330
+        },
+        "name": "modules/agents/runtime.py",
+        "start": 38,
+        "startLoc": {
+          "column": 67,
+          "line": 38,
+          "position": 1040
+        }
+      },
+      "format": "python",
+      "fragment": "    tool_ids: list[str] = Field(default_factory=list, max_length=64)\n    max_steps: int = Field(default=8, ge=1, le=64)\n    max_tool_calls: int = Field(default=8, ge=0, le=64)\n    max_tokens: int = Field(default=16_000, ge=1)\n    max_cost_micros: int | None = Field(default=None, ge=0)\n    timeout_seconds: float = Field(default=60.0, gt=0, le=3600)\n\n\nclass ToolExecutionLedger(Protocol):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 176,
+        "endLoc": {
+          "column": 5,
+          "line": 176,
+          "position": 5945
+        },
+        "name": "modules/ai/schemas.py",
+        "start": 168,
+        "startLoc": {
+          "column": 62,
+          "line": 168,
+          "position": 5655
+        }
+      },
+      "tokens": 87
+    },
+    {
+      "firstFile": {
+        "end": 140,
+        "endLoc": {
+          "column": 47,
+          "line": 140,
+          "position": 4929
+        },
+        "name": "modules/agents/runtime.py",
+        "start": 128,
+        "startLoc": {
+          "column": 32,
+          "line": 128,
+          "position": 4289
+        }
+      },
+      "format": "python",
+      "fragment": "                                pending_tool_call,\n                                definition=definition,\n                                context=context,\n                            )\n                        except ToolApprovalRequired as exc:\n                            state.status = \"awaiting_approval\"\n                            state.approval = exc.request\n                            await self._checkpoint(state, checkpoint)\n                            return state, None\n                        state.messages.append(\n                            {\n                                \"role\": AiMessageRole.TOOL.value,\n                                \"tool_call_id\": pending_tool_call[\"id\"],",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 231,
+        "endLoc": {
+          "column": 47,
+          "line": 231,
+          "position": 9619
+        },
+        "name": "modules/agents/runtime.py",
+        "start": 219,
+        "startLoc": {
+          "column": 38,
+          "line": 219,
+          "position": 8979
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 49,
+        "endLoc": {
+          "column": 30,
+          "line": 49,
+          "position": 1517
+        },
+        "name": "modules/agents/service.py",
+        "start": 39,
+        "startLoc": {
+          "column": 30,
+          "line": 39,
+          "position": 1235
+        }
+      },
+      "format": "python",
+      "fragment": "    async def run_agent_prompt(\n        self,\n        user: User,\n        *,\n        prompt_template_key: str | None,\n        prompt_version_id: str | None,\n        variables: dict[str, Any],\n        retrieval_query: str | None,\n        document_ids: list[str],\n        top_k: int,\n        review_required: bool,",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 11,
+      "secondFile": {
+        "end": 40,
+        "endLoc": {
+          "column": 30,
+          "line": 40,
+          "position": 1467
+        },
+        "name": "modules/ai/runs.py",
+        "start": 30,
+        "startLoc": {
+          "column": 24,
+          "line": 30,
+          "position": 1185
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 316,
+        "endLoc": {
+          "column": 63,
+          "line": 316,
+          "position": 13785
+        },
+        "name": "modules/agents/workflow.py",
+        "start": 307,
+        "startLoc": {
+          "column": 40,
+          "line": 307,
+          "position": 13263
+        }
+      },
+      "format": "python",
+      "fragment": "                    name=definition.name,\n                    instructions=definition.instructions,\n                    provider_key=definition.provider_key,\n                    model_name=definition.model_name,\n                    tool_ids=definition.tool_ids_json,\n                    max_steps=definition.max_steps,\n                    max_tool_calls=definition.max_tool_calls,\n                    max_tokens=definition.max_tokens,\n                    max_cost_micros=definition.max_cost_micros,\n                    timeout_seconds=definition.timeout_seconds,",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 31,
+        "endLoc": {
+          "column": 51,
+          "line": 31,
+          "position": 999
+        },
+        "name": "modules/ai/serializers.py",
+        "start": 22,
+        "startLoc": {
+          "column": 34,
+          "line": 22,
+          "position": 585
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 24,
+          "line": 12,
+          "position": 383
+        },
+        "name": "modules/ai/document_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 63
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.document_service import AiDocumentService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 11,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 24,
+          "line": 12,
+          "position": 359
+        },
+        "name": "modules/ai/evaluation_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 39
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 380
+        },
+        "name": "modules/ai/document_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 63
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.document_service import AiDocumentService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 11,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 366
+        },
+        "name": "modules/integrations/webhook_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 49
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 380
+        },
+        "name": "modules/ai/document_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 0,
+          "line": 2,
+          "position": 63
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.document_service import AiDocumentService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 11,
+      "secondFile": {
+        "end": 14,
+        "endLoc": {
+          "column": 21,
+          "line": 14,
+          "position": 396
+        },
+        "name": "modules/projects/router.py",
+        "start": 4,
+        "startLoc": {
+          "column": 0,
+          "line": 4,
+          "position": 79
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 24,
+          "line": 12,
+          "position": 359
+        },
+        "name": "modules/ai/evaluation_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "python",
+      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 24,
+          "line": 12,
+          "position": 359
+        },
+        "name": "modules/ai/prompt_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 24,
+          "line": 12,
+          "position": 359
+        },
+        "name": "modules/ai/evaluation_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "python",
+      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 24,
+          "line": 12,
+          "position": 359
+        },
+        "name": "modules/ai/review_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 356
+        },
+        "name": "modules/ai/evaluation_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "python",
+      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 356
+        },
+        "name": "modules/integrations/api_key_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 356
+        },
+        "name": "modules/ai/evaluation_routes.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "python",
+      "fragment": "from fastapi import APIRouter, Depends\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.ai.evaluations import AiEvaluationService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 356
+        },
+        "name": "modules/notifications/router.py",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 143,
+        "endLoc": {
+          "column": 84,
+          "line": 143,
+          "position": 5549
+        },
+        "name": "modules/ai/evaluations.py",
+        "start": 138,
+        "startLoc": {
+          "column": 8,
+          "line": 138,
+          "position": 5167
+        }
+      },
+      "format": "python",
+      "fragment": "        version = await self.repo.get_prompt_version(prompt_version_id)\n        if not version:\n            raise HTTPException(status_code=404, detail=\"Prompt version not found\")\n        template = await self.repo.get_prompt_template_for_user(user.id, version.prompt_template_id)\n        if not template:\n            raise HTTPException(status_code=404, detail=\"Prompt template not found\")",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 156,
+        "endLoc": {
+          "column": 88,
+          "line": 156,
+          "position": 6444
+        },
+        "name": "modules/ai/prompts.py",
+        "start": 149,
+        "startLoc": {
+          "column": 12,
+          "line": 149,
+          "position": 6012
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 48,
+        "endLoc": {
+          "column": 5,
+          "line": 48,
+          "position": 1382
+        },
+        "name": "modules/ai/models.py",
+        "start": 36,
+        "startLoc": {
+          "column": 16,
+          "line": 36,
+          "position": 1063
+        }
+      },
+      "format": "python",
+      "fragment": "        nullable=True,\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n\n\nclass AiPromptVersion(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 135,
+        "endLoc": {
+          "column": 5,
+          "line": 135,
+          "position": 5865
+        },
+        "name": "modules/rag/models.py",
+        "start": 123,
+        "startLoc": {
+          "column": 13,
+          "line": 123,
+          "position": 5546
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 137,
+        "endLoc": {
+          "column": 5,
+          "line": 137,
+          "position": 6159
+        },
+        "name": "modules/ai/models.py",
+        "start": 130,
+        "startLoc": {
+          "column": 82,
+          "line": 130,
+          "position": 5929
+        }
+      },
+      "format": "python",
+      "fragment": "    review_status: Mapped[str] = mapped_column(String(32), default=\"not_requested\")\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)\n\n\nclass AiConversation(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 223,
+        "endLoc": {
+          "column": 5,
+          "line": 223,
+          "position": 10124
+        },
+        "name": "modules/ai/models.py",
+        "start": 216,
+        "startLoc": {
+          "column": 73,
+          "line": 216,
+          "position": 9894
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 137,
+        "endLoc": {
+          "column": 5,
+          "line": 137,
+          "position": 6159
+        },
+        "name": "modules/ai/models.py",
+        "start": 130,
+        "startLoc": {
+          "column": 82,
+          "line": 130,
+          "position": 5929
+        }
+      },
+      "format": "python",
+      "fragment": "    review_status: Mapped[str] = mapped_column(String(32), default=\"not_requested\")\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)\n\n\nclass AiConversation(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 517,
+        "endLoc": {
+          "column": 5,
+          "line": 517,
+          "position": 23690
+        },
+        "name": "modules/ai/models.py",
+        "start": 510,
+        "startLoc": {
+          "column": 67,
+          "line": 510,
+          "position": 23460
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 223,
+        "endLoc": {
+          "column": 5,
+          "line": 223,
+          "position": 10124
+        },
+        "name": "modules/ai/models.py",
+        "start": 216,
+        "startLoc": {
+          "column": 68,
+          "line": 216,
+          "position": 9889
+        }
+      },
+      "format": "python",
+      "fragment": "    idempotency_key: Mapped[str] = mapped_column(String(255), unique=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)\n\n\nclass AiArtifact(Base):",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 386,
+        "endLoc": {
+          "column": 5,
+          "line": 386,
+          "position": 18106
+        },
+        "name": "modules/ai/models.py",
+        "start": 379,
+        "startLoc": {
+          "column": 68,
+          "line": 379,
+          "position": 17871
+        }
+      },
+      "tokens": 53
+    },
+    {
+      "firstFile": {
+        "end": 311,
+        "endLoc": {
+          "column": 5,
+          "line": 311,
+          "position": 14793
+        },
+        "name": "modules/ai/models.py",
+        "start": 303,
+        "startLoc": {
+          "column": 14,
+          "line": 303,
+          "position": 14437
+        }
+      },
+      "format": "python",
+      "fragment": "    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 437,
+        "endLoc": {
+          "column": 5,
+          "line": 437,
+          "position": 20286
+        },
+        "name": "modules/ai/models.py",
+        "start": 429,
+        "startLoc": {
+          "column": 20,
+          "line": 429,
+          "position": 19930
+        }
+      },
+      "tokens": 82
+    },
+    {
+      "firstFile": {
+        "end": 311,
+        "endLoc": {
+          "column": 5,
+          "line": 311,
+          "position": 14793
+        },
+        "name": "modules/ai/models.py",
+        "start": 303,
+        "startLoc": {
+          "column": 14,
+          "line": 303,
+          "position": 14437
+        }
+      },
+      "format": "python",
+      "fragment": "    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 471,
+        "endLoc": {
+          "column": 5,
+          "line": 471,
+          "position": 21669
+        },
+        "name": "modules/ai/models.py",
+        "start": 463,
+        "startLoc": {
+          "column": 15,
+          "line": 463,
+          "position": 21313
+        }
+      },
+      "tokens": 82
+    },
+    {
+      "firstFile": {
+        "end": 311,
+        "endLoc": {
+          "column": 5,
+          "line": 311,
+          "position": 14793
+        },
+        "name": "modules/ai/models.py",
+        "start": 303,
+        "startLoc": {
+          "column": 14,
+          "line": 303,
+          "position": 14437
+        }
+      },
+      "format": "python",
+      "fragment": "    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 71,
+        "endLoc": {
+          "column": 5,
+          "line": 71,
+          "position": 3096
+        },
+        "name": "modules/rag/models.py",
+        "start": 63,
+        "startLoc": {
+          "column": 17,
+          "line": 63,
+          "position": 2740
+        }
+      },
+      "tokens": 82
+    },
+    {
+      "firstFile": {
+        "end": 345,
+        "endLoc": {
+          "column": 54,
+          "line": 345,
+          "position": 16073
+        },
+        "name": "modules/ai/models.py",
+        "start": 340,
+        "startLoc": {
+          "column": 4,
+          "line": 340,
+          "position": 15739
+        }
+      },
+      "format": "python",
+      "fragment": "    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))\n    workflow_run_id: Mapped[str] = mapped_column(\n        ForeignKey(\"ai_workflow_runs.id\", ondelete=\"CASCADE\"), index=True\n    )\n    tool_identifier: Mapped[str] = mapped_column(String(160))\n    tool_version: Mapped[int] = mapped_column(Integer)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 368,
+        "endLoc": {
+          "column": 54,
+          "line": 368,
+          "position": 17192
+        },
+        "name": "modules/ai/models.py",
+        "start": 363,
+        "startLoc": {
+          "column": 4,
+          "line": 363,
+          "position": 16858
+        }
+      },
+      "tokens": 73
+    },
+    {
+      "firstFile": {
+        "end": 383,
+        "endLoc": {
+          "column": 97,
+          "line": 383,
+          "position": 18098
+        },
+        "name": "modules/ai/models.py",
+        "start": 378,
+        "startLoc": {
+          "column": 57,
+          "line": 378,
+          "position": 17786
+        }
+      },
+      "format": "python",
+      "fragment": "    output_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)\n    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 146,
+        "endLoc": {
+          "column": 97,
+          "line": 146,
+          "position": 6920
+        },
+        "name": "modules/capabilities/models.py",
+        "start": 141,
+        "startLoc": {
+          "column": 63,
+          "line": 141,
+          "position": 6608
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 433,
+        "endLoc": {
+          "column": 14,
+          "line": 433,
+          "position": 20125
+        },
+        "name": "modules/ai/models.py",
+        "start": 428,
+        "startLoc": {
+          "column": 18,
+          "line": 428,
+          "position": 19852
+        }
+      },
+      "format": "python",
+      "fragment": "    reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)\n    corrected_output: Mapped[str | None] = mapped_column(Text, nullable=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 457,
+        "endLoc": {
+          "column": 5,
+          "line": 457,
+          "position": 20984
+        },
+        "name": "modules/ai/models.py",
+        "start": 450,
+        "startLoc": {
+          "column": 11,
+          "line": 450,
+          "position": 20718
+        }
+      },
+      "tokens": 60
+    },
+    {
+      "firstFile": {
+        "end": 178,
+        "endLoc": {
+          "column": 27,
+          "line": 178,
+          "position": 7422
+        },
+        "name": "modules/ai/prompts.py",
+        "start": 166,
+        "startLoc": {
+          "column": 33,
+          "line": 166,
+          "position": 6921
+        }
+      },
+      "format": "python",
+      "fragment": "        versions, _ = await self.repo.list_prompt_versions(\n            template.id, limit=MAX_PAGE_LIMIT, offset=0\n        )\n        version = None\n        if template.active_version_id:\n            version = next(\n                (item for item in versions if item.id == template.active_version_id), None\n            )\n        if version is None:\n            version = next((item for item in versions if item.is_published), None)\n        if version is None and versions:\n            version = versions[0]\n        if version is None:",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 101,
+        "endLoc": {
+          "column": 23,
+          "line": 101,
+          "position": 4125
+        },
+        "name": "modules/rag/prompts.py",
+        "start": 93,
+        "startLoc": {
+          "column": 24,
+          "line": 93,
+          "position": 3708
+        }
+      },
+      "tokens": 88
+    },
+    {
+      "firstFile": {
+        "end": 40,
+        "endLoc": {
+          "column": 33,
+          "line": 40,
+          "position": 1077
+        },
+        "name": "modules/ai/providers/anthropic.py",
+        "start": 34,
+        "startLoc": {
+          "column": 22,
+          "line": 34,
+          "position": 805
+        }
+      },
+      "format": "python",
+      "fragment": "def _anthropic_content(content: Any) -> Any:\n    if not isinstance(content, list):\n        return content\n    parts: list[dict[str, Any]] = []\n    for part in cast(list[AiTextPart | AiImagePart | AiAudioPart], content):\n        if isinstance(part, AiTextPart):\n            parts.append({\"type\": \"text\", \"text\": part.text})",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 117,
+        "endLoc": {
+          "column": 33,
+          "line": 117,
+          "position": 4189
+        },
+        "name": "modules/ai/providers/openai.py",
+        "start": 111,
+        "startLoc": {
+          "column": 29,
+          "line": 111,
+          "position": 3917
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 152,
+        "endLoc": {
+          "column": 9,
+          "line": 152,
+          "position": 5441
+        },
+        "name": "modules/ai/providers/anthropic.py",
+        "start": 145,
+        "startLoc": {
+          "column": 53,
+          "line": 145,
+          "position": 5137
+        }
+      },
+      "format": "python",
+      "fragment": "                \"anthropic API key is not configured\",\n                kind=AiErrorKind.CONFIGURATION,\n                provider_key=self.key,\n            )\n        run_id = request.metadata.get(\"run_id\", request.provider_request_id)\n        yield AiRunStartedEvent(\n            run_id=run_id, sequence=0, provider_key=self.key, model=request.model\n        )",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 272,
+        "endLoc": {
+          "column": 9,
+          "line": 272,
+          "position": 10589
+        },
+        "name": "modules/ai/providers/openai.py",
+        "start": 265,
+        "startLoc": {
+          "column": 50,
+          "line": 265,
+          "position": 10285
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 191,
+        "endLoc": {
+          "column": 47,
+          "line": 191,
+          "position": 7102
+        },
+        "name": "modules/ai/providers/openai.py",
+        "start": 180,
+        "startLoc": {
+          "column": 16,
+          "line": 180,
+          "position": 6645
+        }
+      },
+      "format": "python",
+      "fragment": "                ],\n                provider_key=self.key,\n            )\n            usage = data.get(\"usage\", {})\n            return AiProviderResponse(\n                provider_key=self.key,\n                model=request.model,\n                output_text=output_text,\n                output_json=_parse_json_output(output_text, request.response_format),\n                tool_calls=tool_calls,\n                usage=AiUsage(\n                    input_tokens=int(usage.get(\"prompt_tokens\", 0)),",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 246,
+        "endLoc": {
+          "column": 43,
+          "line": 246,
+          "position": 9382
+        },
+        "name": "modules/ai/providers/openai.py",
+        "start": 235,
+        "startLoc": {
+          "column": 12,
+          "line": 235,
+          "position": 8969
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 154,
+        "endLoc": {
+          "column": 26,
+          "line": 154,
+          "position": 6605
+        },
+        "name": "modules/ai/runs.py",
+        "start": 142,
+        "startLoc": {
+          "column": 59,
+          "line": 142,
+          "position": 6151
+        }
+      },
+      "format": "python",
+      "fragment": "            routing_policy_json={\"source\": \"prompt_version\", \"deterministic\": True},\n            review_status=\"pending\" if review_required else \"not_requested\",\n        )\n\n        await self.db.flush()\n        return await self._finalize_run_generation(\n            user=user,\n            run=run,\n            version=version,\n            rendered_system_prompt=rendered_system_prompt,\n            rendered_user_prompt=rendered_user_prompt,\n            review_required=review_required,\n            commit=commit,",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 230,
+        "endLoc": {
+          "column": 26,
+          "line": 230,
+          "position": 9731
+        },
+        "name": "modules/ai/runs.py",
+        "start": 219,
+        "startLoc": {
+          "column": 55,
+          "line": 219,
+          "position": 9278
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 175,
+        "endLoc": {
+          "column": 46,
+          "line": 175,
+          "position": 7277
+        },
+        "name": "modules/ai/runs.py",
+        "start": 163,
+        "startLoc": {
+          "column": 8,
+          "line": 163,
+          "position": 6863
+        }
+      },
+      "format": "python",
+      "fragment": "        self,\n        user: User,\n        *,\n        query: str,\n        combined_context: str,\n        retrieved_chunk_ids: list[str],\n        review_required: bool = False,\n        retrieval_degraded: bool = False,\n        memory_degraded: bool = False,\n        degradation_reason: str | None = None,\n        injection_chunks_filtered: int = 0,\n        commit: bool = True,\n        plan: RagGenerationPlan | None = None,",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 50,
+        "endLoc": {
+          "column": 46,
+          "line": 50,
+          "position": 1342
+        },
+        "name": "modules/rag/generation_port.py",
+        "start": 38,
+        "startLoc": {
+          "column": 8,
+          "line": 38,
+          "position": 928
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 175,
+        "endLoc": {
+          "column": 46,
+          "line": 175,
+          "position": 7277
+        },
+        "name": "modules/ai/runs.py",
+        "start": 163,
+        "startLoc": {
+          "column": 8,
+          "line": 163,
+          "position": 6863
+        }
+      },
+      "format": "python",
+      "fragment": "        self,\n        user: User,\n        *,\n        query: str,\n        combined_context: str,\n        retrieved_chunk_ids: list[str],\n        review_required: bool = False,\n        retrieval_degraded: bool = False,\n        memory_degraded: bool = False,\n        degradation_reason: str | None = None,\n        injection_chunks_filtered: int = 0,\n        commit: bool = True,\n        plan: RagGenerationPlan | None = None,",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 13,
+      "secondFile": {
+        "end": 102,
+        "endLoc": {
+          "column": 46,
+          "line": 102,
+          "position": 3481
+        },
+        "name": "modules/rag/generation_port.py",
+        "start": 90,
+        "startLoc": {
+          "column": 8,
+          "line": 90,
+          "position": 3067
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 177,
+        "endLoc": {
+          "column": 13,
+          "line": 177,
+          "position": 5555
+        },
+        "name": "modules/identity/auth_routes.py",
+        "start": 168,
+        "startLoc": {
+          "column": 34,
+          "line": 168,
+          "position": 5205
+        }
+      },
+      "format": "python",
+      "fragment": "        await clear_rate_limit(key)\n    access_token = create_access_token(result[\"user\"].id, result[\"session_id\"])\n    csrf_token = generate_csrf_token()\n    _set_access_cookie(response, access_token)\n    _set_refresh_cookie(response, result[\"refresh_token\"])\n    _set_csrf_cookie(response, csrf_token)\n    return AuthSessionResponse(user=_build_user(result[\"user\"]))\n\n\n@router.post(\"/refresh\", response_model=AuthSessionResponse)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 195,
+        "endLoc": {
+          "column": 13,
+          "line": 195,
+          "position": 6314
+        },
+        "name": "modules/identity/auth_routes.py",
+        "start": 186,
+        "startLoc": {
+          "column": 48,
+          "line": 186,
+          "position": 5964
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
+        "end": 67,
+        "endLoc": {
+          "column": 9,
+          "line": 67,
+          "position": 2733
+        },
+        "name": "modules/identity/organizations/repository.py",
+        "start": 61,
+        "startLoc": {
+          "column": 22,
+          "line": 61,
+          "position": 2516
+        }
+      },
+      "format": "python",
+      "fragment": "    async def get_user(self, user_id: str) -> User | None:\n        result = await self.db.execute(\n            select(User).where(User.id == user_id, User.is_active.is_(True))\n        )\n        return result.scalar_one_or_none()\n\n    async def delete_member(self, member: OrganizationMember) -> None:",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 38,
+        "endLoc": {
+          "column": 42,
+          "line": 38,
+          "position": 1183
+        },
+        "name": "modules/identity/user_repository.py",
+        "start": 34,
+        "startLoc": {
+          "column": 35,
+          "line": 34,
+          "position": 977
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 405
+        },
+        "name": "modules/integrations/api_key_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 5,
+          "line": 2,
+          "position": 44
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.identity.models import User\nfrom backend.modules.integrations.api_keys import ApiKeyService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 415
+        },
+        "name": "modules/integrations/webhook_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 5,
+          "line": 2,
+          "position": 54
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 405
+        },
+        "name": "modules/integrations/api_key_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 5,
+          "line": 2,
+          "position": 44
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.identity.models import User\nfrom backend.modules.integrations.api_keys import ApiKeyService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 405
+        },
+        "name": "modules/notifications/router.py",
+        "start": 2,
+        "startLoc": {
+          "column": 5,
+          "line": 2,
+          "position": 44
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 21,
+          "line": 13,
+          "position": 405
+        },
+        "name": "modules/integrations/api_key_routes.py",
+        "start": 2,
+        "startLoc": {
+          "column": 5,
+          "line": 2,
+          "position": 44
+        }
+      },
+      "format": "python",
+      "fragment": "from sqlalchemy.ext.asyncio import AsyncSession\n\nfrom backend.core.pagination import (\n    PaginatedResponse,\n    PaginationParams,\n    paginated_response,\n    pagination_params,\n)\nfrom backend.modules.identity.dependencies import get_current_user\nfrom backend.core.db.dependencies import get_db\nfrom backend.modules.identity.models import User\nfrom backend.modules.integrations.api_keys import ApiKeyService",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 15,
+        "endLoc": {
+          "column": 21,
+          "line": 15,
+          "position": 445
+        },
+        "name": "modules/projects/router.py",
+        "start": 4,
+        "startLoc": {
+          "column": 5,
+          "line": 4,
+          "position": 84
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 126,
+        "endLoc": {
+          "column": 80,
+          "line": 126,
+          "position": 4804
+        },
+        "name": "modules/integrations/service.py",
+        "start": 118,
+        "startLoc": {
+          "column": 8,
+          "line": 118,
+          "position": 4402
+        }
+      },
+      "format": "python",
+      "fragment": "        row = await self.db.scalar(\n            select(TenantIntegration).where(\n                TenantIntegration.id == integration_id,\n                TenantIntegration.tenant_id == tenant_id,\n                TenantIntegration.status == \"active\",\n            )\n        )\n        if row is None or not row.encrypted_credentials:\n            raise HTTPException(status_code=404, detail=\"Integration not found\")",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 177,
+        "endLoc": {
+          "column": 80,
+          "line": 177,
+          "position": 6920
+        },
+        "name": "modules/integrations/service.py",
+        "start": 169,
+        "startLoc": {
+          "column": 8,
+          "line": 169,
+          "position": 6518
+        }
+      },
+      "tokens": 60
+    },
+    {
+      "firstFile": {
+        "end": 20,
+        "endLoc": {
+          "column": 3,
+          "line": 20,
+          "position": 501
+        },
+        "name": "modules/memory/cache.py",
+        "start": 11,
+        "startLoc": {
+          "column": 0,
+          "line": 11,
+          "position": 294
+        }
+      },
+      "format": "python",
+      "fragment": "def _scope_token(value: str | None) -> str:\n    return value or \"_\"\n\n\ndef _stable_digest(*parts: str) -> str:\n    payload = \"\\0\".join(parts)\n    return hashlib.sha256(payload.encode()).hexdigest()[:16]\n\n\ndef memory_search_cache_key(",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 30,
+        "endLoc": {
+          "column": 3,
+          "line": 30,
+          "position": 725
+        },
+        "name": "modules/rag/retrieval_cache.py",
+        "start": 21,
+        "startLoc": {
+          "column": 0,
+          "line": 21,
+          "position": 518
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 95,
+        "endLoc": {
+          "column": 26,
+          "line": 95,
+          "position": 3351
+        },
+        "name": "modules/memory/context.py",
+        "start": 85,
+        "startLoc": {
+          "column": 4,
+          "line": 85,
+          "position": 3043
+        }
+      },
+      "format": "python",
+      "fragment": "    async def recall(\n        self,\n        *,\n        user_id: str,\n        agent_id: str,\n        query: str,\n        run_id: str | None = None,\n        project_id: str | None = None,\n        memory_levels: Sequence[str | MemoryLevel] | None = None,\n        limit: int | None = None,\n    ) -> list[MemoryItem]: ...",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 11,
+      "secondFile": {
+        "end": 290,
+        "endLoc": {
+          "column": 26,
+          "line": 290,
+          "position": 9996
+        },
+        "name": "modules/memory/service.py",
+        "start": 280,
+        "startLoc": {
+          "column": 4,
+          "line": 280,
+          "position": 9688
+        }
+      },
+      "tokens": 65
+    },
+    {
+      "firstFile": {
+        "end": 83,
+        "endLoc": {
+          "column": 27,
+          "line": 83,
+          "position": 2780
+        },
+        "name": "modules/memory/domain.py",
+        "start": 75,
+        "startLoc": {
+          "column": 21,
+          "line": 75,
+          "position": 2464
+        }
+      },
+      "format": "python",
+      "fragment": "        def _datetime(value: Any) -> datetime | None:\n            if not value:\n                return None\n            if isinstance(value, datetime):\n                return value\n            try:\n                return datetime.fromisoformat(str(value).replace(\"Z\", \"+00:00\"))\n            except ValueError:\n                return None",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 98,
+        "endLoc": {
+          "column": 19,
+          "line": 98,
+          "position": 3348
+        },
+        "name": "modules/memory/provider.py",
+        "start": 90,
+        "startLoc": {
+          "column": 13,
+          "line": 90,
+          "position": 3096
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 19,
+        "endLoc": {
+          "column": 90,
+          "line": 19,
+          "position": 775
+        },
+        "name": "modules/memory/models.py",
+        "start": 13,
+        "startLoc": {
+          "column": 90,
+          "line": 13,
+          "position": 373
+        }
+      },
+      "format": "python",
+      "fragment": "    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))\n    user_id: Mapped[str | None] = mapped_column(\n        ForeignKey(\"users.id\", ondelete=\"SET NULL\"), nullable=True, index=True\n    )\n    agent_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)\n    run_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)\n    project_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 41,
+        "endLoc": {
+          "column": 90,
+          "line": 41,
+          "position": 2053
+        },
+        "name": "modules/memory/models.py",
+        "start": 35,
+        "startLoc": {
+          "column": 88,
+          "line": 35,
+          "position": 1651
+        }
+      },
+      "tokens": 101
+    },
+    {
+      "firstFile": {
+        "end": 62,
+        "endLoc": {
+          "column": 95,
+          "line": 62,
+          "position": 3432
+        },
+        "name": "modules/memory/models.py",
+        "start": 55,
+        "startLoc": {
+          "column": 40,
+          "line": 55,
+          "position": 3128
+        }
+      },
+      "format": "python",
+      "fragment": "        DateTime(timezone=True), default=lambda: datetime.now(UTC)\n    )\n    updated_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=lambda: datetime.now(UTC),\n        onupdate=lambda: datetime.now(UTC),\n    )\n    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 72,
+        "endLoc": {
+          "column": 95,
+          "line": 72,
+          "position": 3192
+        },
+        "name": "modules/rag/models.py",
+        "start": 65,
+        "startLoc": {
+          "column": 40,
+          "line": 65,
+          "position": 2888
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 282,
+        "endLoc": {
+          "column": 57,
+          "line": 282,
+          "position": 8503
+        },
+        "name": "modules/memory/provider.py",
+        "start": 271,
+        "startLoc": {
+          "column": 4,
+          "line": 271,
+          "position": 8224
+        }
+      },
+      "format": "python",
+      "fragment": "    @property\n    def available(self) -> bool:\n        return True\n\n    async def add(\n        self,\n        *,\n        content: str,\n        filters: dict[str, Any],\n        metadata: dict[str, Any],\n    ) -> dict[str, Any]:\n        messages = [{\"role\": \"user\", \"content\": content}]",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 340,
+        "endLoc": {
+          "column": 57,
+          "line": 340,
+          "position": 10237
+        },
+        "name": "modules/memory/provider.py",
+        "start": 329,
+        "startLoc": {
+          "column": 4,
+          "line": 329,
+          "position": 9958
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 319,
+        "endLoc": {
+          "column": 44,
+          "line": 319,
+          "position": 9769
+        },
+        "name": "modules/memory/provider.py",
+        "start": 288,
+        "startLoc": {
+          "column": 8,
+          "line": 288,
+          "position": 8660
+        }
+      },
+      "format": "python",
+      "fragment": "        )\n        return result if isinstance(result, dict) else {}\n\n    async def search(\n        self,\n        *,\n        query: str,\n        filters: dict[str, Any],\n        top_k: int,\n    ) -> list[MemoryItem]:\n        result = await self._client.search(query, filters=filters, top_k=top_k)\n        rows = result.get(\"results\", []) if isinstance(result, dict) else []\n        return [item for row in rows if (item := _parse_memory_item(row))]\n\n    async def get(self, memory_id: str) -> MemoryItem | None:\n        result = await self._client.get(memory_id)\n        if isinstance(result, dict):\n            return _parse_memory_item(result)\n        return None\n\n    async def get_all(\n        self,\n        *,\n        filters: dict[str, Any],\n        top_k: int,\n    ) -> list[MemoryItem]:\n        result = await self._client.get_all(filters=filters, top_k=top_k)\n        rows = result.get(\"results\", []) if isinstance(result, dict) else []\n        return [item for row in rows if (item := _parse_memory_item(row))]\n\n    async def delete(self, memory_id: str) -> None:\n        await self._client.delete(memory_id)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 32,
+      "secondFile": {
+        "end": 376,
+        "endLoc": {
+          "column": 44,
+          "line": 376,
+          "position": 11607
+        },
+        "name": "modules/memory/provider.py",
+        "start": 345,
+        "startLoc": {
+          "column": 58,
+          "line": 345,
+          "position": 10498
+        }
+      },
+      "tokens": 254
+    },
+    {
+      "firstFile": {
+        "end": 171,
+        "endLoc": {
+          "column": 8,
+          "line": 171,
+          "position": 5645
+        },
+        "name": "modules/memory/router.py",
+        "start": 158,
+        "startLoc": {
+          "column": 45,
+          "line": 158,
+          "position": 5216
+        }
+      },
+      "format": "python",
+      "fragment": "        retention_days=payload.retention_days,\n    )\n    if not result.accepted and result.rejection_reason == \"mem0_unavailable\":\n        raise HTTPException(status_code=503, detail=\"Memory engine unavailable\")\n    return MemoryWriteResponse(\n        memory_id=result.memory_id,\n        memory_level=result.memory_level.value,\n        memory_type=result.memory_type.value,\n        accepted=result.accepted,\n        rejection_reason=result.rejection_reason,\n    )\n\n\n@router.post(\"/{memory_id}/correct\", response_model=MemoryWriteResponse)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 14,
+      "secondFile": {
+        "end": 198,
+        "endLoc": {
+          "column": 8,
+          "line": 198,
+          "position": 6580
+        },
+        "name": "modules/memory/router.py",
+        "start": 185,
+        "startLoc": {
+          "column": 38,
+          "line": 185,
+          "position": 6151
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 329,
+        "endLoc": {
+          "column": 94,
+          "line": 329,
+          "position": 12893
+        },
+        "name": "modules/rag/answers.py",
+        "start": 320,
+        "startLoc": {
+          "column": 37,
+          "line": 320,
+          "position": 12468
+        }
+      },
+      "format": "python",
+      "fragment": "            combined_context=combined,\n            retrieved_chunk_ids=chunk_ids,\n            retrieval_degraded=outcome.degraded,\n            memory_degraded=memory_degraded,\n            degradation_reason=outcome.degradation_reason,\n            injection_chunks_filtered=outcome.injection_chunks_filtered,\n            commit=commit,\n            plan=plan,\n        )\n        await self._ensure_current_evidence(bounded_chunks, user.id, project_id, document_ids)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 361,
+        "endLoc": {
+          "column": 98,
+          "line": 361,
+          "position": 14256
+        },
+        "name": "modules/rag/answers.py",
+        "start": 352,
+        "startLoc": {
+          "column": 47,
+          "line": 352,
+          "position": 13795
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 219,
+        "endLoc": {
+          "column": 29,
+          "line": 219,
+          "position": 8682
+        },
+        "name": "modules/rag/chunking.py",
+        "start": 209,
+        "startLoc": {
+          "column": 19,
+          "line": 209,
+          "position": 8315
+        }
+      },
+      "format": "python",
+      "fragment": "    async def chunk(  # noqa: PLR0913 - document identity and tenant scope travel together\n        self,\n        documents: list[ParsedDocument],\n        *,\n        document_id: str,\n        user_id: str,\n        filename: str,\n        project_id: str | None = None,\n        organization_id: str | None = None,\n        document_revision: str | None = None,\n    ) -> list[DocumentChunk]:",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 11,
+      "secondFile": {
+        "end": 241,
+        "endLoc": {
+          "column": 29,
+          "line": 241,
+          "position": 9397
+        },
+        "name": "modules/rag/chunking.py",
+        "start": 231,
+        "startLoc": {
+          "column": 18,
+          "line": 231,
+          "position": 9030
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 113,
+        "endLoc": {
+          "column": 25,
+          "line": 113,
+          "position": 3604
+        },
+        "name": "modules/rag/citation_validation.py",
+        "start": 108,
+        "startLoc": {
+          "column": 49,
+          "line": 108,
+          "position": 3287
+        }
+      },
+      "format": "python",
+      "fragment": "        parent_context_id=chunk.parent_context_id,\n        offset_coordinate_system=(chunk.metadata or {}).get(\"offset_coordinate_system\"),\n        offset_scope=(chunk.metadata or {}).get(\"offset_scope\"),\n        offset_scope_id=(chunk.metadata or {}).get(\"offset_scope_id\"),\n        source_spans=(chunk.metadata or {}).get(\"source_spans\"),\n        index_revision_id=_chunk_revision_id(chunk),",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 320,
+        "endLoc": {
+          "column": 33,
+          "line": 320,
+          "position": 11190
+        },
+        "name": "modules/rag/router.py",
+        "start": 315,
+        "startLoc": {
+          "column": 63,
+          "line": 315,
+          "position": 10833
+        }
+      },
+      "tokens": 65
+    },
+    {
+      "firstFile": {
+        "end": 174,
+        "endLoc": {
+          "column": 27,
+          "line": 174,
+          "position": 5491
+        },
+        "name": "modules/rag/domain.py",
+        "start": 167,
+        "startLoc": {
+          "column": 4,
+          "line": 167,
+          "position": 5193
+        }
+      },
+      "format": "python",
+      "fragment": "    char_start: int | None = None\n    char_end: int | None = None\n    source_span_ids: list[str] | None = None\n    parent_context_id: str | None = None\n    offset_coordinate_system: str | None = None\n    offset_scope: str | None = None\n    offset_scope_id: str | None = None\n    source_spans: list[dict[str, Any]] | None = None",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 186,
+        "endLoc": {
+          "column": 27,
+          "line": 186,
+          "position": 5737
+        },
+        "name": "modules/rag/schemas.py",
+        "start": 179,
+        "startLoc": {
+          "column": 4,
+          "line": 179,
+          "position": 5439
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 51,
+        "endLoc": {
+          "column": 29,
+          "line": 51,
+          "position": 1372
+        },
+        "name": "modules/rag/generation_port.py",
+        "start": 43,
+        "startLoc": {
+          "column": 34,
+          "line": 43,
+          "position": 1050
+        }
+      },
+      "format": "python",
+      "fragment": "        retrieved_chunk_ids: list[str],\n        review_required: bool = False,\n        retrieval_degraded: bool = False,\n        memory_degraded: bool = False,\n        degradation_reason: str | None = None,\n        injection_chunks_filtered: int = 0,\n        commit: bool = True,\n        plan: RagGenerationPlan | None = None,\n    ) -> RagGenerationResult: ...",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 103,
+        "endLoc": {
+          "column": 29,
+          "line": 103,
+          "position": 3511
+        },
+        "name": "modules/rag/generation_port.py",
+        "start": 95,
+        "startLoc": {
+          "column": 34,
+          "line": 95,
+          "position": 3189
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 206,
+        "endLoc": {
+          "column": 38,
+          "line": 206,
+          "position": 8462
+        },
+        "name": "modules/rag/ingestion.py",
+        "start": 199,
+        "startLoc": {
+          "column": 12,
+          "line": 199,
+          "position": 8174
+        }
+      },
+      "format": "python",
+      "fragment": "            job = await self.repo.create_ingestion_job(\n                document_id=document.id,\n                user_id=user_id,\n                project_id=project_id,\n            )\n            await self.db.commit()\n            await self.db.refresh(document)\n            await self.db.refresh(job)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 239,
+        "endLoc": {
+          "column": 34,
+          "line": 239,
+          "position": 9698
+        },
+        "name": "modules/rag/ingestion.py",
+        "start": 232,
+        "startLoc": {
+          "column": 8,
+          "line": 232,
+          "position": 9438
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 101,
+        "endLoc": {
+          "column": 96,
+          "line": 101,
+          "position": 4166
+        },
+        "name": "modules/rag/models.py",
+        "start": 94,
+        "startLoc": {
+          "column": 80,
+          "line": 94,
+          "position": 3845
+        }
+      },
+      "format": "python",
+      "fragment": "        Index(\"ix_rag_chunks_content_tsv\", \"content_tsv\", postgresql_using=\"gin\"),\n    )\n\n    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))\n    document_id: Mapped[str] = mapped_column(\n        ForeignKey(\"rag_documents.id\", ondelete=\"CASCADE\"), index=True\n    )\n    user_id: Mapped[str] = mapped_column(ForeignKey(\"users.id\", ondelete=\"CASCADE\"), index=True)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 252,
+        "endLoc": {
+          "column": 96,
+          "line": 252,
+          "position": 11270
+        },
+        "name": "modules/rag/models.py",
+        "start": 245,
+        "startLoc": {
+          "column": 8,
+          "line": 245,
+          "position": 10949
+        }
+      },
+      "tokens": 73
+    },
+    {
+      "firstFile": {
+        "end": 387,
+        "endLoc": {
+          "column": 35,
+          "line": 387,
+          "position": 15060
+        },
+        "name": "modules/rag/retrieval.py",
+        "start": 370,
+        "startLoc": {
+          "column": 12,
+          "line": 370,
+          "position": 14333
+        }
+      },
+      "format": "python",
+      "fragment": "            _assign_evidence_revision_hash(\n                outcome,\n                evidence_revision_hash=evidence_revision_hash,\n                index_revision_ids=index_revision_ids,\n                project_id=project_id,\n                document_ids=document_ids,\n                config=self.config,\n            )\n            if persist_trace:\n                outcome = await self._persist_trace(\n                    outcome,\n                    RetrievalTraceData(\n                        query=query,\n                        user_id=user_id,\n                        project_id=project_id,\n                        conversation_id=conversation_id,\n                        document_ids=document_ids,\n                        latency_ms=0,",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 18,
+      "secondFile": {
+        "end": 537,
+        "endLoc": {
+          "column": 39,
+          "line": 537,
+          "position": 22395
+        },
+        "name": "modules/rag/retrieval.py",
+        "start": 520,
+        "startLoc": {
+          "column": 16,
+          "line": 520,
+          "position": 21600
+        }
+      },
+      "tokens": 63
+    },
+    {
+      "firstFile": {
+        "end": 538,
+        "endLoc": {
+          "column": 43,
+          "line": 538,
+          "position": 22478
+        },
+        "name": "modules/rag/retrieval.py",
+        "start": 527,
+        "startLoc": {
+          "column": 16,
+          "line": 527,
+          "position": 21933
+        }
+      },
+      "format": "python",
+      "fragment": "                )\n                if persist_trace:\n                    outcome = await self._persist_trace(\n                        outcome,\n                        RetrievalTraceData(\n                            query=query,\n                            user_id=user_id,\n                            project_id=project_id,\n                            conversation_id=conversation_id,\n                            document_ids=document_ids,\n                            latency_ms=int((perf_counter() - started) * 1000),\n                            query_variants=cached.provenance.get(\"query_variants\", []),",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 907,
+        "endLoc": {
+          "column": 39,
+          "line": 907,
+          "position": 39513
+        },
+        "name": "modules/rag/retrieval.py",
+        "start": 896,
+        "startLoc": {
+          "column": 57,
+          "line": 896,
+          "position": 39012
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 907,
+        "endLoc": {
+          "column": 59,
+          "line": 907,
+          "position": 39533
+        },
+        "name": "modules/rag/retrieval.py",
+        "start": 897,
+        "startLoc": {
+          "column": 28,
+          "line": 897,
+          "position": 39042
+        }
+      },
+      "format": "python",
+      "fragment": "            if persist_trace:\n                outcome = await self._persist_trace(\n                    outcome,\n                    RetrievalTraceData(\n                        query=query,\n                        user_id=user_id,\n                        project_id=project_id,\n                        conversation_id=conversation_id,\n                        document_ids=document_ids,\n                        latency_ms=int((perf_counter() - started) * 1000),\n                        query_variants=query_variants_meta,",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 11,
+      "secondFile": {
+        "end": 946,
+        "endLoc": {
+          "column": 63,
+          "line": 946,
+          "position": 41189
+        },
+        "name": "modules/rag/retrieval.py",
+        "start": 936,
+        "startLoc": {
+          "column": 19,
+          "line": 936,
+          "position": 40658
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 145,
+        "endLoc": {
+          "column": 73,
+          "line": 145,
+          "position": 4642
+        },
+        "name": "modules/rag/router.py",
+        "start": 137,
+        "startLoc": {
+          "column": 20,
+          "line": 137,
+          "position": 4278
+        }
+      },
+      "format": "python",
+      "fragment": "    document_id: str,\n    db: AsyncSession = Depends(get_db),\n    current_user: User = Depends(get_current_user),\n):\n    _require_rag_enabled()\n    repo = RagReadService(db)\n    document = await repo.get_document(document_id, user_id=current_user.id)\n    if not document or document.user_id != current_user.id:\n        raise HTTPException(status_code=404, detail=\"Document not found\")",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 203,
+        "endLoc": {
+          "column": 73,
+          "line": 203,
+          "position": 6453
+        },
+        "name": "modules/rag/router.py",
+        "start": 195,
+        "startLoc": {
+          "column": 5,
+          "line": 195,
+          "position": 6089
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 213,
+        "endLoc": {
+          "column": 50,
+          "line": 213,
+          "position": 8346
+        },
+        "name": "modules/rag/search_repository.py",
+        "start": 206,
+        "startLoc": {
+          "column": 23,
+          "line": 206,
+          "position": 8030
+        }
+      },
+      "format": "python",
+      "fragment": "        for row in rows:\n            meta = json.loads(row[\"metadata_json\"] or \"{}\")\n            retrieved.append(\n                RetrievedChunk(\n                    chunk_id=row[\"chunk_id\"],\n                    document_id=row[\"document_id\"],\n                    content=row[\"content\"],\n                    score=round(float(row[\"score\"]), 4),",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 409,
+        "endLoc": {
+          "column": 50,
+          "line": 409,
+          "position": 16579
+        },
+        "name": "modules/rag/search_repository.py",
+        "start": 402,
+        "startLoc": {
+          "column": 68,
+          "line": 402,
+          "position": 16263
+        }
+      },
+      "tokens": 51
+    }
+  ],
+  "statistics": {
+    "detectionDate": "2026-11-28T02:55:51.252Z",
+    "formats": {
+      "python": {
+        "clones": 77,
+        "duplicatedLines": 802,
+        "duplicatedTokens": 5015,
+        "lines": 37605,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 2.1326951203297435,
+        "percentageTokens": 2.3285292424270567,
+        "sources": 278,
+        "tokens": 215372
+      }
+    },
+    "total": {
+      "clones": 77,
+      "duplicatedLines": 802,
+      "duplicatedTokens": 5015,
+      "lines": 37605,
+      "newClones": 0,
+      "newDuplicatedLines": 0,
+      "percentage": 2.1326951203297435,
+      "percentageTokens": 2.3285292424270567,
+      "sources": 278,
+      "tokens": 215372
+    }
+  }
+}

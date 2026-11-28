@@ -5,11 +5,11 @@ from __future__ import annotations
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.audit.repository import AuditRepository
+from backend.core.audit import AuditRepository
 from backend.modules.events.domain import DomainEvent
 from backend.modules.events.service import OutboxService
-from backend.modules.identity_access.models import User
-from backend.modules.identity_access.repository import IdentityRepository
+from backend.modules.identity.models import User
+from backend.modules.identity.repository import IdentityRepository
 from backend.modules.notifications.models import Notification
 
 

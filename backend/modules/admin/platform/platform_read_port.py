@@ -4,8 +4,8 @@ from typing import Protocol
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.platform.config_service import PlatformConfigService
-from backend.modules.platform.email_template_service import EmailTemplateService
+from backend.modules.admin.platform_configuration import PlatformConfigService
+from backend.modules.notifications.templates import EmailTemplateService
 
 
 class PlatformReadPort(Protocol):

@@ -10,7 +10,7 @@ source_modules =
 forbidden_modules =
     backend.api
     backend.core
-    backend.db
+    backend.core.db
     backend.modules.memory.infrastructure
     backend.modules.rag.infrastructure
 
@@ -33,7 +33,7 @@ source_modules =
 forbidden_modules =
     backend.api
     backend.core
-    backend.db
+    backend.core.db
     backend.modules.memory.infrastructure
     backend.modules.rag.infrastructure
     backend.modules.events.models

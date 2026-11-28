@@ -4,13 +4,13 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from backend.modules.ai.document_service import AiDocumentService
-from backend.modules.rag.application.legacy_ai_document_service import (
+from backend.modules.rag.legacy_ai_document_service import (
     AiDocumentView,
     LegacyAiDocumentService,
     rag_document_to_ai_view,
 )
-from backend.modules.rag.domain.enums import DocumentStatus
-from backend.modules.rag.domain.models import RetrievalOutcome, RetrievedChunk
+from backend.modules.rag.enums import DocumentStatus
+from backend.modules.rag.domain import RetrievalOutcome, RetrievedChunk
 
 
 class RagDocumentMappingTest(unittest.TestCase):

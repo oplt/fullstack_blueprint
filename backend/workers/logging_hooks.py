@@ -21,7 +21,7 @@ from celery.signals import (
 )
 
 from backend.core.config import settings
-from backend.core.log_context import reset_correlation_id, set_correlation_id
+from backend.core.logging.log_context import reset_correlation_id, set_correlation_id
 from backend.core.logging import setup_logging
 
 logger = logging.getLogger("backend.worker")
@@ -40,7 +40,7 @@ def _task_label(task: Any) -> str:
 
 def _safe_worker_metrics():
     try:
-        from backend.observability import prometheus_metrics as m
+        from backend.core.observability import prometheus_metrics as m
 
         return m
     except Exception:
@@ -87,7 +87,7 @@ def attach_correlation_and_enqueue_time(
     if headers is None:
         return
     with contextlib.suppress(Exception):
-        from backend.core.log_context import get_correlation_id
+        from backend.core.logging.log_context import get_correlation_id
 
         correlation_id = get_correlation_id() or str(uuid4())
         headers.setdefault(CORRELATION_HEADER, correlation_id)

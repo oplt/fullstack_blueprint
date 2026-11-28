@@ -8,7 +8,7 @@ import math
 from collections.abc import AsyncIterator
 
 from backend.core.config import settings
-from backend.lib.vectors import estimate_tokens
+from backend.core.vectors import estimate_tokens
 from backend.modules.ai.contracts import (
     AiCapability,
     AiProviderRequest,

@@ -4,9 +4,9 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.organizations.models import Organization
-from backend.modules.organizations.repository import OrganizationsRepository
-from backend.modules.organizations.schemas import (
+from backend.modules.identity.organizations.models import Organization
+from backend.modules.identity.organizations.repository import OrganizationsRepository
+from backend.modules.identity.organizations.schemas import (
     OrganizationMemberCreate,
     OrganizationMemberResponse,
     OrganizationResponse,

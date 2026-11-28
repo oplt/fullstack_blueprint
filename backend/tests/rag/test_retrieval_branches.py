@@ -1,4 +1,4 @@
-from backend.modules.rag.application.retrieval_service import (
+from backend.modules.rag.retrieval import (
     RetrievalBranchResult,
     _coerce_branch_result,
     _embed_query_variants,
@@ -82,8 +82,8 @@ def test_database_branch_uses_a_fresh_session_for_engine_bound_requests(monkeypa
     from types import SimpleNamespace
     from unittest.mock import MagicMock
 
-    from backend.modules.rag.application import retrieval_service as retrieval_module
-    from backend.modules.rag.application.retrieval_service import RetrievalService
+    from backend.modules.rag import retrieval as retrieval_module
+    from backend.modules.rag.retrieval import RetrievalService
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     async def run() -> None:
@@ -112,7 +112,7 @@ def test_retrieval_deadline_cancels_in_flight_work(monkeypatch) -> None:
 
     import pytest
     from backend.core.config import settings
-    from backend.modules.rag.application.retrieval_service import RetrievalService
+    from backend.modules.rag.retrieval import RetrievalService
 
     async def run() -> None:
         service = RetrievalService.__new__(RetrievalService)

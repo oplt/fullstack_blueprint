@@ -5,16 +5,16 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from backend.core.config import settings
-from core.db.vector_search import (
+from backend.core.db.vector_search import (
     InvalidQueryEmbedding,
     VectorSearchUnavailable,
     invalidate_pgvector_capability,
     pgvector_is_available,
     rank_embedding_matches,
 )
-from core.vectors import can_index_embedding, is_valid_embedding
-from backend.modules.rag.domain.retrieval_scope import RetrievalScope
-from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
+from backend.core.vectors import can_index_embedding, is_valid_embedding
+from backend.modules.rag.scope import RetrievalScope
+from backend.modules.rag.search_repository import RagSearchRepository
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
 from sqlalchemy.pool import StaticPool
@@ -169,7 +169,7 @@ async def test_json_fallback_is_bounded_and_refuses_oversized_scope() -> None:
     result = _result(rows=[{}, {}])
     db.execute.return_value = result
 
-    from core.db.vector_search import DenseFallbackScopeTooLarge
+    from backend.core.db.vector_search import DenseFallbackScopeTooLarge
 
     with pytest.raises(DenseFallbackScopeTooLarge):
         await RagSearchRepository(db).similarity_search_json_fallback(
@@ -205,8 +205,8 @@ async def test_json_fallback_hard_caps_configured_scan_limit() -> None:
 
 @pytest.mark.asyncio
 async def test_vector_adapter_disables_json_fallback_in_production(monkeypatch) -> None:
-    from core.db.vector_search import VectorSearchUnavailable
-    from backend.modules.rag.infrastructure.pgvector_adapter import PgVectorAdapter
+    from backend.core.db.vector_search import VectorSearchUnavailable
+    from backend.modules.rag.vector_store import PgVectorAdapter
 
     db = AsyncMock()
     config = SimpleNamespace(score_threshold=0.3, exact_vector_fallback_max_rows=5000)

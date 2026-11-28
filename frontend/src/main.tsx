@@ -4,7 +4,7 @@ import "./index.css";
 import { AppProviders } from "./app/providers";
 import { AppRouter } from "./app/router";
 import { RouteErrorBoundary } from "./app/RouteErrorBoundary";
-import { startWebVitals } from "./performance/webVitals";
+import { startWebVitals } from "./lib/webVitals";
 
 if (typeof window !== "undefined") {
     startWebVitals({ sampleRate: import.meta.env.PROD ? 0.1 : 1 });

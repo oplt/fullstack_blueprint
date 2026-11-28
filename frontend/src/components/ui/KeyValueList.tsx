@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { helpTermIdForKey } from "../../config/helpText";
+import { helpTermIdForKey } from "../../lib/helpText";
 import { cn } from "@/lib/utils";
 import { HelpTooltip } from "./HelpTooltip";
 export type KeyValueItem = { key: string; label: ReactNode; value: ReactNode; description?: ReactNode; helpTermId?: string };

@@ -1,0 +1,24 @@
+{
+  "threshold": 3,
+  "minLines": 5,
+  "minTokens": 50,
+  "mode": "mild",
+  "reporters": ["console", "html", "json"],
+  "output": "./reports/duplication",
+  "ignore": [
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/__pycache__/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/generated/**",
+    "**/alembic/versions/**",
+    "**/components/ui/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.stories.tsx",
+    "**/tests/**"
+  ]
+}

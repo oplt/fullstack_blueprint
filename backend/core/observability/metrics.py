@@ -7,7 +7,7 @@ from typing import Any
 
 from fastapi import Request, Response
 
-from modules.observability.config import load_config
+from backend.core.observability.config import load_config
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def setup_metrics(app: Any) -> None:
     try:
         from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
-        from modules.observability import prometheus_metrics
+        from backend.core.observability import prometheus_metrics
     except ImportError:
         logger.warning("prometheus-client not installed - Prometheus metrics disabled")
         return

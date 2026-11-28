@@ -3,15 +3,15 @@ from types import SimpleNamespace
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from backend.modules.ai.application.rag_answer_prompt import (
+from backend.modules.rag.prompts import (
     DEFAULT_RAG_ANSWER_SYSTEM_PROMPT,
     RAG_STRUCTURED_OUTPUT_CONTRACT,
     resolve_rag_answer_prompt,
 )
 from backend.modules.ai.contracts import AiProviderRequest, AiProviderResponse, AiUsage
 from backend.modules.ai.models import AiRun
-from backend.modules.ai.run_service import AiRunService
-from backend.modules.identity_access.models import User
+from backend.modules.ai.runs import AiRunService
+from backend.modules.identity.models import User
 
 
 class RagAnswerPromptTest(unittest.IsolatedAsyncioTestCase):
@@ -48,7 +48,7 @@ class RagAnswerPromptTest(unittest.IsolatedAsyncioTestCase):
         user = User(id="user-1", email="a@example.com", password_hash="x")
 
         with patch(
-            "backend.modules.ai.application.rag_answer_prompt.settings.RAG_ASK_PROMPT_TEMPLATE_KEY",
+            "backend.modules.rag.prompts.settings.RAG_ASK_PROMPT_TEMPLATE_KEY",
             "rag-answer",
         ):
             spec = await resolve_rag_answer_prompt(repo, user)
@@ -107,7 +107,7 @@ class AiRunServiceRagAnswerTest(unittest.IsolatedAsyncioTestCase):
             self.assertNotIn(marker, str(stored["input_messages_json"]))
             self.assertNotIn(marker, str(stored["variables_json"]))
 
-    @patch("backend.modules.ai.run_service.resolve_rag_answer_prompt")
+    @patch("backend.modules.ai.runs.resolve_rag_answer_prompt")
     async def test_run_rag_answer_creates_run_with_retrieved_chunk_ids(self, resolve_prompt):
         db = AsyncMock()
         service = AiRunService(db)

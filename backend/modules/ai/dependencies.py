@@ -2,8 +2,8 @@ from fastapi import Depends, Request
 
 from backend.core.config import settings
 from backend.core.rate_limit import check_rate_limit
-from backend.dependencies.auth import get_current_user
-from backend.modules.identity_access.models import User
+from backend.modules.identity.dependencies import get_current_user
+from backend.modules.identity.models import User
 
 
 async def enforce_ai_generation_rate_limit(

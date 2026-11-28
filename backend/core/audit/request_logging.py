@@ -1,7 +1,7 @@
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.audit.repository import AuditRepository
+from backend.core.audit.repository import AuditRepository
 
 
 async def log_request_audit_event(

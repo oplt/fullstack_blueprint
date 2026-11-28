@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 import type { EventInput } from "@fullcalendar/react";
-import type { CalendarItem } from "@/api/calendar";
+import type { CalendarItem } from "./api";
 
 export type CalendarFetchRange = {
     startStr: string;

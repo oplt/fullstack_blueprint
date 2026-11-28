@@ -9,9 +9,9 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
-from backend.dependencies.auth import get_current_user
-from backend.dependencies.db import get_db
-from backend.modules.identity_access.models import User
+from backend.modules.identity.dependencies import get_current_user
+from backend.core.db.dependencies import get_db
+from backend.modules.identity.models import User
 from backend.modules.projects.models import Project, ProjectTask
 from backend.modules.projects.schemas import (
     ProjectCreate,

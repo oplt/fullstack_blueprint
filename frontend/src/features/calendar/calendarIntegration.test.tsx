@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { EventSourceFunc } from "@fullcalendar/react";
-import { EventCalendar } from "@/components/event-calendar";
+import { EventCalendar } from "../../components/ui/event-calendar";
 import { toFullCalendarEvent, toInclusiveCalendarRange } from "./calendarEventSource";
 
 const calendarItem = {

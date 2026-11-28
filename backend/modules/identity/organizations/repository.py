@@ -1,8 +1,8 @@
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.identity_access.models import User
-from backend.modules.organizations.models import Organization, OrganizationMember
+from backend.modules.identity.models import User
+from backend.modules.identity.organizations.models import Organization, OrganizationMember
 
 
 class OrganizationsRepository:

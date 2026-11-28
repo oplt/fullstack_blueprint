@@ -55,7 +55,7 @@ class _WorkerAsyncRuntime:
         engine = None
         asyncio.set_event_loop(loop)
         try:
-            from backend.db.session import create_worker_sessionmaker
+            from backend.core.db.session import create_worker_sessionmaker
 
             engine, self._sessionmaker = create_worker_sessionmaker()
             self._loop = loop
@@ -100,7 +100,7 @@ class _WorkerAsyncRuntime:
         self._thread.join()
 
     async def _execute(self, coro: Coroutine[Any, Any, T]) -> T:
-        from backend.db.session import _sessionmaker_override
+        from backend.core.db.session import _sessionmaker_override
 
         token = _sessionmaker_override.set(self._sessionmaker)
         redis_token = redis_client_override.set(self._redis)
@@ -227,7 +227,7 @@ def _celery_observability_headers() -> dict[str, Any]:
     from time import time
     from uuid import uuid4
 
-    from backend.core.log_context import get_correlation_id
+    from backend.core.logging.log_context import get_correlation_id
 
     return {
         "correlation_id": get_correlation_id() or str(uuid4()),

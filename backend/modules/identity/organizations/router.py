@@ -1,16 +1,16 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.dependencies.auth import get_current_user
-from backend.dependencies.db import get_db
-from backend.modules.identity_access.models import User
-from backend.modules.organizations.schemas import (
+from backend.modules.identity.dependencies import get_current_user
+from backend.core.db.dependencies import get_db
+from backend.modules.identity.models import User
+from backend.modules.identity.organizations.schemas import (
     OrganizationCreate,
     OrganizationMemberCreate,
     OrganizationMemberResponse,
     OrganizationResponse,
 )
-from backend.modules.organizations.service import OrganizationsService
+from backend.modules.identity.organizations.service import OrganizationsService
 
 router = APIRouter()
 

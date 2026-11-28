@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, within } from "storybook/test";
-import { GenerativeUiRenderer } from "./renderers/GenerativeUiRenderer";
+import { GenerativeUiRenderer } from "./GenerativeUiRenderer";
 import { generativeUiExamples } from "./examples";
 
 const meta = { title: "Blueprint/AI/Generative UI", component: GenerativeUiRenderer, tags: ["autodocs"], parameters: { layout: "fullscreen" } } satisfies Meta<typeof GenerativeUiRenderer>;

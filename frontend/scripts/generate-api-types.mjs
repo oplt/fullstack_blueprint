@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const frontendDir = path.resolve(scriptDir, "..");
-const sourcePath = process.argv[2] ?? path.join(frontendDir, "src/api/generated/openapi.json");
-const outputPath = process.argv[3] ?? path.join(frontendDir, "src/api/generated/types.ts");
+const sourcePath = process.argv[2] ?? path.join(frontendDir, "src/lib/generated/openapi.json");
+const outputPath = process.argv[3] ?? path.join(frontendDir, "src/lib/generated/types.ts");
 const spec = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
 
 function quote(value) {

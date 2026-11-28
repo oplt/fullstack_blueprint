@@ -1,12 +1,12 @@
 from types import SimpleNamespace
 
 import pytest
-from backend.modules.rag.application.chunking_service import _split_documents_with_token_counts
-from backend.modules.rag.application.document_ingestion_service import (
+from backend.modules.rag.chunking import _split_documents_with_token_counts
+from backend.modules.rag.ingestion import (
     DocumentIngestionService,
     _validate_parsed_document_limits,
 )
-from backend.modules.rag.domain.models import DocumentChunk, ParsedDocument
+from backend.modules.rag.domain import DocumentChunk, ParsedDocument
 
 
 def test_parsed_document_limits_reject_page_character_and_unit_overages() -> None:
@@ -61,7 +61,7 @@ def test_chunking_stops_at_chunk_and_token_limits() -> None:
 
 def test_pdf_page_and_text_limits_are_checked_during_parse(monkeypatch) -> None:
     from backend.core.config import settings
-    from backend.modules.rag.infrastructure.pdf_parsers import (
+    from backend.modules.rag.parsers.pdf import (
         _validate_pdf_character_count,
         _validate_pdf_page_count,
     )

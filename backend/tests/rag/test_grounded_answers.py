@@ -4,11 +4,11 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from backend.modules.rag.api import routes
-from backend.modules.rag.application.citation_validation_service import CitationValidationService
-from backend.modules.rag.application.rag_answer_service import RagAnswerService
-from backend.modules.rag.application.rag_context_builder import RagContextBuilder
-from backend.modules.rag.domain.models import RetrievalOutcome, RetrievedChunk
+from backend.modules.rag import router as routes
+from backend.modules.rag.citation_validation import CitationValidationService
+from backend.modules.rag.answers import RagAnswerService
+from backend.modules.rag.context import RagContextBuilder
+from backend.modules.rag.domain import RetrievalOutcome, RetrievedChunk
 from fastapi import HTTPException, Response
 
 
@@ -185,7 +185,7 @@ async def test_source_preview_is_scoped_and_bound_to_the_current_exact_revision(
             metadata_json='{"page_number":2,"section_heading":"Limits"}',
         )
     ]
-    monkeypatch.setattr(routes, "RagRepository", lambda _db: repo)
+    monkeypatch.setattr(routes, "RagReadService", lambda _db: repo)
     monkeypatch.setattr(routes, "_require_rag_enabled", lambda: None)
     signer = AsyncMock(return_value="https://storage.example/source.pdf")
     monkeypatch.setattr(

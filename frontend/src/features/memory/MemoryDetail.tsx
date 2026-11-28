@@ -2,7 +2,7 @@ import {Button} from "@/components/ui/button";
 import {Trash2} from "lucide-react";
 import {QueryBoundary} from "../../components/ui/QueryBoundary";
 import {SectionCard} from "../../components/ui/SectionCard";
-import type {MemoryItem} from "../../api/memory";
+import type {MemoryItem} from "@/features/memory/api";
 import {Badge} from "@/components/ui/badge";
 
 type MemoryDetailProps = {

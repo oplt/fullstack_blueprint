@@ -1,11 +1,11 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from backend.modules.rag.domain.metadata_filters import RetrievalMetadataFilter
-from backend.modules.rag.domain.retrieval_scope import RetrievalScope
-from backend.modules.rag.infrastructure.models import RagChunk
-from backend.modules.rag.infrastructure.repositories import RagRepository
-from backend.modules.rag.infrastructure.search_repository import RagSearchRepository
+from backend.modules.rag.metadata_filters import RetrievalMetadataFilter
+from backend.modules.rag.scope import RetrievalScope
+from backend.modules.rag.models import RagChunk
+from backend.modules.rag.repository import RagRepository
+from backend.modules.rag.search_repository import RagSearchRepository
 from pydantic import ValidationError
 from sqlalchemy import ColumnElement, select
 from sqlalchemy.dialects import postgresql

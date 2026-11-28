@@ -2,11 +2,11 @@ import sys
 from types import ModuleType, SimpleNamespace
 
 import pytest
-from backend.modules.rag.application.document_parser_service import DocumentParserService
-from backend.modules.rag.domain.models import ParsedBlock, ParsedDocument
-from backend.modules.rag.infrastructure.docling_parser import DoclingParserAdapter
-from backend.modules.rag.infrastructure.langchain_text_splitters import split_documents
-from backend.modules.rag.infrastructure.parser_provenance import normalize_parsed_documents
+from backend.modules.rag.parsing import DocumentParserService
+from backend.modules.rag.domain import ParsedBlock, ParsedDocument
+from backend.modules.rag.parsers.docling import DoclingParserAdapter
+from backend.modules.rag.langchain_text_splitters import split_documents
+from backend.modules.rag.provenance import normalize_parsed_documents
 
 
 def _bbox(left: float, top: float, right: float, bottom: float):
@@ -136,7 +136,7 @@ def test_parser_service_binds_block_ids_to_document_revision(monkeypatch) -> Non
         return [ParsedDocument(content="A source paragraph.", metadata={"format": "text"})]
 
     monkeypatch.setattr(
-        "backend.modules.rag.application.document_parser_service.parse_documents_from_bytes",
+        "backend.modules.rag.parsers.loaders.parse_documents_from_bytes",
         baseline_parse,
     )
     service = DocumentParserService(SimpleNamespace(docling_enabled=False, pdf_parser="auto"))
@@ -153,13 +153,13 @@ def test_parser_service_binds_block_ids_to_document_revision(monkeypatch) -> Non
 
 
 def test_baseline_markdown_blocks_keep_nested_heading_hierarchy(monkeypatch) -> None:
-    from backend.modules.rag.infrastructure.langchain_document_loaders import _parse_markdown
+    from backend.modules.rag.parsers.loaders import _parse_markdown
 
     def baseline_parse(*, content, **_kwargs):
         return _parse_markdown(content)
 
     monkeypatch.setattr(
-        "backend.modules.rag.application.document_parser_service.parse_documents_from_bytes",
+        "backend.modules.rag.parsers.loaders.parse_documents_from_bytes",
         baseline_parse,
     )
     service = DocumentParserService(SimpleNamespace(docling_enabled=False, pdf_parser="auto"))
@@ -263,7 +263,7 @@ def test_chunk_source_coordinates_include_overlapping_layout_blocks() -> None:
 def test_docling_configuration_fails_startup_when_optional_extra_is_missing(monkeypatch) -> None:
     import importlib.util
 
-    from backend.modules.rag.infrastructure.rag_config import RagConfig, validate_rag_config
+    from backend.modules.rag.config import RagConfig, validate_rag_config
 
     config = RagConfig.from_settings()
     config = config.__class__(

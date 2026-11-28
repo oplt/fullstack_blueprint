@@ -1,7 +1,7 @@
 import { ErrorState } from "./error-state";
 import { LoadingState } from "./loading-state";
 import { Skeleton } from "./skeleton";
-import { getQueryErrorMessage } from "../../utils/queryErrors";
+import { getQueryErrorMessage } from "../../lib/queryErrors";
 type QueryBoundaryProps = { isLoading?: boolean; isError?: boolean; error?: unknown; isEmpty?: boolean; errorFallback?: string; errorTitle?: string; severity?: "error" | "warning" | "info" | "success"; onRetry?: () => void; loadingFallback?: React.ReactNode; emptyFallback?: React.ReactNode; variant?: "inline" | "page"; children: React.ReactNode };
 export function QueryErrorAlert({ error, fallback = "Failed to load data.", title, onRetry }: { error: unknown; fallback?: string; title?: string; onRetry?: () => void }) { if (!error) return null; return <ErrorState title={title} description={getQueryErrorMessage(error, fallback)} actionLabel="Retry" onRetry={onRetry} />; }
 function QueryLoading({ loadingFallback, variant }: Pick<QueryBoundaryProps, "loadingFallback" | "variant">) {

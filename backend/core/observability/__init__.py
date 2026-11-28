@@ -1,9 +1,9 @@
 """Observability helpers for app runtime flows."""
 
-from modules.observability.instruments import observed_span, structured_error
-from modules.observability.metrics import setup_metrics
-from modules.observability.setup import setup_observability
-from modules.observability.tracing import setup_tracing
+from backend.core.observability.instruments import observed_span, structured_error
+from backend.core.observability.metrics import setup_metrics
+from backend.core.observability.setup import setup_observability
+from backend.core.observability.tracing import setup_tracing
 
 __all__ = [
     "observed_span",

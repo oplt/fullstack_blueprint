@@ -7,9 +7,9 @@ from backend.core.pagination import (
     paginated_response,
     pagination_params,
 )
-from backend.dependencies.auth import get_current_user
-from backend.dependencies.db import get_db
-from backend.modules.ai.prompt_service import AiPromptService
+from backend.modules.identity.dependencies import get_current_user
+from backend.core.db.dependencies import get_db
+from backend.modules.ai.prompts import AiPromptService
 from backend.modules.ai.schemas import (
     AiPromptTemplateCreate,
     AiPromptTemplateResponse,
@@ -19,7 +19,7 @@ from backend.modules.ai.schemas import (
     AiPromptVersionUpdate,
 )
 from backend.modules.ai.serializers import _prompt_template_to_response, _prompt_version_to_response
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 
 router = APIRouter()
 

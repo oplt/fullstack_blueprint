@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from backend.core.pagination import DEFAULT_PAGE_LIMIT
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 from backend.modules.projects.models import Project, ProjectMember, ProjectTask
 
 

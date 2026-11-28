@@ -1,4 +1,4 @@
-from core.observability.service import build_public_url
+from backend.core.observability.service import build_public_url
 
 
 def test_public_url_rejects_credentials_and_url_controls() -> None:

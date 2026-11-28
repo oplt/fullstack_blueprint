@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from backend.core.config import settings
-from backend.db.pool_observability import instrument_engine
+from backend.core.db.pool_observability import instrument_engine
 
 DatabaseRole = Literal["api", "worker"]
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ instrument_engine(role="api", sync_engine=engine.sync_engine)
 def observe_session_duration(*, role: DatabaseRole, started_at: float) -> None:
     """Record session lifetime at dependency/task scope boundaries."""
     try:
-        from backend.observability.prometheus_metrics import database_session_duration_seconds
+        from backend.core.observability.prometheus_metrics import database_session_duration_seconds
 
         database_session_duration_seconds.labels(role=role).observe(monotonic() - started_at)
     except (ImportError, AttributeError, ValueError) as exc:

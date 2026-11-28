@@ -1,4 +1,4 @@
-import { helpTermIdForKey } from "../../config/helpText";
+import { helpTermIdForKey } from "../../lib/helpText";
 import type { KeyValueItem } from "./KeyValueList";
 
 function formatPrimitive(value: unknown): string {

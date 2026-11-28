@@ -1,8 +1,8 @@
-from backend.modules.memory.workers import extract_turn_memories_sync
-from backend.modules.rag.workers import cleanup_document_sync, index_document_sync
+from backend.modules.memory.jobs import extract_turn_memories_sync
+from backend.modules.rag.jobs import cleanup_document_sync, index_document_sync
 from backend.workers.celery_app import celery_app
-from backend.workers.email import send_email_sync
-from backend.workers.evaluation import run_evaluation_sync
+from backend.modules.notifications.jobs import send_email_sync
+from backend.modules.ai.jobs import run_evaluation_sync
 
 
 @celery_app.task(
@@ -110,6 +110,6 @@ def extract_turn_memories_task(
     max_retries=8,
 )
 def publish_outbox_events_task(*, limit: int = 100) -> int:
-    from backend.modules.events.workers import publish_outbox_events_sync
+    from backend.modules.events.jobs import publish_outbox_events_sync
 
     return publish_outbox_events_sync(limit=limit)

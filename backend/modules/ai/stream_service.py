@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.modules.ai.models import AiRun
 from backend.modules.ai.repository import AiRepository
 from backend.modules.ai.routing import ModelRegistry, estimate_cost_micros
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 
 
 class AiStreamService:

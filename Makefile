@@ -190,14 +190,14 @@ fix: ## Apply safe backend and frontend corrections.
 
 test: _backend-test _frontend-test ## Run complete local backend and frontend tests.
 
-check: _backend-check _frontend-check _security-check _infra-check test ## Run all static, security, infrastructure and local test checks.
+check: _backend-check _frontend-check duplicate-check _security-check _infra-check test ## Run all static, security, infrastructure and local test checks.
 
 build: _frontend-check _frontend-build _container-build ## Build and validate frontend, Storybook and containers; generate SBOMs.
 
 clean: ## Remove known generated artifacts; preserve env files and database volumes.
 	@rm -rf -- backend/.pytest_cache backend/.ruff_cache backend/.mypy_cache .pytest_cache .ruff_cache .mypy_cache frontend/dist frontend/coverage frontend/playwright-report frontend/test-results frontend/storybook-static frontend/node_modules/.vite .audit-artifacts
 	@# Only clean custom artifact directories inside the repository, and only known artifacts.
-	@if [[ "$(ARTIFACT_DIR)" != "$(CURDIR)/.audit-artifacts" && "$(ARTIFACT_DIR)" != "$(CURDIR)" && "$(ARTIFACT_DIR)" != / && -d "$(ARTIFACT_DIR)" && ! -L "$(ARTIFACT_DIR)" && $$(realpath -e -- "$(ARTIFACT_DIR)") == "$$(realpath -e -- "$(CURDIR)")/"* ]]; then find "$(ARTIFACT_DIR)" -maxdepth 1 -type f \( -name backend-junit.xml -o -name backend-coverage.xml -o -name backend-db-junit.xml -o -name integration-junit.xml -o -name worker-junit.xml -o -name security-junit.xml -o -name rag-junit.xml -o -name worker.log -o -name dependency-advisories.json -o -name current-openapi.json -o -name zap-report.html -o -name zap-report.json -o -name lighthouse.json -o -name e2e-services.log -o -name pwa-preview.log -o -name rag-evaluation.json -o -name production-image.log -o -name "*.sbom.json" -o -name migration-junit.xml -o -name production-junit.xml -o -name visual-regression-junit.xml -o -name security-headers-junit.xml -o -name accessibility-junit.xml -o -name design-tokens-junit.xml \) -delete; fi
+	@if [[ "$(ARTIFACT_DIR)" != "$(CURDIR)/.audit-artifacts" && "$(ARTIFACT_DIR)" != "$(CURDIR)" && "$(ARTIFACT_DIR)" != / && -d "$(ARTIFACT_DIR)" && ! -L "$(ARTIFACT_DIR)" && $$(realpath -e -- "$(ARTIFACT_DIR)") == "$$(realpath -e -- "$(CURDIR)")/"* ]]; then find "$(ARTIFACT_DIR)" -maxdepth 1 -type f \( -name backend-junit.xml -o -name backend-coverage.xml -o -name backend-db-junit.xml -o -name integration-junit.xml -o -name worker-junit.xml -o -name security-junit.xml -o -name rag-junit.xml -o -name worker.log -o -name dependency-advisories.json -o -name current-openapi.json -o -name zap-report.html -o -name zap-report.json -o -name lighthouse.json -o -name e2e-services.log -o -name pwa-preview.log -o -name rag-evaluation.json -o -name production-image.log -o -name "*.sbom.json" -o -name migration-junit.xml -o -name production-junit.xml -o -name visual-regression-junit.xml -o -name security-headers-junit.xml -o -name accessibility-junit.xml -o -name design-tokens-junit.xml -o -name deptry.json -o -name jscpd-frontend.json -o -name jscpd-backend.json \) -delete; fi
 
 release: ## Install, check, test, build and verify the production candidate.
 	+$(MAKE) _release-ready
@@ -288,9 +288,10 @@ _backend-check: _migration-check
 	"$(VENV_BIN)/ruff" check backend
 	"$(VENV_BIN)/ruff" format --check backend
 	cd backend && "$(VENV_BIN)/pyright" -p pyproject.toml
-	"$(VENV_BIN)/lint-imports" --config .importlinter $(if $(CI),--no-cache)
-	"$(BACKEND_PYTHON)" backend/scripts/check_architecture.py
+	$(MAKE_CMD) pylint-check
+	$(MAKE_CMD) architecture-check
 	cd backend && "$(VENV_BIN)/vulture" --min-confidence 100
+	$(MAKE_CMD) dead-deps-backend
 
 _frontend-check:
 	cd frontend && npm run lint
@@ -522,9 +523,40 @@ dead-code-production: ## Find unused production frontend code.
 dead-code-backend-strict: ## Find high-confidence unused backend code.
 	cd backend && "$(VENV_BIN)/vulture" --min-confidence 100
 
-dead-code: ## Find unused frontend and backend code.
-	@status=0; $(MAKE_CMD) dead-code-frontend || status=1; $(MAKE_CMD) dead-code-backend || status=1; exit $$status
+dead-code: ## Find unused frontend/backend code and backend dependency issues.
+	@status=0; $(MAKE_CMD) dead-code-frontend || status=1; $(MAKE_CMD) dead-code-backend || status=1; $(MAKE_CMD) dead-deps-backend || status=1; exit $$status
 
+dead-deps-backend: ## Check Python dependency declarations using Deptry.
+	@test -x "$(VENV_BIN)/deptry" || { echo 'ERROR: Deptry missing; run make backend-sync' >&2; exit 2; }
+	@mkdir -p "$(ARTIFACT_DIR)"
+	cd backend && "$(VENV_BIN)/deptry" . --json-output "$(ARTIFACT_DIR)/deptry.json"
+
+# Scan production code independently so one stack cannot dilute the other stack's duplication rate.
+# Initial policy: 5% duplicated lines, at least 5 lines and 50 tokens per clone.
+duplicate-check: ## Enforce frontend and backend duplication budgets with jscpd.
+	@test -x frontend/node_modules/.bin/jscpd || { echo 'ERROR: jscpd missing; run make install' >&2; exit 2; }
+	@mkdir -p "$(ARTIFACT_DIR)"
+	@status=0; \
+	 frontend/node_modules/.bin/jscpd frontend/src --format typescript,tsx,javascript,jsx,css --cross-formats js-ts \
+	 --ignore '**/*.test.*,**/*.spec.*,**/*.stories.*,**/__tests__/**' --min-lines 5 --min-tokens 50 --threshold 5 \
+	 --fail-on-empty --reporters console,json --report-name jscpd-frontend --output "$(ARTIFACT_DIR)" || status=1; \
+	 frontend/node_modules/.bin/jscpd backend --format python \
+	 --ignore '**/.venv/**,**/__pycache__/**,**/tests/**,**/test_*.py,**/*_test.py,**/alembic/versions/**' \
+	 --min-lines 5 --min-tokens 50 --threshold 5 --fail-on-empty --reporters console,json \
+	 --report-name jscpd-backend --output "$(ARTIFACT_DIR)" || status=1; \
+	 exit $$status
+
+code-health: ## Generate an additional jscpd health dashboard (not a release gate).
+	@test -x frontend/node_modules/.bin/jscpd || { echo 'ERROR: jscpd missing; run make install' >&2; exit 2; }
+	@mkdir -p "$(ARTIFACT_DIR)/jscpd-health"
+	frontend/node_modules/.bin/jscpd frontend/src backend --dashboard \
+	 --format typescript,tsx,javascript,jsx,css,python \
+	 --ignore '**/.venv/**,**/__pycache__/**,**/alembic/versions/**' \
+	 --reporters console,json,html --output "$(ARTIFACT_DIR)/jscpd-health"
+
+pylint-check: ## Analyze backend design and architectural weaknesses.
+	@test -x "$(VENV_BIN)/pylint" || { echo 'ERROR: Pylint missing; run make backend-sync' >&2; exit 2; }
+	cd backend && "$(VENV_BIN)/pylint" --rcfile=pyproject.toml --recursive=y .
 
 .PHONY: _migration-check help doctor setup install update dev infra db \
   fix test check build clean release _host-versions _versions \
@@ -534,4 +566,5 @@ dead-code: ## Find unused frontend and backend code.
   backend-sync backend-lock backend-lock-check lint format check-types typecheck \
   architecture-check api-contract-check coverage \
   security-audit test-load backup restore test-backend test-frontend \
-  dead-code-frontend dead-code-backend dead-code-production dead-code-backend-strict dead-code
+  dead-code-frontend dead-code-backend dead-code-production dead-code-backend-strict dead-code \
+  dead-deps-backend duplicate-check code-health pylint-check

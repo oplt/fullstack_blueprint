@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 from backend.core.config import settings
-from modules.rag.infrastructure import embedding_cache
+from backend.modules.rag import embedding_cache
 
 
 def test_provider_batch_concurrency_is_shared_across_calls(monkeypatch) -> None:

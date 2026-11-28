@@ -117,7 +117,7 @@ select = [
     "PERF", # Performance
     "T20", # Print statements
 ]
-extend-select = ["C90", "PLR0912", "PLR0915", "PLR0913"]
+extend-select = ["PL","B", "RET"]
 ignore = ["B008"]  # FastAPI Depends() in defaults
 # Turkish dotless i is intentional in multilingual RAG.
 allowed-confusables = ["ı"]
@@ -133,13 +133,13 @@ allowed-confusables = ["ı"]
 "scripts/check_architecture.py" = ["T201"]
 "scripts/check_db.py" = ["T201"]
 "scripts/validate_openapi.py" = ["T201"]
-"modules/rag/eval/chunking_experiments.py" = ["T201"]
-"modules/rag/eval/citation_entailment_experiment.py" = ["T201"]
-"modules/rag/eval/rerank_experiments.py" = ["T201"]
-"modules/rag/eval/retrieval_eval.py" = ["T201"]
-"modules/rag/eval/run_pgvector_load.py" = ["T201"]
+"tests/rag/chunking_experiments.py" = ["T201"]
+"tests/rag/citation_entailment_experiment.py" = ["T201"]
+"tests/rag/rerank_experiments.py" = ["T201"]
+"tests/rag/retrieval_eval.py" = ["T201"]
+"tests/rag/run_pgvector_load.py" = ["T201"]
 # This benchmark uses seeded pseudo-random vectors to make runs reproducible.
-"modules/rag/eval/live_benchmark.py" = ["S311"]
+"tests/rag/live_benchmark.py" = ["S311"]
 # These are fake unusable hashes in one auth test fixture, not credentials.
 "modules/ai/tests/test_rag_answer_run.py" = ["S106"]
 
@@ -163,6 +163,8 @@ dev = [
     "memray>=1.21.0",
     "opentelemetry-distro>=0.66b2",
     "opentelemetry-instrumentation-fastapi>=0.66b2",
+    "deptry>=0.25.1",
+    "pylint>=4.1.4",
 ]
 
 [tool.uv]
@@ -178,21 +180,25 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.coverage.run]
 branch = true
 source = ["backend"]
-parallel = true
+
 omit = [
-    "backend/alembic/*",
-    "backend/scripts/*",
-    "backend/**/tests/*",
-    "backend/modules/rag/eval/*",
+    "*/alembic/*",
+    "*/scripts/*",
+    "*/tests/*",
+    "*/test_*.py",
+    "*/conftest.py",
+    "*/__pycache__/*",
 ]
 
 [tool.coverage.report]
 exclude_also = [
     "if TYPE_CHECKING:",
-    "raise NotImplementedError",
 ]
+
 skip_covered = true
 show_missing = true
+fail_under = 80
+precision = 2
 
 [tool.pyright]
 include = ["."]
@@ -202,7 +208,7 @@ exclude = [
     "**/__pycache__",
     ".venv",
     "**/tests",
-    "modules/rag/eval",
+    "tests/rag",
     "alembic/versions",
 ]
 extraPaths = [".."]
@@ -228,3 +234,87 @@ exclude = [
 ]
 min_confidence = 60
 sort_by_size = true
+
+[tool.deptry]
+known_first_party = ["backend"]
+optional_dependencies_dev_groups = ["dev"]
+
+
+[tool.importlinter]
+root_package = "backend"
+include_external_packages = false
+exclude_type_checking_imports = false
+
+[[tool.importlinter.contracts]]
+name = "Business modules must not depend on API composition"
+type = "forbidden"
+source_modules = ["backend.modules"]
+forbidden_modules = ["backend.api"]
+
+[[tool.importlinter.contracts]]
+name = "Core must not depend on business modules"
+type = "forbidden"
+source_modules = ["backend.core"]
+forbidden_modules = ["backend.modules"]
+
+[[tool.importlinter.contracts]]
+name = "Production modules must not depend on test or offline evaluation code"
+type = "forbidden"
+source_modules = ["backend.modules"]
+forbidden_modules = ["backend.tests"]
+
+[[tool.importlinter.contracts]]
+name = "AI providers must not depend on routing"
+type = "forbidden"
+source_modules = ["backend.modules.ai.providers"]
+forbidden_modules = [
+    "backend.modules.ai.routing",
+    "backend.modules.ai.router",
+    "backend.modules.ai.run_routes",
+]
+
+# Pylint: complementary design and architecture analysis.
+
+[tool.pylint.main]
+ignore = [
+    ".venv",
+    "tests",
+    "alembic",
+    "migrations",
+    "__pycache__",
+]
+
+[tool.pylint.messages_control]
+disable = ["all"]
+enable = [
+    "cyclic-import",
+    "duplicate-code",
+    "too-many-ancestors",
+    "too-many-instance-attributes",
+    "too-many-public-methods",
+    "too-many-locals",
+    "too-many-boolean-expressions",
+    "too-many-nested-blocks",
+    "inconsistent-return-statements",
+]
+
+[tool.pylint.design]
+max-parents = 5
+max-attributes = 10
+max-public-methods = 20
+max-locals = 15
+max-bool-expr = 5
+
+[tool.pylint.refactoring]
+max-nested-blocks = 4
+
+[tool.pylint.similarities]
+min-similarity-lines = 6
+ignore-comments = true
+ignore-docstrings = true
+ignore-imports = true
+ignore-signatures = true
+
+[tool.pylint.reports]
+reports = false
+score = false

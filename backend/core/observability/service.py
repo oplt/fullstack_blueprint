@@ -14,7 +14,7 @@ from backend.core.cache import (
 )
 from backend.core.config import Settings
 from backend.core.db.session import engine
-from modules.observability.schemas import (
+from backend.core.observability.schemas import (
     ObservabilityDashboards,
     ObservabilityLinks,
     ObservabilityStatus,
@@ -186,7 +186,7 @@ class ObservabilityService:
         try:
             count, depths = await asyncio.gather(healthy_worker_count(), queue_depths())
             try:
-                from modules.observability import prometheus_metrics
+                from backend.core.observability import prometheus_metrics
 
                 for queue, depth in depths.items():
                     prometheus_metrics.worker_queue_depth.labels(queue=queue).set(depth)

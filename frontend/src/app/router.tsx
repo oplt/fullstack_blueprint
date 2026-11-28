@@ -2,33 +2,33 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { ProtectedRoute } from "../components/guards/ProtectedRoute";
-import { useAuth } from "../hooks/useAuth";
-import { usePlatformMetadata } from "../hooks/usePlatformMetadata";
-import AuthHomePage from "../pages/AuthHomePage";
+import { ProtectedRoute } from "./ProtectedRoute";
+import { useAuth } from "../features/identity/useAuth";
+import { usePlatformMetadata } from "../lib/usePlatformMetadata";
+import AuthHomePage from "../features/identity/AuthHomePage";
 import { RouteErrorBoundary } from "./RouteErrorBoundary";
-import { ROUTES } from "@/config/routes";
-import { capabilityAvailability, serverStateFromPlatformMetadata } from "@/config/application/capabilities";
-import { useApplicationConfiguration } from "@/config/application/useConfiguration";
-import type { CapabilityId } from "@/config/application/types";
+import { ROUTES } from "../lib/routes";
+import { capabilityAvailability, serverStateFromPlatformMetadata } from "../lib/capabilities";
+import { useApplicationConfiguration } from "../lib/useConfiguration";
+import type { CapabilityId } from "@/lib/configurationTypes";
 
 const AppLayout = lazy(() =>
-    import("../components/layout/AppLayout").then((module) => ({ default: module.AppLayout }))
+    import("./AppLayout").then((module) => ({ default: module.AppLayout }))
 );
-const DashboardPage = lazy(() => import("../pages/DashboardPage"));
-const CalendarPage = lazy(() => import("../pages/CalendarPage"));
-const ProjectsPage = lazy(() => import("../pages/ProjectsPage"));
-const ProjectDetailPage = lazy(() => import("../pages/ProjectDetailPage"));
-const PlatformPage = lazy(() => import("../pages/PlatformPage"));
-const ProfilePage = lazy(() => import("../pages/ProfilePage"));
-const NotificationsPage = lazy(() => import("../pages/NotificationsPage"));
-const ObservabilityPage = lazy(() => import("../pages/ObservabilityPage"));
-const ResetPasswordPage = lazy(() => import("../pages/ResetPasswordPage"));
-const VerifyEmailPage = lazy(() => import("../pages/VerifyEmailPage"));
-const AdminUsersPage = lazy(() => import("../pages/AdminUsersPage"));
-const AdminPlatformPage = lazy(() => import("../pages/AdminPlatformPage"));
-const AdminSettingsPage = lazy(() => import("../pages/AdminSettingsPage"));
-const AiStudioPage = lazy(() => import("../pages/AiStudioPage"));
+const DashboardPage = lazy(() => import("../features/dashboard/DashboardPage"));
+const CalendarPage = lazy(() => import("../features/calendar/CalendarPage"));
+const ProjectsPage = lazy(() => import("../features/projects/ProjectsPage"));
+const ProjectDetailPage = lazy(() => import("../features/projects/ProjectDetailPage"));
+const PlatformPage = lazy(() => import("../features/integrations/PlatformPage"));
+const ProfilePage = lazy(() => import("../features/identity/ProfilePage"));
+const NotificationsPage = lazy(() => import("../features/notifications/NotificationsPage"));
+const ObservabilityPage = lazy(() => import("../features/observability/ObservabilityPage"));
+const ResetPasswordPage = lazy(() => import("../features/identity/ResetPasswordPage"));
+const VerifyEmailPage = lazy(() => import("../features/identity/VerifyEmailPage"));
+const AdminUsersPage = lazy(() => import("../features/admin/AdminUsersPage"));
+const AdminPlatformPage = lazy(() => import("../features/admin/AdminPlatformPage"));
+const AdminSettingsPage = lazy(() => import("../features/admin/AdminSettingsPage"));
+const AiStudioPage = lazy(() => import("../features/ai/AiStudioPage"));
 const RagView = lazy(() =>
     import("../features/rag/RagView").then((m) => ({ default: m.default }))
 );
@@ -36,7 +36,7 @@ const MemoryView = lazy(() =>
     import("../features/memory/MemoryView").then((m) => ({ default: m.default }))
 );
 const AgentView = lazy(() =>
-    import("../features/agent/AgentView").then((m) => ({ default: m.default }))
+    import("../features/agents/AgentView").then((m) => ({ default: m.default }))
 );
 
 function PageLoader() {

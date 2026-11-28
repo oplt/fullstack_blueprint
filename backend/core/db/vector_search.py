@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
-from backend.lib.vectors import (
+from backend.core.vectors import (
     can_index_embedding,
     cosine_similarity,
     is_valid_embedding,

@@ -4,7 +4,7 @@ from uuid import uuid4
 from sqlalchemy import Date, DateTime, ForeignKey, String, Text, Time
 from sqlalchemy.orm import Mapped, mapped_column
 
-from backend.db.base import Base
+from backend.core.db.base import Base
 
 
 class CalendarEntry(Base):

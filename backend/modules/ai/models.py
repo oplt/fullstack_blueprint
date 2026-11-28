@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from backend.db.base import Base
+from backend.core.db.base import Base
 
 
 class AiPromptTemplate(Base):

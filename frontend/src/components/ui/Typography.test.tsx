@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { AuthMarketingPanel } from "../auth/AuthMarketingPanel";
+import { AuthMarketingPanel } from "../../features/identity/AuthMarketingPanel";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { PageHeader } from "./PageHeader";
 

@@ -8,8 +8,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
-from backend.dependencies.auth import get_current_user
-from backend.dependencies.db import get_db
+from backend.modules.identity.dependencies import get_current_user
+from backend.core.db.dependencies import get_db
 from backend.modules.ai.contracts import (
     AiMessage,
     AiMessageRole,
@@ -19,12 +19,13 @@ from backend.modules.ai.contracts import (
 )
 from backend.modules.ai.dependencies import enforce_ai_generation_rate_limit
 from backend.modules.ai.errors import AiErrorKind, AiProviderError
+from backend.modules.ai.gateway import AiModelGateway
 from backend.modules.ai.providers import AiProviderRegistry
-from backend.modules.ai.routing import ModelRegistry, RoutingPolicy
+from backend.modules.ai.routing import RoutingPolicy
 from backend.modules.ai.schemas import AiStreamRequest
 from backend.modules.ai.stream_service import AiStreamService
-from backend.modules.ai.streaming import AiStreamingService, sse_encode
-from backend.modules.identity_access.models import User
+from backend.modules.ai.streaming import sse_encode
+from backend.modules.identity.models import User
 
 router = APIRouter()
 
@@ -38,15 +39,15 @@ async def stream_ai_run(
     _rate_limit: None = Depends(enforce_ai_generation_rate_limit),
 ):
     try:
-        provider = AiProviderRegistry().get(payload.provider_key)
-        model_spec = ModelRegistry().route(
+        gateway = AiModelGateway(providers=AiProviderRegistry())
+        provider, model_spec, selected_model = gateway.select(
             task=AiTaskType.GENERATION,
             policy=RoutingPolicy(
                 region=settings.AI_DEFAULT_REGION or None,
                 cost_budget_micros=settings.AI_TENANT_MAX_COST_MICROS,
             ),
-            requested_provider=payload.provider_key,
-            requested_model=payload.model,
+            provider_key=payload.provider_key,
+            model=payload.model,
         )
     except AiProviderError as exc:
         status_code = {
@@ -62,7 +63,7 @@ async def stream_ai_run(
     run = await service.create_run(
         current_user,
         provider_key=provider.key,
-        model_name=model_spec.model_id,
+        model_name=selected_model,
         response_format=payload.response_format,
         system_prompt=payload.system_prompt,
         user_prompt=payload.user_prompt,
@@ -78,7 +79,7 @@ async def stream_ai_run(
         temperature=payload.temperature,
         max_output_tokens=min(
             payload.max_output_tokens or settings.AI_MAX_OUTPUT_TOKENS,
-            model_spec.max_output_tokens,
+            model_spec.max_output_tokens if model_spec else settings.AI_MAX_OUTPUT_TOKENS,
         ),
         timeout_seconds=settings.AI_REQUEST_TIMEOUT_SECONDS,
         tools=payload.tools,
@@ -89,7 +90,7 @@ async def stream_ai_run(
         text_parts: list[str] = []
         last_sequence = 0
         try:
-            async for event in AiStreamingService().stream(provider, provider_request):
+            async for event in gateway.stream(provider_request):
                 if await request.is_disconnected():
                     raise asyncio.CancelledError
                 last_sequence = event.sequence

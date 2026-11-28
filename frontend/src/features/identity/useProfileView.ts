@@ -1,0 +1,22 @@
+import { notify } from "../../lib/notify";
+import { useForm } from "react-hook-form"; import { zodResolver } from "@hookform/resolvers/zod"; import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { disableMfa, enableMfa, verifyMfa } from "@/features/identity/authApi"; import { changePassword, revokeSession, updateMe } from "@/features/identity/usersApi"; import { deleteAvatar, updateProfile, uploadAvatar } from "@/features/identity/profileApi";
+import { invalidateUserIdentity, queryKeys } from "../../lib/queryKeys"; import { useMutationErrorToast } from "../../lib/useMutationErrorToast"; import { useCurrentUser } from "./useCurrentUser"; import { useUserProfile } from "./useUserProfile"; import { useUserSessions } from "./useUserSessions"; import { getQueryErrorMessage } from "../../lib/queryErrors";
+import { accountSchema, mfaCodeSchema, passwordSchema, profileSchema, type AccountValues, type MfaCodeValues, type PasswordValues, type ProfileValues } from "./profileSchemas";
+export function useProfileView() { const client = useQueryClient(); const toastError = useMutationErrorToast(); const userQuery = useCurrentUser(); const profileQuery = useUserProfile(); const sessionsQuery = useUserSessions();
+    const accountForm = useForm<AccountValues>({ resolver: zodResolver(accountSchema), values: { full_name: userQuery.data?.full_name ?? "" } });
+    const profileForm = useForm<ProfileValues>({ resolver: zodResolver(profileSchema), values: { bio: profileQuery.data?.bio ?? "", location: profileQuery.data?.location ?? "", website: profileQuery.data?.website ?? "" } });
+    const passwordForm = useForm<PasswordValues>({ resolver: zodResolver(passwordSchema) }); const mfaVerifyForm = useForm<MfaCodeValues>({ resolver: zodResolver(mfaCodeSchema) }); const mfaDisableForm = useForm<MfaCodeValues>({ resolver: zodResolver(mfaCodeSchema) });
+    const accountMutation = useMutation({ mutationFn: updateMe, onSuccess: async () => { await invalidateUserIdentity(client); }, onError: (e: any) => toastError(e, "Failed to update account info.") });
+    const profileMutation = useMutation({ mutationFn: updateProfile, onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.users.profile }), onError: (e: any) => toastError(e, "Failed to update public profile.") });
+    const passwordMutation = useMutation({ mutationFn: changePassword, onSuccess: () => passwordForm.reset(), onError: (e: any) => toastError(e, "Failed to update password.") });
+    const revokeSessionMutation = useMutation({ mutationFn: revokeSession, onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.users.sessions }), onError: (e: any) => toastError(e, "Failed to revoke session.") });
+    const enableMfaMutation = useMutation({ mutationFn: enableMfa, onError: (e: any) => toastError(e, "Failed to start MFA setup.") });
+    const verifyMfaMutation = useMutation({ mutationFn: (v: MfaCodeValues) => verifyMfa(v.code), onSuccess: async () => { mfaVerifyForm.reset(); await invalidateUserIdentity(client); notify({ message: "MFA enabled.", severity: "success" }); }, onError: (e: any) => toastError(e, "Failed to verify MFA.") });
+    const disableMfaMutation = useMutation({ mutationFn: (v: MfaCodeValues) => disableMfa(v.code), onSuccess: async () => { mfaDisableForm.reset(); await invalidateUserIdentity(client); notify({ message: "MFA disabled.", severity: "success" }); }, onError: (e: any) => toastError(e, "Failed to disable MFA.") });
+    const avatarSuccess = async (message: string) => { await client.invalidateQueries({ queryKey: queryKeys.users.profile }); notify({ message, severity: "success" }); };
+    const uploadAvatarMutation = useMutation({ mutationFn: uploadAvatar, onSuccess: () => avatarSuccess("Avatar updated."), onError: (e: any) => notify({ message: getQueryErrorMessage(e, "Failed to upload avatar."), severity: "error" }) });
+    const deleteAvatarMutation = useMutation({ mutationFn: deleteAvatar, onSuccess: () => avatarSuccess("Avatar removed."), onError: (e: any) => notify({ message: getQueryErrorMessage(e, "Failed to remove avatar."), severity: "error" }) });
+    return { userQuery, profileQuery, sessionsQuery, accountForm, profileForm, passwordForm, mfaVerifyForm, mfaDisableForm, accountMutation, profileMutation, passwordMutation, revokeSessionMutation, enableMfaMutation, verifyMfaMutation, disableMfaMutation, uploadAvatarMutation, deleteAvatarMutation };
+}
+export type ProfileModel = ReturnType<typeof useProfileView>;

@@ -6,12 +6,12 @@ import json
 import logging
 
 from backend.core.config import settings
-from backend.core.log_context import get_correlation_id
-from backend.core.log_handlers import (
+from backend.core.logging.log_context import get_correlation_id
+from backend.core.logging.log_handlers import (
     LOGGING_CONFIGURED_ATTR,
     attach_handlers,
 )
-from backend.core.log_redaction import RedactingFilter
+from backend.core.logging.log_redaction import RedactingFilter
 
 
 class CorrelationContextFilter(logging.Filter):

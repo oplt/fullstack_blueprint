@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.dependencies.auth import get_current_user
-from backend.dependencies.db import get_db
-from backend.modules.ai.overview_service import AiOverviewService
+from backend.modules.identity.dependencies import get_current_user
+from backend.core.db.dependencies import get_db
+from backend.modules.ai.overview import AiOverviewService
 from backend.modules.ai.provider_service import AiProviderService
 from backend.modules.ai.schemas import AiModuleOverviewResponse, AiProviderDescriptor
 from backend.modules.ai.serializers import (
@@ -12,7 +12,7 @@ from backend.modules.ai.serializers import (
     _prompt_template_to_response,
     run_to_response,
 )
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 
 router = APIRouter()
 

@@ -2,15 +2,15 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from backend.modules.rag.application.document_parser_service import DocumentParserService
-from backend.modules.rag.application.query_analysis import analyze_query, quoted_phrase
-from backend.modules.rag.application.query_expansion_service import QueryExpansionService
-from backend.modules.rag.application.rerank_policy import apply_rerank_policy
-from backend.modules.rag.application.retrieval_fusion import reciprocal_rank_fusion
-from backend.modules.rag.application.retrieval_planner import plan_retrieval
-from backend.modules.rag.domain.enums import RetrievalIntent
-from backend.modules.rag.domain.models import ParsedDocument, RetrievedChunk
-from backend.modules.rag.infrastructure.pgvector_adapter import PgVectorAdapter
+from backend.modules.rag.parsing import DocumentParserService
+from backend.modules.rag.query import analyze_query, quoted_phrase
+from backend.modules.rag.query_expansion import QueryExpansionService
+from backend.modules.rag.rerank_policy import apply_rerank_policy
+from backend.modules.rag.retrieval_fusion import reciprocal_rank_fusion
+from backend.modules.rag.retrieval_planner import plan_retrieval
+from backend.modules.rag.enums import RetrievalIntent
+from backend.modules.rag.domain import ParsedDocument, RetrievedChunk
+from backend.modules.rag.vector_store import PgVectorAdapter
 
 
 def _chunk(chunk_id: str, score: float = 0.0) -> RetrievedChunk:
@@ -69,9 +69,7 @@ async def test_reranker_cannot_replace_scoped_candidate_content() -> None:
 
 @pytest.mark.asyncio
 async def test_dense_search_never_relaxes_minimum_cosine_score(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "backend.modules.rag.infrastructure.pgvector_adapter.settings.APP_ENV", "production"
-    )
+    monkeypatch.setattr("backend.modules.rag.vector_store.settings.APP_ENV", "production")
     adapter = PgVectorAdapter(AsyncMock(), SimpleNamespace(score_threshold=0.4))
     indexed = AsyncMock(side_effect=[[], [_chunk("low-score", 0.25)]])
     adapter.search_repo.similarity_search_indexed = indexed
@@ -119,7 +117,7 @@ def test_docling_failure_falls_back_with_parser_provenance(monkeypatch) -> None:
     service = DocumentParserService(SimpleNamespace(docling_enabled=True, pdf_parser="docling"))
     service.docling.parse = fail_parse
     monkeypatch.setattr(
-        "backend.modules.rag.application.document_parser_service.parse_documents_from_bytes",
+        "backend.modules.rag.parsing.parse_documents_from_bytes",
         baseline_parse,
     )
 

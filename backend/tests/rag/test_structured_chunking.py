@@ -1,10 +1,10 @@
 from types import SimpleNamespace
 
 import pytest
-from core.vectors import estimate_tokens
-from backend.modules.rag.application.chunking_service import ChunkingService
-from backend.modules.rag.domain.models import ParsedBlock, ParsedDocument
-from backend.modules.rag.infrastructure.langchain_text_splitters import split_documents
+from backend.core.vectors import estimate_tokens
+from backend.modules.rag.chunking import ChunkingService
+from backend.modules.rag.domain import ParsedBlock, ParsedDocument
+from backend.modules.rag.langchain_text_splitters import split_documents
 
 
 def test_overlap_keeps_exact_source_text_and_respects_budget() -> None:
@@ -99,9 +99,7 @@ async def test_ingestion_keeps_full_table_in_one_nonretrieval_parent(monkeypatch
     async def run_inline(function, /, *args, **kwargs):
         return function(*args, **kwargs)
 
-    monkeypatch.setattr(
-        "backend.modules.rag.application.chunking_service.asyncio.to_thread", run_inline
-    )
+    monkeypatch.setattr("backend.modules.rag.chunking.asyncio.to_thread", run_inline)
     raw = "Name | Value\nAlpha | 12\nBeta | 34\nGamma | 56"
     table = ParsedBlock(
         "table-1",

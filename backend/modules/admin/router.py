@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.dependencies.admin import get_admin_user
-from backend.dependencies.db import get_db
+from backend.modules.admin.dependencies import get_admin_user
+from backend.core.db.dependencies import get_db
 from backend.modules.admin.schemas import (
     AdminUserListResponse,
     AdminUserResponse,
@@ -11,7 +11,7 @@ from backend.modules.admin.schemas import (
     MetricsResponse,
 )
 from backend.modules.admin.service import AdminService
-from backend.modules.identity_access.models import User
+from backend.modules.identity.models import User
 
 router = APIRouter()
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { ProjectTask, ProjectTaskStatus } from "../../api/projects";
-import { PROJECT_TASK_PRIORITIES } from "@/config/projectTaskOptions";
+import type { ProjectTask, ProjectTaskStatus } from "@/features/projects/api";
+import { PROJECT_TASK_PRIORITIES } from "./projectTaskOptions";
 
 export const projectTaskSchema = z.object({
     title: z.string().trim().min(2, "Task title must be at least 2 characters.").max(255),

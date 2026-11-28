@@ -19,7 +19,7 @@
     "design:check": "node scripts/check-design-system.mjs",
     "typecheck": "tsc -b",
     "audit": "npm audit --audit-level=high",
-    "api:export": "cd .. && ${BACKEND_PYTHON:-backend/.venv/bin/python} backend/scripts/export_openapi.py --output frontend/src/api/generated/openapi.json",
+    "api:export": "cd .. && ${BACKEND_PYTHON:-backend/.venv/bin/python} backend/scripts/export_openapi.py --output frontend/src/lib/generated/openapi.json",
     "api:generate": "node scripts/generate-api-types.mjs",
     "api:generate:all": "npm run api:export && npm run api:generate",
     "api:check": "node scripts/check-api-contract.mjs",

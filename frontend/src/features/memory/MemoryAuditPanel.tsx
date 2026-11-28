@@ -1,7 +1,7 @@
 import { PaginationControls } from "../../components/ui/pagination";
 import { QueryBoundary } from "../../components/ui/QueryBoundary";
 import { SectionCard } from "../../components/ui/SectionCard";
-import type { useMemoryWorkspace } from "./hooks/useMemoryWorkspace";
+import type { useMemoryWorkspace } from "./useMemoryWorkspace";
 
 type MemoryAuditPanelProps = {
     isOpen: boolean;

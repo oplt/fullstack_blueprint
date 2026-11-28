@@ -1,4 +1,4 @@
-import { apiFetch, type ApiRequestOptions } from "../../api/client";
+import { apiFetch, type ApiRequestOptions } from "@/lib/api";
 import type { ObservabilityLinks, ObservabilityStatus } from "./types";
 
 export function getObservabilityLinks(options?: ApiRequestOptions): Promise<ObservabilityLinks> {

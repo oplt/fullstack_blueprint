@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PageTabs } from "./PageTabs";
-import { useTabQueryParam } from "../../hooks/useTabQueryParam";
+import { useTabQueryParam } from "../../lib/useTabQueryParam";
 
 const TABS = ["dataset", "train", "evaluate"] as const;
 

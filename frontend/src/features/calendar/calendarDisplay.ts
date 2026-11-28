@@ -1,5 +1,5 @@
-import type { CalendarItemType } from "@/api/calendar";
-import type { Project, ProjectTaskPriority } from "../../api/projects";
+import type { CalendarItemType } from "./api";
+import type { Project, ProjectTaskPriority } from "@/features/projects/api";
 
 export type CalendarViewMode = "day" | "week" | "month" | "twelve_month";
 

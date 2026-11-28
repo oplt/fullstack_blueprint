@@ -1,0 +1,875 @@
+backend
+├── AGENTS.md
+├── alembic
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions
+│       ├── 0001_initial_schema.py
+│       ├── 2dd23fc750b6_add_missing_circular_foreign_keys.py
+│       └── 9d1a7d0c959c_initial_schema.py
+├── alembic.ini
+├── api
+│   ├── __init__.py
+│   └── main.py
+├── ARCHITECTURE.md
+├── CONFIGURATION.md
+├── core
+│   ├── api_contracts.py
+│   ├── audit
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── repository.py
+│   │   └── request_logging.py
+│   ├── cache.py
+│   ├── config.py
+│   ├── db
+│   │   ├── base.py
+│   │   ├── dependencies.py
+│   │   ├── __init__.py
+│   │   ├── pool_observability.py
+│   │   ├── session.py
+│   │   ├── transaction.py
+│   │   └── vector_search.py
+│   ├── errors.py
+│   ├── features.py
+│   ├── health.py
+│   ├── idempotency.py
+│   ├── __init__.py
+│   ├── logging
+│   │   ├── __init__.py
+│   │   ├── log_context.py
+│   │   ├── logging.py
+│   │   ├── log_handlers.py
+│   │   ├── log_redaction.py
+│   │   └── log_timing.py
+│   ├── middleware
+│   │   ├── correlation_id.py
+│   │   ├── csrf.py
+│   │   ├── __init__.py
+│   │   ├── public_rate_limit.py
+│   │   ├── request_limits.py
+│   │   ├── request_logging.py
+│   │   └── security_headers.py
+│   ├── observability
+│   │   ├── config.py
+│   │   ├── __init__.py
+│   │   ├── instruments.py
+│   │   ├── metrics.py
+│   │   ├── otel.py
+│   │   ├── prometheus_metrics.py
+│   │   ├── schemas.py
+│   │   ├── sentry.py
+│   │   ├── service.py
+│   │   ├── setup.py
+│   │   └── tracing.py
+│   ├── openapi.py
+│   ├── pagination.py
+│   ├── rate_limit.py
+│   ├── resource_cache.py
+│   ├── safe_http.py
+│   ├── schemas.py
+│   ├── security.py
+│   ├── storage.py
+│   ├── text_snippet.py
+│   └── vectors.py
+├── .env.example
+├── __init__.py
+├── main.py
+├── modules
+│   ├── admin
+│   │   ├── analytics.py
+│   │   ├── billing
+│   │   │   ├── entitlements.py
+│   │   │   ├── __init__.py
+│   │   │   ├── router.py
+│   │   │   └── service.py
+│   │   ├── config_metadata.py
+│   │   ├── config_routes.py
+│   │   ├── dependencies.py
+│   │   ├── env_file_store.py
+│   │   ├── feature_flags.py
+│   │   ├── feature_routes.py
+│   │   ├── __init__.py
+│   │   ├── lifecycle.py
+│   │   ├── models.py
+│   │   ├── platform
+│   │   │   ├── defaults.py
+│   │   │   ├── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── platform_read_port.py
+│   │   │   ├── README.md
+│   │   │   ├── repository.py
+│   │   │   ├── router.py
+│   │   │   └── schemas.py
+│   │   ├── platform_configuration.py
+│   │   ├── repository.py
+│   │   ├── router.py
+│   │   ├── schemas.py
+│   │   ├── service.py
+│   │   ├── settings_configuration.py
+│   │   ├── settings.py
+│   │   ├── settings_routes.py
+│   │   └── settings_schemas.py
+│   ├── agents
+│   │   ├── contracts.py
+│   │   ├── __init__.py
+│   │   ├── mcp.py
+│   │   ├── router.py
+│   │   ├── runtime.py
+│   │   ├── service.py
+│   │   ├── tools.py
+│   │   ├── workflow_definitions.py
+│   │   └── workflow.py
+│   ├── ai
+│   │   ├── base_service.py
+│   │   ├── context.py
+│   │   ├── contracts.py
+│   │   ├── dependencies.py
+│   │   ├── document_routes.py
+│   │   ├── document_service.py
+│   │   ├── errors.py
+│   │   ├── evaluation_routes.py
+│   │   ├── evaluation_scoring.py
+│   │   ├── evaluations.py
+│   │   ├── gateway.py
+│   │   ├── __init__.py
+│   │   ├── jobs.py
+│   │   ├── metrics.py
+│   │   ├── models.py
+│   │   ├── orchestration.py
+│   │   ├── overview.py
+│   │   ├── overview_routes.py
+│   │   ├── prompt_routes.py
+│   │   ├── prompts.py
+│   │   ├── providers
+│   │   │   ├── anthropic.py
+│   │   │   ├── common.py
+│   │   │   ├── __init__.py
+│   │   │   ├── local.py
+│   │   │   ├── openai.py
+│   │   │   └── registry.py
+│   │   ├── provider_service.py
+│   │   ├── README.md
+│   │   ├── reliability.py
+│   │   ├── repository.py
+│   │   ├── review_routes.py
+│   │   ├── reviews.py
+│   │   ├── router.py
+│   │   ├── routing.py
+│   │   ├── run_routes.py
+│   │   ├── runs.py
+│   │   ├── schemas.py
+│   │   ├── serializers.py
+│   │   ├── streaming.py
+│   │   ├── stream_routes.py
+│   │   └── stream_service.py
+│   ├── calendar
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── repository.py
+│   │   ├── router.py
+│   │   ├── schemas.py
+│   │   └── service.py
+│   ├── capabilities
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   └── search.py
+│   ├── events
+│   │   ├── domain.py
+│   │   ├── handlers.py
+│   │   ├── __init__.py
+│   │   ├── jobs.py
+│   │   ├── models.py
+│   │   ├── repository.py
+│   │   └── service.py
+│   ├── identity
+│   │   ├── auth.py
+│   │   ├── auth_routes.py
+│   │   ├── dependencies.py
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── organizations
+│   │   │   ├── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── repository.py
+│   │   │   ├── router.py
+│   │   │   ├── schemas.py
+│   │   │   └── service.py
+│   │   ├── profile_models.py
+│   │   ├── profile.py
+│   │   ├── profile_repository.py
+│   │   ├── profile_routes.py
+│   │   ├── profile_schemas.py
+│   │   ├── profile_serializers.py
+│   │   ├── repository.py
+│   │   ├── schemas.py
+│   │   ├── user_models.py
+│   │   ├── user_repository.py
+│   │   ├── user_routes.py
+│   │   ├── user_schemas.py
+│   │   └── users.py
+│   ├── __init__.py
+│   ├── integrations
+│   │   ├── api_key_routes.py
+│   │   ├── api_keys.py
+│   │   ├── __init__.py
+│   │   ├── service.py
+│   │   ├── storage.py
+│   │   ├── webhook_jobs.py
+│   │   ├── webhook_routes.py
+│   │   └── webhooks.py
+│   ├── memory
+│   │   ├── cache.py
+│   │   ├── config.py
+│   │   ├── consolidation.py
+│   │   ├── context.py
+│   │   ├── domain.py
+│   │   ├── enums.py
+│   │   ├── extraction.py
+│   │   ├── governance.py
+│   │   ├── __init__.py
+│   │   ├── jobs.py
+│   │   ├── metrics.py
+│   │   ├── models.py
+│   │   ├── policies.py
+│   │   ├── policy_service.py
+│   │   ├── provider.py
+│   │   ├── ranking.py
+│   │   ├── README.md
+│   │   ├── repository.py
+│   │   ├── router.py
+│   │   ├── routing.py
+│   │   ├── schemas.py
+│   │   └── service.py
+│   ├── notifications
+│   │   ├── __init__.py
+│   │   ├── jobs.py
+│   │   ├── models.py
+│   │   ├── repository.py
+│   │   ├── router.py
+│   │   ├── schemas.py
+│   │   ├── service.py
+│   │   ├── template_routes.py
+│   │   └── templates.py
+│   ├── observability
+│   │   ├── __init__.py
+│   │   └── router.py
+│   ├── projects
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── permissions.py
+│   │   ├── repository.py
+│   │   ├── router.py
+│   │   ├── schemas.py
+│   │   └── service.py
+│   └── rag
+│       ├── answers.py
+│       ├── chunking.py
+│       ├── chunk_policy.py
+│       ├── chunk_tokenizers.py
+│       ├── citations.py
+│       ├── citation_validation_context.py
+│       ├── citation_validation.py
+│       ├── cohere_reranker.py
+│       ├── config_models.py
+│       ├── config.py
+│       ├── context.py
+│       ├── context_selection.py
+│       ├── document_scope.py
+│       ├── domain.py
+│       ├── embedding_cache.py
+│       ├── embedding_provider.py
+│       ├── embedding_registry.py
+│       ├── embeddings.py
+│       ├── enums.py
+│       ├── eval
+│       ├── evidence_access.py
+│       ├── evidence_revision.py
+│       ├── filters.py
+│       ├── generation_port.py
+│       ├── indexing.py
+│       ├── ingestion.py
+│       ├── __init__.py
+│       ├── jobs.py
+│       ├── langchain_text_splitters.py
+│       ├── legacy_ai_document_service.py
+│       ├── lexical_languages.py
+│       ├── metadata_filters.py
+│       ├── metrics.py
+│       ├── models.py
+│       ├── parent_context_service.py
+│       ├── parsers
+│       │   ├── docling.py
+│       │   ├── __init__.py
+│       │   ├── loaders.py
+│       │   ├── pdf.py
+│       │   └── pdf_quality.py
+│       ├── parsing.py
+│       ├── pdf_quality.py
+│       ├── policies.py
+│       ├── prompt_context_service.py
+│       ├── prompts.py
+│       ├── provenance.py
+│       ├── query_expansion.py
+│       ├── query.py
+│       ├── ranking.py
+│       ├── README.md
+│       ├── repository.py
+│       ├── repository_scope.py
+│       ├── reranker_port.py
+│       ├── rerank_policy.py
+│       ├── retrieval_cache.py
+│       ├── retrieval_fusion.py
+│       ├── retrieval_planner.py
+│       ├── retrieval.py
+│       ├── retrieval_request.py
+│       ├── router.py
+│       ├── safety.py
+│       ├── schemas.py
+│       ├── scope.py
+│       ├── search_repository.py
+│       ├── service.py
+│       ├── source_coordinates.py
+│       ├── source_diversifier.py
+│       ├── storage.py
+│       ├── structured_chunking.py
+│       ├── telemetry.py
+│       ├── tools.py
+│       ├── value_objects.py
+│       └── vector_store.py
+├── pyproject.toml
+├── requirements.txt
+├── router.py
+├── scripts
+│   ├── backup_postgres.sh
+│   ├── check_architecture.py
+│   ├── check_db.py
+│   ├── export_openapi.py
+│   ├── migrate.sh
+│   ├── restore_postgres.sh
+│   ├── setup-local-db.sql
+│   ├── sync-deps.sh
+│   └── validate_openapi.py
+├── tests
+│   ├── conftest.py
+│   ├── __init__.py
+│   ├── rag
+│   │   ├── chunking_baseline_report.md
+│   │   ├── chunking_experiments.py
+│   │   ├── citation_entailment_experiment.py
+│   │   ├── end_to_end_eval.py
+│   │   ├── fixture_ingestion.py
+│   │   ├── fixtures
+│   │   │   ├── citation_entailment_pairs.json
+│   │   │   ├── end_to_end_qrels.json
+│   │   │   ├── governance.txt
+│   │   │   ├── multilingual.txt
+│   │   │   ├── participation.txt
+│   │   │   └── retrieval_qrels.json
+│   │   ├── __init__.py
+│   │   ├── live_benchmark.py
+│   │   ├── load_benchmark.py
+│   │   ├── metrics.py
+│   │   ├── model_benchmarks.py
+│   │   ├── multilingual_benchmark.py
+│   │   ├── pgvector_benchmark.py
+│   │   ├── quality_experiments.py
+│   │   ├── rerank_experiments.py
+│   │   ├── retrieval_eval.py
+│   │   ├── run_end_to_end.py
+│   │   ├── run_pgvector_load.py
+│   │   ├── test_document_response.py
+│   │   ├── test_embedding_cache_concurrency.py
+│   │   ├── test_grounded_answers.py
+│   │   ├── test_ingestion_feature_gate.py
+│   │   ├── test_ingestion_job_claim.py
+│   │   ├── test_ingestion_limits.py
+│   │   ├── test_parent_context_scope.py
+│   │   ├── test_parser_provenance.py
+│   │   ├── test_rerank_and_coverage.py
+│   │   ├── test_retrieval_branches.py
+│   │   ├── test_retrieval_eval.py
+│   │   ├── test_retrieval_preview.py
+│   │   ├── test_retrieval_quality_regressions.py
+│   │   ├── test_search_repository.py
+│   │   ├── test_sec05_search_failures.py
+│   │   └── test_structured_chunking.py
+│   ├── test_agent_run_history.py
+│   ├── test_agent_workflows.py
+│   ├── test_ai_provider_infrastructure.py
+│   ├── test_auth_security.py
+│   ├── test_avatar_upload.py
+│   ├── test_capability_modules.py
+│   ├── test_config_editor.py
+│   ├── test_document_consolidation.py
+│   ├── test_entitlements.py
+│   ├── test_memory_tenant_isolation.py
+│   ├── test_metrics_routes.py
+│   ├── test_middleware_contracts.py
+│   ├── test_one_time_tokens.py
+│   ├── test_optional_capability_routes.py
+│   ├── test_optional_worker.py
+│   ├── test_platform_config_service.py
+│   ├── test_public_urls.py
+│   ├── test_rag_answer_run.py
+│   ├── test_rate_limit.py
+│   ├── test_repository_atomicity.py
+│   ├── test_repository.py
+│   ├── test_request_limits.py
+│   ├── test_request_security_headers.py
+│   ├── test_retrieval_consolidation.py
+│   ├── test_route_registration.py
+│   ├── test_service.py
+│   ├── test_session_revocation.py
+│   ├── test_stream_routes.py
+│   ├── test_vector_search.py
+│   ├── test_webhook_delivery.py
+│   └── test_workflow_transition_guards.py
+├── uv.lock
+└── workers
+    ├── async_dispatch.py
+    ├── celery_app.py
+    ├── health.py
+    ├── __init__.py
+    ├── logging_hooks.py
+    ├── run_worker.py
+    └── tasks.py
+frontend
+├── AGENTS.md
+├── components.json
+├── .dependency-cruiser.cjs
+├── e2e
+│   ├── auth-rag.spec.ts
+│   ├── auth-refresh.spec.ts
+│   ├── core.spec.ts
+│   └── provisioned-workspace.spec.ts
+├── e2e-design
+│   └── design.pw.ts
+├── .env.example
+├── eslint.config.js
+├── index.html
+├── knip.json
+├── package.json
+├── package-lock.json
+├── playwright.config.ts
+├── playwright.design.config.ts
+├── public
+│   ├── licenses
+│   │   └── ibm-plex-mono.txt
+│   ├── mockServiceWorker.js
+│   ├── pwa-192x192.png
+│   ├── pwa-512x512.png
+│   └── theme-init.js
+├── README.md
+├── scripts
+│   ├── check-api-contract.mjs
+│   ├── check-bundle-size.mjs
+│   ├── check-design-system.mjs
+│   ├── check-pwa-browser.mjs
+│   ├── check-pwa.mjs
+│   ├── generate-api-types.mjs
+│   ├── measure-performance.mjs
+│   └── test-design-checker.mjs
+├── src
+│   ├── app
+│   │   ├── AppLayout.test.tsx
+│   │   ├── AppLayout.tsx
+│   │   ├── colorModeContext.ts
+│   │   ├── layoutVariants.ts
+│   │   ├── Navigation.stories.tsx
+│   │   ├── NotificationNavBadge.tsx
+│   │   ├── PageSearch.test.tsx
+│   │   ├── PageSearch.tsx
+│   │   ├── ProtectedRoute.test.tsx
+│   │   ├── ProtectedRoute.tsx
+│   │   ├── providers.tsx
+│   │   ├── RouteErrorBoundary.tsx
+│   │   ├── router.tsx
+│   │   ├── routes.test.ts
+│   │   ├── searchParams.ts
+│   │   ├── SettingsTabs.tsx
+│   │   ├── ThemeSelector.tsx
+│   │   ├── theme.test.ts
+│   │   ├── theme.ts
+│   │   ├── WorkspaceMenus.tsx
+│   │   └── WorkspaceSidebar.tsx
+│   ├── components
+│   │   └── ui
+│   │       ├── a11y.axe.test.tsx
+│   │       ├── a11y.phase21.test.tsx
+│   │       ├── ActivityTimeline.tsx
+│   │       ├── AdvancedDataTable.test.tsx
+│   │       ├── AdvancedDataTable.tsx
+│   │       ├── AdvancedSettings.tsx
+│   │       ├── alert-dialog.tsx
+│   │       ├── alert.test.tsx
+│   │       ├── alert.tsx
+│   │       ├── avatar.tsx
+│   │       ├── badge.tsx
+│   │       ├── Button.stories.tsx
+│   │       ├── button.tsx
+│   │       ├── calendar.tsx
+│   │       ├── card.test.tsx
+│   │       ├── card.tsx
+│   │       ├── Charts.stories.tsx
+│   │       ├── charts.test.tsx
+│   │       ├── charts.tsx
+│   │       ├── checkbox.tsx
+│   │       ├── CodeViewer.tsx
+│   │       ├── combobox.tsx
+│   │       ├── ComparisonCard.tsx
+│   │       ├── DataTable.stories.tsx
+│   │       ├── date-picker.tsx
+│   │       ├── DesignTokens.stories.tsx
+│   │       ├── DesignValidation.stories.tsx
+│   │       ├── Dialogs.stories.tsx
+│   │       ├── dialog.tsx
+│   │       ├── DisabledWithReason.test.tsx
+│   │       ├── DisabledWithReason.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── EmptyState.tsx
+│   │       ├── error-state.tsx
+│   │       ├── event-calendar-icons.tsx
+│   │       ├── event-calendar-toolbar.tsx
+│   │       ├── event-calendar.tsx
+│   │       ├── event-calendar-views.tsx
+│   │       ├── Feedback.stories.tsx
+│   │       ├── field.tsx
+│   │       ├── FileUploader.test.tsx
+│   │       ├── FileUploader.tsx
+│   │       ├── form-field.test.tsx
+│   │       ├── form-field.tsx
+│   │       ├── FormGrid.tsx
+│   │       ├── Forms.stories.tsx
+│   │       ├── HelpTooltip.test.tsx
+│   │       ├── HelpTooltip.tsx
+│   │       ├── input.tsx
+│   │       ├── JsonBlock.tsx
+│   │       ├── jsonDisplay.test.tsx
+│   │       ├── jsonDisplay.ts
+│   │       ├── keyValueItems.ts
+│   │       ├── KeyValueList.tsx
+│   │       ├── label.tsx
+│   │       ├── LanguageSelector.test.tsx
+│   │       ├── LanguageSelector.tsx
+│   │       ├── layoutPrimitives.test.tsx
+│   │       ├── LazyChart.tsx
+│   │       ├── loading-state.tsx
+│   │       ├── MarkdownRenderer.tsx
+│   │       ├── MetricGrid.tsx
+│   │       ├── native-select.tsx
+│   │       ├── PageHeader.tsx
+│   │       ├── PageShell.test.tsx
+│   │       ├── PageShell.tsx
+│   │       ├── PageTabs.test.tsx
+│   │       ├── PageTabs.tsx
+│   │       ├── pagination.tsx
+│   │       ├── popover.tsx
+│   │       ├── primitives.test.tsx
+│   │       ├── progress.tsx
+│   │       ├── QueryBoundary.test.tsx
+│   │       ├── QueryBoundary.tsx
+│   │       ├── ReadOnlyTable.tsx
+│   │       ├── ResponsiveCardGrid.tsx
+│   │       ├── responsiveLayout.test.tsx
+│   │       ├── responsiveQa.test.tsx
+│   │       ├── RunStatusBadge.tsx
+│   │       ├── runStatusModel.test.tsx
+│   │       ├── runStatusModel.ts
+│   │       ├── RunStatusPanel.tsx
+│   │       ├── ScrollRegion.test.tsx
+│   │       ├── ScrollRegion.tsx
+│   │       ├── SectionCard.tsx
+│   │       ├── separator.tsx
+│   │       ├── sheet.tsx
+│   │       ├── skeleton.tsx
+│   │       ├── SkipToContentLink.tsx
+│   │       ├── sonner.tsx
+│   │       ├── StatCardSkeletonGrid.tsx
+│   │       ├── StatCard.tsx
+│   │       ├── switch.tsx
+│   │       ├── table.tsx
+│   │       ├── tabs.tsx
+│   │       ├── textarea.tsx
+│   │       ├── tooltip.tsx
+│   │       ├── TrendIndicator.tsx
+│   │       ├── TruncatedCell.tsx
+│   │       ├── Typography.stories.tsx
+│   │       ├── Typography.test.tsx
+│   │       └── WorkspaceSplit.tsx
+│   ├── features
+│   │   ├── admin
+│   │   │   ├── adminApi.ts
+│   │   │   ├── AdminPlatformContent.tsx
+│   │   │   ├── AdminPlatformPage.tsx
+│   │   │   ├── AdminPlatformStats.tsx
+│   │   │   ├── AdminPlatformView.tsx
+│   │   │   ├── AdminSettingsContent.tsx
+│   │   │   ├── AdminSettingsPage.tsx
+│   │   │   ├── AdminSettingsView.tsx
+│   │   │   ├── AdminUsersDirectory.tsx
+│   │   │   ├── AdminUsersPage.tsx
+│   │   │   ├── CloneConfigSection.tsx
+│   │   │   ├── ConfigSettingsSection.tsx
+│   │   │   ├── DatabaseSettingsSections.tsx
+│   │   │   ├── featureFlagsApi.ts
+│   │   │   ├── FlagsSection.tsx
+│   │   │   ├── PlansSection.tsx
+│   │   │   ├── platformAdminModel.ts
+│   │   │   ├── SettingEditors.tsx
+│   │   │   ├── settingsApi.ts
+│   │   │   ├── settingsModel.ts
+│   │   │   ├── TemplatesSection.tsx
+│   │   │   ├── useAdminSettingsContent.ts
+│   │   │   ├── useAdminUsers.ts
+│   │   │   ├── usePlatformAdminContent.ts
+│   │   │   ├── usePlatformAdminMutations.test.ts
+│   │   │   └── usePlatformAdminMutations.ts
+│   │   ├── agents
+│   │   │   ├── AgentConfigurationPanel.tsx
+│   │   │   ├── AgentOutputDetails.tsx
+│   │   │   ├── agentQueryUtils.test.ts
+│   │   │   ├── agentQueryUtils.ts
+│   │   │   ├── AgentRetrievalSettings.tsx
+│   │   │   ├── AgentRunDetails.tsx
+│   │   │   ├── AgentRunHistory.tsx
+│   │   │   ├── AgentRunPanel.tsx
+│   │   │   ├── AgentRunStatus.tsx
+│   │   │   ├── AgentSourcesDetails.tsx
+│   │   │   ├── AgentTraceDetails.tsx
+│   │   │   ├── agentTraceModel.test.ts
+│   │   │   ├── agentTraceModel.ts
+│   │   │   ├── AgentView.test.tsx
+│   │   │   ├── AgentView.tsx
+│   │   │   ├── api.ts
+│   │   │   └── useAgentWorkspace.ts
+│   │   ├── ai
+│   │   │   ├── AiStudioPage.tsx
+│   │   │   ├── AiStudioView.tsx
+│   │   │   ├── EvaluationDatasetBuilder.tsx
+│   │   │   ├── EvaluationResults.tsx
+│   │   │   ├── evaluationsApi.ts
+│   │   │   ├── generative-ui
+│   │   │   │   ├── actionDispatcher.test.ts
+│   │   │   │   ├── actionDispatcher.ts
+│   │   │   │   ├── examples.ts
+│   │   │   │   ├── GenerativeUiRenderer.stories.tsx
+│   │   │   │   ├── GenerativeUiRenderer.test.tsx
+│   │   │   │   ├── GenerativeUiRenderer.tsx
+│   │   │   │   ├── registry.ts
+│   │   │   │   ├── schemas.ts
+│   │   │   │   ├── validation.test.ts
+│   │   │   │   └── validation.ts
+│   │   │   ├── overviewApi.ts
+│   │   │   ├── PromptLibraryPanel.tsx
+│   │   │   ├── promptsApi.ts
+│   │   │   ├── RetrievalDocumentsPanel.tsx
+│   │   │   ├── ReviewQueueSection.tsx
+│   │   │   ├── reviewsApi.ts
+│   │   │   ├── ReviewsEvaluationsPanel.tsx
+│   │   │   ├── RunPlaygroundPanel.tsx
+│   │   │   ├── runsApi.ts
+│   │   │   ├── studioUtils.test.ts
+│   │   │   ├── studioUtils.ts
+│   │   │   ├── useAiPromptAssetMutations.ts
+│   │   │   ├── useAiRunEvaluationMutations.ts
+│   │   │   ├── useAiStudioForms.ts
+│   │   │   ├── useAiStudioView.ts
+│   │   │   ├── VersionBuilderPanel.tsx
+│   │   │   └── workspace
+│   │   │       ├── components.test.tsx
+│   │   │       ├── components.tsx
+│   │   │       ├── reducer.ts
+│   │   │       ├── streaming.test.ts
+│   │   │       ├── streaming.ts
+│   │   │       ├── types.test.ts
+│   │   │       ├── types.ts
+│   │   │       └── Workspace.stories.tsx
+│   │   ├── billing
+│   │   │   └── api.ts
+│   │   ├── calendar
+│   │   │   ├── api.ts
+│   │   │   ├── CalendarCanvas.tsx
+│   │   │   ├── calendarDisplay.ts
+│   │   │   ├── calendarEventSource.ts
+│   │   │   ├── calendarIntegration.test.tsx
+│   │   │   ├── CalendarItemDrawer.tsx
+│   │   │   ├── CalendarItemForm.tsx
+│   │   │   ├── CalendarPage.tsx
+│   │   │   ├── DayItems.tsx
+│   │   │   └── useDashboardCalendar.ts
+│   │   ├── dashboard
+│   │   │   ├── AccountHealthCard.tsx
+│   │   │   ├── DashboardCalendarSlot.tsx
+│   │   │   ├── DashboardCalendar.tsx
+│   │   │   ├── DashboardMetrics.tsx
+│   │   │   ├── DashboardPage.test.tsx
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── ProjectSnapshot.tsx
+│   │   │   └── RecentActivityCard.tsx
+│   │   ├── identity
+│   │   │   ├── authApi.ts
+│   │   │   ├── authContext.ts
+│   │   │   ├── AuthForms.tsx
+│   │   │   ├── AuthHomePage.tsx
+│   │   │   ├── AuthMarketingPanel.tsx
+│   │   │   ├── AuthProvider.test.tsx
+│   │   │   ├── AuthProvider.tsx
+│   │   │   ├── authSchemas.ts
+│   │   │   ├── AuthShell.tsx
+│   │   │   ├── MfaQrCode.test.tsx
+│   │   │   ├── MfaQrCode.tsx
+│   │   │   ├── profileApi.ts
+│   │   │   ├── ProfilePage.tsx
+│   │   │   ├── profileSchemas.ts
+│   │   │   ├── ProfileSections.tsx
+│   │   │   ├── ProfileView.tsx
+│   │   │   ├── ResetPasswordPage.tsx
+│   │   │   ├── useAuth.ts
+│   │   │   ├── useCurrentUser.ts
+│   │   │   ├── useOneTimeAuthToken.test.ts
+│   │   │   ├── useOneTimeAuthToken.ts
+│   │   │   ├── useProfileView.ts
+│   │   │   ├── usersApi.ts
+│   │   │   ├── useUserProfile.ts
+│   │   │   ├── useUserSessions.ts
+│   │   │   └── VerifyEmailPage.tsx
+│   │   ├── integrations
+│   │   │   ├── api.ts
+│   │   │   ├── PlatformPage.tsx
+│   │   │   ├── PlatformSections.tsx
+│   │   │   ├── PlatformView.tsx
+│   │   │   └── usePlatformView.ts
+│   │   ├── memory
+│   │   │   ├── api.ts
+│   │   │   ├── MemoryAuditPanel.tsx
+│   │   │   ├── MemoryDetail.tsx
+│   │   │   ├── MemoryFiltersPanel.tsx
+│   │   │   ├── MemoryListPanel.tsx
+│   │   │   ├── MemoryView.tsx
+│   │   │   └── useMemoryWorkspace.ts
+│   │   ├── notifications
+│   │   │   ├── api.ts
+│   │   │   ├── emailTemplatesApi.ts
+│   │   │   ├── MarkAllReadButton.tsx
+│   │   │   ├── NotificationListItem.tsx
+│   │   │   ├── NotificationPreferencesForm.tsx
+│   │   │   ├── NotificationsPage.tsx
+│   │   │   ├── useNotificationMutations.ts
+│   │   │   ├── useNotificationPreferences.ts
+│   │   │   ├── useNotifications.test.tsx
+│   │   │   └── useNotifications.ts
+│   │   ├── observability
+│   │   │   ├── api.ts
+│   │   │   ├── HealthStatusCard.tsx
+│   │   │   ├── InvestigationContextFields.tsx
+│   │   │   ├── ObservabilityHealthGrid.tsx
+│   │   │   ├── observabilityModel.ts
+│   │   │   ├── ObservabilityPage.test.tsx
+│   │   │   ├── ObservabilityPage.tsx
+│   │   │   ├── ObservabilityShortcutCard.tsx
+│   │   │   ├── ObservabilityShortcuts.tsx
+│   │   │   ├── ObservabilityView.tsx
+│   │   │   ├── types.ts
+│   │   │   ├── urlBuilders.test.ts
+│   │   │   ├── urlBuilders.ts
+│   │   │   └── useObservabilityView.ts
+│   │   ├── projects
+│   │   │   ├── api.ts
+│   │   │   ├── ProjectDetailPage.tsx
+│   │   │   ├── ProjectDetailView.tsx
+│   │   │   ├── ProjectFlowSection.tsx
+│   │   │   ├── ProjectsPage.tsx
+│   │   │   ├── ProjectTaskCards.tsx
+│   │   │   ├── projectTaskModel.ts
+│   │   │   ├── projectTaskOptions.ts
+│   │   │   ├── TaskEditorSection.tsx
+│   │   │   └── useProjectDetail.ts
+│   │   └── rag
+│   │       ├── api.ts
+│   │       ├── RagChunksPanel.tsx
+│   │       ├── RagCitationList.tsx
+│   │       ├── RagDegradedNotice.tsx
+│   │       ├── RagDocumentsPanel.test.tsx
+│   │       ├── RagDocumentsPanel.tsx
+│   │       ├── RagEvaluationAnswer.tsx
+│   │       ├── RagEvaluationPanel.tsx
+│   │       ├── ragEvaluationSummary.test.ts
+│   │       ├── ragEvaluationSummary.ts
+│   │       ├── RagIndexingConfiguration.tsx
+│   │       ├── RagIndexingPanel.tsx
+│   │       ├── RagIngestionStatus.tsx
+│   │       ├── RagMetricTile.tsx
+│   │       ├── RagRetrievalPanel.test.tsx
+│   │       ├── RagRetrievalPanel.tsx
+│   │       ├── RagRunsPanel.tsx
+│   │       ├── RagView.tsx
+│   │       ├── RetrievalComparisonResults.test.tsx
+│   │       ├── RetrievalComparisonResults.tsx
+│   │       ├── useRagWorkspace.ts
+│   │       └── useRetrievalComparison.ts
+│   ├── i18n
+│   │   ├── config.ts
+│   │   ├── formatters.ts
+│   │   ├── i18n.test.ts
+│   │   ├── resources.ts
+│   │   └── useLanguage.ts
+│   ├── index.css
+│   ├── lib
+│   │   ├── a11y.ts
+│   │   ├── api.test.ts
+│   │   ├── api.ts
+│   │   ├── capabilities.ts
+│   │   ├── color.ts
+│   │   ├── configurationContext.ts
+│   │   ├── ConfigurationProvider.tsx
+│   │   ├── configuration.test.ts
+│   │   ├── configuration.ts
+│   │   ├── configurationTypes.ts
+│   │   ├── formatters.ts
+│   │   ├── generated
+│   │   │   ├── openapi.json
+│   │   │   ├── README.md
+│   │   │   └── types.ts
+│   │   ├── helpText.ts
+│   │   ├── notify.ts
+│   │   ├── platformApi.ts
+│   │   ├── queryClient.test.ts
+│   │   ├── queryClient.ts
+│   │   ├── queryErrors.ts
+│   │   ├── queryKeys.test.ts
+│   │   ├── queryKeys.ts
+│   │   ├── queryTiming.test.ts
+│   │   ├── queryTiming.ts
+│   │   ├── routes.ts
+│   │   ├── useConfiguration.ts
+│   │   ├── useDebounce.ts
+│   │   ├── use-mobile.ts
+│   │   ├── useMutationErrorToast.ts
+│   │   ├── usePlatformMetadata.test.tsx
+│   │   ├── usePlatformMetadata.ts
+│   │   ├── useSettingsTabs.test.ts
+│   │   ├── useSettingsTabs.ts
+│   │   ├── useTabQueryParam.ts
+│   │   ├── utils.test.ts
+│   │   ├── utils.ts
+│   │   ├── webVitals.test.ts
+│   │   └── webVitals.ts
+│   ├── main.tsx
+│   ├── mocks
+│   │   └── handlers.ts
+│   ├── test
+│   │   └── setup.ts
+│   └── types
+│       └── qrcode.d.ts
+├── .storybook
+│   ├── main.ts
+│   └── preview.tsx
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+└── vitest.config.ts
+
+68 directories, 805 files

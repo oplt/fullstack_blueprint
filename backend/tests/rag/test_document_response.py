@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from types import SimpleNamespace
 
-from backend.modules.rag.api.routes import _document_to_response
+from backend.modules.rag.router import _document_to_response
 
 
 def test_document_response_does_not_expose_storage_path() -> None:

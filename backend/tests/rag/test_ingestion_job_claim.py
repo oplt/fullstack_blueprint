@@ -2,8 +2,8 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
-from backend.modules.rag.domain.enums import IngestionErrorCode, IngestionJobStatus
-from backend.modules.rag.infrastructure.repositories import RagRepository
+from backend.modules.rag.enums import IngestionErrorCode, IngestionJobStatus
+from backend.modules.rag.repository import RagRepository
 
 
 @pytest.mark.parametrize(

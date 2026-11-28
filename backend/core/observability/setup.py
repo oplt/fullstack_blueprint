@@ -1,8 +1,8 @@
 from typing import Any
 
 from backend.core.config import settings
-from modules.observability.otel import setup_observability as setup_runtime_observability
-from modules.observability.sentry import setup_sentry
+from backend.core.observability.otel import setup_observability as setup_runtime_observability
+from backend.core.observability.sentry import setup_sentry
 
 
 def setup_observability(app: Any | None = None) -> None:

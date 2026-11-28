@@ -1,4 +1,4 @@
-import { apiFetchStream } from "../../../api/client";
+import { apiFetchStream } from "@/lib/api";
 import { parseAiStreamEvent, type AiStreamEvent } from "./types";
 
 export type SseFrame = { event?: string; id?: string; retry?: number; data: string };

@@ -8,6 +8,6 @@
     "scripts/**/*.{js,mjs,ts}"
   ],
   "ignoreIssues": {
-    "src/api/generated/**": ["files", "exports", "types"]
+    "src/lib/generated/**": ["files", "exports", "types"]
   }
 }

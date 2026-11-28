@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
-from backend.modules.rag.application.document_ingestion_service import DocumentIngestionService
+from backend.modules.rag.ingestion import DocumentIngestionService
 from fastapi import HTTPException
 
 

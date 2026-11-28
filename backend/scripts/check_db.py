@@ -13,7 +13,7 @@ sys.path.insert(0, str(BACKEND_ROOT))
 
 async def main() -> int:
     try:
-        from core.config import settings
+        from backend.core.config import settings
     except Exception as exc:
         print(f"Failed to load backend settings: {exc}", file=sys.stderr)
         return 1

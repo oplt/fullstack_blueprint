@@ -3,7 +3,7 @@ import { useId, useState, type ReactElement, type ReactNode } from "react";
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "./popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
-import { getHelpTerm } from "../../config/helpText";
+import { getHelpTerm } from "../../lib/helpText";
 import { Button } from "./button";
 type HelpTooltipProps = { termId?: string; title?: ReactNode; detail?: ReactNode; variant?: "help" | "info" | "label"; children?: ReactNode; forcePopover?: boolean };
 function ShortHelp({ trigger, children }: { trigger: ReactElement; children: ReactNode }) {

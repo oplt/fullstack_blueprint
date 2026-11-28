@@ -45,13 +45,13 @@ test("tabs sharing a cookie jar reuse the completed refresh", async ({ browser }
             secondTab.goto(new URL("/manifest.webmanifest", baseURL).href),
         ]);
         const firstRequest = firstTab.evaluate(async () => {
-            const clientPath = "/src/api/client.ts";
+            const clientPath = "/src/lib/api.ts";
             const client = await import(clientPath);
             return client.apiFetch("/projects");
         });
         await firstRefreshEntered.promise;
         const secondRequest = secondTab.evaluate(async () => {
-            const clientPath = "/src/api/client.ts";
+            const clientPath = "/src/lib/api.ts";
             const client = await import(clientPath);
             return client.apiFetch("/notifications");
         });

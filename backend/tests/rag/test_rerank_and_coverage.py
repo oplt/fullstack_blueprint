@@ -4,13 +4,13 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from backend.modules.rag.application.context_selection import select_context_chunks
-from backend.modules.rag.application.rerank_policy import apply_rerank_policy
-from backend.modules.rag.application.retrieval_planner import plan_retrieval
-from backend.modules.rag.application.source_diversifier import diversify_by_document
-from backend.modules.rag.domain.enums import RetrievalIntent
-from backend.modules.rag.domain.models import RetrievedChunk
-from backend.modules.rag.infrastructure.cohere_reranker import CohereReranker
+from backend.modules.rag.context_selection import select_context_chunks
+from backend.modules.rag.rerank_policy import apply_rerank_policy
+from backend.modules.rag.retrieval_planner import plan_retrieval
+from backend.modules.rag.source_diversifier import diversify_by_document
+from backend.modules.rag.enums import RetrievalIntent
+from backend.modules.rag.domain import RetrievedChunk
+from backend.modules.rag.cohere_reranker import CohereReranker
 
 
 def _chunk(chunk_id: str, *, document: str = "doc", score: float = 0.5) -> RetrievedChunk:

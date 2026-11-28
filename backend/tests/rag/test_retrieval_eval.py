@@ -1,6 +1,6 @@
 import json
 
-from backend.modules.rag.eval.retrieval_eval import (
+from backend.tests.rag.retrieval_eval import (
     FIXTURES,
     evaluate_case,
     evaluate_ranking,

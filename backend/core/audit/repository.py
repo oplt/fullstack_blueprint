@@ -3,7 +3,7 @@ import json
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.modules.audit.models import AuditLog
+from backend.core.audit.models import AuditLog
 
 
 class AuditRepository:

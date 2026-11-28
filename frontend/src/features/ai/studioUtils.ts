@@ -1,4 +1,4 @@
-import { formatCurrency } from "../../utils/formatters";
+import { formatCurrency } from "@/lib/formatters";
 import { z } from "zod";
 
 export function parseJsonObject(value: string, fallback: Record<string, unknown> = {}) { if (!value.trim()) return fallback; const parsed = JSON.parse(value); if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error("JSON payload must be an object."); return parsed as Record<string, unknown>; }
